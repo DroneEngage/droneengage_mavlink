@@ -187,7 +187,7 @@ set_yaw_rate(float yaw_rate, mavlink_set_position_target_local_ned_t &sp)
 //   Con/De structors
 // ------------------------------------------------------------------------------
 Autopilot_Interface::
-Autopilot_Interface(Generic_Port *port_)
+Autopilot_Interface(GenericPort *port_)
 {
 	// initialize attributes
 	write_count = 0;
@@ -195,7 +195,7 @@ Autopilot_Interface(Generic_Port *port_)
 	reading_status = 0;      // whether the read thread is running
 	writing_status = 0;      // whether the write thread is running
 	control_status = 0;      // whether the autopilot is in offboard control mode
-	time_to_exit   = false;  // flag to signal thread exit
+	m_time_to_exit   = false;  // flag to signal thread exit
 
 	read_tid  = 0; // read thread id
 	write_tid = 0; // write thread id
@@ -240,7 +240,7 @@ read_messages()
 	Time_Stamps this_timestamps;
 
 	// Blocking wait for new data
-	while ( !received_all and !time_to_exit )
+	while ( !received_all and !m_time_to_exit )
 	{
 		// ----------------------------------------------------------------------
 		//   READ MESSAGE
@@ -629,7 +629,7 @@ start()
 
 	while ( not current_messages.sysid )
 	{
-		if ( time_to_exit )
+		if ( m_time_to_exit )
 			return;
 		usleep(500000); // check at 2Hz
 	}
@@ -673,7 +673,7 @@ start()
 	while ( not ( current_messages.time_stamps.local_position_ned &&
 				  current_messages.time_stamps.attitude            )  )
 	{
-		if ( time_to_exit )
+		if ( m_time_to_exit )
 			return;
 		usleep(500000);
 	}
@@ -731,7 +731,7 @@ stop()
 	printf("CLOSE THREADS\n");
 
 	// signal exit
-	time_to_exit = true;
+	m_time_to_exit = true;
 
 	// wait for exit
 	pthread_join(read_tid ,NULL);
@@ -818,7 +818,7 @@ read_thread()
 {
 	reading_status = true;
 
-	while ( ! time_to_exit )
+	while ( ! m_time_to_exit )
 	{
 		read_messages();
 		usleep(100000); // Read batches at 10Hz
@@ -862,7 +862,7 @@ write_thread(void)
 
 	// Pixhawk needs to see off-board commands at minimum 2Hz,
 	// otherwise it will go into fail safe
-	while ( !time_to_exit )
+	while ( !m_time_to_exit )
 	{
 		usleep(250000);   // Stream at 4Hz
 		write_setpoint();

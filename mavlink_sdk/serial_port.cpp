@@ -62,29 +62,29 @@
 // ------------------------------------------------------------------------------
 //   Con/De structors
 // ------------------------------------------------------------------------------
-Serial_Port::
-Serial_Port(const char *uart_name_ , int baudrate_)
+mavlinksdk::comm::SerialPort::
+SerialPort(const char *uart_name_ , int baudrate_)
 {
 	initialize_defaults();
 	uart_name = uart_name_;
 	baudrate  = baudrate_;
 }
 
-Serial_Port::
-Serial_Port()
+mavlinksdk::comm::SerialPort::
+SerialPort()
 {
 	initialize_defaults();
 }
 
-Serial_Port::
-~Serial_Port()
+mavlinksdk::comm::SerialPort::
+~SerialPort()
 {
 	// destroy mutex
 	pthread_mutex_destroy(&lock);
 }
 
 void
-Serial_Port::
+mavlinksdk::comm::SerialPort::
 initialize_defaults()
 {
 	// Initialize attributes
@@ -109,7 +109,7 @@ initialize_defaults()
 //   Read from Serial
 // ------------------------------------------------------------------------------
 int
-Serial_Port::
+mavlinksdk::comm::SerialPort::
 read_message(mavlink_message_t &message)
 {
 	uint8_t          cp;
@@ -189,7 +189,7 @@ read_message(mavlink_message_t &message)
 //   Write to Serial
 // ------------------------------------------------------------------------------
 int
-Serial_Port::
+mavlinksdk::comm::SerialPort::
 write_message(const mavlink_message_t &message)
 {
 	char buf[300];
@@ -211,7 +211,7 @@ write_message(const mavlink_message_t &message)
  * throws EXIT_FAILURE if could not open the port
  */
 void
-Serial_Port::
+mavlinksdk::comm::SerialPort::
 start()
 {
 
@@ -256,10 +256,7 @@ start()
 
 	is_open = true;
 
-	printf("\n");
-
 	return;
-
 }
 
 
@@ -267,16 +264,16 @@ start()
 //   Close Serial Port
 // ------------------------------------------------------------------------------
 void
-Serial_Port::
+mavlinksdk::comm::SerialPort::
 stop()
 {
-	printf("CLOSE PORT\n");
+	std::cout << _INFO_CONSOLE_TEXT << "Closing Serial Port" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
 	int result = close(fd);
 
 	if ( result )
 	{
-		fprintf(stderr,"WARNING: Error on port close (%i)\n", result );
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WARNING: Error on port close (" << result << ")" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 	}
 
 	is_open = false;
@@ -290,7 +287,7 @@ stop()
 // ------------------------------------------------------------------------------
 // Where the actual port opening happens, returns file descriptor 'fd'
 int
-Serial_Port::
+mavlinksdk::comm::SerialPort::
 _open_port(const char* port)
 {
 	// Open serial port
@@ -320,7 +317,7 @@ _open_port(const char* port)
 // ------------------------------------------------------------------------------
 // Sets configuration, flags, and baud rate
 bool
-Serial_Port::
+mavlinksdk::comm::SerialPort::
 _setup_port(int baud, int data_bits, int stop_bits, bool parity, bool hardware_control)
 {
 	// Check file descriptor
@@ -466,7 +463,7 @@ _setup_port(int baud, int data_bits, int stop_bits, bool parity, bool hardware_c
 //   Read Port with Lock
 // ------------------------------------------------------------------------------
 int
-Serial_Port::
+mavlinksdk::comm::SerialPort::
 _read_port(uint8_t &cp)
 {
 
@@ -486,7 +483,7 @@ _read_port(uint8_t &cp)
 //   Write Port with Lock
 // ------------------------------------------------------------------------------
 int
-Serial_Port::
+mavlinksdk::comm::SerialPort::
 _write_port(char *buf, unsigned len)
 {
 

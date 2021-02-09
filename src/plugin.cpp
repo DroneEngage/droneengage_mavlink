@@ -77,7 +77,7 @@ top (int argc, char **argv)
 
 	bool use_udp = false;
 	char *udp_ip = (char*)"127.0.0.1";
-	int udp_port = 16451;
+	int udp_port = 16453;
 	bool autotakeoff = false;
 
 	// do the parse, will throw an int if it fails
@@ -98,16 +98,17 @@ top (int argc, char **argv)
 	 * pthread mutex lock. It can be a serial or an UDP port.
 	 *
 	 */
-	Generic_Port *port;
+
 	if(use_udp)
 	{
-		port = new UDP_Port(udp_ip, udp_port);
+		mavlink.connectUDP(udp_ip, udp_port);
 	}
 	else
 	{
-		port = new Serial_Port(uart_name, baudrate);
+		mavlink.connectSerial(uart_name, baudrate);
 	}
 
+	mavlink.start();
 
 	/*
 	 * Instantiate an autopilot interface object
@@ -124,7 +125,7 @@ top (int argc, char **argv)
 	 * otherwise the vehicle will go into failsafe.
 	 *
 	 */
-	Autopilot_Interface autopilot_interface(port);
+	//Autopilot_Interface autopilot_interface(port);
 
 	/*
 	 * Setup interrupt signal handler
@@ -134,16 +135,24 @@ top (int argc, char **argv)
 	 * The handler in this example needs references to the above objects.
 	 *
 	 */
-	port_quit         = port;
-	autopilot_interface_quit = &autopilot_interface;
+	//port_quit         = port;
+	//autopilot_interface_quit = &autopilot_interface;
 	signal(SIGINT,quit_handler);
+	
+	
+	while (true)
+	{
+		usleep(1000); 
+	}
+
+	
 
 	/*
 	 * Start the port and autopilot_interface
 	 * This is where the port is opened, and read and write threads are started.
 	 */
-	port->start();
-	autopilot_interface.start();
+	// port->start();
+	// autopilot_interface.start();
 
 
 	// --------------------------------------------------------------------------
@@ -153,7 +162,7 @@ top (int argc, char **argv)
 	/*
 	 * Now we can implement the algorithm we want on top of the autopilot interface
 	 */
-	commands(autopilot_interface, autotakeoff);
+	//commands(autopilot_interface, autotakeoff);
 
 
 	// --------------------------------------------------------------------------
@@ -163,10 +172,10 @@ top (int argc, char **argv)
 	/*
 	 * Now that we are done we can stop the threads and close the port
 	 */
-	autopilot_interface.stop();
-	port->stop();
+	//autopilot_interface.stop();
+	//port->stop();
 
-	delete port;
+	//delete port;
 
 	// --------------------------------------------------------------------------
 	//   DONE
@@ -182,158 +191,158 @@ top (int argc, char **argv)
 //   COMMANDS
 // ------------------------------------------------------------------------------
 
-void
-commands(Autopilot_Interface &api, bool autotakeoff)
-{
+// void
+// commands(Autopilot_Interface &api, bool autotakeoff)
+// {
 
-	// --------------------------------------------------------------------------
-	//   START OFFBOARD MODE
-	// --------------------------------------------------------------------------
+// 	// --------------------------------------------------------------------------
+// 	//   START OFFBOARD MODE
+// 	// --------------------------------------------------------------------------
 
-	api.enable_offboard_control();
-	usleep(100); // give some time to let it sink in
+// 	api.enable_offboard_control();
+// 	usleep(100); // give some time to let it sink in
 
-	// now the autopilot is accepting setpoint commands
+// 	// now the autopilot is accepting setpoint commands
 
-	if(autotakeoff)
-	{
-		// arm autopilot
-		api.arm_disarm(true);
-		usleep(100); // give some time to let it sink in
-	}
+// 	if(autotakeoff)
+// 	{
+// 		// arm autopilot
+// 		api.arm_disarm(true);
+// 		usleep(100); // give some time to let it sink in
+// 	}
 
-	// --------------------------------------------------------------------------
-	//   SEND OFFBOARD COMMANDS
-	// --------------------------------------------------------------------------
-	printf("SEND OFFBOARD COMMANDS\n");
+// 	// --------------------------------------------------------------------------
+// 	//   SEND OFFBOARD COMMANDS
+// 	// --------------------------------------------------------------------------
+// 	printf("SEND OFFBOARD COMMANDS\n");
 
-	// initialize command data strtuctures
-	mavlink_set_position_target_local_ned_t sp;
-	mavlink_set_position_target_local_ned_t ip = api.initial_position;
+// 	// initialize command data strtuctures
+// 	mavlink_set_position_target_local_ned_t sp;
+// 	mavlink_set_position_target_local_ned_t ip = api.initial_position;
 
-	// autopilot_interface.h provides some helper functions to build the command
-
-
+// 	// autopilot_interface.h provides some helper functions to build the command
 
 
-	// Example 1 - Fly up by to 2m
-	set_position( ip.x ,       // [m]
-			 	  ip.y ,       // [m]
-				  ip.z - 2.0 , // [m]
-				  sp         );
-
-	if(autotakeoff)
-	{
-		sp.type_mask |= MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_TAKEOFF;
-	}
-
-	// SEND THE COMMAND
-	api.update_setpoint(sp);
-	// NOW pixhawk will try to move
-
-	// Wait for 8 seconds, check position
-	for (int i=0; i < 8; i++)
-	{
-		mavlink_local_position_ned_t pos = api.current_messages.local_position_ned;
-		printf("%i CURRENT POSITION XYZ = [ % .4f , % .4f , % .4f ] \n", i, pos.x, pos.y, pos.z);
-		sleep(1);
-	}
 
 
-	// Example 2 - Set Velocity
-	set_velocity( -1.0       , // [m/s]
-				  -1.0       , // [m/s]
-				   0.0       , // [m/s]
-				   sp        );
+// 	// Example 1 - Fly up by to 2m
+// 	set_position( ip.x ,       // [m]
+// 			 	  ip.y ,       // [m]
+// 				  ip.z - 2.0 , // [m]
+// 				  sp         );
 
-	// Example 2.1 - Append Yaw Command
-	set_yaw( ip.yaw + 90.0/180.0*M_PI, // [rad]
-			 sp     );
+// 	if(autotakeoff)
+// 	{
+// 		sp.type_mask |= MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_TAKEOFF;
+// 	}
 
-	// SEND THE COMMAND
-	api.update_setpoint(sp);
-	// NOW pixhawk will try to move
+// 	// SEND THE COMMAND
+// 	api.update_setpoint(sp);
+// 	// NOW pixhawk will try to move
 
-	// Wait for 4 seconds, check position
-	for (int i=0; i < 4; i++)
-	{
-		mavlink_local_position_ned_t pos = api.current_messages.local_position_ned;
-		printf("%i CURRENT POSITION XYZ = [ % .4f , % .4f , % .4f ] \n", i, pos.x, pos.y, pos.z);
-		sleep(1);
-	}
-
-	if(autotakeoff)
-	{
-		// Example 3 - Land using fixed velocity
-		set_velocity(  0.0       , // [m/s]
-					   0.0       , // [m/s]
-					   1.0       , // [m/s]
-					   sp        );
-
-		sp.type_mask |= MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_LAND;
-
-		// SEND THE COMMAND
-		api.update_setpoint(sp);
-		// NOW pixhawk will try to move
-
-		// Wait for 8 seconds, check position
-		for (int i=0; i < 8; i++)
-		{
-			mavlink_local_position_ned_t pos = api.current_messages.local_position_ned;
-			printf("%i CURRENT POSITION XYZ = [ % .4f , % .4f , % .4f ] \n", i, pos.x, pos.y, pos.z);
-			sleep(1);
-		}
-
-		printf("\n");
-
-		// disarm autopilot
-		api.arm_disarm(false);
-		usleep(100); // give some time to let it sink in
-	}
-
-	// --------------------------------------------------------------------------
-	//   STOP OFFBOARD MODE
-	// --------------------------------------------------------------------------
-
-	api.disable_offboard_control();
-
-	// now pixhawk isn't listening to setpoint commands
+// 	// Wait for 8 seconds, check position
+// 	for (int i=0; i < 8; i++)
+// 	{
+// 		mavlink_local_position_ned_t pos = api.current_messages.local_position_ned;
+// 		printf("%i CURRENT POSITION XYZ = [ % .4f , % .4f , % .4f ] \n", i, pos.x, pos.y, pos.z);
+// 		sleep(1);
+// 	}
 
 
-	// --------------------------------------------------------------------------
-	//   GET A MESSAGE
-	// --------------------------------------------------------------------------
-	printf("READ SOME MESSAGES \n");
+// 	// Example 2 - Set Velocity
+// 	set_velocity( -1.0       , // [m/s]
+// 				  -1.0       , // [m/s]
+// 				   0.0       , // [m/s]
+// 				   sp        );
 
-	// copy current messages
-	Mavlink_Messages messages = api.current_messages;
+// 	// Example 2.1 - Append Yaw Command
+// 	set_yaw( ip.yaw + 90.0/180.0*M_PI, // [rad]
+// 			 sp     );
 
-	// local position in ned frame
-	mavlink_local_position_ned_t pos = messages.local_position_ned;
-	printf("Got message LOCAL_POSITION_NED (spec: https://mavlink.io/en/messages/common.html#LOCAL_POSITION_NED)\n");
-	printf("    pos  (NED):  %f %f %f (m)\n", pos.x, pos.y, pos.z );
+// 	// SEND THE COMMAND
+// 	api.update_setpoint(sp);
+// 	// NOW pixhawk will try to move
 
-	// hires imu
-	mavlink_highres_imu_t imu = messages.highres_imu;
-	printf("Got message HIGHRES_IMU (spec: https://mavlink.io/en/messages/common.html#HIGHRES_IMU)\n");
-	printf("    ap time:     %lu \n", imu.time_usec);
-	printf("    acc  (NED):  % f % f % f (m/s^2)\n", imu.xacc , imu.yacc , imu.zacc );
-	printf("    gyro (NED):  % f % f % f (rad/s)\n", imu.xgyro, imu.ygyro, imu.zgyro);
-	printf("    mag  (NED):  % f % f % f (Ga)\n"   , imu.xmag , imu.ymag , imu.zmag );
-	printf("    baro:        %f (mBar) \n"  , imu.abs_pressure);
-	printf("    altitude:    %f (m) \n"     , imu.pressure_alt);
-	printf("    temperature: %f C \n"       , imu.temperature );
+// 	// Wait for 4 seconds, check position
+// 	for (int i=0; i < 4; i++)
+// 	{
+// 		mavlink_local_position_ned_t pos = api.current_messages.local_position_ned;
+// 		printf("%i CURRENT POSITION XYZ = [ % .4f , % .4f , % .4f ] \n", i, pos.x, pos.y, pos.z);
+// 		sleep(1);
+// 	}
 
-	printf("\n");
+// 	if(autotakeoff)
+// 	{
+// 		// Example 3 - Land using fixed velocity
+// 		set_velocity(  0.0       , // [m/s]
+// 					   0.0       , // [m/s]
+// 					   1.0       , // [m/s]
+// 					   sp        );
+
+// 		sp.type_mask |= MAVLINK_MSG_SET_POSITION_TARGET_LOCAL_NED_LAND;
+
+// 		// SEND THE COMMAND
+// 		api.update_setpoint(sp);
+// 		// NOW pixhawk will try to move
+
+// 		// Wait for 8 seconds, check position
+// 		for (int i=0; i < 8; i++)
+// 		{
+// 			mavlink_local_position_ned_t pos = api.current_messages.local_position_ned;
+// 			printf("%i CURRENT POSITION XYZ = [ % .4f , % .4f , % .4f ] \n", i, pos.x, pos.y, pos.z);
+// 			sleep(1);
+// 		}
+
+// 		printf("\n");
+
+// 		// disarm autopilot
+// 		api.arm_disarm(false);
+// 		usleep(100); // give some time to let it sink in
+// 	}
+
+// 	// --------------------------------------------------------------------------
+// 	//   STOP OFFBOARD MODE
+// 	// --------------------------------------------------------------------------
+
+// 	api.disable_offboard_control();
+
+// 	// now pixhawk isn't listening to setpoint commands
 
 
-	// --------------------------------------------------------------------------
-	//   END OF COMMANDS
-	// --------------------------------------------------------------------------
+// 	// --------------------------------------------------------------------------
+// 	//   GET A MESSAGE
+// 	// --------------------------------------------------------------------------
+// 	printf("READ SOME MESSAGES \n");
 
-	return;
+// 	// copy current messages
+// 	Mavlink_Messages messages = api.current_messages;
 
-}
+// 	// local position in ned frame
+// 	mavlink_local_position_ned_t pos = messages.local_position_ned;
+// 	printf("Got message LOCAL_POSITION_NED (spec: https://mavlink.io/en/messages/common.html#LOCAL_POSITION_NED)\n");
+// 	printf("    pos  (NED):  %f %f %f (m)\n", pos.x, pos.y, pos.z );
+
+// 	// hires imu
+// 	mavlink_highres_imu_t imu = messages.highres_imu;
+// 	printf("Got message HIGHRES_IMU (spec: https://mavlink.io/en/messages/common.html#HIGHRES_IMU)\n");
+// 	printf("    ap time:     %lu \n", imu.time_usec);
+// 	printf("    acc  (NED):  % f % f % f (m/s^2)\n", imu.xacc , imu.yacc , imu.zacc );
+// 	printf("    gyro (NED):  % f % f % f (rad/s)\n", imu.xgyro, imu.ygyro, imu.zgyro);
+// 	printf("    mag  (NED):  % f % f % f (Ga)\n"   , imu.xmag , imu.ymag , imu.zmag );
+// 	printf("    baro:        %f (mBar) \n"  , imu.abs_pressure);
+// 	printf("    altitude:    %f (m) \n"     , imu.pressure_alt);
+// 	printf("    temperature: %f C \n"       , imu.temperature );
+
+// 	printf("\n");
+
+
+// 	// --------------------------------------------------------------------------
+// 	//   END OF COMMANDS
+// 	// --------------------------------------------------------------------------
+
+// 	return;
+
+// }
 
 
 // ------------------------------------------------------------------------------
@@ -426,20 +435,20 @@ quit_handler( int sig )
 	printf("TERMINATING AT USER REQUEST\n");
 	printf("\n");
 
-	// autopilot interface
-	try {
-		autopilot_interface_quit->handle_quit(sig);
-	}
-	catch (int error){}
+	// // autopilot interface
+	// try {
+	// 	autopilot_interface_quit->handle_quit(sig);
+	// }
+	// catch (int error){}
 
-	// port
+	// // port
 	try {
-		port_quit->stop();
+	 	//mavlink.stop();
 	}
 	catch (int error){}
 
 	// end program here
-	exit(0);
+	 exit(0);
 
 }
 

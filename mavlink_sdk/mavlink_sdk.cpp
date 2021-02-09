@@ -1,0 +1,49 @@
+
+#include <iostream>
+
+#include "colors.h"
+
+
+#include "serial_port.h"
+#include "udp_port.h"
+
+#include "mavlink_sdk.h"
+
+
+void mavlinksdk::CMavlinkSDK::start()
+{
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "MavlinkSDK Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+
+    this->m_port.get()->start();
+    this->m_communicator = std::unique_ptr<mavlinksdk::comm::CMavlinkCommunicator> ( new mavlinksdk::comm::CMavlinkCommunicator(this->m_port));
+    this->m_communicator.get()->start();
+}
+
+
+void mavlinksdk::CMavlinkSDK::connectUDP (const char *target_ip, int udp_port)
+{
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "connectUDP on " << target_ip << " port " << udp_port << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+
+    this->m_port = std::shared_ptr<mavlinksdk::comm::GenericPort>( new mavlinksdk::comm::UDPPort(target_ip, udp_port));
+}
+
+void mavlinksdk::CMavlinkSDK::connectSerial (const char *uart_name, int baudrate)
+{
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "connectSerial on " << uart_name << " baudrate " << baudrate << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+
+    this->m_port   = std::shared_ptr<mavlinksdk::comm::GenericPort>( new mavlinksdk::comm::SerialPort(uart_name, baudrate));
+}
+
+void mavlinksdk::CMavlinkSDK::stop()
+{
+    this->m_port.get()->stop();
+    this->m_stopped_called = true;
+}
+
+mavlinksdk::CMavlinkSDK::~CMavlinkSDK()
+{
+    if (this->m_stopped_called == false)
+    {
+        this->stop();
+    }
+}

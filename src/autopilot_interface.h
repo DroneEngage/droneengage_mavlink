@@ -249,7 +249,7 @@ class Autopilot_Interface
 public:
 
 	Autopilot_Interface();
-	Autopilot_Interface(Generic_Port *port_);
+	Autopilot_Interface(GenericPort *port_);
 	~Autopilot_Interface();
 
 	char reading_status;
@@ -283,9 +283,9 @@ public:
 
 private:
 
-	Generic_Port *port;
+	GenericPort *port;
 
-	bool time_to_exit;
+	bool m_time_to_exit;
 
 	pthread_t read_tid;
 	pthread_t write_tid;

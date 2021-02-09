@@ -1,0 +1,35 @@
+{ 
+    "module_id": "FCB_CTRL", 
+    "module_class": "fcb", 
+    "module_features": ["T", "R"], 
+    "s2s_udp_target_ip": "127.0.0.1",
+    "s2s_udp_target_port": "60000", 
+    "s2s_udp_listening_ip": "127.0.0.1", 
+    "s2s_udp_listening_port": "60003", 
+    
+    "unitID": "ad_uavos_os", 
+    "telemetryLevel": "1", 
+    "fcbConnectionURI": "udp:0.0.0.0:14551", 
+    "fcbConnectionURI2": "/dev/ttyACM0", 
+    "fcbConnectionURI3": "auto", 
+    "fcbAutoConnect": true, 
+    "enable_INS": false,
+    "enable_IMU_LOGGING": false,
+    "module_key": "E289FEE7-F4AD-44EF-A257-C9A361316BE7", 
+    "module_messages": [1004, 1005, 1007, 1010, 1021, 1030, 1031, 1032, 1033, 1034, 1035, 1036, 1037, 1040, 1041, 1043, 1044, 1046, 1047, 1048, 1052, 2022, 6001, 6501], 
+    "groupID": "1",
+  
+  
+  
+    "RC_channelReverse": [1,-1,1,1,1,1,1,1],
+    "RC_channelLimitsMax": [1850,2000,2000,2000,2000,2000,2000,2000],
+    "RC_channelLimitsMin": [1150,1000,1000,1000,1000,1000,1000,1000],
+  
+    
+    //Drone
+    "Traking_PID": {"elevator_P": 50, "elevator_I": 5, "elevator_D": 0, 
+    "rudder_P": 0, "rudder_I": 0, "rudder_D": 0, 
+    "aliron_P": 50, "aliron_I":5, "aliron_D": 0}
+
+  }
+  

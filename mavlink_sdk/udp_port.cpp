@@ -64,8 +64,8 @@
 // ------------------------------------------------------------------------------
 //   Con/De structors
 // ------------------------------------------------------------------------------
-UDP_Port::
-UDP_Port(const char *target_ip_, int udp_port_)
+mavlinksdk::comm::UDPPort::
+UDPPort(const char *target_ip_, int udp_port_)
 {
 	initialize_defaults();
 	target_ip = target_ip_;
@@ -73,21 +73,21 @@ UDP_Port(const char *target_ip_, int udp_port_)
 	is_open = false;
 }
 
-UDP_Port::
-UDP_Port()
+mavlinksdk::comm::UDPPort::
+UDPPort()
 {
 	initialize_defaults();
 }
 
-UDP_Port::
-~UDP_Port()
+mavlinksdk::comm::UDPPort::
+~UDPPort()
 {
 	// destroy mutex
 	pthread_mutex_destroy(&lock);
 }
 
 void
-UDP_Port::
+mavlinksdk::comm::UDPPort::
 initialize_defaults()
 {
 	// Initialize attributes
@@ -112,7 +112,7 @@ initialize_defaults()
 //   Read from UDP
 // ------------------------------------------------------------------------------
 int
-UDP_Port::
+mavlinksdk::comm::UDPPort::
 read_message(mavlink_message_t &message)
 {
 	uint8_t          cp;
@@ -192,7 +192,7 @@ read_message(mavlink_message_t &message)
 //   Write to UDP
 // ------------------------------------------------------------------------------
 int
-UDP_Port::
+mavlinksdk::comm::UDPPort::
 write_message(const mavlink_message_t &message)
 {
 	char buf[300];
@@ -217,7 +217,7 @@ write_message(const mavlink_message_t &message)
  * throws EXIT_FAILURE if could not open the port
  */
 void
-UDP_Port::
+mavlinksdk::comm::UDPPort::
 start()
 {
 	// --------------------------------------------------------------------------
@@ -273,30 +273,30 @@ start()
 //   Close UDP Port
 // ------------------------------------------------------------------------------
 void
-UDP_Port::
+mavlinksdk::comm::UDPPort::
 stop()
 {
-	printf("CLOSE PORT\n");
+	std::cout << _INFO_CONSOLE_TEXT << "Closing UDP Port" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
 	int result = close(sock);
 	sock = -1;
 
 	if ( result )
 	{
-		fprintf(stderr,"WARNING: Error on port close (%i)\n", result );
+		//fprintf(stderr,"WARNING: Error on port close (%i)\n", result );
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WARNING: Error on port close (" << result << ")" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 	}
 
 	is_open = false;
 
-	printf("\n");
-
+	return;
 }
 
 // ------------------------------------------------------------------------------
 //   Read Port with Lock
 // ------------------------------------------------------------------------------
 int
-UDP_Port::
+mavlinksdk::comm::UDPPort::
 _read_port(uint8_t &cp)
 {
 
@@ -342,7 +342,7 @@ _read_port(uint8_t &cp)
 //   Write Port with Lock
 // ------------------------------------------------------------------------------
 int
-UDP_Port::
+mavlinksdk::comm::UDPPort::
 _write_port(char *buf, unsigned len)
 {
 
@@ -360,7 +360,7 @@ _write_port(char *buf, unsigned len)
 		bytesWritten = sendto(sock, buf, len, 0, (struct sockaddr*)&addr, sizeof(struct sockaddr_in));
 		//printf("sendto: %i\n", bytesWritten);
 	}else{
-		printf("ERROR: Sending before first packet received!\n");
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: Sending before first packet received!" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 		bytesWritten = -1;
 	}
 
