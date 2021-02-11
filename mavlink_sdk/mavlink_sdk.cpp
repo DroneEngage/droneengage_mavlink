@@ -1,8 +1,6 @@
 
 #include <iostream>
 
-#include "colors.h"
-
 
 #include "serial_port.h"
 #include "udp_port.h"
@@ -15,10 +13,13 @@ void mavlinksdk::CMavlinkSDK::start()
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "MavlinkSDK Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
     this->m_port.get()->start();
-    this->m_communicator = std::unique_ptr<mavlinksdk::comm::CMavlinkCommunicator> ( new mavlinksdk::comm::CMavlinkCommunicator(this->m_port));
+    
+    this->m_vehicle      = std::unique_ptr<mavlinksdk::CVehicle>                   ( new mavlinksdk::CVehicle(*this->m_callback_vehicle));
+    this->m_communicator = std::unique_ptr<mavlinksdk::comm::CMavlinkCommunicator> ( new mavlinksdk::comm::CMavlinkCommunicator(this->m_port, this));
     this->m_communicator.get()->start();
-}
 
+
+}
 
 void mavlinksdk::CMavlinkSDK::connectUDP (const char *target_ip, int udp_port)
 {
@@ -47,3 +48,70 @@ mavlinksdk::CMavlinkSDK::~CMavlinkSDK()
         this->stop();
     }
 }
+
+
+void mavlinksdk::CMavlinkSDK::OnMessageReceived (mavlink_message_t& mavlink_message)
+{
+    //std::cout << _SUCCESS_CONSOLE_TEXT_ << "Message Received" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+
+    m_sysid  = mavlink_message.sysid;
+	m_compid = mavlink_message.compid;
+
+    this->m_vehicle.get()->parseMessage(mavlink_message);
+}
+
+void mavlinksdk::CMavlinkSDK::OnConnected (const bool connected) 
+{
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Connected Live" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+}
+
+
+/**
+ * https://mavlink.io/en/messages/common.html#MAV_CMD_COMPONENT_ARM_DISARM
+ */
+void mavlinksdk::CMavlinkSDK::doArmDisarm (const bool arm, const bool force)
+{
+
+    float forceArm = 0;
+    if (force == true)
+    {
+        forceArm = 21196;
+    }
+
+    float flagArm = 0.0f;
+    if (arm == true)
+    {
+        flagArm = 1.0f;
+    }
+
+    // Prepare command for off-board mode
+	mavlink_command_long_t com = { 0 };
+	com.target_system    = this->m_sysid;
+	com.target_component = this->m_compid;
+	com.command          = MAV_CMD_COMPONENT_ARM_DISARM;
+	com.confirmation     = true;
+	com.param1           = (float) flagArm;
+	com.param2           = forceArm;
+
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_command_long_encode(this->m_sysid, this->m_compid, &mavlink_message, &com);
+
+    this->m_communicator.get()->send_message(mavlink_message);
+}
+
+void mavlinksdk::CMavlinkSDK::doSetMode (const uint8_t mode)
+{
+    mavlink_message_t mavlink_message;
+    mavlink_set_mode_t set_mode;
+    set_mode.base_mode = mode;
+	mavlink_msg_set_mode_encode(
+        this->m_sysid,
+        this->m_compid,
+        &mavlink_message,
+        &set_mode
+    ) ;
+
+    this->m_communicator.get()->send_message(mavlink_message);
+}
+

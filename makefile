@@ -13,6 +13,7 @@ OBJS = $(BUILD)/mavlink_sdk.o \
 	   $(BUILD)/mavlink_communicator.o \
 	   $(BUILD)/serial_port.o \
 	   $(BUILD)/udp_port.o \
+	   $(BUILD)/vehicle.o \
 	   $(BUILD)/andruav_facade.o \
 	   $(BUILD)/andruav_message_parser.o \
 	   $(BUILD)/andruav_traffic_optimizer.o \
@@ -22,6 +23,7 @@ SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
 	   ../mavlink_sdk/mavlink_communicator.cpp \
 	   ../mavlink_sdk/serial_port.cpp \
 	   ../mavlink_sdk/udp_port.cpp \
+	   ../mavlink_sdk/vehicle.cpp \
 	   ../$(SRC)/andruav_facade.cpp \
 	   ../$(SRC)/andruav_message_parser.cpp \
 	   ../$(SRC)/andruav_traffic_optimizer.cpp \
@@ -43,7 +45,7 @@ release: uavos_ardupilot.release
 	@echo "DONE."
 
 debug: uavos_ardupilot.debug
-	$(CXX)  -o $(BIN)/$(EXE).so  $(CXXFLAGS_DEBUG)  $(OBJS)   $(LIBS)  ;
+	$(CXX)  -g -o $(BIN)/$(EXE).so  $(CXXFLAGS_DEBUG)  $(OBJS)   $(LIBS)  ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
@@ -57,7 +59,7 @@ uavos_ardupilot.release: copy
 uavos_ardupilot.debug: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXX)   -c   $(SRCS)  $(INCLUDE)  ; 
+	$(CXX)   -g -c   $(SRCS)  $(INCLUDE)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 

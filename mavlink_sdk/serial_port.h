@@ -64,7 +64,7 @@
 #include <signal.h>
 
 #include <common/mavlink.h>
-#include "colors.h"
+#include "./helpers/colors.h"
 #include "generic_port.h"
 
 // ------------------------------------------------------------------------------

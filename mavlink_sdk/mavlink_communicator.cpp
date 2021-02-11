@@ -3,7 +3,7 @@
 #include <mutex>
 #include <unistd.h>  // UNIX standard function definitions
 
-#include "colors.h"
+#include "./helpers/colors.h"
 #include "mavlink_communicator.h"
 
 
@@ -47,6 +47,15 @@ void mavlinksdk::comm::CMavlinkCommunicator::stop ()
  
 
 	// still need to close the port separately
+
+	return ;
+}
+
+const int mavlinksdk::comm::CMavlinkCommunicator::send_message (const mavlink_message_t& mavlink_message)
+{
+	const int len = m_port->write_message(mavlink_message);
+
+	return len;
 }
 
 void mavlinksdk::comm::CMavlinkCommunicator::_readThread ()
@@ -75,26 +84,31 @@ void mavlinksdk::comm::CMavlinkCommunicator::_writeThread ()
 
 void mavlinksdk::comm::CMavlinkCommunicator::read_messages ()
 {
-    bool success;               // receive success flag
-	bool received_all = false;  // receive only one message
-	//Time_Stamps this_timestamps;
 
 	// Blocking wait for new data
-	while ( !received_all and !m_time_to_exit )
+	while ( !m_time_to_exit )
 	{
         // ----------------------------------------------------------------------
 		//   READ MESSAGE
 		// ----------------------------------------------------------------------
 		mavlink_message_t message;
-		success = m_port->read_message(message);
-
+		const bool success = m_port->read_message(message);
+		
         if( success )
 		{
-            std::cout << _SUCCESS_CONSOLE_TEXT_ << "Message Received" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+			if (m_connected == false)
+			{
+				m_connected = true;
+				this->m_callback_communicator->OnConnected (true);
+			}
+            this->m_callback_communicator->OnMessageReceived (message);
         }
 		
     }
 }
+
+
+
 // ------------------------------------------------------------------------------
 //  Pthread Starter Helper Functions
 // ------------------------------------------------------------------------------

@@ -1,0 +1,5 @@
+#ifndef ANDRUAV_ESSAGE_PARSER_H_
+#define ANDRUAV_ESSAGE_PARSER_H_
+
+
+#endif

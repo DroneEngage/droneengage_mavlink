@@ -1,0 +1,4 @@
+#ifndef ANDRUAV_TRAFFIC_OPTIIZER_H_
+
+#define ANRUAV_TRAFFIC_OPTIIZER_H_
+#endif
