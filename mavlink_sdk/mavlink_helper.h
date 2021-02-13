@@ -1,67 +1,47 @@
-#pragma once 
+#ifndef MAVLINK_HELPER_H_
+#define MAVLINK_HELPER_H_
 
 #include <iostream>
 #include <string>
 #include <common/mavlink.h>
 
-/**
- * Get string readable meaning of CMD_ACK error number.
- * @param result value in CMD_ACK
- */
-std::string getACKError (const int result)
+namespace mavlinksdk
 {
-    std::string err;
-    switch (result)
+    typedef enum FIRMWARE_TYPE
     {
-        case 0:  // I found ZEO reply with success !!
-        case MAV_CMD_ACK_OK:
-            err = "succeeded";
-            break;
-        
-        case MAV_CMD_ACK_ERR_FAIL:
-            err = "Generic error message if none of the other reasons fails or if no detailed error reporting is implemented.";
-            break;
+        FIRMWARE_TYPE_ARDU_PLANE=0,
+        FIRMWARE_TYPE_ARDU_COPTER=1,
+        FIRMWARE_TYPE_ARDU_ROVER=2,
+        FIRMWARE_TYPE_ARDU_SUB=3,
+        FIRMWARE_TYPE_UNKNOWN = 9999,
+    } FIRMWARE_TYPE;
 
-        case MAV_CMD_ACK_ERR_ACCESS_DENIED:
-            err = "The system is refusing to accept this command from communication partner.";
-            break;
 
-        case MAV_CMD_ACK_ERR_COORDINATE_FRAME_NOT_SUPPORTED:
-            err = "The coordinate frame of this command or mission item is not supported.";
-            break;
+    
 
-        case MAV_CMD_ACK_ERR_NOT_SUPPORTED:
-            err = "Command or mission item is not supported, other commands would be accepted.";
-            break;
 
-        case MAV_CMD_ACK_ERR_COORDINATES_OUT_OF_RANGE:
-            err = "The coordinate frame of this command is ok, but he coordinate values exceed the safety limits of this system. This is a generic error, please use the more specific error messages below if possible.";
-            break;
+    class CMavlinkHelper 
+    {
+        private: 
+            // Disallow creating an instance of this class.
+            CMavlinkHelper(){};       
 
-        case MAV_CMD_ACK_ERR_X_LAT_OUT_OF_RANGE:
-            err = "The X or latitude value is out of range.";
-            break;
-        
-        case MAV_CMD_ACK_ERR_Y_LON_OUT_OF_RANGE:
-            err = "The Y or longitude value is out of range.";
-            break;
-        
-        case MAV_CMD_ACK_ERR_Z_ALT_OUT_OF_RANGE:
-            err = "The Z or altitude value is out of range.";
-            break;
+        public:
+            static std::string getACKError (const int result);        
+            
+            static mavlinksdk::FIRMWARE_TYPE getFirmewareType (int mav_type,int autopilot_type);
 
-        default:
-            err = "Unknown";
-            break;
+            static std::string getMode (int mode, int autopilot_type);
+
+            static std::string getPlaneMode (int mode);
+
+            static std::string getCopterMode (int mode);
+
+            static std::string getSubMode (int mode);
+
+            static std::string getRoverMode (int mode);
     };
 
-    return err;
 }
 
-
-int modeMappingByNumber (int mav_type)
-{
-
-}
-
-
+#endif //MAVLINK_HELPER_H_

@@ -53,6 +53,8 @@
         "typeinfo": "cpp",
         "bit": "cpp",
         "map": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "forward_list": "cpp",
+        "valarray": "cpp"
     }
 }

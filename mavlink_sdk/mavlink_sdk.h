@@ -13,16 +13,16 @@ namespace mavlinksdk
     class CMavlinkSDK : protected mavlinksdk::comm::CCallBack_Communicator, protected mavlinksdk::CCallBack_Vehicle
     {
         public:
-        //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
-        static CMavlinkSDK& getInstance()
-        {
-            static CMavlinkSDK instance;
+            //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
+            static CMavlinkSDK& getInstance()
+            {
+                static CMavlinkSDK instance;
 
-            return instance;
-        }
+                return instance;
+            }
 
-        CMavlinkSDK(CMavlinkSDK const&)           = delete;
-        void operator=(CMavlinkSDK const&)        = delete;
+            CMavlinkSDK(CMavlinkSDK const&)           = delete;
+            void operator=(CMavlinkSDK const&)        = delete;
 
         
             // Note: Scott Meyers mentions in his Effective Modern
@@ -104,20 +104,25 @@ namespace mavlinksdk
 
             };
 
-            void OnACK (const int result, const std::string result_msg) override 
+            void OnACK (const int result, const std::string& result_msg) override 
             {
                 std::cout << _INFO_CONSOLE_TEXT << "OnACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
             };
 
-            void OnStatusText (const std::string status) override 
+            void OnStatusText (const std::string& status) override 
             {
                 std::cout << _INFO_CONSOLE_TEXT << "Status " << status << _NORMAL_CONSOLE_TEXT_ << std::endl;
             };
             
+            void OnModeChanges(const int mode_number, const int firmware_type)  override
+            {
+                std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Vehicle Mode " << mavlinksdk::CMavlinkHelper::getMode (mode_number, firmware_type) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+            };
+
 
     };
 }
 
 
 
-#endif
+#endif // MAVLINK_SDK_H_

@@ -37,12 +37,16 @@ void mavlinksdk::CMavlinkSDK::connectSerial (const char *uart_name, int baudrate
 
 void mavlinksdk::CMavlinkSDK::stop()
 {
-    this->m_port.get()->stop();
+
+    if (this->m_port.get()!= nullptr)
+        this->m_port.get()->stop();    
     this->m_stopped_called = true;
 }
 
 mavlinksdk::CMavlinkSDK::~CMavlinkSDK()
 {
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CMavlinkSDK" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
     if (this->m_stopped_called == false)
     {
         this->stop();
@@ -102,15 +106,29 @@ void mavlinksdk::CMavlinkSDK::doArmDisarm (const bool arm, const bool force)
 
 void mavlinksdk::CMavlinkSDK::doSetMode (const uint8_t mode)
 {
-    mavlink_message_t mavlink_message;
-    mavlink_set_mode_t set_mode;
-    set_mode.base_mode = mode;
-	mavlink_msg_set_mode_encode(
-        this->m_sysid,
-        this->m_compid,
-        &mavlink_message,
-        &set_mode
-    ) ;
+    // mavlink_message_t mavlink_message;
+    // mavlink_set_mode_t set_mode;
+    // set_mode.base_mode = mode;
+	// mavlink_msg_set_mode_encode(
+    //     this->m_sysid,
+    //     this->m_compid,
+    //     &mavlink_message,
+    //     &set_mode
+    // ) ;
+
+    // Prepare command for off-board mode
+	mavlink_command_long_t com = { 0 };
+	com.target_system    = this->m_sysid;
+	com.target_component = this->m_compid;
+	com.command          = MAV_CMD_DO_SET_MODE;
+	com.confirmation     = true;
+	com.param1           = (float) mode;
+	com.param2           = 0;
+    com.param3           = 0;
+
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_command_long_encode(this->m_sysid, this->m_compid, &mavlink_message, &com);
 
     this->m_communicator.get()->send_message(mavlink_message);
 }

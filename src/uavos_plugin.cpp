@@ -1,64 +1,5 @@
-/****************************************************************************
- *
- *   Copyright (c) 2014 MAVlink Development Team. All rights reserved.
- *   Author: Trent Lukaczyk, <aerialhedgehog@gmail.com>
- *           Jaycee Lock,    <jaycee.lock@gmail.com>
- *           Lorenz Meier,   <lm@inf.ethz.ch>
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
+#include "uavos_plugin.h"
 
-/**
- * @file mavlink_control.cpp
- *
- * @brief An example offboard control process via mavlink
- *
- * This process connects an external MAVLink UART device to send an receive data
- *
- * @author Trent Lukaczyk, <aerialhedgehog@gmail.com>
- * @author Jaycee Lock,    <jaycee.lock@gmail.com>
- * @author Lorenz Meier,   <lm@inf.ethz.ch>
- *
- */
-
-
-
-// ------------------------------------------------------------------------------
-//   Includes
-// ------------------------------------------------------------------------------
-
-#include "plugin.h"
-
-
-// ------------------------------------------------------------------------------
-//   TOP
-// ------------------------------------------------------------------------------
 int
 top (int argc, char **argv)
 {
@@ -137,7 +78,7 @@ top (int argc, char **argv)
 	 */
 	//port_quit         = port;
 	//autopilot_interface_quit = &autopilot_interface;
-	signal(SIGINT,quit_handler);
+	//signal(SIGINT,quit_handler);
 	
 	
 	while (true)
@@ -424,54 +365,54 @@ parse_commandline(int argc, char **argv, char *&uart_name, int &baudrate,
 }
 
 
-// ------------------------------------------------------------------------------
-//   Quit Signal Handler
-// ------------------------------------------------------------------------------
-// this function is called when you press Ctrl-C
-void
-quit_handler( int sig )
-{
-	printf("\n");
-	printf("TERMINATING AT USER REQUEST\n");
-	printf("\n");
+// // ------------------------------------------------------------------------------
+// //   Quit Signal Handler
+// // ------------------------------------------------------------------------------
+// // this function is called when you press Ctrl-C
+// void
+// quit_handler( int sig )
+// {
+// 	printf("\n");
+// 	printf("TERMINATING AT USER REQUEST\n");
+// 	printf("\n");
 
-	// // autopilot interface
-	// try {
-	// 	autopilot_interface_quit->handle_quit(sig);
-	// }
-	// catch (int error){}
+// 	// // autopilot interface
+// 	// try {
+// 	// 	autopilot_interface_quit->handle_quit(sig);
+// 	// }
+// 	// catch (int error){}
 
-	// // port
-	try {
-	 	//mavlink.stop();
-	}
-	catch (int error){}
+// 	// // port
+// 	try {
+// 	 	//mavlink.stop();
+// 	}
+// 	catch (int error){}
 
-	// end program here
-	 exit(0);
+// 	// end program here
+// 	 exit(0);
 
-}
+// }
 
 
-// ------------------------------------------------------------------------------
-//   Main
-// ------------------------------------------------------------------------------
-int
-main(int argc, char **argv)
-{
-	// This program uses throw, wrap one big try/catch here
-	try
-	{
-		int result = top(argc,argv);
-		return result;
-	}
+// // ------------------------------------------------------------------------------
+// //   Main
+// // ------------------------------------------------------------------------------
+// int
+// main(int argc, char **argv)
+// {
+// 	// This program uses throw, wrap one big try/catch here
+// 	try
+// 	{
+// 		int result = top(argc,argv);
+// 		return result;
+// 	}
 
-	catch ( int error )
-	{
-		fprintf(stderr,"mavlink_control threw exception %i \n" , error);
-		return error;
-	}
+// 	catch ( int error )
+// 	{
+// 		fprintf(stderr,"mavlink_control threw exception %i \n" , error);
+// 		return error;
+// 	}
 
-}
+// }
 
 

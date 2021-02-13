@@ -5,7 +5,6 @@
 #include "./helpers/colors.h"
 #include "./helpers/utils.h"
 #include <common/mavlink.h>
-#include "mavlink_helper.h"
 #include "vehicle.h"
 
 
@@ -25,40 +24,61 @@ mavlinksdk::CVehicle::~CVehicle()
 
 void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbeat)
 {
+	
+	const bool is_armed  = (heartbeat.base_mode & MAV_MODE_FLAG_SAFETY_ARMED) != 0;
+
+	
+	const bool is_flying = ((heartbeat.system_status == MAV_STATE_ACTIVE) || 
+           	             ((heartbeat.system_status == MAV_STATE_CRITICAL) || (m_heartbeat.system_status == MAV_STATE_EMERGENCY)));
+
+	//Detect mode change
+	const bool is_mode_changed = (m_heartbeat.custom_mode != heartbeat.custom_mode) || !m_heart_beat_first;
+	
+
+	// copy 
+	m_heartbeat = heartbeat;
+	
+	// if ((m_heartbeat.type != heartbeat.type) ||(m_heartbeat.autopilot != m_heartbeat.autopilot))
+	// {
+	// 	m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
+	// }
+
+	// Notify that we have something alive here.
 	if (m_heart_beat_first == false)
 	{
 		m_heart_beat_first = true;
+		m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
 		m_callback_vehicle.OnHeartBeat_First (heartbeat);
 	}
 
-	m_heartbeat = heartbeat;
-	
-	const bool isArmed  = (heartbeat.base_mode & MAV_MODE_FLAG_SAFETY_ARMED) != 0;
-
 	// Detect change in arm status
-	if (m_armed != isArmed)
+	if (m_armed != is_armed)
 	{
-		m_armed = isArmed;
+		m_armed = is_armed;
 		m_callback_vehicle.OnArmed(m_armed);
 	}
 
-	const bool isFlying = ((heartbeat.system_status == MAV_STATE_ACTIVE) || 
-           	             ((heartbeat.system_status == MAV_STATE_CRITICAL) || (m_heartbeat.system_status == MAV_STATE_EMERGENCY)));
-
 	// Detect change in flying status
-	if (m_isFlying != isFlying)
+	if (m_is_flying != is_flying)
 	{
-		m_isFlying = isFlying;
-		m_callback_vehicle.OnFlying(m_isFlying);
+		m_is_flying = is_flying;
+		m_callback_vehicle.OnFlying(m_is_flying);
 	}
-
+	
+	if (is_mode_changed)
+	{
+		m_callback_vehicle.OnModeChanges (m_heartbeat.custom_mode, m_firmware_type);
+	}
+	
+	
+ 	
 	return ;
 }
 
 
 void mavlinksdk::CVehicle::handle_cmd_ack (const mavlink_command_ack_t& command_ack)
 {
-	m_callback_vehicle.OnACK (command_ack.result, getACKError (command_ack.result));
+	m_callback_vehicle.OnACK (command_ack.result, mavlinksdk::CMavlinkHelper::getACKError (command_ack.result));
 }
 
 
@@ -117,7 +137,7 @@ void mavlinksdk::CVehicle::parseMessage (mavlink_message_t& mavlink_message)
         }
         break;
 
-        case MAVLINK_MSG_ID_LOCAL_POSITION_NED:
+		case MAVLINK_MSG_ID_LOCAL_POSITION_NED:
 		{
             mavlink_msg_local_position_ned_decode(&mavlink_message, &(m_local_position_ned));
 			

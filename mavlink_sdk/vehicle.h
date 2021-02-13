@@ -2,6 +2,8 @@
 #define VEHICLE_H_
 
 
+#include "mavlink_helper.h"
+
 namespace mavlinksdk
 {
     
@@ -33,11 +35,12 @@ namespace mavlinksdk
     {
         public:
 
-        virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)   = 0;
-        virtual void OnArmed  (const bool armed)                                = 0;
-        virtual void OnFlying (const bool isFlying)                             = 0;
-        virtual void OnACK    (const int result, const std::string result_msg)  = 0;
-        virtual void OnStatusText (const std::string status)                    = 0;
+        virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)       = 0;
+        virtual void OnArmed  (const bool armed)                                    = 0;
+        virtual void OnFlying (const bool isFlying)                                 = 0;
+        virtual void OnACK    (const int result, const std::string& result_msg)      = 0;
+        virtual void OnStatusText (const std::string& status)                        = 0;
+        virtual void OnModeChanges(const int mode_number, const int firmware_type)  =0;
     };
 
     class CVehicle
@@ -49,7 +52,7 @@ namespace mavlinksdk
             
         public:
 
-            void parseMessage (mavlink_message_t& mavlink_message);
+            void parseMessage       (mavlink_message_t& mavlink_message);
             void handle_heart_beat  (const mavlink_heartbeat_t& heartbeat);
             void handle_cmd_ack     (const mavlink_command_ack_t& command_ack);
             void handle_status_text (const mavlink_statustext_t& status_text);
@@ -68,7 +71,7 @@ namespace mavlinksdk
             
             const bool isFlying()
             {
-                return m_isFlying;
+                return m_is_flying;
             } 
 
         // Class Members
@@ -123,9 +126,11 @@ namespace mavlinksdk
             // Vehicle is armed
             bool m_armed    = false;
             // Flying or Diving
-            bool m_isFlying = false;
+            bool m_is_flying = false;
+            // Firmware Type
+            mavlinksdk::FIRMWARE_TYPE m_firmware_type;
     };
 }
 
 
-#endif
+#endif // VEHICLE_H_

@@ -31,9 +31,9 @@ namespace mavlinksdk::comm
         public:
         
             CMavlinkCommunicator (std::shared_ptr<mavlinksdk::comm::GenericPort> port,
-                        CCallBack_Communicator* callback_communicator)
+                        CCallBack_Communicator* callback_communicator): m_port(port)
             {
-                m_port = port;
+                //m_port = port;
 
                 m_callback_communicator = callback_communicator;
             }
@@ -66,4 +66,4 @@ namespace mavlinksdk::comm
     
 }
 
-#endif
+#endif // MAVLINK_COMMUNICATOR_H_

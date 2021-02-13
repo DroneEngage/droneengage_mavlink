@@ -14,20 +14,30 @@ OBJS = $(BUILD)/mavlink_sdk.o \
 	   $(BUILD)/serial_port.o \
 	   $(BUILD)/udp_port.o \
 	   $(BUILD)/vehicle.o \
-	   $(BUILD)/andruav_facade.o \
-	   $(BUILD)/andruav_message_parser.o \
-	   $(BUILD)/andruav_traffic_optimizer.o \
-	   $(BUILD)/plugin.o \
+	   $(BUILD)/mavlink_helper.o \
+	   $(BUILD)/fcb_main.o \
+	   $(BUILD)/fcb_facade.o \
+	   $(BUILD)/fcb_message_parser.o \
+	   $(BUILD)/fcb_traffic_optimizer.o \
+	   $(BUILD)/configFile.o \
+	   $(BUILD)/udpClient.o \
+	   $(BUILD)/uavos_plugin.o \
+	   $(BUILD)/main.o \
 
 SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
 	   ../mavlink_sdk/mavlink_communicator.cpp \
 	   ../mavlink_sdk/serial_port.cpp \
 	   ../mavlink_sdk/udp_port.cpp \
 	   ../mavlink_sdk/vehicle.cpp \
-	   ../$(SRC)/andruav_facade.cpp \
-	   ../$(SRC)/andruav_message_parser.cpp \
-	   ../$(SRC)/andruav_traffic_optimizer.cpp \
-	   ../$(SRC)/plugin.cpp \
+	   ../mavlink_sdk/mavlink_helper.cpp \
+	   ../$(SRC)/fcb_main.cpp \
+	   ../$(SRC)/fcb_facade.cpp \
+	   ../$(SRC)/fcb_message_parser.cpp \
+	   ../$(SRC)/fcb_traffic_optimizer.cpp \
+	   ../$(SRC)/configFile.cpp \
+	   ../$(SRC)/udpClient.cpp \
+	   ../$(SRC)/uavos_plugin.cpp \
+	   ../$(SRC)/main.cpp \
 	   
 
 
@@ -59,7 +69,7 @@ uavos_ardupilot.release: copy
 uavos_ardupilot.debug: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXX)   -g -c   $(SRCS)  $(INCLUDE)  ; 
+	$(CXX)   -g -DDEBUG -c   $(SRCS)  $(INCLUDE)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 
@@ -70,8 +80,8 @@ git_submodule:
 
 
 copy: clean
-	mkdir -p $(BIN);
-	#cp config.*.json $(BIN); 
+	mkdir -p $(BIN); \
+	cp config.*.json $(BIN); 
 	@echo "copying finished"
 
 clean:

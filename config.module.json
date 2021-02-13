@@ -26,7 +26,6 @@
     "RC_channelLimitsMin": [1150,1000,1000,1000,1000,1000,1000,1000],
   
     
-    //Drone
     "Traking_PID": {"elevator_P": 50, "elevator_I": 5, "elevator_D": 0, 
     "rudder_P": 0, "rudder_I": 0, "rudder_D": 0, 
     "aliron_P": 50, "aliron_I":5, "aliron_D": 0}
