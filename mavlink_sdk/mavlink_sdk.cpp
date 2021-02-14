@@ -8,9 +8,11 @@
 #include "mavlink_sdk.h"
 
 
-void mavlinksdk::CMavlinkSDK::start()
+void mavlinksdk::CMavlinkSDK::start(mavlinksdk::CMavlinkEvents * mavlink_events)
 {
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "MavlinkSDK Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+
+    this->m_mavlink_events = mavlink_events;
 
     this->m_port.get()->start();
     
@@ -67,6 +69,8 @@ void mavlinksdk::CMavlinkSDK::OnMessageReceived (mavlink_message_t& mavlink_mess
 void mavlinksdk::CMavlinkSDK::OnConnected (const bool connected) 
 {
     std::cout << _SUCCESS_CONSOLE_TEXT_ << "Connected Live" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+
+    this->m_mavlink_events->OnConnected (connected);
 }
 
 

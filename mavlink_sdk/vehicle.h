@@ -35,12 +35,12 @@ namespace mavlinksdk
     {
         public:
 
-        virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)       = 0;
-        virtual void OnArmed  (const bool armed)                                    = 0;
-        virtual void OnFlying (const bool isFlying)                                 = 0;
-        virtual void OnACK    (const int result, const std::string& result_msg)     = 0;
-        virtual void OnStatusText (const std::string& status)                       = 0;
-        virtual void OnModeChanges(const int mode_number, const int firmware_type)  = 0;
+        virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)       {};
+        virtual void OnArmed  (const bool armed)                                    {};
+        virtual void OnFlying (const bool isFlying)                                 {};
+        virtual void OnACK    (const int result, const std::string& result_msg)     {};
+        virtual void OnStatusText (const std::string& status)                       {};
+        virtual void OnModeChanges(const int mode_number, const int firmware_type)  {};
     };
 
     class CVehicle

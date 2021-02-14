@@ -68,14 +68,18 @@ void uavos::FCB::CFCBMain::init (const Json &jsonConfig)
 
     if (connectToFCB() == true)
     {
-        m_mavlink_sdk.start();
+        m_mavlink_sdk.start(this);
     }
     
 
 }
 
 
+void uavos::FCB::CFCBMain::OnConnected (const bool connected)
+{
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "YESSSSSSS" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
+}
 
 void uavos::FCB::CFCBMain::alertUavosOffline()
 {

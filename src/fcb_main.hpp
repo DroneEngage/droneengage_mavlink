@@ -2,13 +2,14 @@
 #define FCB_MAIN_H_
 #include <common/mavlink.h>
 #include <mavlink_sdk.h>
+#include <mavlink_events.h>
 #include "defines.hpp"
 #include "./helpers/json.hpp"
 using Json = nlohmann::json;
 
 namespace uavos::FCB
 {
-    class CFCBMain
+    class CFCBMain: public mavlinksdk::CMavlinkEvents
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -39,11 +40,14 @@ namespace uavos::FCB
 
             /* cannot connect to uavos comm*/
             void alertUavosOffline ();
-            
+
+        // Events
+        public:            
+            void OnConnected (const bool connected) override;
 
         protected:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-            
+
         
         protected:
             int getConnectionType ();

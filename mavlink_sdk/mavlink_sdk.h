@@ -6,6 +6,7 @@
 #include "generic_port.h"
 #include "mavlink_communicator.h"
 #include "vehicle.h"
+#include "mavlink_events.h"
 
 
 namespace mavlinksdk
@@ -49,7 +50,7 @@ namespace mavlinksdk
             ~CMavlinkSDK ();
 
         public:
-            void start ();
+            void start (mavlinksdk::CMavlinkEvents * mavlink_events);
             void connectUDP (const char *target_ip, int udp_port);
             void connectSerial (const char *uart_name, int baudrate);
             void stop();
@@ -73,7 +74,7 @@ namespace mavlinksdk
         
 
         protected:
-                
+              mavlinksdk::CMavlinkEvents * m_mavlink_events; 
               mavlinksdk::CCallBack_Vehicle* m_callback_vehicle;
               std::shared_ptr<mavlinksdk::comm::GenericPort> m_port;
               std::unique_ptr<mavlinksdk::comm::CMavlinkCommunicator> m_communicator;

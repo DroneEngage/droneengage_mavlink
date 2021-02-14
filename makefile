@@ -21,7 +21,6 @@ OBJS = $(BUILD)/mavlink_sdk.o \
 	   $(BUILD)/fcb_traffic_optimizer.o \
 	   $(BUILD)/configFile.o \
 	   $(BUILD)/udpClient.o \
-	   $(BUILD)/uavos_plugin.o \
 	   $(BUILD)/main.o \
 
 SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
@@ -36,7 +35,6 @@ SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
 	   ../$(SRC)/fcb_traffic_optimizer.cpp \
 	   ../$(SRC)/configFile.cpp \
 	   ../$(SRC)/udpClient.cpp \
-	   ../$(SRC)/uavos_plugin.cpp \
 	   ../$(SRC)/main.cpp \
 	   
 
