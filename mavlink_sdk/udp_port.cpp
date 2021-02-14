@@ -65,10 +65,11 @@
 //   Con/De structors
 // ------------------------------------------------------------------------------
 mavlinksdk::comm::UDPPort::
-UDPPort(const char *target_ip_, int udp_port_)
+UDPPort(const char * target_ip_, int udp_port_)
 {
 	initialize_defaults();
-	target_ip = target_ip_;
+	target_ip_cached = std::string(target_ip_);
+	target_ip = target_ip_cached.c_str();
 	rx_port  = udp_port_;
 	is_open = false;
 }
@@ -92,7 +93,7 @@ initialize_defaults()
 {
 	// Initialize attributes
 	target_ip = "127.0.0.1";
-	rx_port  = 14550;
+	rx_port  = 16455;
 	tx_port  = -1;
 	is_open = false;
 	debug = false;
@@ -236,7 +237,7 @@ start()
 	struct sockaddr_in addr;
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr(target_ip);;
+	addr.sin_addr.s_addr = inet_addr(target_ip);
 	addr.sin_port = htons(rx_port);
 
 	if (bind(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr)))

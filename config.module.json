@@ -9,9 +9,19 @@
     
     "unitID": "ad_uavos_os", 
     "telemetryLevel": "1", 
-    "fcbConnectionURI": "udp:0.0.0.0:14551", 
-    "fcbConnectionURI2": "/dev/ttyACM0", 
-    "fcbConnectionURI3": "auto", 
+    "fcbConnectionURI": 
+    {"type": "udp",
+      "ip": "127.0.0.1",
+      "port":16455
+    },
+
+    "fcbConnectionURI2":
+    {
+      "type": "serial",
+      "port": "/dev/ttyACM0",
+      "baudrate": 115200
+    } ,
+
     "fcbAutoConnect": true, 
     "enable_INS": false,
     "enable_IMU_LOGGING": false,

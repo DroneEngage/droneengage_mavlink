@@ -5,7 +5,7 @@
 #include <sstream>
 #include <fstream>
 #include <memory> 
-#include "./helpers/colors.h"
+#include "./helpers/colors.hpp"
 
 
 #include "configFile.hpp"

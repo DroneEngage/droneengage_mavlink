@@ -2,7 +2,7 @@
 #include <unistd.h> //sleep
 #include <signal.h>
 
-#include "./helpers/colors.h"
+#include "./helpers/colors.hpp"
 #include "messages.hpp"
 #include "configFile.hpp"
 #include "udpClient.hpp"
@@ -18,8 +18,9 @@ std::string  PartyID;
 std::string  GroupID;
 std::string  ModuleID;
 
+uavos::FCB::CFCBMain& cFCBMain = uavos::FCB::CFCBMain::getInstance();
 
-uavos::CConfigFile&  cConfigFile = CConfigFile::getInstance();
+uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
 
 uavos::comm::CUDPClient& cUDPClient = uavos::comm::CUDPClient::getInstance();  
 
@@ -114,6 +115,8 @@ void init (int argc, char *argv[])
     cUDPClient.SetJSONID (jsonID.dump());
     cUDPClient.SetMessageOnReceive (&onReceive);
     cUDPClient.start();
+
+    cFCBMain.init(jsonConfig);
     
 }
 

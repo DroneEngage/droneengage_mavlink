@@ -106,7 +106,7 @@ namespace mavlinksdk::comm
 		public:
 
 			UDPPort();
-			UDPPort(const char *target_ip_, int udp_port_);
+			UDPPort(const char * target_ip_, int udp_port_);
 			virtual ~UDPPort();
 
 			int read_message(mavlink_message_t &message);
@@ -130,11 +130,13 @@ namespace mavlinksdk::comm
 			int buff_ptr;
 			int buff_len;
 			bool debug;
+			std::string target_ip_cached;
 			const char *target_ip;
 			int rx_port;
 			int tx_port;
 			int sock;
 			bool is_open;
+			
 
 			int  _read_port(uint8_t &cp);
 			int _write_port(char *buf, unsigned len);
