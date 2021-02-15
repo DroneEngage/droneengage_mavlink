@@ -6,8 +6,8 @@
 
 namespace mavlinksdk
 {
-    
-    #define HEART_BEAT_TIMEOUT 1000
+    // 3 seconds
+    #define HEART_BEAT_TIMEOUT 3000000l
     
     struct Time_Stamps
     {

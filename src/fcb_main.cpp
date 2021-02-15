@@ -138,7 +138,7 @@ void uavos::fcb::CFCBMain::OnStatusText (const std::uint8_t severity, const std:
 void uavos::fcb::CFCBMain::OnModeChanges(const int custom_mode, const int firmware_type)
 {
     
-    m_fcb_facade.sendID(NULL, m_andruav_vehicle_info);
+    //m_fcb_facade.sendID(NULL, m_andruav_vehicle_info);
 }   
 
 
