@@ -6,7 +6,9 @@
 #include <mutex>          // std::mutex, std::unique_lock
 
 
-namespace uavos::comm
+namespace uavos
+{
+namespace comm
 {
 class CUDPClient
 {
@@ -54,13 +56,13 @@ class CUDPClient
         void InternalReceiverEntry();
         void InternelSenderIDEntry();
 
-        struct sockaddr_in  *m_ModuleAddress, *m_CommunicatorModuleAddress; 
+        struct sockaddr_in  *m_ModuleAddress = NULL, *m_CommunicatorModuleAddress = NULL; 
         int m_SocketFD = -1; 
         std::thread m_threadSenderID, m_threadCreateUDPSocket;
         pthread_t m_thread;
 
         std::string m_JsonID;
-        void (*m_OnReceive)(const char *, int len);
+        void (*m_OnReceive)(const char *, int len) = NULL;
 
     protected:
         bool m_starrted = false;
@@ -68,6 +70,7 @@ class CUDPClient
         std::mutex m_lock;  
         
 };
+}
 }
 
 #endif

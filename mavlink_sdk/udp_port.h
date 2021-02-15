@@ -98,7 +98,9 @@
  * a serialization interface.  To help with read and write pthreading, it
  * gaurds any port operation with a pthread mutex.
  */
-namespace mavlinksdk::comm
+namespace mavlinksdk
+{
+namespace comm
 {
 	class UDPPort: public GenericPort
 	{
@@ -143,7 +145,7 @@ namespace mavlinksdk::comm
 
 	};
 }
-
+}
 
 
 #endif // UDP_PORT_H_

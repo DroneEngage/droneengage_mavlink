@@ -101,7 +101,9 @@
  * a serialization interface.  To help with read and write pthreading, it
  * gaurds any port operation with a pthread mutex.
  */
-namespace mavlinksdk::comm
+namespace mavlinksdk
+{
+namespace comm
 {
 	class SerialPort: public GenericPort
 	{
@@ -112,14 +114,14 @@ namespace mavlinksdk::comm
 			SerialPort(const char *uart_name_, int baudrate_);
 			virtual ~SerialPort();
 
-			int read_message(mavlink_message_t &message);
-			int write_message(const mavlink_message_t &message);
+			int read_message(mavlink_message_t &message) override ;
+			int write_message(const mavlink_message_t &message) override ;
 
-			bool is_running(){
+			bool is_running() override {
 				return is_open;
 			}
-			void start();
-			void stop();
+			void start() override ;
+			void stop() override ;
 
 		private:
 
@@ -141,7 +143,7 @@ namespace mavlinksdk::comm
 
 	};
 }
-
+}
 
 #endif // SERIAL_PORT_H_
 

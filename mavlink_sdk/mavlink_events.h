@@ -14,11 +14,15 @@ namespace mavlinksdk
         
         // CCallBack_Vehicle Related
         virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)       {};
+        virtual void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)     {};
         virtual void OnArmed  (const bool armed)                                    {};
         virtual void OnFlying (const bool isFlying)                                 {};
         virtual void OnACK    (const int result, const std::string& result_msg)     {};
-        virtual void OnStatusText (const std::string& status)                       {};
-        virtual void OnModeChanges(const int mode_number, const int firmware_type)  {};
+        virtual void OnStatusText (const std::uint8_t severity, const std::string& status)                       {};
+        /*
+        * vehicle_mode = mavlinksdk::CMavlinkHelper::getMode (m_heartbeat.custom_mode, m_firmware_type)
+        * */
+        virtual void OnModeChanges(const int custom_mode, const int firmware_type)  {};
 
         // CCallBack_Communicator Related
 

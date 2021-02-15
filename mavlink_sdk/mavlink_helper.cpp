@@ -63,7 +63,7 @@ std::string mavlinksdk::CMavlinkHelper::getACKError (const int result)
  * @param mav_type  mavlink_heartbeat_t.type (MAV_TYPE)
  * @param autopilot_type mavlink_heartbeat_t.autopilot (MAV_AUTOPILOT)
  * */
-mavlinksdk::FIRMWARE_TYPE mavlinksdk::CMavlinkHelper::getFirmewareType (int mav_type,int autopilot_type)
+mavlinksdk::FIRMWARE_TYPE mavlinksdk::CMavlinkHelper::getFirmewareType (const int mav_type, const int autopilot_type)
 {
     if ((autopilot_type == MAV_AUTOPILOT_GENERIC) || (autopilot_type == MAV_AUTOPILOT_ARDUPILOTMEGA)) 
     {

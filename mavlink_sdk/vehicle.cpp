@@ -43,12 +43,18 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	// 	m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
 	// }
 
-	// Notify that we have something alive here.
-	if (m_heart_beat_first == false)
-	{
+	
+	if (m_heart_beat_first == false) 
+	{  // Notify that we have something alive here.
 		m_heart_beat_first = true;
 		m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
 		m_callback_vehicle.OnHeartBeat_First (heartbeat);
+	}
+	else 
+	if ((get_time_usec() - time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT]) > HEART_BEAT_TIMEOUT)
+	{  // Notify when heart beat get live again.
+		m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
+		m_callback_vehicle.OnHeartBeat_Resumed (heartbeat);
 	}
 
 	// Detect change in arm status
@@ -89,14 +95,15 @@ void mavlinksdk::CVehicle::handle_status_text (const mavlink_statustext_t& statu
 	memcpy (msg, status_text.text,50);
 	msg[51] = 0;
 	m_status_text = std::string(msg);
-	this->m_callback_vehicle.OnStatusText(m_status_text);
+	m_status_severity = status_text.severity;
+	this->m_callback_vehicle.OnStatusText(m_status_severity, m_status_text);
 }
 
-void mavlinksdk::CVehicle::parseMessage (mavlink_message_t& mavlink_message)
+void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_message)
 {
 
 	const int msgid = mavlink_message.msgid;
-	time_stamps.message_id[msgid] = get_time_usec();
+	
 	
 	
 
@@ -213,5 +220,8 @@ void mavlinksdk::CVehicle::parseMessage (mavlink_message_t& mavlink_message)
 		}
 
     }
+
+	// update last so that messages can test delay such as on heartbeat resume
+	time_stamps.message_id[msgid] = get_time_usec();
 
 }

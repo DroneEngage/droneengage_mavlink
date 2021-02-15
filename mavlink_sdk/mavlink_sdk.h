@@ -11,7 +11,7 @@
 
 namespace mavlinksdk
 {
-    class CMavlinkSDK : protected mavlinksdk::comm::CCallBack_Communicator, protected mavlinksdk::CCallBack_Vehicle
+    class CMavlinkSDK : protected mavlinksdk::comm::CCallBack_Communicator, protected mavlinksdk::CCallBack_Vehicle, protected mavlinksdk::CMavlinkEvents
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -39,12 +39,10 @@ namespace mavlinksdk
                 m_sysid  = 0;
                 m_compid = 0;
                 m_callback_vehicle = (mavlinksdk::CCallBack_Vehicle*) this;
+                m_mavlink_events   = (mavlinksdk::CMavlinkEvents*) this;
             }                    // Constructor? (the {} brackets) are needed here.
 
-            // C++ 11
-            // =======
-            // We can use the better technique of deleting the methods we don't want.
-        
+            
         public:
             
             ~CMavlinkSDK ();
@@ -69,9 +67,14 @@ namespace mavlinksdk
 
         // Writing Status
         public:    
-            void doSetMode (const uint8_t mode);
+            std::unique_ptr<mavlinksdk::CVehicle>& getVehicle  ()
+            {
+                return m_vehicle;
+            }
+
+            void doSetMode   (const uint8_t mode);
             void doArmDisarm (const bool arm, const bool force);
-        
+
 
         protected:
               mavlinksdk::CMavlinkEvents * m_mavlink_events; 
@@ -92,7 +95,11 @@ namespace mavlinksdk
         protected:
             void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat) override 
             {
-                //doArmDisarm(true,false);
+                m_mavlink_events->OnHeartBeat_First (heartbeat);
+            };
+            void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat) override 
+            {
+                m_mavlink_events->OnHeartBeat_Resumed (heartbeat);
             };
             void OnArmed (const bool armed) override 
             {
@@ -110,14 +117,15 @@ namespace mavlinksdk
                 std::cout << _INFO_CONSOLE_TEXT << "OnACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
             };
 
-            void OnStatusText (const std::string& status) override 
+            void OnStatusText (const std::uint8_t severity, const std::string& status) override 
             {
                 std::cout << _INFO_CONSOLE_TEXT << "Status " << status << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                m_mavlink_events->OnStatusText (severity, status);
             };
             
-            void OnModeChanges(const int mode_number, const int firmware_type)  override
+            void OnModeChanges(const int custom_mode, const int firmware_type)  override
             {
-                std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Vehicle Mode " << mavlinksdk::CMavlinkHelper::getMode (mode_number, firmware_type) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->OnModeChanges (custom_mode, firmware_type);
             };
 
 

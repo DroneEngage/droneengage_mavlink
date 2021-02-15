@@ -29,7 +29,7 @@ namespace mavlinksdk
         public:
             static std::string getACKError (const int result);        
             
-            static mavlinksdk::FIRMWARE_TYPE getFirmewareType (int mav_type,int autopilot_type);
+            static mavlinksdk::FIRMWARE_TYPE getFirmewareType (const int mav_type, const int autopilot_type);
 
             static std::string getMode (int mode, int autopilot_type);
 

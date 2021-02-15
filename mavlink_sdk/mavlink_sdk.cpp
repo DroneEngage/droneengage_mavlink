@@ -64,6 +64,7 @@ void mavlinksdk::CMavlinkSDK::OnMessageReceived (mavlink_message_t& mavlink_mess
 	m_compid = mavlink_message.compid;
 
     this->m_vehicle.get()->parseMessage(mavlink_message);
+    this->m_mavlink_events->OnMessageReceived(mavlink_message);
 }
 
 void mavlinksdk::CMavlinkSDK::OnConnected (const bool connected) 

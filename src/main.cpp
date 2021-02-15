@@ -18,7 +18,7 @@ std::string  PartyID;
 std::string  GroupID;
 std::string  ModuleID;
 
-uavos::FCB::CFCBMain& cFCBMain = uavos::FCB::CFCBMain::getInstance();
+uavos::fcb::CFCBMain& cFCBMain = uavos::fcb::CFCBMain::getInstance();
 
 uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
 
@@ -27,10 +27,46 @@ uavos::comm::CUDPClient& cUDPClient = uavos::comm::CUDPClient::getInstance();
 void onReceive (const char * jsonMessage, int len);
 void uninit ();
 
+
+const std::string generateForwardSendCMD (
+        // target ID could be empty string if commType is broadcast.
+        const std::string& targetID,
+        // communication type [peer-to-peer or broadcast] 
+        const std::string& commType,
+        // Inter module communication or what ?
+        const std::string& commandType,
+        // message type ID
+        const int messageType,
+        // message contents
+        const Json& jmsg)
+{
+        Json fullMessage;
+
+        fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = std::string(targetID);
+        fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(commType);
+        fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = messageType;
+        fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = jmsg;
+        return fullMessage.dump();
+}
+
+void sendJMSG (const char * targetPartyID, const Json& jmsg)
+{
+        
+        Json webrtcMsg;
+        std::string commType = CMD_COMM_INDIVIDUAL;
+        if ((targetPartyID!= NULL) || (strlen(targetPartyID)==0))
+        {
+                commType = CMD_COMM_GROUP;
+        }
+
+        const std::string fullMessage = generateForwardSendCMD (targetPartyID, commType, std::string(CMD_TYPE_INTERMODULE),
+                TYPE_AndruavMessage_Signaling, jmsg);
+        cUDPClient.SendJMSG(fullMessage);
+}
+
 /**
  * creates JSON message that identifies Module
 **/
-
 const Json createJSONID (bool reSend)
 {
         Json& jsonConfig = cConfigFile.GetConfigJSON();

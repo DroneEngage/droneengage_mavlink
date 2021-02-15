@@ -16,9 +16,10 @@ OBJS = $(BUILD)/mavlink_sdk.o \
 	   $(BUILD)/vehicle.o \
 	   $(BUILD)/mavlink_helper.o \
 	   $(BUILD)/fcb_main.o \
-	   $(BUILD)/fcb_facade.o \
 	   $(BUILD)/fcb_message_parser.o \
 	   $(BUILD)/fcb_traffic_optimizer.o \
+	   $(BUILD)/fcb_modes.o \
+	   $(BUILD)/fcb_facade.o \
 	   $(BUILD)/configFile.o \
 	   $(BUILD)/udpClient.o \
 	   $(BUILD)/main.o \
@@ -30,9 +31,10 @@ SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
 	   ../mavlink_sdk/vehicle.cpp \
 	   ../mavlink_sdk/mavlink_helper.cpp \
 	   ../$(SRC)/fcb_main.cpp \
-	   ../$(SRC)/fcb_facade.cpp \
+	   ../$(SRC)/fcb_modes.cpp \
 	   ../$(SRC)/fcb_message_parser.cpp \
 	   ../$(SRC)/fcb_traffic_optimizer.cpp \
+	   ../$(SRC)/fcb_facade.cpp \
 	   ../$(SRC)/configFile.cpp \
 	   ../$(SRC)/udpClient.cpp \
 	   ../$(SRC)/main.cpp \
