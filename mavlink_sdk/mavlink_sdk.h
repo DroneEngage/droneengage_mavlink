@@ -56,11 +56,11 @@ namespace mavlinksdk
 
         // Reading Status
         public:
-            int getSysId () 
+            inline const int& getSysId () 
             {
                 return m_sysid;
             }
-            int getCompId ()
+            inline const int& getCompId ()
             {
                 return m_compid;
             }
@@ -72,10 +72,8 @@ namespace mavlinksdk
                 return m_vehicle;
             }
 
-            void doSetMode   (const uint8_t mode);
-            void doArmDisarm (const bool arm, const bool force);
-
-
+            void sendMavlinkMessage(const mavlink_message_t& mavlink_message);
+            
         protected:
               mavlinksdk::CMavlinkEvents * m_mavlink_events; 
               mavlinksdk::CCallBack_Vehicle* m_callback_vehicle;

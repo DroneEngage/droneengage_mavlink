@@ -11,14 +11,15 @@ BUILD = build
 
 OBJS = $(BUILD)/mavlink_sdk.o \
 	   $(BUILD)/mavlink_communicator.o \
+	   $(BUILD)/mavlink_command.o \
 	   $(BUILD)/serial_port.o \
 	   $(BUILD)/udp_port.o \
 	   $(BUILD)/vehicle.o \
 	   $(BUILD)/mavlink_helper.o \
 	   $(BUILD)/fcb_main.o \
+	   $(BUILD)/fcb_modes.o \
 	   $(BUILD)/fcb_andruav_message_parser.o \
 	   $(BUILD)/fcb_traffic_optimizer.o \
-	   $(BUILD)/fcb_modes.o \
 	   $(BUILD)/fcb_facade.o \
 	   $(BUILD)/configFile.o \
 	   $(BUILD)/udpClient.o \
@@ -26,6 +27,7 @@ OBJS = $(BUILD)/mavlink_sdk.o \
 
 SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
 	   ../mavlink_sdk/mavlink_communicator.cpp \
+	   ../mavlink_sdk/mavlink_command.cpp \
 	   ../mavlink_sdk/serial_port.cpp \
 	   ../mavlink_sdk/udp_port.cpp \
 	   ../mavlink_sdk/vehicle.cpp \

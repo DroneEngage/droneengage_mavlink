@@ -7,6 +7,7 @@
 using Json = nlohmann::json;
 
 #include "fcb_main.hpp"
+#include "mavlink_command.h"
 
 namespace uavos
 {
@@ -32,6 +33,7 @@ namespace fcb
 
             uavos::fcb::CFCBMain&  m_fcbMain = uavos::fcb::CFCBMain::getInstance();
             mavlinksdk::CMavlinkSDK& m_mavlinksdk = mavlinksdk::CMavlinkSDK::getInstance();
+            mavlinksdk::CMavlinkCommand m_mavlinkCommand = mavlinksdk::CMavlinkCommand();
     };
 
 }

@@ -6,6 +6,7 @@
 #define CONNECTION_TYPE_TCP     3
 #define CONNECTION_TYPE_UNKNOWN 4
 
+#define E_UNDEFINED_MODE          9999
 
 #define TelemetryProtocol_DroneKit_Telemetry 4
 

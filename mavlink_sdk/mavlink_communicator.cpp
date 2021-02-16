@@ -4,6 +4,7 @@
 #include <unistd.h>  // UNIX standard function definitions
 
 #include "./helpers/colors.h"
+#include "./helpers/utils.h"
 #include "mavlink_communicator.h"
 
 
@@ -67,7 +68,7 @@ void mavlinksdk::comm::CMavlinkCommunicator::_readThread ()
 	while ( ! m_time_to_exit )
 	{
 		read_messages();
-		usleep(100000); // Read batches at 10Hz
+		wait_time_nsec(1,0); // Read batches at 10Hz
 	}
 
 	m_reading_status = false;

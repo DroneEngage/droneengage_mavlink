@@ -173,14 +173,12 @@ void uavos::comm::CUDPClient::stop()
 
     try
     {
-        usleep (500);
         //pthread_join(m_threadSenderID, NULL); 	// close the thread
         //pthread_join(m_threadCreateUDPSocket, NULL); 	// close the thread
         m_threadCreateUDPSocket.join();
         m_threadSenderID.join();
         //pthread_join(m_thread, NULL); 	// close the thread
         //close(m_SocketFD); 					// close UDP socket
-        usleep (500);
         delete m_ModuleAddress;
         delete m_CommunicatorModuleAddress;
 

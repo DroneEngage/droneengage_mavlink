@@ -103,7 +103,7 @@ void onReceive (const char * jsonMessage, int len)
     static bool bFirstReceived = false;
         
     #ifdef DEBUG        
-        std::cout << _LOG_CONSOLE_TEXT << "RX MSG: " << jsonMessage << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: " << jsonMessage << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     

@@ -58,8 +58,15 @@ namespace fcb
             {
                 m_fcb_facade.setSendJMSG(sendJMSG);
             };            
+
             /* cannot connect to uavos comm*/
             void alertUavosOffline ();
+            
+            const ANDRUAV_VEHICLE_INFO& getAndruavVehicleInfo ()
+            {
+                return m_andruav_vehicle_info;
+            }
+
 
         // Events implementation of mavlinksdk::CMavlinkEvents
         public:

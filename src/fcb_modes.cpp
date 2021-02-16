@@ -235,6 +235,12 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotRoverMode (c
             return VEHICLE_MODE_STABILIZE;
         case ROVER_MODE_AUTO:
             return VEHICLE_MODE_AUTO;
+        case ROVER_MODE_RTL:
+            return VEHICLE_MODE_RTL;
+        case ROVER_MODE_SMART_RTL:
+            return VEHICLE_MODE_SMART_RTL;
+        case ROVER_MODE_GUIDED:
+            return VEHICLE_MODE_GUIDED;
         case ROVER_MODE_INITIALIZING:
             return VEHICLE_MODE_INITALIZING;
     }
@@ -271,3 +277,481 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotSubMode (con
 
     return VEHICLE_MODE_UNKNOWN;
 }
+
+
+
+/**
+ * Converts Andruav Modes to ArduPilot mode.
+ * */
+int uavos::fcb::CFCBModes::getArduPilotMode(const int& andruav_unit_mode, const int& andruav_unit_type)
+{
+    switch (andruav_unit_mode)
+    {
+        case VEHICLE_MODE_RTL:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_RTL;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_RTL;
+
+                case VEHICLE_TYPE_ROVER:
+                    return ROVER_MODE_RTL;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return E_UNDEFINED_MODE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+            
+        case VEHICLE_MODE_FOLLOW_ME:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_FOLLOW;
+
+                case VEHICLE_TYPE_PLANE:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_ROVER:
+                    return ROVER_MODE_FOLLOW;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return E_UNDEFINED_MODE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_AUTO:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_AUTO;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_AUTO;
+
+                case VEHICLE_TYPE_ROVER:
+                    return ROVER_MODE_AUTO;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return SUB_MODE_AUTO;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_STABILIZE:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_STABILIZE;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_STABILIZE;
+                
+                case VEHICLE_TYPE_ROVER:
+                    return ROVER_MODE_STEERING;
+                
+                case VEHICLE_TYPE_SUBMARINE:
+                    return SUB_MODE_STABILIZE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_ALT_HOLD:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_ALT_HOLD;
+
+                case VEHICLE_TYPE_PLANE:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_ROVER:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return SUB_MODE_ALT_HOLD;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_MANUAL:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_ACRO;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_MANUAL;
+
+                case VEHICLE_TYPE_ROVER:
+                    return ROVER_MODE_MANUAL;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return SUB_MODE_MANUAL;
+                break;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_GUIDED:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_GUIDED;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_GUIDED;
+
+                case VEHICLE_TYPE_ROVER:
+                    return ROVER_MODE_GUIDED;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return SUB_MODE_GUIDED;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_LOITER:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_LOITER;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_LOITER;
+
+                case VEHICLE_TYPE_ROVER:
+                    return ROVER_MODE_LOITER;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return E_UNDEFINED_MODE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_POS_HOLD:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_POSHOLD;
+
+                case VEHICLE_TYPE_PLANE:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_ROVER:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return SUB_MODE_POSHOLD;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_LAND:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_LAND;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_QLAND;
+
+                case VEHICLE_TYPE_ROVER:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return VEHICLE_MODE_SURFACE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_CIRCLE:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_CIRCLE;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_CIRCLE;
+
+                case VEHICLE_TYPE_ROVER:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return SUB_MODE_CIRCLE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_FBWA:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_FLY_BY_WIRE_A;
+
+                case VEHICLE_TYPE_ROVER:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return E_UNDEFINED_MODE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_CRUISE:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_CRUISE;
+
+                case VEHICLE_TYPE_ROVER:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return E_UNDEFINED_MODE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_FBWB:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_FLY_BY_WIRE_B;
+
+                case VEHICLE_TYPE_ROVER:
+                return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                return E_UNDEFINED_MODE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_BRAKE:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_BRAKE;
+
+                case VEHICLE_TYPE_PLANE:
+                    return VEHICLE_MODE_LOITER;
+
+                case VEHICLE_TYPE_ROVER:
+                    return ROVER_MODE_HOLD;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return SUB_MODE_POSHOLD;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_SMART_RTL:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_SMART_RTL;
+
+                case VEHICLE_TYPE_PLANE:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_ROVER:
+                    return ROVER_MODE_SMART_RTL;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return E_UNDEFINED_MODE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_TAKEOFF:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_TAKEOFF;
+
+                case VEHICLE_TYPE_ROVER:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return E_UNDEFINED_MODE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_SURFACE:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_PLANE:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_ROVER:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return SUB_MODE_SURFACE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_INITALIZING:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return COPTER_MODE_SYSTEMID;
+
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_INITIALIZING;
+
+                case VEHICLE_TYPE_ROVER:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return E_UNDEFINED_MODE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+
+        case VEHICLE_MODE_UNKNOWN:     
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_PLANE:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_ROVER:
+                    return E_UNDEFINED_MODE;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    return E_UNDEFINED_MODE;
+
+                default:
+                return E_UNDEFINED_MODE;
+            }
+
+            break;
+    }
+
+    return E_UNDEFINED_MODE;
+}
+
+
+
+           

@@ -32,8 +32,11 @@
 #define TYPE_AndruavResala_POWER                1003
 #define TYPE_AndruavResala_ID 	                1004
 #define TYPE_AndruavResala_RemoteExecute 		1005     
-#define TYPE_AndruavResala_Error                1008
+#define TYPE_AndruavResala_Error                1008    
+#define TYPE_AndruavResala_FlightControl        1010
 #define TYPE_AndruavMessage_Arm                 1030
+#define TYPE_AndruavResala_ChangeAltitude       1031
+#define TYPE_AndruavResala_Land                 1032
 #define TYPE_AndruavResala_NAV_INFO             1036
 
 
