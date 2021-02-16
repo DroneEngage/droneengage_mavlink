@@ -7,6 +7,7 @@
 #include "configFile.hpp"
 #include "udpClient.hpp"
 #include "fcb_main.hpp"
+#include "fcb_andruav_message_parser.hpp"
 
 using namespace uavos;
 
@@ -19,6 +20,7 @@ std::string  GroupID;
 std::string  ModuleID;
 
 uavos::fcb::CFCBMain& cFCBMain = uavos::fcb::CFCBMain::getInstance();
+uavos::fcb::CFCBAndruavMessageParser cAndruavMessageParser = uavos::fcb::CFCBAndruavMessageParser();
 
 uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
 
@@ -49,18 +51,26 @@ const std::string generateForwardSendCMD (
         return fullMessage.dump();
 }
 
-void sendJMSG (const char * targetPartyID, const Json& jmsg)
+void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& andruav_message_id, const bool& internal_message)
 {
         
         Json webrtcMsg;
         std::string commType = CMD_COMM_INDIVIDUAL;
-        if ((targetPartyID!= NULL) || (strlen(targetPartyID)==0))
+        if (internal_message == true)
         {
-                commType = CMD_COMM_GROUP;
+            commType = CMD_TYPE_INTERMODULE;
+        }
+        else
+        {
+            if (targetPartyID.length() != 0 )
+            {
+                    commType = CMD_COMM_GROUP;
+            }
+        
         }
 
-        const std::string fullMessage = generateForwardSendCMD (targetPartyID, commType, std::string(CMD_TYPE_INTERMODULE),
-                TYPE_AndruavMessage_Signaling, jmsg);
+        const std::string fullMessage = generateForwardSendCMD (targetPartyID.c_str(), commType, std::string(CMD_TYPE_INTERMODULE),
+                andruav_message_id, jmsg);
         cUDPClient.SendJMSG(fullMessage);
 }
 
@@ -104,6 +114,10 @@ void onReceive (const char * jsonMessage, int len)
     if (std::strcmp(jMsg[INTERMODULE_COMMAND_TYPE].get<std::string>().c_str(),CMD_TYPE_INTERMODULE)==0)
     {
         const Json cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+        const int messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+    
+        if (messageType== TYPE_AndruavModule_ID)
+        {
         const Json moduleID = cmd ["e"];
         PartyID = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
         GroupID = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
@@ -117,8 +131,12 @@ void onReceive (const char * jsonMessage, int len)
             bFirstReceived = true;
         }
         return ;
-    }
+        }
 
+    }
+    
+    cAndruavMessageParser.parseMessage(jMsg);
+    
 }
 
 /**
@@ -152,6 +170,7 @@ void init (int argc, char *argv[])
     cUDPClient.SetMessageOnReceive (&onReceive);
     cUDPClient.start();
 
+    cFCBMain.RegisterSendJMSG(sendJMSG);
     cFCBMain.init(jsonConfig);
     
 }

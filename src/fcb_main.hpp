@@ -72,9 +72,11 @@ namespace fcb
             void OnStatusText (const std::uint8_t severity, const std::string& status) override;
             void OnModeChanges(const int custom_mode, const int firmware_type);
 
+            
+
         protected:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-            uavos::fcb::CFCBFacade m_fcb_facade;
+            uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
         
         protected:
             int getConnectionType ();

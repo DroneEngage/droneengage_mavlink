@@ -286,8 +286,17 @@ void uavos::comm::CUDPClient::SendJMSG(const std::string& jmsg)
     #ifdef DEBUG        
         std::cout << _LOG_CONSOLE_TEXT << "SendJMSG: " << jmsg << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
-
+    
+    try
+    {
     sendto(m_SocketFD, jmsg.c_str(), jmsg.size(),  
         MSG_CONFIRM, (const struct sockaddr *) m_CommunicatorModuleAddress, 
-            sizeof(struct sockaddr_in)); 
+            sizeof(struct sockaddr_in));         
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    
+
 }

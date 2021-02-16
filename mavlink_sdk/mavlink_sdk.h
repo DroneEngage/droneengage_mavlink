@@ -104,12 +104,13 @@ namespace mavlinksdk
             void OnArmed (const bool armed) override 
             {
                 std::cout << _INFO_CONSOLE_TEXT << "OnArmed " << std::to_string(armed) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->OnArmed (armed);
 
             };
             void OnFlying (const bool isFlying) override 
             {
                 std::cout << _INFO_CONSOLE_TEXT << "OnFlying " << std::to_string(isFlying) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
-
+                m_mavlink_events->OnFlying (isFlying);
             };
 
             void OnACK (const int result, const std::string& result_msg) override 

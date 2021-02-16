@@ -2,9 +2,11 @@
 
 #include <vehicle.h>
 
+
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
 
+#include "messages.hpp"
 #include "fcb_modes.hpp"
 #include "fcb_main.hpp"
 #include "fcb_traffic_optimizer.hpp"
@@ -83,7 +85,7 @@ void uavos::fcb::CFCBMain::init (const Json &jsonConfig)
 
 void uavos::fcb::CFCBMain::OnMessageReceived (mavlink_message_t& mavlink_message)
 {
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnMessageReceived" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    //std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnMessageReceived" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     uavos::fcb::CMavlinkTrafficOptimizer::ShouldForwardThisMessage (mavlink_message);
 }
 
@@ -91,10 +93,11 @@ void uavos::fcb::CFCBMain::OnMessageReceived (mavlink_message_t& mavlink_message
 void uavos::fcb::CFCBMain::OnConnected (const bool connected)
 {
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnConnected" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    if (m_andruav_vehicle_info.usd_fcb != connected)
+    if (m_andruav_vehicle_info.use_fcb != connected)
     {
-        m_andruav_vehicle_info.usd_fcb = connected;
+        m_andruav_vehicle_info.use_fcb = connected;
     }
+
 }
 
 
@@ -102,6 +105,10 @@ void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbe
 {
     
     m_andruav_vehicle_info.vehicle_type = uavos::fcb::CFCBModes::getAndruavVehicleType (heartbeat.type, heartbeat.autopilot);
+
+    m_andruav_vehicle_info.gps_mode =  GPS_MODE_FCB;
+
+    m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);
 }
 
 
@@ -110,19 +117,41 @@ void uavos::fcb::CFCBMain::OnHeartBeat_Resumed (const mavlink_heartbeat_t& heart
     std::unique_ptr<mavlinksdk::CVehicle>& vehicle = m_mavlink_sdk.getVehicle();
 
     m_andruav_vehicle_info.vehicle_type = uavos::fcb::CFCBModes::getAndruavVehicleType (heartbeat.type, heartbeat.autopilot);
+
+    m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);
 }
             
 void uavos::fcb::CFCBMain::OnArmed (const bool armed)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnArmed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    
+    m_andruav_vehicle_info.is_armed = armed;
+
+    m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);
 }
 
 
 void uavos::fcb::CFCBMain::OnFlying (const bool isFlying)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnFlying" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
     
+    if (m_andruav_vehicle_info.is_flying != isFlying)
+    {
+        if (isFlying == true)
+        {
+            // start capture a flying
+            m_andruav_vehicle_info.flying_last_start_time = get_time_usec();
+        }
+        else
+        {
+            // add duration to total
+            m_andruav_vehicle_info.flying_total_duration += (get_time_usec() - m_andruav_vehicle_info.flying_last_start_time);
+            m_andruav_vehicle_info.flying_last_start_time = 0;
+        }
+    }
+    m_andruav_vehicle_info.is_flying = isFlying;
+    
+    m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);
 }
 
 
@@ -130,7 +159,7 @@ void uavos::fcb::CFCBMain::OnStatusText (const std::uint8_t severity, const std:
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
-    m_fcb_facade.sendErrorMessage(NULL, severity, status);
+    m_fcb_facade.sendErrorMessage(std::string(), severity, status);
     
 }
 
@@ -138,8 +167,12 @@ void uavos::fcb::CFCBMain::OnStatusText (const std::uint8_t severity, const std:
 void uavos::fcb::CFCBMain::OnModeChanges(const int custom_mode, const int firmware_type)
 {
     
-    //m_fcb_facade.sendID(NULL, m_andruav_vehicle_info);
+    m_andruav_vehicle_info.flying_mode = uavos::fcb::CFCBModes::getAndruavMode (custom_mode, m_andruav_vehicle_info.vehicle_type);
+
+    m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);
 }   
+
+
 
 
 void uavos::fcb::CFCBMain::alertUavosOffline()
