@@ -170,7 +170,7 @@ void init (int argc, char *argv[])
     cUDPClient.SetMessageOnReceive (&onReceive);
     cUDPClient.start();
 
-    cFCBMain.RegisterSendJMSG(sendJMSG);
+    cFCBMain.registerSendJMSG(sendJMSG);
     cFCBMain.init(jsonConfig);
     
 }
@@ -178,6 +178,9 @@ void init (int argc, char *argv[])
 
 void uninit ()
 {
+
+    cFCBMain.uninit();
+    
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
     

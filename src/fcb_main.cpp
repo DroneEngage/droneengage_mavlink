@@ -12,13 +12,15 @@
 #include "fcb_traffic_optimizer.hpp"
 
 
+void SchedulerThread(void * This) {
+	((uavos::fcb::CFCBMain *)This)->loopScheduler(); 
 
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Exit SchedulerThread" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
 
-uavos::fcb::CFCBMain::~CFCBMain()
-{
-
+    return ;
 }
-
 
 int uavos::fcb::CFCBMain::getConnectionType ()
 {
@@ -80,6 +82,42 @@ void uavos::fcb::CFCBMain::init (const Json &jsonConfig)
     {
         m_mavlink_sdk.start(this);
     }
+
+    m_scheduler_thread = std::thread(SchedulerThread, (void *) this);
+}
+
+
+void uavos::fcb::CFCBMain::uninit ()
+{
+    // exit thread.
+    m_exit_thread = true;
+    m_scheduler_thread.join();
+
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CFCBMain  Scheduler Thread Off" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+}
+
+void uavos::fcb::CFCBMain::loopScheduler ()
+{
+    while (!m_exit_thread)
+    {
+        
+        wait_time_nsec (0,10000000);
+
+        m_counter++;
+
+        if (m_counter%10 ==0)
+        {
+            m_fcb_facade.sendGPSInfo("");
+        }
+
+        if (m_counter %100 ==0)
+        {
+            // each second
+            m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);
+        }
+    }
 }
 
 
@@ -87,6 +125,11 @@ void uavos::fcb::CFCBMain::OnMessageReceived (mavlink_message_t& mavlink_message
 {
     //std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnMessageReceived" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     uavos::fcb::CMavlinkTrafficOptimizer::ShouldForwardThisMessage (mavlink_message);
+
+    if (mavlink_message.msgid == MAVLINK_MSG_ID_HEARTBEAT)
+    {
+        OnHeartBeat();
+    }
 }
 
 
@@ -100,6 +143,18 @@ void uavos::fcb::CFCBMain::OnConnected (const bool connected)
 
 }
 
+
+/**
+ * @brief called locally used for ticking.
+ * 
+ */
+void uavos::fcb::CFCBMain::OnHeartBeat ()
+{
+    if (m_andruav_vehicle_info.is_flying)
+    {
+        m_andruav_vehicle_info.flying_last_start_time = ( get_time_usec() - m_last_start_flying ) / 1000000l;
+    }
+}
 
 void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)
 {
@@ -139,16 +194,19 @@ void uavos::fcb::CFCBMain::OnFlying (const bool isFlying)
     {
         if (isFlying == true)
         {
+            m_last_start_flying = get_time_usec();
             // start capture a flying
-            m_andruav_vehicle_info.flying_last_start_time = get_time_usec();
+            m_andruav_vehicle_info.flying_last_start_time = 0;
         }
         else
         {
             // add duration to total
-            m_andruav_vehicle_info.flying_total_duration += (get_time_usec() - m_andruav_vehicle_info.flying_last_start_time);
+            m_andruav_vehicle_info.flying_total_duration +=  m_andruav_vehicle_info.flying_last_start_time;
             m_andruav_vehicle_info.flying_last_start_time = 0;
+            m_last_start_flying = 0;
         }
     }
+
     m_andruav_vehicle_info.is_flying = isFlying;
     
     m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);

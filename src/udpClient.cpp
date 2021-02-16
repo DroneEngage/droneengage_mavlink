@@ -135,27 +135,13 @@ void uavos::comm::CUDPClient::start()
 
 void uavos::comm::CUDPClient::startReceiver ()
 {
-    // if(pthread_create(&m_threadCreateUDPSocket, NULL, this->InternalReceiverThreadEntryFunc, (void *) this)) {
-    //     fprintf(stderr, "Error creating thread\n");
-    //     return ;
-    // }
-
     m_threadCreateUDPSocket = std::thread (this->InternalReceiverThreadEntryFunc, (void *) this);
 }
 
 
 void uavos::comm::CUDPClient::startSenderID ()
 {
-    // const bool bsend = (pthread_create(&m_threadSenderID, NULL, this->InternalSenderIDThreadEntryFunc, (void *) this) == 0);
-
-    // if (!bsend)
-    // {
-    //     std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Error creating UDP SenderID thread" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    //     exit(EXIT_FAILURE); 
-    // }
-
     m_threadSenderID = std::thread (this->InternalSenderIDThreadEntryFunc, (void *) this);
-
 }
 
 

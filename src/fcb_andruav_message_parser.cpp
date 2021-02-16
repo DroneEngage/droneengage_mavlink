@@ -5,6 +5,19 @@
 #include "fcb_andruav_message_parser.hpp"
 
 
+/**
+ * Called by external scheduler at rate of 1Hz
+ * */
+void Scheduler_1Hz ()
+{
+
+}
+
+
+
+/**
+ * Parse messages receuved from uavos_comm"
+ * */
 void uavos::fcb::CFCBAndruavMessageParser::parseMessage (Json &andruav_message)
 {
     const int messageType = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();

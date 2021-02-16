@@ -27,7 +27,8 @@ namespace fcb
         public:
 
             void parseMessage (Json &andruav_message);
-
+            void Scheduler_1Hz ();
+            
         protected:
             void parseRemoteExecute (Json &andruav_message);
 

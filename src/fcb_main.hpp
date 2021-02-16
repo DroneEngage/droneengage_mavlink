@@ -1,5 +1,6 @@
 #ifndef FCB_MAIN_H_
 #define FCB_MAIN_H_
+#include <thread>         // std::thread
 #include <memory>
 #include <common/mavlink.h>
 #include <mavlink_sdk.h>
@@ -49,12 +50,23 @@ namespace fcb
 
         public:
             
-            ~CFCBMain ();
+            ~CFCBMain ()
+            {
+                if (m_exit_thread == false)
+                {
+                    uninit();
+                }
+            };
+                
 
         public:
 
             void init (const Json &jsonConfig);
-            void RegisterSendJMSG (SENDJMSG_CALLBACK sendJMSG)
+            void uninit ();
+
+            void loopScheduler();
+
+            void registerSendJMSG (SENDJMSG_CALLBACK sendJMSG)
             {
                 m_fcb_facade.setSendJMSG(sendJMSG);
             };            
@@ -67,6 +79,8 @@ namespace fcb
                 return m_andruav_vehicle_info;
             }
 
+
+            
 
         // Events implementation of mavlinksdk::CMavlinkEvents
         public:
@@ -81,6 +95,9 @@ namespace fcb
 
             
 
+        protected: 
+            void OnHeartBeat ();
+        
         protected:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
             uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
@@ -97,6 +114,13 @@ namespace fcb
             ANDRUAV_VEHICLE_INFO m_andruav_vehicle_info;
             
             
+            
+            bool m_exit_thread = false;
+            std::thread m_scheduler_thread;
+
+        private:
+            u_int64_t m_last_start_flying =0 ;
+            u_int64_t m_counter =0;
     };
 }
 }

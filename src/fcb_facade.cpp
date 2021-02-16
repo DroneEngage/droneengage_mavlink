@@ -92,7 +92,7 @@ void uavos::fcb::CFCBFacade::sendGPSInfo(const std::string&target_party_id)
 
     if (m_sendJMSG != NULL)
     {
-        m_sendJMSG (target_party_id, message, TYPE_AndruavResala_GPS, true);
+        //m_sendJMSG (target_party_id, message, TYPE_AndruavResala_GPS, true);
     }
  
     return ;
