@@ -11,7 +11,6 @@ using Json = nlohmann::json;
 
 #include "udpClient.hpp"
 
-using namespace uavos;
 
 #define MAXLINE 8192 
 char buffer[MAXLINE]; 
@@ -112,7 +111,8 @@ void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, co
     // Bind the socket with the server address 
     if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in)) < 0 ) 
     { 
-        throw "bind failed";
+        std::cout << "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        exit(-1) ;
     } 
 
     std::cout << "UDP Listener at " << _LOG_CONSOLE_TEXT_BOLD_ << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;

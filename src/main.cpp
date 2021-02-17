@@ -30,31 +30,12 @@ void onReceive (const char * jsonMessage, int len);
 void uninit ();
 
 
-const std::string generateForwardSendCMD (
-        // target ID could be empty string if commType is broadcast.
-        const std::string& targetID,
-        // communication type [peer-to-peer or broadcast] 
-        const std::string& commType,
-        // Inter module communication or what ?
-        const std::string& commandType,
-        // message type ID
-        const int messageType,
-        // message contents
-        const Json& jmsg)
-{
-        Json fullMessage;
-
-        fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = std::string(targetID);
-        fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(commType);
-        fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = messageType;
-        fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = jmsg;
-        return fullMessage.dump();
-}
 
 void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& andruav_message_id, const bool& internal_message)
 {
         
-        Json webrtcMsg;
+        Json fullMessage;
+
         std::string commType = CMD_COMM_INDIVIDUAL;
         if (internal_message == true)
         {
@@ -64,14 +45,24 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
         {
             if (targetPartyID.length() != 0 )
             {
-                    commType = CMD_COMM_GROUP;
+                    
+                /* 
+                    commType other than CMD_COMM_INDIVIDUAL is set by uavos_comm
+                    commType = CMD_COMM_GROUP; 
+                    commType = CMD_COMM_INDIVIDUAL;
+                    
+                    based on the existence of ANDRUAV_PROTOCOL_TARGET_ID
+                */
+
+                fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]     = targetPartyID;
             }
         
         }
-
-        const std::string fullMessage = generateForwardSendCMD (targetPartyID.c_str(), commType, std::string(CMD_TYPE_INTERMODULE),
-                andruav_message_id, jmsg);
-        cUDPClient.SendJMSG(fullMessage);
+        
+        fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(commType);
+        fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
+        fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = jmsg;
+        cUDPClient.SendJMSG(fullMessage.dump());
 }
 
 /**

@@ -1,0 +1,2 @@
+1- start time is sent in seconds... update in ANdroid App
+2- Notification_type is ArduCompliant [DONE]

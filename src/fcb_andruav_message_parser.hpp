@@ -7,7 +7,7 @@
 using Json = nlohmann::json;
 
 #include "fcb_main.hpp"
-#include "mavlink_command.h"
+#include <mavlink_command.h>
 
 namespace uavos
 {

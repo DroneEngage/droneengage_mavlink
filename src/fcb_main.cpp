@@ -109,13 +109,13 @@ void uavos::fcb::CFCBMain::loopScheduler ()
 
         if (m_counter%10 ==0)
         {
-            m_fcb_facade.sendGPSInfo("");
+            m_fcb_facade.sendGPSInfo(std::string());
         }
 
         if (m_counter %100 ==0)
         {
             // each second
-            m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);
+            m_fcb_facade.sendID(std::string());
         }
     }
 }
@@ -163,7 +163,7 @@ void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbe
 
     m_andruav_vehicle_info.gps_mode =  GPS_MODE_FCB;
 
-    m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);
+    m_fcb_facade.sendID(std::string());
 }
 
 
@@ -173,7 +173,7 @@ void uavos::fcb::CFCBMain::OnHeartBeat_Resumed (const mavlink_heartbeat_t& heart
 
     m_andruav_vehicle_info.vehicle_type = uavos::fcb::CFCBModes::getAndruavVehicleType (heartbeat.type, heartbeat.autopilot);
 
-    m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);
+    m_fcb_facade.sendID(std::string());
 }
             
 void uavos::fcb::CFCBMain::OnArmed (const bool armed)
@@ -182,7 +182,7 @@ void uavos::fcb::CFCBMain::OnArmed (const bool armed)
     
     m_andruav_vehicle_info.is_armed = armed;
 
-    m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);
+    m_fcb_facade.sendID(std::string());
 }
 
 
@@ -209,7 +209,7 @@ void uavos::fcb::CFCBMain::OnFlying (const bool isFlying)
 
     m_andruav_vehicle_info.is_flying = isFlying;
     
-    m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);
+    m_fcb_facade.sendID(std::string());
 }
 
 
@@ -217,7 +217,7 @@ void uavos::fcb::CFCBMain::OnStatusText (const std::uint8_t severity, const std:
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
-    m_fcb_facade.sendErrorMessage(std::string(), severity, status);
+    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, severity, status);
     
 }
 
@@ -227,7 +227,7 @@ void uavos::fcb::CFCBMain::OnModeChanges(const int custom_mode, const int firmwa
     
     m_andruav_vehicle_info.flying_mode = uavos::fcb::CFCBModes::getAndruavMode (custom_mode, m_andruav_vehicle_info.vehicle_type);
 
-    m_fcb_facade.sendID(std::string(), m_andruav_vehicle_info);
+    m_fcb_facade.sendID(std::string());
 }   
 
 

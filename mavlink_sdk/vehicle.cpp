@@ -172,6 +172,12 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
         }
 		break;
 
+		case MAVLINK_MSG_ID_GPS_RAW_INT:
+		{
+			mavlink_msg_gps_raw_int_decode(&mavlink_message, &(m_gps_raw_int));
+			
+		}
+
 		case MAVLINK_MSG_ID_HIGHRES_IMU:
 		{
 			mavlink_msg_highres_imu_decode(&mavlink_message, &(m_highres_imu));

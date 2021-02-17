@@ -121,6 +121,11 @@ namespace mavlinksdk
                 return m_position_target_global_int;
             }
 
+            const mavlink_gps_raw_int_t& getMSGGPSRaw ()
+            {
+                return m_gps_raw_int;
+            }
+
             const mavlink_attitude_t& getMsgAttitude ()
             {
                 return m_attitude;
@@ -167,6 +172,9 @@ namespace mavlinksdk
 
             // Global Position Target
             mavlink_position_target_global_int_t m_position_target_global_int;
+
+            // GPS Raw
+            mavlink_gps_raw_int_t m_gps_raw_int;
 
             // HiRes IMU
             mavlink_highres_imu_t m_highres_imu;

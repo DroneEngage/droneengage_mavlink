@@ -3,8 +3,11 @@
 
 #include <iostream>
 
+#include <mavlink_sdk.h>
+
 #include "global.hpp"
 #include "defines.hpp"
+
 
 
 namespace uavos
@@ -25,7 +28,7 @@ namespace fcb
                 return instance;
             }
 
-            CFCBFacade(CFCBFacade const&)           = delete;
+            CFCBFacade(CFCBFacade const&)            = delete;
             void operator=(CFCBFacade const&)        = delete;
 
         
@@ -52,10 +55,10 @@ namespace fcb
 
         public:
 
-            void  sendID(const std::string&target_party_id, const ANDRUAV_VEHICLE_INFO& andruav_vehicle_info);
+            void  sendID(const std::string&target_party_id);
             void  requestID(const std::string&target_party_id);
             void  sendTelemetryPanic(const std::string&target_party_id);
-            void  sendErrorMessage(const std::string&target_party_id, const std::uint8_t severity, const std::string& status);
+            void  sendErrorMessage(const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description);
             void  sendGPSInfo(const std::string&target_party_id);
             void  sendNavInfo(const std::string&target_party_id);
             void  sendIMUInfo(const std::string&target_party_id);
@@ -69,10 +72,11 @@ namespace fcb
             void setSendJMSG (SENDJMSG_CALLBACK sendJMSG)
             {
                 m_sendJMSG = sendJMSG;
-            }
+            };
 
-        private:
-
+        protected:
+            mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+            
             SENDJMSG_CALLBACK m_sendJMSG = NULL;
     };
 }
