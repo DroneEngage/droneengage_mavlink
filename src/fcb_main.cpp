@@ -133,7 +133,7 @@ void uavos::fcb::CFCBMain::OnMessageReceived (mavlink_message_t& mavlink_message
 }
 
 
-void uavos::fcb::CFCBMain::OnConnected (const bool connected)
+void uavos::fcb::CFCBMain::OnConnected (const bool& connected)
 {
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnConnected" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     if (m_andruav_vehicle_info.use_fcb != connected)
@@ -176,7 +176,7 @@ void uavos::fcb::CFCBMain::OnHeartBeat_Resumed (const mavlink_heartbeat_t& heart
     m_fcb_facade.sendID(std::string());
 }
             
-void uavos::fcb::CFCBMain::OnArmed (const bool armed)
+void uavos::fcb::CFCBMain::OnArmed (const bool& armed)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnArmed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
@@ -186,13 +186,13 @@ void uavos::fcb::CFCBMain::OnArmed (const bool armed)
 }
 
 
-void uavos::fcb::CFCBMain::OnFlying (const bool isFlying)
+void uavos::fcb::CFCBMain::OnFlying (const bool& is_flying)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnFlying" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
-    if (m_andruav_vehicle_info.is_flying != isFlying)
+    if (m_andruav_vehicle_info.is_flying != is_flying)
     {
-        if (isFlying == true)
+        if (is_flying == true)
         {
             m_last_start_flying = get_time_usec();
             // start capture a flying
@@ -205,15 +205,16 @@ void uavos::fcb::CFCBMain::OnFlying (const bool isFlying)
             m_andruav_vehicle_info.flying_last_start_time = 0;
             m_last_start_flying = 0;
         }
+
+        m_andruav_vehicle_info.is_flying = is_flying;
+        m_fcb_facade.sendID(std::string());
     }
 
-    m_andruav_vehicle_info.is_flying = isFlying;
     
-    m_fcb_facade.sendID(std::string());
 }
 
 
-void uavos::fcb::CFCBMain::OnStatusText (const std::uint8_t severity, const std::string& status)
+void uavos::fcb::CFCBMain::OnStatusText (const std::uint8_t& severity, const std::string& status)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
@@ -221,8 +222,77 @@ void uavos::fcb::CFCBMain::OnStatusText (const std::uint8_t severity, const std:
     
 }
 
+void uavos::fcb::CFCBMain::OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)
+{
+    int sevirity;
+
+    switch (result)
+    {
+        case MAV_MISSION_ACCEPTED:
+        case MAV_MISSION_OPERATION_CANCELLED:
+            sevirity = NOTIFICATION_TYPE_INFO;
+        break;
+
+        case MAV_MISSION_UNSUPPORTED:
+        case MAV_MISSION_UNSUPPORTED_FRAME:
+            sevirity = NOTIFICATION_TYPE_WARNING;
+        break;
+
+        case MAV_MISSION_ERROR:
+        case MAV_MISSION_NO_SPACE:
+        case MAV_MISSION_INVALID:
+        case MAV_MISSION_INVALID_PARAM1:
+        case MAV_MISSION_INVALID_PARAM2:
+        case MAV_MISSION_INVALID_PARAM3:
+        case MAV_MISSION_INVALID_PARAM4:
+        case MAV_MISSION_INVALID_PARAM5_X:
+        case MAV_MISSION_INVALID_PARAM6_Y:
+        case MAV_MISSION_INVALID_PARAM7:
+        case MAV_MISSION_INVALID_SEQUENCE:
+        case MAV_MISSION_DENIED:
+            sevirity = NOTIFICATION_TYPE_ERROR;
+        break;
+
+        default:
+            sevirity = NOTIFICATION_TYPE_WARNING;
+        break;
+    }
+
+    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, sevirity, result_msg);
+}
+
+void uavos::fcb::CFCBMain::OnACK (const int& result, const std::string& result_msg)
+{
+    int sevirity;
+
+    switch (result)
+    {
+        case MAV_RESULT_ACCEPTED:
+        case MAV_RESULT_IN_PROGRESS:
+        case MAV_RESULT_CANCELLED:
+            sevirity = NOTIFICATION_TYPE_INFO;
+        break;
+
+        case MAV_RESULT_TEMPORARILY_REJECTED:
+        case MAV_RESULT_UNSUPPORTED:
+            sevirity = NOTIFICATION_TYPE_WARNING;
+        break;
+
+        case MAV_RESULT_DENIED:
+        case MAV_RESULT_FAILED:
+            sevirity = NOTIFICATION_TYPE_ERROR;
+        break;
+
+        default:
+            sevirity = NOTIFICATION_TYPE_WARNING;
+        break;
+    }
+
+    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, sevirity, result_msg);
+}
+
  
-void uavos::fcb::CFCBMain::OnModeChanges(const int custom_mode, const int firmware_type)
+void uavos::fcb::CFCBMain::OnModeChanges(const int& custom_mode, const int& firmware_type)
 {
     
     m_andruav_vehicle_info.flying_mode = uavos::fcb::CFCBModes::getAndruavMode (custom_mode, m_andruav_vehicle_info.vehicle_type);
@@ -231,7 +301,11 @@ void uavos::fcb::CFCBMain::OnModeChanges(const int custom_mode, const int firmwa
 }   
 
 
-
+void uavos::fcb::CFCBMain::OnHomePositionUpdated(const mavlink_home_position_t& home_position)
+{
+    m_fcb_facade.sendHomeLocation(std::string());
+}
+            
 
 void uavos::fcb::CFCBMain::alertUavosOffline()
 {

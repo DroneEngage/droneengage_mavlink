@@ -27,7 +27,10 @@ namespace mavlinksdk
             CMavlinkHelper(){};       
 
         public:
-            static std::string getACKError (const int result);        
+
+            static std::string getMissionACKResult (const int& result);
+
+            static std::string getACKError (const int& result);        
             
             static mavlinksdk::FIRMWARE_TYPE getFirmewareType (const int mav_type, const int autopilot_type);
 

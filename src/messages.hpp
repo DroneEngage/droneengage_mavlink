@@ -34,10 +34,13 @@
 #define TYPE_AndruavResala_RemoteExecute 		1005     
 #define TYPE_AndruavResala_Error                1008    
 #define TYPE_AndruavResala_FlightControl        1010
+#define Type_AndruavResala_HomeLocation         1022
 #define TYPE_AndruavMessage_Arm                 1030
 #define TYPE_AndruavResala_ChangeAltitude       1031
 #define TYPE_AndruavResala_Land                 1032
+#define TYPE_AndruavResala_GuidedPoint          1033
 #define TYPE_AndruavResala_NAV_INFO             1036
+#define TYPE_AndruavResala_SET_HOME_LOCATION    1048
 
 // Error Info Types
 #define NOTIFICATION_TYPE_TELEMETRY             33

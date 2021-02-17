@@ -85,15 +85,17 @@ namespace fcb
         // Events implementation of mavlinksdk::CMavlinkEvents
         public:
             void OnMessageReceived (mavlink_message_t& mavlink_message) override;           
-            void OnConnected (const bool connected) override;
+            void OnConnected (const bool& connected) override;
             void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat) override;
             void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat) override ;
-            void OnArmed (const bool armed) override;
-            void OnFlying (const bool isFlying) override;
-            void OnStatusText (const std::uint8_t severity, const std::string& status) override;
-            void OnModeChanges(const int custom_mode, const int firmware_type);
-
-            
+            void OnArmed (const bool& armed) override;
+            void OnFlying (const bool& isFlying) override;
+            void OnStatusText (const std::uint8_t& severity, const std::string& status) override;
+            void OnModeChanges(const int& custom_mode, const int& firmware_type) override;
+            void OnHomePositionUpdated(const mavlink_home_position_t& home_position)  override;
+            void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)override;
+            void OnACK (const int& result, const std::string& result_msg) override;
+        
 
         protected: 
             void OnHeartBeat ();

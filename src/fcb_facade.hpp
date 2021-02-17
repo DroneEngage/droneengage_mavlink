@@ -67,7 +67,7 @@ namespace fcb
             void  sendWayPoints(const std::string&target_party_id);
             void  sendTelemetryData(const std::string&target_party_id);
             void  sendServoReadings(const std::string&target_party_id);
-
+        
         
             void setSendJMSG (SENDJMSG_CALLBACK sendJMSG)
             {

@@ -3,11 +3,80 @@
 #include "./helpers/colors.h"
 #include "mavlink_helper.h"
 
+
 /**
- * Get string readable meaning of CMD_ACK error number.
- * @param result value in CMD_ACK
+ * @brief return description of MISSION_ACK
+ * 
+ * @param result MISSION_ACK value
+ * @return std::string 
  */
-std::string mavlinksdk::CMavlinkHelper::getACKError (const int result)
+std::string mavlinksdk::CMavlinkHelper::getMissionACKResult (const int& result)
+{
+    switch (result)
+    {
+        case MAV_MISSION_ACCEPTED:
+        	return "mission accepted OK";
+
+        case MAV_MISSION_ERROR:
+            return 	"Generic error / not accepting mission commands at all right now.";
+
+        case MAV_MISSION_UNSUPPORTED_FRAME:
+            return "Coordinate frame is not supported.";
+        
+        case MAV_MISSION_UNSUPPORTED:
+            return "Command is not supported.";
+        
+
+        case MAV_MISSION_NO_SPACE:
+            return "Mission items exceed storage space.";
+
+        case MAV_MISSION_INVALID:
+            return "One of the parameters has an invalid value.";
+
+        case MAV_MISSION_INVALID_PARAM1:
+            return "param1 has an invalid value.";
+
+        case MAV_MISSION_INVALID_PARAM2:
+            return "param2 has an invalid value.";
+
+        case MAV_MISSION_INVALID_PARAM3:
+            return "param3 has an invalid value.";
+
+        case MAV_MISSION_INVALID_PARAM4:
+            return "param4 has an invalid value.";
+
+        case MAV_MISSION_INVALID_PARAM5_X:
+            return "x / param5 has an invalid value.";
+
+        case MAV_MISSION_INVALID_PARAM6_Y:
+            return "y / param6 has an invalid value.";
+
+        case MAV_MISSION_INVALID_PARAM7:
+            return "z / param7 has an invalid value.";
+
+        case MAV_MISSION_INVALID_SEQUENCE:
+            return "Mission item received out of sequence";
+
+        case MAV_MISSION_DENIED:
+            return "Not accepting any mission commands from this communication partner.";
+
+        case MAV_MISSION_OPERATION_CANCELLED:
+            return "Current mission operation cancelled (e.g. mission upload, mission download).";
+    }
+
+
+    return std::string();
+
+}
+
+
+/**
+ * @brief Get string readable meaning of MAV_CMD_ACK error number.
+ * 
+ * @param result MAV_CMD_ACK value
+ * @return std::string 
+ */
+std::string mavlinksdk::CMavlinkHelper::getACKError (const int& result)
 {
     std::string err;
     switch (result)

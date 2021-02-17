@@ -43,7 +43,6 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	// 	m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
 	// }
 
-	
 	if (m_heart_beat_first == false) 
 	{  // Notify that we have something alive here.
 		m_heart_beat_first = true;
@@ -88,6 +87,12 @@ void mavlinksdk::CVehicle::handle_cmd_ack (const mavlink_command_ack_t& command_
 }
 
 
+void mavlinksdk::CVehicle::handle_mission_ack   (const mavlink_mission_ack_t& mission_ack)
+{
+	m_callback_vehicle.OnMissionACK (mission_ack.type, mission_ack.mission_type, mavlinksdk::CMavlinkHelper::getMissionACKResult (mission_ack.type));
+}
+
+
 void mavlinksdk::CVehicle::handle_status_text (const mavlink_statustext_t& status_text)
 {
 	// message is 50 bytes max and is NOT null terminated string.
@@ -97,6 +102,21 @@ void mavlinksdk::CVehicle::handle_status_text (const mavlink_statustext_t& statu
 	m_status_text = std::string(msg);
 	m_status_severity = status_text.severity;
 	this->m_callback_vehicle.OnStatusText(m_status_severity, m_status_text);
+}
+
+
+void mavlinksdk::CVehicle::handle_home_position (const mavlink_home_position_t& home_position)
+{
+	const bool home_changed = ((m_home_position.latitude != home_position.latitude)
+							|| (m_home_position.latitude != home_position.latitude)
+							|| (m_home_position.latitude != home_position.latitude));
+
+	m_home_position = home_position;
+
+	if (home_changed == true)
+	{
+		this->m_callback_vehicle.OnHomePositionUpdated(m_home_position);
+	}
 }
 
 void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_message)
@@ -192,11 +212,24 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
         }
 		break;
 
-		case MAV_CMD_GET_HOME_POSITION:
+		case MAVLINK_MSG_ID_HOME_POSITION:
 		{
-			mavlink_msg_home_position_decode(&mavlink_message, &(m_home_position));
+			mavlink_home_position_t home_position;
+
+			mavlink_msg_home_position_decode(&mavlink_message, &(home_position));
+
+			handle_home_position (home_position);
 		
         }
+		break;
+
+		case MAVLINK_MSG_ID_MISSION_ACK:
+		{
+			mavlink_mission_ack_t mission_ack;
+			mavlink_msg_mission_ack_decode(&mavlink_message, &mission_ack);
+
+			handle_mission_ack(mission_ack);
+		}
 		break;
 
 		case MAVLINK_MSG_ID_COMMAND_ACK:

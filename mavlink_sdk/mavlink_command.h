@@ -7,6 +7,11 @@
 namespace mavlinksdk
 {
 
+/**
+ * @brief This class holds methods to do actions on vehicle -mostly-.
+ * So this is Vehicle.API
+ * 
+ */
 class CMavlinkCommand
 {
 
@@ -20,7 +25,8 @@ class CMavlinkCommand
         void resetROI ();
         void cmdTerminalFlight ();
         void changeAltitude (const float& altitude);
-        
+        void takeOff (const float& altitude);
+        void gotoGuidedPoint (const double& latitude, const double& longitude, const double& altitude);
 
         
 

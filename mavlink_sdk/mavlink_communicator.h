@@ -17,7 +17,7 @@ namespace mavlinksdk::comm
         public:
 
         virtual void OnMessageReceived (mavlink_message_t& mavlink_message) {};
-        virtual void OnConnected (const bool connected) {};
+        virtual void OnConnected (const bool& connected) {};
     };
 
 

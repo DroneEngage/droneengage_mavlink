@@ -37,14 +37,15 @@ namespace mavlinksdk
     {
         public:
 
-        virtual void OnHeartBeat_First   (const mavlink_heartbeat_t& heartbeat)     {};
-        virtual void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)     {};
-        virtual void OnArmed  (const bool armed)                                    {};
-        virtual void OnFlying (const bool isFlying)                                 {};
-        virtual void OnACK    (const int result, const std::string& result_msg)     {};
-        virtual void OnStatusText (const std::uint8_t severity, const std::string& status)                       {};
-        // On flying mode changed
-        virtual void OnModeChanges(const int custom_mode, const int firmware_type)  {};
+        virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)                 {};
+        virtual void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)                 {};
+        virtual void OnArmed (const bool& armed)                                                {};
+        virtual void OnFlying (const bool& isFlying)                                             {};
+        virtual void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)             {};
+        virtual void OnACK (const int& result, const std::string& result_msg)                 {};
+        virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)      {};
+        virtual void OnModeChanges(const int& custom_mode, const int& firmware_type)              {};
+        virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)        {};
     };
 
     class CVehicle
@@ -60,83 +61,85 @@ namespace mavlinksdk
 
         protected:
 
-            void handle_heart_beat  (const mavlink_heartbeat_t& heartbeat);
-            void handle_cmd_ack     (const mavlink_command_ack_t& command_ack);
-            void handle_status_text (const mavlink_statustext_t& status_text);
+            inline void handle_heart_beat    (const mavlink_heartbeat_t& heartbeat);
+            inline void handle_cmd_ack       (const mavlink_command_ack_t& command_ack);
+            inline void handle_mission_ack   (const mavlink_mission_ack_t& mission_ack);
+            inline void handle_status_text   (const mavlink_statustext_t& status_text);
+            inline void handle_home_position (const mavlink_home_position_t& home_position);
 
         // Vechile Methods
         public:
-            const mavlinksdk::FIRMWARE_TYPE getFirmwareType()
+            inline const mavlinksdk::FIRMWARE_TYPE getFirmwareType()
             {
                 return m_firmware_type;
             }
 
-            const bool isArmed()
+            inline const bool isArmed()
             {
                 return m_armed;
             }
             
-            const bool isFlying()
+            inline const bool isFlying()
             {
                 return m_is_flying;
             } 
 
-            const mavlink_heartbeat_t& getMsgHeartBeat ()
+            inline const mavlink_heartbeat_t& getMsgHeartBeat ()
             {
                 return m_heartbeat;
             }
 
-            const mavlink_sys_status_t& getMsgSysStatus ()
+            inline const mavlink_sys_status_t& getMsgSysStatus ()
             {
                 return m_sys_status;
             }
 
-            const mavlink_battery_status_t& getMsgBatteryStatus ()
+            inline const mavlink_battery_status_t& getMsgBatteryStatus ()
             {
                 return m_battery_status;
             }
 
-            const mavlink_radio_status_t& getMsgRadioStatus ()
+            inline const mavlink_radio_status_t& getMsgRadioStatus ()
             {
                 return m_radio_status;
             }
 
-            const mavlink_local_position_ned_t& getMsgLocalPositionNED ()
+            inline const mavlink_local_position_ned_t& getMsgLocalPositionNED ()
             {
                 return m_local_position_ned;
             }
 
-            const mavlink_global_position_int_t& getMsgGlobalPositionInt ()
+            inline const mavlink_global_position_int_t& getMsgGlobalPositionInt ()
             {
                 return m_global_position_int;
             }
 
-            const mavlink_position_target_local_ned_t& getMsgTargetPositionLocalNED ()
+            inline const mavlink_position_target_local_ned_t& getMsgTargetPositionLocalNED ()
             {
                 return m_position_target_local_ned;
             }
 
-            const mavlink_position_target_global_int_t& getMsgTargetPositionGlobalInt ()
+            inline const mavlink_position_target_global_int_t& getMsgTargetPositionGlobalInt ()
             {
                 return m_position_target_global_int;
             }
 
-            const mavlink_gps_raw_int_t& getMSGGPSRaw ()
+            inline const mavlink_gps_raw_int_t& getMSGGPSRaw ()
             {
                 return m_gps_raw_int;
             }
 
-            const mavlink_attitude_t& getMsgAttitude ()
+            inline const mavlink_attitude_t& getMsgAttitude ()
             {
                 return m_attitude;
             }
 
-            const mavlink_home_position_t& getMsgHomePosition ()
+            inline const mavlink_home_position_t& getMsgHomePosition ()
             {
                 return m_home_position;
             }
 
-            const std::string& getLastStatusText ()
+            inline const std::string& getLastStatusText ()
             {
                 return m_status_text;
             }

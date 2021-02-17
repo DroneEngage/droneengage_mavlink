@@ -87,7 +87,7 @@ namespace mavlinksdk
         // CCallback_Communicator inheritance
         protected:
             void OnMessageReceived (mavlink_message_t& mavlink_message) override;
-            void OnConnected (const bool connected) override;
+            void OnConnected (const bool& connected) override;
 
         // CCallback_Communicator inheritance
         protected:
@@ -99,33 +99,46 @@ namespace mavlinksdk
             {
                 m_mavlink_events->OnHeartBeat_Resumed (heartbeat);
             };
-            void OnArmed (const bool armed) override 
+            void OnArmed (const bool& armed) override 
             {
                 std::cout << _INFO_CONSOLE_TEXT << "OnArmed " << std::to_string(armed) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
                 m_mavlink_events->OnArmed (armed);
 
             };
-            void OnFlying (const bool isFlying) override 
+            void OnFlying (const bool& isFlying) override 
             {
                 std::cout << _INFO_CONSOLE_TEXT << "OnFlying " << std::to_string(isFlying) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
                 m_mavlink_events->OnFlying (isFlying);
             };
 
-            void OnACK (const int result, const std::string& result_msg) override 
+            void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)  override
+            {
+                std::cout << _INFO_CONSOLE_TEXT << "OnMissionACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->OnMissionACK (result, mission_type, result_msg);
+            }
+
+            void OnACK (const int& result, const std::string& result_msg) override 
             {
                 std::cout << _INFO_CONSOLE_TEXT << "OnACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->OnACK (result, result_msg);
             };
 
-            void OnStatusText (const std::uint8_t severity, const std::string& status) override 
+            void OnStatusText (const std::uint8_t& severity, const std::string& status) override 
             {
                 std::cout << _INFO_CONSOLE_TEXT << "Status " << status << _NORMAL_CONSOLE_TEXT_ << std::endl;
                 m_mavlink_events->OnStatusText (severity, status);
             };
             
-            void OnModeChanges(const int custom_mode, const int firmware_type)  override
+            void OnModeChanges(const int& custom_mode, const int& firmware_type)  override
             {
                 m_mavlink_events->OnModeChanges (custom_mode, firmware_type);
             };
+
+            void OnHomePositionUpdated(const mavlink_home_position_t& home_position)  override
+            {
+                m_mavlink_events->OnHomePositionUpdated (home_position);
+            }
+            
 
 
     };

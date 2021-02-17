@@ -26,7 +26,8 @@ void uavos::fcb::CFCBFacade::sendID(const std::string&target_party_id)
 
     */
     uavos::fcb::CFCBMain&  fcbMain = uavos::fcb::CFCBMain::getInstance();
-            
+    mavlinksdk::CVehicle *vehicle =  m_mavlink_sdk.getVehicle().get();
+        
     const ANDRUAV_VEHICLE_INFO& andruav_vehicle_info = fcbMain.getAndruavVehicleInfo();
 
     Json message =
@@ -35,8 +36,8 @@ void uavos::fcb::CFCBFacade::sendID(const std::string&target_party_id)
             {"FM", andruav_vehicle_info.flying_mode},
             {"GM", andruav_vehicle_info.gps_mode},
             {"FI", andruav_vehicle_info.use_fcb},
-            {"AR", andruav_vehicle_info.is_armed},
-            {"FL", andruav_vehicle_info.is_flying},
+            {"AR", vehicle->isArmed()},
+            {"FL", vehicle->isFlying()},
             {"TP", TelemetryProtocol_DroneKit_Telemetry},
             {"SD", false},
             {"z", andruav_vehicle_info.flying_last_start_time},
@@ -141,8 +142,8 @@ void uavos::fcb::CFCBFacade::sendGPSInfo(const std::string&target_party_id)
             {"g", gpos.alt},
             {"p", "FCB"}, // source og this reading as if mode is auto you can read from multiple gps
             {"la", gpos.lat / 10000000.0},
-            {"ln", gpos.lon / 10000000.0},
-            {"a",  gpos.relative_alt},
+            {"ln", gpos.lon / 10000000.0},  
+            {"a",  gpos.relative_alt / 1000.0f}, 
             {"c", gps.h_acc},
             {"b", gps.yaw}
         };
@@ -196,11 +197,20 @@ void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)
 
 void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)
 {
-    Json message;
+    
+    mavlinksdk::CVehicle *vehicle =  m_mavlink_sdk.getVehicle().get();
+    const mavlink_home_position_t& home = vehicle->getMsgHomePosition();
+    
+    Json message=
+    {
+        {"T", home.latitude / 10000000.0f},
+        {"O", home.longitude / 10000000.0f},
+        {"A", home.altitude / 1000.0f}
+    };
 
     if (m_sendJMSG != NULL)
     {
-        //m_sendJMSG (target_party_id, message, true);
+        m_sendJMSG (target_party_id, message, Type_AndruavResala_HomeLocation, false);
     }
  
     return ;
