@@ -161,7 +161,27 @@ void uavos::fcb::CFCBFacade::sendGPSInfo(const std::string&target_party_id)
 
 void uavos::fcb::CFCBFacade::sendNavInfo(const std::string&target_party_id)
 {
-    Json message;
+    /*
+        a : nav_roll
+        b : nav_pitch
+        y : nav_yaw
+        d : target_bearing 
+        e : wp_dist
+        f : alt_error
+    */
+
+    mavlinksdk::CVehicle *vehicle =  m_mavlink_sdk.getVehicle().get();
+    const mavlink_attitude_t& attitude = vehicle->getMsgAttitude();
+    const mavlink_nav_controller_output_t& nav_controller = vehicle->getMsgNavController();
+    Json message =
+    {
+        {"a", attitude.roll},
+        {"b", attitude.pitch},
+        {"y", attitude.yaw},
+        {"d", nav_controller.target_bearing},
+        {"e", nav_controller.wp_dist},
+        {"f", nav_controller.alt_error},
+    };
 
     if (m_sendJMSG != NULL)
     {
@@ -185,7 +205,46 @@ void uavos::fcb::CFCBFacade::sendIMUInfo(const std::string&target_party_id)
 
 void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)
 {
-    Json message;
+
+    mavlinksdk::CVehicle *vehicle =  m_mavlink_sdk.getVehicle().get();
+    
+    int voltage = 0.0f;
+
+    for (int i=0; i<=10 ; ++i)
+    {
+        if ( vehicle->getMsgBatteryStatus().voltages[i] != 65535)
+            voltage += vehicle->getMsgBatteryStatus().voltages[i];
+    }
+
+    Json message =
+    {
+        /*
+            BL : Device battery level
+             V : Device voltage
+            BT : Device battery temprature
+            [H]: Device battery health - string
+           [PS]: Plug Status - string e.g. charging, unplugged
+           [FV]: FCB_Battery voltage (mV x1000 )
+           [FI]: FCB_Battry  current charge (mAmp x100). Battery current, -1: autopilot does not measure the current
+           [FR]: FCB_Battery remaining Remaining battery energy. Values: [0-100], -1: autopilot does not estimate the remaining battery.
+            
+            Extra Parameters:
+            [T]: Battery temprature in mC-deg x1000
+            [C]: Battery Current Consumed in mAmp
+            : Battery Type MAV_BATTERY_TYPE
+        */
+
+        
+        {"BL", 0.0},
+        {"V", 0.0},
+        {"BT", 0.0},
+        {"HBL", 0.0},
+        {"FV", voltage},
+        {"FI", vehicle->getMsgBatteryStatus().current_battery * 10 },
+        {"FR", vehicle->getMsgBatteryStatus().battery_remaining},
+        {"T", vehicle->getMsgBatteryStatus().temperature},
+        {"C", vehicle->getMsgBatteryStatus().current_consumed}
+    };
 
     if (m_sendJMSG != NULL)
     {

@@ -20,7 +20,7 @@ std::string  GroupID;
 std::string  ModuleID;
 
 uavos::fcb::CFCBMain& cFCBMain = uavos::fcb::CFCBMain::getInstance();
-uavos::fcb::CFCBAndruavMessageParser cAndruavMessageParser = uavos::fcb::CFCBAndruavMessageParser();
+uavos::fcb::CFCBAndruavResalaParser cAndruavResalaParser = uavos::fcb::CFCBAndruavResalaParser();
 
 uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
 
@@ -126,7 +126,7 @@ void onReceive (const char * jsonMessage, int len)
 
     }
     
-    cAndruavMessageParser.parseMessage(jMsg);
+    cAndruavResalaParser.parseMessage(jMsg);
     
 }
 

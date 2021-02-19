@@ -17,10 +17,7 @@ mavlinksdk::CVehicle::CVehicle(mavlinksdk::CCallBack_Vehicle& callback_vehicle):
 
 
 
-mavlinksdk::CVehicle::~CVehicle()
-{
-    
-}
+
 
 void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbeat)
 {
@@ -87,11 +84,6 @@ void mavlinksdk::CVehicle::handle_cmd_ack (const mavlink_command_ack_t& command_
 }
 
 
-void mavlinksdk::CVehicle::handle_mission_ack   (const mavlink_mission_ack_t& mission_ack)
-{
-	m_callback_vehicle.OnMissionACK (mission_ack.type, mission_ack.mission_type, mavlinksdk::CMavlinkHelper::getMissionACKResult (mission_ack.type));
-}
-
 
 void mavlinksdk::CVehicle::handle_status_text (const mavlink_statustext_t& status_text)
 {
@@ -122,12 +114,9 @@ void mavlinksdk::CVehicle::handle_home_position (const mavlink_home_position_t& 
 void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_message)
 {
 
-	const int msgid = mavlink_message.msgid;
+	const int& msgid = mavlink_message.msgid;
 	
-	
-	
-
-    switch (msgid)
+	switch (msgid)
 	{
         case MAVLINK_MSG_ID_HEARTBEAT:
 		{
@@ -223,12 +212,9 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
         }
 		break;
 
-		case MAVLINK_MSG_ID_MISSION_ACK:
+		case MAVLINK_MSG_ID_NAV_CONTROLLER_OUTPUT:
 		{
-			mavlink_mission_ack_t mission_ack;
-			mavlink_msg_mission_ack_decode(&mavlink_message, &mission_ack);
-
-			handle_mission_ack(mission_ack);
+			mavlink_msg_nav_controller_output_decode(&mavlink_message, &m_nav_controller);
 		}
 		break;
 

@@ -27,6 +27,10 @@ namespace mavlinksdk
         virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)  {};
     
 
+        //CCallBack_WayPoint
+        virtual void onWaypointReached()        {};
+        virtual void onCurrentWaypointUpdated() {};
+
         // CCallBack_Communicator Related
 
         virtual void OnMessageReceived (mavlink_message_t& mavlink_message) {};

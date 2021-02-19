@@ -41,7 +41,6 @@ namespace mavlinksdk
         virtual void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)                 {};
         virtual void OnArmed (const bool& armed)                                                {};
         virtual void OnFlying (const bool& isFlying)                                             {};
-        virtual void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)             {};
         virtual void OnACK (const int& result, const std::string& result_msg)                 {};
         virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)      {};
         virtual void OnModeChanges(const int& custom_mode, const int& firmware_type)              {};
@@ -53,7 +52,7 @@ namespace mavlinksdk
         public:
         
             explicit CVehicle(mavlinksdk::CCallBack_Vehicle& callback_vehicle);
-            ~CVehicle();
+            ~CVehicle() {};
     
             void parseMessage       (const mavlink_message_t& mavlink_message);
     
@@ -63,7 +62,6 @@ namespace mavlinksdk
 
             inline void handle_heart_beat    (const mavlink_heartbeat_t& heartbeat);
             inline void handle_cmd_ack       (const mavlink_command_ack_t& command_ack);
-            inline void handle_mission_ack   (const mavlink_mission_ack_t& mission_ack);
             inline void handle_status_text   (const mavlink_statustext_t& status_text);
             inline void handle_home_position (const mavlink_home_position_t& home_position);
 
@@ -139,6 +137,11 @@ namespace mavlinksdk
                 return m_home_position;
             }
 
+            inline const mavlink_nav_controller_output_t& getMsgNavController()
+            {
+                return m_nav_controller;
+            }
+
             inline const std::string& getLastStatusText ()
             {
                 return m_status_text;
@@ -159,6 +162,12 @@ namespace mavlinksdk
             mavlink_sys_status_t m_sys_status;
 
             // Battery Status
+            /**
+             * @brief 
+             *  voltage in x1000 array of 10
+             *  current in x100
+             *  temprature in x 1000
+             */
             mavlink_battery_status_t m_battery_status;
 
             // Radio Status
@@ -190,6 +199,8 @@ namespace mavlinksdk
             // Home Position
             mavlink_home_position_t m_home_position;
 
+            // Desired (pitch, roll, yaw, wp_dist, alt_error)
+            mavlink_nav_controller_output_t m_nav_controller;
 
             // Status Text
             std::string m_status_text;

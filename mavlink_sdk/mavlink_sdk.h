@@ -6,12 +6,13 @@
 #include "generic_port.h"
 #include "mavlink_communicator.h"
 #include "vehicle.h"
+#include "mavlink_waypoint_manager.h"
 #include "mavlink_events.h"
 
 
 namespace mavlinksdk
 {
-    class CMavlinkSDK : protected mavlinksdk::comm::CCallBack_Communicator, protected mavlinksdk::CCallBack_Vehicle, protected mavlinksdk::CMavlinkEvents
+    class CMavlinkSDK : protected mavlinksdk::comm::CCallBack_Communicator, protected mavlinksdk::CCallBack_Vehicle, protected mavlinksdk::CMavlinkEvents, protected mavlinksdk::CCallBack_WayPoint
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -38,8 +39,9 @@ namespace mavlinksdk
             {
                 m_sysid  = 0;
                 m_compid = 0;
-                m_callback_vehicle = (mavlinksdk::CCallBack_Vehicle*) this;
-                m_mavlink_events   = (mavlinksdk::CMavlinkEvents*) this;
+                m_callback_vehicle  = (mavlinksdk::CCallBack_Vehicle*) this;
+                m_mavlink_events    = (mavlinksdk::CMavlinkEvents*) this;
+                m_callback_waypoint = (mavlinksdk::CCallBack_WayPoint*)this; 
             }                    // Constructor? (the {} brackets) are needed here.
 
             
@@ -72,14 +74,21 @@ namespace mavlinksdk
                 return m_vehicle;
             }
 
+            std::unique_ptr<mavlinksdk::CMavlinkWayPointManager>& getWayPointManager()
+            {
+                return m_mavlink_waypoint_manager;
+            }
+
             void sendMavlinkMessage(const mavlink_message_t& mavlink_message);
             
         protected:
               mavlinksdk::CMavlinkEvents * m_mavlink_events; 
               mavlinksdk::CCallBack_Vehicle* m_callback_vehicle;
+              mavlinksdk::CCallBack_WayPoint* m_callback_waypoint;
               std::shared_ptr<mavlinksdk::comm::GenericPort> m_port;
               std::unique_ptr<mavlinksdk::comm::CMavlinkCommunicator> m_communicator;
               std::unique_ptr<mavlinksdk::CVehicle> m_vehicle;
+              std::unique_ptr<mavlinksdk::CMavlinkWayPointManager> m_mavlink_waypoint_manager;
               bool m_stopped_called = false;
               int m_sysid;
               int m_compid;
@@ -89,52 +98,55 @@ namespace mavlinksdk
             void OnMessageReceived (mavlink_message_t& mavlink_message) override;
             void OnConnected (const bool& connected) override;
 
-        // CCallback_Communicator inheritance
+        // CCalback_WayPointManager inheritance
         protected:
-            void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat) override 
-            {
-                m_mavlink_events->OnHeartBeat_First (heartbeat);
-            };
-            void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat) override 
-            {
-                m_mavlink_events->OnHeartBeat_Resumed (heartbeat);
-            };
-            void OnArmed (const bool& armed) override 
-            {
-                std::cout << _INFO_CONSOLE_TEXT << "OnArmed " << std::to_string(armed) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
-                m_mavlink_events->OnArmed (armed);
-
-            };
-            void OnFlying (const bool& isFlying) override 
-            {
-                std::cout << _INFO_CONSOLE_TEXT << "OnFlying " << std::to_string(isFlying) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
-                m_mavlink_events->OnFlying (isFlying);
-            };
-
-            void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)  override
+            inline void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)  override
             {
                 std::cout << _INFO_CONSOLE_TEXT << "OnMissionACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
                 m_mavlink_events->OnMissionACK (result, mission_type, result_msg);
             }
 
-            void OnACK (const int& result, const std::string& result_msg) override 
+            
+        // CCallback_Vehicle inheritance
+        protected:
+            inline void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat) override 
+            {
+                m_mavlink_events->OnHeartBeat_First (heartbeat);
+            };
+            inline void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat) override 
+            {
+                m_mavlink_events->OnHeartBeat_Resumed (heartbeat);
+            };
+            inline void OnArmed (const bool& armed) override 
+            {
+                std::cout << _INFO_CONSOLE_TEXT << "OnArmed " << std::to_string(armed) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->OnArmed (armed);
+
+            };
+            inline void OnFlying (const bool& isFlying) override 
+            {
+                std::cout << _INFO_CONSOLE_TEXT << "OnFlying " << std::to_string(isFlying) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->OnFlying (isFlying);
+            };
+
+            inline void OnACK (const int& result, const std::string& result_msg) override 
             {
                 std::cout << _INFO_CONSOLE_TEXT << "OnACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
                 m_mavlink_events->OnACK (result, result_msg);
             };
 
-            void OnStatusText (const std::uint8_t& severity, const std::string& status) override 
+            inline void OnStatusText (const std::uint8_t& severity, const std::string& status) override 
             {
                 std::cout << _INFO_CONSOLE_TEXT << "Status " << status << _NORMAL_CONSOLE_TEXT_ << std::endl;
                 m_mavlink_events->OnStatusText (severity, status);
             };
             
-            void OnModeChanges(const int& custom_mode, const int& firmware_type)  override
+            inline void OnModeChanges(const int& custom_mode, const int& firmware_type)  override
             {
                 m_mavlink_events->OnModeChanges (custom_mode, firmware_type);
             };
 
-            void OnHomePositionUpdated(const mavlink_home_position_t& home_position)  override
+            inline void OnHomePositionUpdated(const mavlink_home_position_t& home_position)  override
             {
                 m_mavlink_events->OnHomePositionUpdated (home_position);
             }

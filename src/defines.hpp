@@ -10,6 +10,11 @@
 
 #define TelemetryProtocol_DroneKit_Telemetry 4
 
+#define PI  3.1415926535897932384626433832795
+#define DEGREES_TO_RADIANS PI / 180.0f
+#define RADIANS_TO_DEGREES 180.0f / PI
+
+
 typedef enum ANDRUAV_UNIT_TYPE
 {
         VEHICLE_TYPE_UNKNOWN    = 0,

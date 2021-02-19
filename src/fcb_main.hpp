@@ -123,6 +123,7 @@ namespace fcb
         private:
             u_int64_t m_last_start_flying =0 ;
             u_int64_t m_counter =0;
+            u_int64_t m_counter_sec =0;
     };
 }
 }

@@ -2,6 +2,48 @@
 
 
 #include "mavlink_command.h"
+
+
+
+
+
+
+
+void mavlinksdk::CMavlinkCommand::sendLongCommand (const uint16_t& command,
+				const bool& confirmation,
+                const float& param1,
+                const float& param2,
+                const float& param3,
+                const float& param4,
+                const float& param5,
+                const float& param6,
+                const float& param7)
+{
+	mavlink_command_long_t msg = { 0 };
+	msg.target_system    = m_mavlink_sdk.getSysId();
+	msg.target_component = m_mavlink_sdk.getCompId();
+	msg.command          = command;
+	msg.confirmation     = confirmation;
+	
+    msg.param1           = param1;
+    msg.param2           = param2;
+    msg.param3           = param3;
+	msg.param4           = param4;
+	msg.param5           = param5;
+	msg.param6           = param6;
+	msg.param7           = param7;
+	
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_command_long_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &msg);
+
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;
+}
+
+
+
 /**
  * https://mavlink.io/en/messages/common.html#MAV_CMD_COMPONENT_ARM_DISARM
  */
@@ -20,84 +62,63 @@ void mavlinksdk::CMavlinkCommand::doArmDisarm (const bool& arm, const bool& forc
         flagArm = 1.0f;
     }
 
-    // Prepare command for off-board mode
-	mavlink_command_long_t msg = { 0 };
-	msg.target_system    = m_mavlink_sdk.getSysId();
-	msg.target_component = m_mavlink_sdk.getCompId();
-	msg.command          = MAV_CMD_COMPONENT_ARM_DISARM;
-	msg.confirmation     = true;
-	msg.param1           = (float) flagArm;
-	msg.param2           = forceArm;
+	sendLongCommand (MAV_CMD_COMPONENT_ARM_DISARM, true,
+		(float) flagArm, 
+		forceArm);
 
-	// Encode
-	mavlink_message_t mavlink_message;
-	mavlink_msg_command_long_encode(0,0, &mavlink_message, &msg);
-
-    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	return ;	
 }
 
+/**
+ * @brief change vehicle mode.
+ * 
+ * @param mode depends on vehicle and firmware_type.
+ */
 void mavlinksdk::CMavlinkCommand::doSetMode (const int& mode)
 {
-    // mavlink_message_t mavlink_message;
-    // mavlink_set_mode_t set_mode;
-    // set_mode.base_mode = 1;
-    // set_mode.custom_mode = mode;
-	// mavlink_msg_set_mode_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &set_mode) ;
+    
+	sendLongCommand (MAV_CMD_DO_SET_MODE, true,
+		(float) 1.0f, 
+		(float) mode,
+		(float) 0.0f);
 
-    // Prepare command for off-board mode
-	mavlink_command_long_t msg = { 0 };
-	msg.target_system    = m_mavlink_sdk.getSysId();
-	msg.target_component = m_mavlink_sdk.getCompId();
-	msg.command          = MAV_CMD_DO_SET_MODE;
-	msg.confirmation     = true;
-	
-    msg.param1           = (float) 1.0f;
-    msg.param2           = (float) mode;
-    msg.param3           = (float) 0.0f;
-	
-	// Encode
-	mavlink_message_t mavlink_message;
-	mavlink_msg_command_long_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &msg);
-
-    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	return ;
 }
 
 
-
-void mavlinksdk::CMavlinkCommand::setHome (const float& latitude, const float& longitude, const float& altitude)
+/**
+ * @brief define home location for RTL
+ * @param yaw		in deg
+ * @param latitude  in xx.xxxx format
+ * @param longitude in xx.xxxx format
+ * @param altitude  in meters
+ */
+void mavlinksdk::CMavlinkCommand::setHome (const float& yaw, const float& latitude, const float& longitude, const float& altitude)
 {
-    mavlink_command_long_t msg = { 0 };
-	msg.target_system    = m_mavlink_sdk.getSysId();
-	msg.target_component = m_mavlink_sdk.getCompId();
-	msg.command          = MAV_CMD_DO_SET_HOME;
-	
-    msg.param5           = latitude;
-	msg.param6           = longitude;
-	msg.param7           = altitude;
-	
-	// Encode
-	mavlink_message_t mavlink_message;
-	mavlink_msg_command_long_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &msg);
+    sendLongCommand (MAV_CMD_DO_SET_HOME, false,
+		0,  // use specified location
+		0,  // unused
+		0,  // unused
+		yaw,
+		latitude,
+		longitude,
+		altitude);
 
-   m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	return ;
 }
 
 void mavlinksdk::CMavlinkCommand::setROI (const float& latitude, const float& longitude, const float& altitude)
 {
-    mavlink_command_long_t msg = { 0 };
-	msg.target_system    = m_mavlink_sdk.getSysId();
-	msg.target_component = m_mavlink_sdk.getCompId();
-	msg.command          = MAV_CMD_DO_SET_ROI;
-	
-    msg.param5           = latitude;
-	msg.param6           = longitude;
-	msg.param7           = altitude;
-	
-	// Encode
-	mavlink_message_t mavlink_message;
-	mavlink_msg_command_long_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &msg);
+    sendLongCommand (MAV_CMD_DO_SET_ROI, false,
+		0,  // use specified location
+		0,  // unused
+		0,  // unused
+		0,  // unused
+		latitude,
+		longitude,
+		altitude);
 
-   m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	return ;
 }
 
 void mavlinksdk::CMavlinkCommand::resetROI ()
@@ -108,18 +129,10 @@ void mavlinksdk::CMavlinkCommand::resetROI ()
 
 void mavlinksdk::CMavlinkCommand::cmdTerminalFlight ()
 {
-    mavlink_command_long_t msg = { 0 };
-	msg.target_system    = m_mavlink_sdk.getSysId();
-	msg.target_component = m_mavlink_sdk.getCompId();
-	msg.command          = MAV_CMD_DO_FLIGHTTERMINATION;
-	
-    msg.param1           = 1;
+    sendLongCommand (MAV_CMD_DO_FLIGHTTERMINATION, false,
+		1);
 
-    // Encode
-	mavlink_message_t mavlink_message;
-	mavlink_msg_command_long_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &msg);
-
-   m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	return ;
 }
 
 void mavlinksdk::CMavlinkCommand::changeAltitude (const float& altitude)
@@ -136,18 +149,16 @@ void mavlinksdk::CMavlinkCommand::changeAltitude (const float& altitude)
  */
 void mavlinksdk::CMavlinkCommand::takeOff (const float& altitude)
 {
-    mavlink_command_long_t msg = { 0 };
-	msg.target_system    = m_mavlink_sdk.getSysId();
-	msg.target_component = m_mavlink_sdk.getCompId();
-	msg.command          = MAV_CMD_NAV_TAKEOFF;
-	
-    msg.param7           = altitude;
+    sendLongCommand (MAV_CMD_NAV_TAKEOFF, false,
+		0,  // unused
+		0,  // unused
+		0,  // unused
+		0,  // unused
+		0,  // unused
+		0,  // unused
+		altitude);
 
-    // Encode
-	mavlink_message_t mavlink_message;
-	mavlink_msg_command_long_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &msg);
-
-   m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	return ;
 }
 
 /**
@@ -204,4 +215,112 @@ void mavlinksdk::CMavlinkCommand::gotoGuidedPoint (const double& latitude, const
 
 	m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
     
+}
+
+
+/**
+ * @brief set yaw direction
+ * 
+ * @param target_angle in deg
+ * @param turn_rate deg/sec
+ * @param is_clock_wise 
+ * @param is_relative relative or absolute angle
+ */
+void mavlinksdk::CMavlinkCommand::setYawCondition( const double& target_angle, const double& turn_rate, const bool& is_clock_wise, const bool& is_relative)
+{
+	float direction = is_clock_wise?1.0f:-1.0f;
+	float relative = is_relative?1.0f:0.0f;
+	
+	sendLongCommand (MAV_CMD_CONDITION_YAW, false,
+		target_angle,  
+		turn_rate,  
+		direction,  
+		relative);
+
+	return ;
+}
+
+
+/**
+ * @brief 
+ * @param speed_type Speed type (0=Airspeed, 1=Ground Speed, 2=Climb Speed, 3=Descent Speed)
+ * @param speed Speed (-1 indicates no change) m/s
+ * @param is_ground_speed 
+ * @param throttle Throttle (-1 indicates no change) %
+ * @param is_relative 0: absolute, 1: relative
+ */
+void mavlinksdk::CMavlinkCommand::setNavigationSpeed ( const int& speed_type, const double& speed, const double& throttle, const bool& is_relative)
+{
+	const int relative = is_relative == true?1:0;
+
+	sendLongCommand (MAV_CMD_DO_CHANGE_SPEED, false,
+		speed_type,  
+		speed,  
+		throttle,  
+		relative);
+
+	return ;
+}
+
+
+
+void mavlinksdk::CMavlinkCommand::loadWayPoints ()
+{
+	m_mavlink_sdk.getWayPointManager().get()->loadWayPoints();
+
+	mavlink_mission_request_list_t mission_request;
+
+	mission_request.target_system = m_mavlink_sdk.getSysId();
+	mission_request.target_component = m_mavlink_sdk.getCompId();
+	mission_request.mission_type = MAV_MISSION_TYPE_MISSION;
+	
+	
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_mission_request_list_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &mission_request);
+
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;
+}
+
+
+void mavlinksdk::CMavlinkCommand::clearWayPoints ()
+{
+	mavlink_mission_clear_all_t mission_clear;
+
+	mission_clear.target_system = m_mavlink_sdk.getSysId();
+	mission_clear.target_component = m_mavlink_sdk.getCompId();
+	mission_clear.mission_type = MAV_MISSION_TYPE_MISSION; //MAV_MISSION_TYPE_ALL;
+	
+	
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_mission_clear_all_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &mission_clear);
+
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;
+}
+
+/**
+ * @brief Set the mission item with sequence number seq as current item. This means that the MAV will continue to this mission item on the shortest path (not following the mission items in-between).
+ * 
+ * @param mission_number Sequence
+ */
+void mavlinksdk::CMavlinkCommand::setCurrentMission (const int& mission_number)
+{
+	mavlink_mission_set_current_t mission_current;
+
+	mission_current.target_system = m_mavlink_sdk.getSysId();
+	mission_current.target_component = m_mavlink_sdk.getCompId();
+	mission_current.seq = mission_number;
+
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_mission_set_current_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &mission_current);
+
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;
 }

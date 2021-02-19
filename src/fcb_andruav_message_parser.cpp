@@ -18,7 +18,7 @@ void Scheduler_1Hz ()
  * 
  * @param andruav_message message received from uavos_comm
  */
-void uavos::fcb::CFCBAndruavMessageParser::parseMessage (Json &andruav_message)
+void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
 {
     const int messageType = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
     
@@ -37,7 +37,7 @@ void uavos::fcb::CFCBAndruavMessageParser::parseMessage (Json &andruav_message)
         switch (messageType)
         {
 
-            case TYPE_AndruavMessage_Arm:
+            case TYPE_AndruavResala_Arm:
             {
                 // A  : bool arm/disarm
                 // [D]: bool force 
@@ -139,9 +139,40 @@ void uavos::fcb::CFCBAndruavMessageParser::parseMessage (Json &andruav_message)
                 double longitude = message["O"].get<double>();
                 double altitude  = message["A"].get<double>();
                 
-                m_mavlinkCommand.setHome(latitude, longitude, altitude);
+                m_mavlinkCommand.setHome(0, latitude, longitude, altitude);
             }
             break;
+
+            case TYPE_AndruavResala_DoYAW:
+            {
+                // A : target_angle
+                // R : turn_rate
+                // C : is_clock_wise
+                // L : is_relative
+                double target_angle  = message["A"].get<double>();
+                double turn_rate = message["R"].get<double>();
+                bool is_clock_wise  = message["C"].get<bool>();
+                bool is_relative = message["L"].get<bool>();
+                
+                m_mavlinkCommand.setYawCondition( target_angle, turn_rate, is_clock_wise, is_relative);
+            }
+
+            case TYPE_AndruavResala_ChangeSpeed:
+            {
+                // a : speed
+                // b : is_ground_speed
+                // c : throttle
+                // d : is_relative
+
+                double speed = message["a"].get<double>();
+                bool is_ground_speed = message["b"].get<bool>();
+                double throttle = message["c"].get<double>();
+                bool is_relative = message["d"].get<bool>();
+                
+                const int speed_type = is_ground_speed?1:0;
+
+                m_mavlinkCommand.setNavigationSpeed(1, speed, throttle, is_relative);
+            }
             
             case TYPE_AndruavResala_RemoteExecute:
             {
@@ -159,7 +190,7 @@ void uavos::fcb::CFCBAndruavMessageParser::parseMessage (Json &andruav_message)
  * 
  * @param andruav_message 
  */
-void uavos::fcb::CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
+void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_message)
 {
     const Json cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
     const int remoteCommand = cmd["C"].get<int>();

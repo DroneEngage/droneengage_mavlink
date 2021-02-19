@@ -137,3 +137,5 @@ void* mavlinksdk::comm::startWriteThread(void *args)
 	// done!
 	return NULL;
 }
+
+

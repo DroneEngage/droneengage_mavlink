@@ -14,11 +14,11 @@ namespace uavos
 namespace fcb
 {
 
-    class CFCBAndruavMessageParser
+    class CFCBAndruavResalaParser
     {
         public:
 
-        CFCBAndruavMessageParser()
+        CFCBAndruavResalaParser()
         {
 
         };

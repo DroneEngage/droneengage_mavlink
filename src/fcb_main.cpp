@@ -108,14 +108,41 @@ void uavos::fcb::CFCBMain::loopScheduler ()
         m_counter++;
 
         if (m_counter%10 ==0)
-        {
+        {   // each 100 msec
             m_fcb_facade.sendGPSInfo(std::string());
+            
+        }
+
+        if (m_counter%50 == 0)
+        {
+            m_fcb_facade.sendNavInfo(std::string());
         }
 
         if (m_counter %100 ==0)
-        {
-            // each second
-            m_fcb_facade.sendID(std::string());
+        {// each second
+            if (this->m_counter_sec % 2 ==0)
+            {// 2 sec
+
+            }
+
+            if (m_counter_sec % 5 ==0)
+            {// 5 sec
+                m_fcb_facade.sendPowerInfo(std::string());
+            
+            }
+
+            if (m_counter_sec % 10 ==0)
+            {// 10 sec
+                m_fcb_facade.sendID(std::string());
+            }
+
+            if (m_counter_sec % 15 ==0)
+            {// 15 sec
+            
+            }
+            
+            
+            m_counter_sec++;
         }
     }
 }
