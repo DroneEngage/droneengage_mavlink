@@ -24,6 +24,7 @@
 #define ANDRUAV_PROTOCOL_MESSAGE_TYPE   "mt"
 #define ANDRUAV_PROTOCOL_MESSAGE_CMD    "ms"
 #define INTERMODULE_COMMAND_TYPE        "ty"
+#define INTERMODULE_MODULE_KEY          "GU"
 
 
 #define TYPE_AndruavModule_ID                   9100
@@ -34,6 +35,7 @@
 #define TYPE_AndruavResala_RemoteExecute 		1005     
 #define TYPE_AndruavResala_Error                1008    
 #define TYPE_AndruavResala_FlightControl        1010
+#define TYPE_AndruavMessage_DroneReport         1020
 #define Type_AndruavResala_HomeLocation         1022
 #define TYPE_AndruavResala_Arm                  1030
 #define TYPE_AndruavResala_ChangeAltitude       1031
@@ -43,6 +45,19 @@
 #define TYPE_AndruavResala_NAV_INFO             1036
 #define TYPE_AndruavResala_ChangeSpeed          1040
 #define TYPE_AndruavResala_SET_HOME_LOCATION    1048
+
+
+
+// Remote Execute Commands
+#define RemoteCommand_GET_WAY_POINTS             500 // get from andruav not FCB but you can still read from fcb and refresh all   
+#define RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB 501
+#define RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB  502
+#define RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB  502
+#define RemoteCommand_CLEAR_FENCE_DATA 	         503 // andruav fence
+#define RemoteCommand_SET_START_MISSION_ITEM     504
+
+// Drone Report
+#define Drone_Report_NAV_ItemReached            1
 
 // Error Info Types
 #define NOTIFICATION_TYPE_TELEMETRY             33

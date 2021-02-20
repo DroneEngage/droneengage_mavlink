@@ -1,3 +1,4 @@
+#include <math.h>       /* floor */
 
 #include "./helpers/json.hpp"
 using Json = nlohmann::json;
@@ -143,7 +144,7 @@ void uavos::fcb::CFCBFacade::sendGPSInfo(const std::string&target_party_id)
             {"p", "FCB"}, // source og this reading as if mode is auto you can read from multiple gps
             {"la", gpos.lat / 10000000.0},
             {"ln", gpos.lon / 10000000.0},  
-            {"a",  gpos.relative_alt / 1000.0f}, 
+            {"a",  floor (gpos.relative_alt / 1000.0f)}, 
             {"c", gps.h_acc},
             {"b", gps.yaw}
         };
@@ -185,7 +186,7 @@ void uavos::fcb::CFCBFacade::sendNavInfo(const std::string&target_party_id)
 
     if (m_sendJMSG != NULL)
     {
-        m_sendJMSG (target_party_id, message, TYPE_AndruavResala_NAV_INFO, true);
+        m_sendJMSG (target_party_id, message, TYPE_AndruavResala_NAV_INFO, false);
     }
  
     return ;
@@ -260,6 +261,11 @@ void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)
     mavlinksdk::CVehicle *vehicle =  m_mavlink_sdk.getVehicle().get();
     const mavlink_home_position_t& home = vehicle->getMsgHomePosition();
     
+    /*
+        T : latitude in xx.xxxxx
+        O : longitude in xx.xxxxx
+        A : altitude in meters
+    */
     Json message=
     {
         {"T", home.latitude / 10000000.0f},
@@ -308,5 +314,28 @@ void uavos::fcb::CFCBFacade::sendServoReadings(const std::string&target_party_id
         //m_sendJMSG (target_party_id, message);
     }
 
+    return ;
+}
+
+
+void uavos::fcb::CFCBFacade::sendWayPointReached (const std::string&target_party_id, const int& mission_sequence)
+{
+    /*
+        R: Report Type
+        P: Parameter1
+    */
+
+
+    Json message =
+    {
+        {"R", Drone_Report_NAV_ItemReached},
+        {"P", mission_sequence}
+    };
+
+    if (m_sendJMSG != NULL)
+    {
+        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_DroneReport, false);
+    }
+ 
     return ;
 }

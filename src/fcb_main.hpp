@@ -11,6 +11,7 @@ using Json = nlohmann::json;
 
 
 #include "defines.hpp"
+#include "missions.hpp"
 #include "fcb_facade.hpp"
 
 namespace uavos
@@ -80,7 +81,11 @@ namespace fcb
             }
 
 
-            
+        public:
+
+           void clearWayPoints();
+           void reloadWayPoints();
+
 
         // Events implementation of mavlinksdk::CMavlinkEvents
         public:
@@ -93,9 +98,11 @@ namespace fcb
             void OnStatusText (const std::uint8_t& severity, const std::string& status) override;
             void OnModeChanges(const int& custom_mode, const int& firmware_type) override;
             void OnHomePositionUpdated(const mavlink_home_position_t& home_position)  override;
-            void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)override;
+            void onMissionACK (const int& result, const int& mission_type, const std::string& result_msg)override;
             void OnACK (const int& result, const std::string& result_msg) override;
-        
+            void onWaypointReached(const int& seq) override;
+            void onWayPointReceived(const mavlink_mission_item_int_t& mission_item_int) override;
+            void onWayPointsLoadingCompleted ();
 
         protected: 
             void OnHeartBeat ();
@@ -114,7 +121,7 @@ namespace fcb
             Json m_jsonConfig;
             int m_connection_type;
             ANDRUAV_VEHICLE_INFO m_andruav_vehicle_info;
-            
+            ANDRUAV_UNIT_MISSION m_andruav_missions;      
             
             
             bool m_exit_thread = false;

@@ -70,6 +70,8 @@ typedef struct ANDRUAV_VEHICLE_INFO
     u_int64_t   flying_total_duration               = 0;
     u_int64_t   flying_last_start_time              = 0;
     int16_t     vehicle_type                        = 0;
+
+    int16_t     current_waypoint                    = 0;         
 }   ANDRUAV_VEHICLE_INFO;
 
 

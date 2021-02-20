@@ -83,7 +83,11 @@ void uavos::fcb::CFCBMain::init (const Json &jsonConfig)
         m_mavlink_sdk.start(this);
     }
 
+    m_andruav_missions.clear();
+
     m_scheduler_thread = std::thread(SchedulerThread, (void *) this);
+
+    return ;
 }
 
 
@@ -96,6 +100,8 @@ void uavos::fcb::CFCBMain::uninit ()
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CFCBMain  Scheduler Thread Off" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
+
+    return ;
 }
 
 void uavos::fcb::CFCBMain::loopScheduler ()
@@ -145,8 +151,27 @@ void uavos::fcb::CFCBMain::loopScheduler ()
             m_counter_sec++;
         }
     }
+
+    return ;
 }
 
+
+void uavos::fcb::CFCBMain::reloadWayPoints()
+{
+    m_andruav_missions.clear();
+
+    return ;
+    
+}
+
+void uavos::fcb::CFCBMain::clearWayPoints()
+{
+    m_andruav_missions.clear();
+    //m_fcb_facade.sendWayPoints();
+
+    return ;
+    
+}
 
 void uavos::fcb::CFCBMain::OnMessageReceived (mavlink_message_t& mavlink_message)
 {
@@ -157,6 +182,8 @@ void uavos::fcb::CFCBMain::OnMessageReceived (mavlink_message_t& mavlink_message
     {
         OnHeartBeat();
     }
+
+    return ;
 }
 
 
@@ -167,6 +194,8 @@ void uavos::fcb::CFCBMain::OnConnected (const bool& connected)
     {
         m_andruav_vehicle_info.use_fcb = connected;
     }
+
+    return ;
 
 }
 
@@ -181,6 +210,8 @@ void uavos::fcb::CFCBMain::OnHeartBeat ()
     {
         m_andruav_vehicle_info.flying_last_start_time = ( get_time_usec() - m_last_start_flying ) / 1000000l;
     }
+
+    return ;
 }
 
 void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)
@@ -191,6 +222,8 @@ void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbe
     m_andruav_vehicle_info.gps_mode =  GPS_MODE_FCB;
 
     m_fcb_facade.sendID(std::string());
+
+    return ;
 }
 
 
@@ -201,6 +234,8 @@ void uavos::fcb::CFCBMain::OnHeartBeat_Resumed (const mavlink_heartbeat_t& heart
     m_andruav_vehicle_info.vehicle_type = uavos::fcb::CFCBModes::getAndruavVehicleType (heartbeat.type, heartbeat.autopilot);
 
     m_fcb_facade.sendID(std::string());
+
+    return ;
 }
             
 void uavos::fcb::CFCBMain::OnArmed (const bool& armed)
@@ -210,6 +245,8 @@ void uavos::fcb::CFCBMain::OnArmed (const bool& armed)
     m_andruav_vehicle_info.is_armed = armed;
 
     m_fcb_facade.sendID(std::string());
+
+    return ;
 }
 
 
@@ -237,7 +274,8 @@ void uavos::fcb::CFCBMain::OnFlying (const bool& is_flying)
         m_fcb_facade.sendID(std::string());
     }
 
-    
+    return ;
+ 
 }
 
 
@@ -246,10 +284,12 @@ void uavos::fcb::CFCBMain::OnStatusText (const std::uint8_t& severity, const std
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, severity, status);
+
+    return ;
     
 }
 
-void uavos::fcb::CFCBMain::OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)
+void uavos::fcb::CFCBMain::onMissionACK (const int& result, const int& mission_type, const std::string& result_msg)
 {
     int sevirity;
 
@@ -286,6 +326,38 @@ void uavos::fcb::CFCBMain::OnMissionACK (const int& result, const int& mission_t
     }
 
     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, sevirity, result_msg);
+
+    return ;
+}
+
+
+void uavos::fcb::CFCBMain::onWaypointReached(const int& seq) 
+{
+    m_andruav_vehicle_info.current_waypoint = seq;
+    m_fcb_facade.sendWayPointReached (std::string(), seq);
+
+    return ;
+}
+
+void uavos::fcb::CFCBMain::onWayPointReceived(const mavlink_mission_item_int_t& mission_item_int)
+{
+   if (mission_item_int.mission_type == MAV_MISSION_TYPE_MISSION)
+   {
+       const int& seq = mission_item_int.seq;
+       CWayPoint_Step *waypoint_step= new CWayPoint_Step(seq);
+       waypoint_step->x = mission_item_int.x;
+       waypoint_step->y = mission_item_int.y;
+       waypoint_step->z = mission_item_int.z;
+       m_andruav_missions.mission_items.insert({seq, std::unique_ptr<CMissionItem>(waypoint_step)});
+   }
+
+    return ;
+}
+
+void uavos::fcb::CFCBMain::onWayPointsLoadingCompleted ()
+{
+    // notify that mission has been updated
+    // m_fcb_facade.sendWayPoints(std::string());
 }
 
 void uavos::fcb::CFCBMain::OnACK (const int& result, const std::string& result_msg)
@@ -316,6 +388,8 @@ void uavos::fcb::CFCBMain::OnACK (const int& result, const std::string& result_m
     }
 
     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, sevirity, result_msg);
+
+    return ;
 }
 
  
@@ -325,16 +399,22 @@ void uavos::fcb::CFCBMain::OnModeChanges(const int& custom_mode, const int& firm
     m_andruav_vehicle_info.flying_mode = uavos::fcb::CFCBModes::getAndruavMode (custom_mode, m_andruav_vehicle_info.vehicle_type);
 
     m_fcb_facade.sendID(std::string());
+
+    return ;
 }   
 
 
 void uavos::fcb::CFCBMain::OnHomePositionUpdated(const mavlink_home_position_t& home_position)
 {
     m_fcb_facade.sendHomeLocation(std::string());
+
+    return ;
 }
             
 
 void uavos::fcb::CFCBMain::alertUavosOffline()
 {
 
+
+    return ;
 }

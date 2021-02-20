@@ -17,7 +17,7 @@ namespace mavlinksdk
         virtual void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)     {};
         virtual void OnArmed  (const bool& armed)                                    {};
         virtual void OnFlying (const bool& isFlying)                                 {};
-        virtual void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg){}; 
+        virtual void onMissionACK (const int& result, const int& mission_type, const std::string& result_msg){}; 
         virtual void OnACK    (const int& result, const std::string& result_msg)     {};
         virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)                       {};
         /*
@@ -28,9 +28,9 @@ namespace mavlinksdk
     
 
         //CCallBack_WayPoint
-        virtual void onWaypointReached()        {};
-        virtual void onCurrentWaypointUpdated() {};
-
+        virtual void onWaypointReached(const int& seq)        {};
+        virtual void onWayPointReceived(const mavlink_mission_item_int_t& mission_item_int) {};
+        virtual void onWayPointsLoadingCompleted () {};
         // CCallBack_Communicator Related
 
         virtual void OnMessageReceived (mavlink_message_t& mavlink_message) {};

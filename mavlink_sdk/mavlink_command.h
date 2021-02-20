@@ -29,7 +29,7 @@ class CMavlinkCommand
         void gotoGuidedPoint (const double& latitude, const double& longitude, const double& altitude);
         void setYawCondition (const double& target_angle, const double& turn_rate, const bool& is_clock_wise, const bool& is_relative);
         void setNavigationSpeed ( const int& speed_type, const double& speed, const double& throttle, const bool& is_relative);
-        void loadWayPoints ();
+        void reloadWayPoints ();
         void clearWayPoints();
         void setCurrentMission (const int& mission_number);
 

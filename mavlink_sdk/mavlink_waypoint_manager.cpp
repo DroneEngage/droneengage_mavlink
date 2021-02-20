@@ -19,7 +19,14 @@ mavlinksdk::CMavlinkWayPointManager::CMavlinkWayPointManager (mavlinksdk::CCallB
 
 
 
-void mavlinksdk::CMavlinkWayPointManager::loadWayPoints ()
+void mavlinksdk::CMavlinkWayPointManager::reloadWayPoints ()
+{
+    
+    m_callback_waypoint.onWayPointsLoadingCompleted();
+}
+
+
+void mavlinksdk::CMavlinkWayPointManager::clearWayPoints ()
 {
     
     m_callback_waypoint.onWayPointsLoadingCompleted();
@@ -28,29 +35,42 @@ void mavlinksdk::CMavlinkWayPointManager::loadWayPoints ()
 
 void mavlinksdk::CMavlinkWayPointManager::handle_mission_ack (const mavlink_mission_ack_t& mission_ack)
 {
-	m_callback_waypoint.OnMissionACK (mission_ack.type, mission_ack.mission_type, mavlinksdk::CMavlinkHelper::getMissionACKResult (mission_ack.type));
+	m_callback_waypoint.onMissionACK (mission_ack.type, mission_ack.mission_type, mavlinksdk::CMavlinkHelper::getMissionACKResult (mission_ack.type));
 }
 
 void mavlinksdk::CMavlinkWayPointManager::handle_mission_count (const mavlink_mission_count_t& mission_count)
 {
-	
+    if (mission_count.mission_type == MAV_MISSION_TYPE_MISSION)
+    {
+	    m_mission_count = mission_count.count;
+    }
 }
 
 
 void mavlinksdk::CMavlinkWayPointManager::handle_mission_current (const mavlink_mission_current_t& mission_current)
 {
-	
+    // handle_mission_item_reached detects changes
+	m_mission_current = mission_current.seq;
 }
 
 void mavlinksdk::CMavlinkWayPointManager::handle_mission_item (const mavlink_mission_item_int_t& mission_item_int)
 {
+    
+    m_callback_waypoint.onWayPointReceived (mission_item_int);
 
+    if (mission_item_int.mission_type == MAV_MISSION_TYPE_MISSION)
+    {
+        if (m_mission_count == mission_item_int.seq)
+        {
+            m_callback_waypoint.onWayPointsLoadingCompleted();
+        }
+    }
 }
 
 
 void mavlinksdk::CMavlinkWayPointManager::handle_mission_item_reached (const mavlink_mission_item_reached_t& mission_item_reached)
 {
-    m_callback_waypoint.onWaypointReached(mission_item_reached);
+    m_callback_waypoint.onWaypointReached(mission_item_reached.seq);
 }
 
 void mavlinksdk::CMavlinkWayPointManager::parseMessage (const mavlink_message_t& mavlink_message)

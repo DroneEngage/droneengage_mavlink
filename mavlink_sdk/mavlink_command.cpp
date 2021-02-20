@@ -264,9 +264,9 @@ void mavlinksdk::CMavlinkCommand::setNavigationSpeed ( const int& speed_type, co
 
 
 
-void mavlinksdk::CMavlinkCommand::loadWayPoints ()
+void mavlinksdk::CMavlinkCommand::reloadWayPoints ()
 {
-	m_mavlink_sdk.getWayPointManager().get()->loadWayPoints();
+	m_mavlink_sdk.getWayPointManager().get()->reloadWayPoints();
 
 	mavlink_mission_request_list_t mission_request;
 
@@ -287,6 +287,8 @@ void mavlinksdk::CMavlinkCommand::loadWayPoints ()
 
 void mavlinksdk::CMavlinkCommand::clearWayPoints ()
 {
+	m_mavlink_sdk.getWayPointManager().get()->clearWayPoints();
+
 	mavlink_mission_clear_all_t mission_clear;
 
 	mission_clear.target_system = m_mavlink_sdk.getSysId();

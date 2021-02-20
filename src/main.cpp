@@ -18,6 +18,7 @@ std::string  PartyID;
 // UAVOS Current GroupID read from communicator
 std::string  GroupID;
 std::string  ModuleID;
+std::string  ModuleKey;
 
 uavos::fcb::CFCBMain& cFCBMain = uavos::fcb::CFCBMain::getInstance();
 uavos::fcb::CFCBAndruavResalaParser cAndruavResalaParser = uavos::fcb::CFCBAndruavResalaParser();
@@ -40,6 +41,7 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
         if (internal_message == true)
         {
             commType = CMD_TYPE_INTERMODULE;
+            fullMessage[INTERMODULE_MODULE_KEY]             = ModuleKey;
         }
         else
         {
@@ -81,7 +83,7 @@ const Json createJSONID (bool reSend)
         ms["b"] = jsonConfig["module_class"];
         ms["c"] = jsonConfig["module_messages"];
         ms["d"] = jsonConfig["module_features"];
-        ms["e"] = jsonConfig["module_key"];
+        ms["e"] = jsonConfig["module_key"]; 
         ms["z"] = reSend;
 
         jsonID[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
@@ -156,6 +158,7 @@ void init (int argc, char *argv[])
             std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()));
     
     
+    ModuleKey = jsonConfig["module_key"];
     Json jsonID = createJSONID(true);
     cUDPClient.SetJSONID (jsonID.dump());
     cUDPClient.SetMessageOnReceive (&onReceive);

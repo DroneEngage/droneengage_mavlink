@@ -55,19 +55,19 @@ namespace fcb
 
         public:
 
-            void  sendID(const std::string&target_party_id);
-            void  requestID(const std::string&target_party_id);
-            void  sendTelemetryPanic(const std::string&target_party_id);
-            void  sendErrorMessage(const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description);
-            void  sendGPSInfo(const std::string&target_party_id);
-            void  sendNavInfo(const std::string&target_party_id);
-            void  sendIMUInfo(const std::string&target_party_id);
-            void  sendPowerInfo(const std::string&target_party_id);
-            void  sendHomeLocation(const std::string&target_party_id);
-            void  sendWayPoints(const std::string&target_party_id);
-            void  sendTelemetryData(const std::string&target_party_id);
-            void  sendServoReadings(const std::string&target_party_id);
-        
+            void sendID(const std::string&target_party_id);
+            void requestID(const std::string&target_party_id);
+            void sendTelemetryPanic(const std::string&target_party_id);
+            void sendErrorMessage(const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description);
+            void sendGPSInfo(const std::string&target_party_id);
+            void sendNavInfo(const std::string&target_party_id);
+            void sendIMUInfo(const std::string&target_party_id);
+            void sendPowerInfo(const std::string&target_party_id);
+            void sendHomeLocation(const std::string&target_party_id);
+            void sendWayPoints(const std::string&target_party_id);
+            void sendTelemetryData(const std::string&target_party_id);
+            void sendServoReadings(const std::string&target_party_id);
+            void sendWayPointReached (const std::string&target_party_id, const int& mission_sequence);
         
             void setSendJMSG (SENDJMSG_CALLBACK sendJMSG)
             {

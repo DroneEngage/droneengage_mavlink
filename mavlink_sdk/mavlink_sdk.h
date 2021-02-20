@@ -100,11 +100,29 @@ namespace mavlinksdk
 
         // CCalback_WayPointManager inheritance
         protected:
-            inline void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)  override
+            inline void onMissionACK (const int& result, const int& mission_type, const std::string& result_msg)  override
             {
-                std::cout << _INFO_CONSOLE_TEXT << "OnMissionACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
-                m_mavlink_events->OnMissionACK (result, mission_type, result_msg);
+                std::cout << _INFO_CONSOLE_TEXT << "onMissionACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->onMissionACK (result, mission_type, result_msg);
             }
+
+            inline void onWaypointReached (const int& sequence) override 
+            {
+                std::cout << _INFO_CONSOLE_TEXT << "onWaypointReached " << std::to_string(sequence) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->onWaypointReached (sequence);
+            }
+
+            inline void onWayPointReceived (const mavlink_mission_item_int_t& mission_item_int) override
+            {
+                std::cout << _INFO_CONSOLE_TEXT << "onWayPointReceived " << std::to_string(mission_item_int.seq) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->onWayPointReceived (mission_item_int);
+            }
+
+            inline void onWayPointsLoadingCompleted () override 
+            {
+                m_mavlink_events->onWayPointsLoadingCompleted();
+            }
+   
 
             
         // CCallback_Vehicle inheritance

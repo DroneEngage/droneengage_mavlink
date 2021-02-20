@@ -202,5 +202,22 @@ void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_mess
             m_fcb_facade.sendHomeLocation(andruav_message[ANDRUAV_PROTOCOL_SENDER]);
         break;
 
+        case RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB:
+            m_fcbMain.reloadWayPoints();
+            m_mavlinkCommand.reloadWayPoints();
+        break;
+
+        case RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB:
+            m_fcbMain.clearWayPoints();
+            m_mavlinkCommand.clearWayPoints();
+        break;
+        
+
+        case RemoteCommand_CLEAR_FENCE_DATA:
+        break;
+
+        case RemoteCommand_SET_START_MISSION_ITEM:
+            m_mavlinkCommand.setCurrentMission(cmd["n"].get<int>());
+        break;
     } 
 }

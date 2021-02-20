@@ -2,20 +2,22 @@
 #define WAYPOINT_MANAGER_H_
 
 #include "mavlink_helper.h"
-
 namespace mavlinksdk
 {
 
 
-
+/**
+ * @brief This class manage waypoints
+ * 
+ */
 class CCallBack_WayPoint
 {
     public:
 
-    virtual void onWaypointReached(const mavlink_mission_item_reached_t& mission_item_reached)        {};
-    virtual void onCurrentWaypointUpdated() {};
+    virtual void onWaypointReached(const int& sequence)        {};
     virtual void onWayPointsLoadingCompleted() {}; 
-    virtual void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg) {};
+    virtual void onMissionACK (const int& result, const int& mission_type, const std::string& result_msg) {};
+    virtual void onWayPointReceived (const mavlink_mission_item_int_t& mission_item_int) {};
         
 };
 
@@ -31,7 +33,8 @@ class CMavlinkWayPointManager
 
     public:
 
-            void loadWayPoints();
+            void reloadWayPoints();
+            void clearWayPoints();
 
 
     protected:
@@ -46,7 +49,9 @@ class CMavlinkWayPointManager
     // Class Members
     protected:
         mavlinksdk::CCallBack_WayPoint& m_callback_waypoint;
-         
+
+        uint16_t  m_mission_current = 0;
+        uint16_t  m_mission_count   = 0;
 
 };
 
