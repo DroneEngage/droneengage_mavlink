@@ -5,7 +5,9 @@
 #include <pthread.h>
 #include "generic_port.h"
 
-namespace mavlinksdk::comm
+namespace mavlinksdk
+{
+namespace comm
 {
     void *startReadThread(void *args);
     void *startWriteThread(void *args);
@@ -62,7 +64,7 @@ namespace mavlinksdk::comm
             void read_messages ();
     };
 
-
+}
     
 }
 

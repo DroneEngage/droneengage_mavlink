@@ -47,6 +47,12 @@
 #define TYPE_AndruavResala_SET_HOME_LOCATION    1048
 
 
+// Remote Control Sub Actions
+#define RC_SUB_ACTION_RELEASED                      0
+#define RC_SUB_ACTION_CENTER_CHANNELS               1
+#define RC_SUB_ACTION_FREEZE_CHANNELS               2
+#define RC_SUB_ACTION_JOYSTICK_CHANNELS             4
+#define RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED      8
 
 // Remote Execute Commands
 #define RemoteCommand_GET_WAY_POINTS             500 // get from andruav not FCB but you can still read from fcb and refresh all   

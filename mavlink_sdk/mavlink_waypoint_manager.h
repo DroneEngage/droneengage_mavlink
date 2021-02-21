@@ -2,8 +2,18 @@
 #define WAYPOINT_MANAGER_H_
 
 #include "mavlink_helper.h"
+
+//class mavlinksdk::CMavlinkCommand;
+
 namespace mavlinksdk
 {
+
+#define WAYPOINT_STATE_IDLE                 0
+#define WAYPOINT_STATE_READ_REQUEST         1
+#define WAYPOINT_STATE_READ_WP              2    
+#define WAYPOINT_STATE_WRITING_WP_COUNT     3    
+#define WAYPOINT_STATE_WRITING_WP           4    
+#define WAYPOINT_STATE_WRITING_ACK          5
 
 
 /**
@@ -52,7 +62,11 @@ class CMavlinkWayPointManager
 
         uint16_t  m_mission_current = 0;
         uint16_t  m_mission_count   = 0;
+        uint16_t  m_mission_waiting_for_seq   = 0;
 
+        int m_state = WAYPOINT_STATE_IDLE;
+        
+      
 };
 
 }

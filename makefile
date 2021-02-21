@@ -1,11 +1,14 @@
 CXX=g++
+CXXARM=arm-linux-gnueabihf-g++
+CXXARM2=~/TDisk/raspberry_pi/zero/tools_cross_compiler/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf//bin/arm-linux-gnueabihf-g++
+CXXARM1=~/TDisk/raspberry_pi/zero/tools_cross_compiler/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++
 EXE=uavos_ardupilot
 BIN=bin
 INCLUDE= -I ../c_library_v2 -I ../mavlink_sdk
-LIBS= -lpthread
+LIBS=  -lpthread -std=c++11 
 CXXFLAGS = 
 CXXFLAGS_RELEASE= $(CXXFLAGS) 
-CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g
+CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g  -std=c++11 
 SRC = src
 BUILD = build
 
@@ -59,7 +62,12 @@ release: uavos_ardupilot.release
 	@echo "DONE."
 
 debug: uavos_ardupilot.debug
-	$(CXX)  -g -o $(BIN)/$(EXE).so  $(CXXFLAGS_DEBUG)  $(OBJS)   $(LIBS)  ;
+	$(CXX) $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE).so     $(OBJS)   $(LIBS) ;
+	@echo "building finished ..."; 
+	@echo "DONE."
+
+arm_debug: uavos_ardupilot.arm.debug
+	$(CXXARM)  $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE).so   $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
@@ -73,7 +81,15 @@ uavos_ardupilot.release: copy
 uavos_ardupilot.debug: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXX)   -g -DDEBUG -c   $(SRCS)  $(INCLUDE)  ; 
+	$(CXX)   $(CXXFLAGS_DEBUG) -g -DDEBUG -c   $(SRCS)  $(INCLUDE)  ; 
+	cd .. ; 
+	@echo "compliling finished ..."
+
+
+uavos_ardupilot.arm.debug: copy
+	mkdir -p $(BUILD); \
+	cd $(BUILD); \
+	$(CXXARM)   $(CXXFLAGS_DEBUG) -g -DDEBUG -c   $(SRCS)  $(INCLUDE)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 

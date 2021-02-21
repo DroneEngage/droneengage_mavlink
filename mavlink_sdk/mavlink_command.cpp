@@ -2,6 +2,7 @@
 
 
 #include "mavlink_command.h"
+#include "mavlink_sdk.h"
 
 
 
@@ -19,9 +20,12 @@ void mavlinksdk::CMavlinkCommand::sendLongCommand (const uint16_t& command,
                 const float& param6,
                 const float& param7)
 {
+	
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
 	mavlink_command_long_t msg = { 0 };
-	msg.target_system    = m_mavlink_sdk.getSysId();
-	msg.target_component = m_mavlink_sdk.getCompId();
+	msg.target_system    = mavlink_sdk.getSysId();
+	msg.target_component = mavlink_sdk.getCompId();
 	msg.command          = command;
 	msg.confirmation     = confirmation;
 	
@@ -35,9 +39,9 @@ void mavlinksdk::CMavlinkCommand::sendLongCommand (const uint16_t& command,
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_command_long_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &msg);
+	mavlink_msg_command_long_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &msg);
 
-    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
@@ -137,7 +141,9 @@ void mavlinksdk::CMavlinkCommand::cmdTerminalFlight ()
 
 void mavlinksdk::CMavlinkCommand::changeAltitude (const float& altitude)
 {
-	const mavlink_global_position_int_t& mavlink_global_position_int = m_mavlink_sdk.getVehicle().get()->getMsgGlobalPositionInt();
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	const mavlink_global_position_int_t& mavlink_global_position_int = mavlink_sdk.getVehicle().get()->getMsgGlobalPositionInt();
 	
 	gotoGuidedPoint(mavlink_global_position_int.lat / 10000000.0f, mavlink_global_position_int.lon / 10000000.0f, altitude );
 }
@@ -188,14 +194,15 @@ void mavlinksdk::CMavlinkCommand::gotoGuidedPoint (const double& latitude, const
 //     // Encode
 // 	mavlink_message_t mavlink_message;
 	
-// 	mavlink_msg_position_target_global_int_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &msg);
+// 	mavlink_msg_position_target_global_int_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &msg);
 
-//    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+//    mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
-
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
 	mavlink_mission_item_t msg = {0};
-	msg.target_system    = m_mavlink_sdk.getSysId();
-	msg.target_component = m_mavlink_sdk.getCompId();
+	msg.target_system    = mavlink_sdk.getSysId();
+	msg.target_component = mavlink_sdk.getCompId();
 	msg.seq = 0;
     msg.current = 2; // TODO use guided mode enum
     msg.frame = MAV_FRAME::MAV_FRAME_GLOBAL_RELATIVE_ALT;
@@ -211,9 +218,9 @@ void mavlinksdk::CMavlinkCommand::gotoGuidedPoint (const double& latitude, const
 
 	mavlink_message_t mavlink_message;
 	
- 	mavlink_msg_mission_item_encode (m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &msg);
+ 	mavlink_msg_mission_item_encode (mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &msg);
 
-	m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	mavlink_sdk.sendMavlinkMessage(mavlink_message);
     
 }
 
@@ -262,48 +269,90 @@ void mavlinksdk::CMavlinkCommand::setNavigationSpeed ( const int& speed_type, co
 	return ;
 }
 
-
-
-void mavlinksdk::CMavlinkCommand::reloadWayPoints ()
+/**
+ * @brief Accept message received from FCB.
+ * 
+ */
+void mavlinksdk::CMavlinkCommand::sendMissionAck ()
 {
-	m_mavlink_sdk.getWayPointManager().get()->reloadWayPoints();
-
-	mavlink_mission_request_list_t mission_request;
-
-	mission_request.target_system = m_mavlink_sdk.getSysId();
-	mission_request.target_component = m_mavlink_sdk.getCompId();
-	mission_request.mission_type = MAV_MISSION_TYPE_MISSION;
+	#ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: sendMissionAck " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
-	
+	mavlink_mission_ack_t mission_ack;
+	mission_ack.type = MAV_MISSION_ACCEPTED;
+
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_mission_request_list_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &mission_request);
+	mavlink_msg_mission_ack_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mission_ack);
 
-    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
 
 
+void mavlinksdk::CMavlinkCommand::reloadWayPoints ()
+{
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mavlink_sdk.getWayPointManager().get()->reloadWayPoints();
+
+	
+	return ;
+}
+
+
+void mavlinksdk::CMavlinkCommand::getWayPointByNumber (const int& mission_number)
+{
+	#ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: getWayPointByNumber " << std::to_string(mission_number) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
+	
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mavlink_mission_request_int_t mission_request = {0};
+
+	mission_request.target_system = mavlink_sdk.getSysId();
+	mission_request.target_component = mavlink_sdk.getCompId();
+	mission_request.mission_type = MAV_MISSION_TYPE_MISSION;
+	mission_request.seq = mission_number;
+	
+	
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_mission_request_int_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mission_request);
+
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;
+}
+
 void mavlinksdk::CMavlinkCommand::clearWayPoints ()
 {
-	m_mavlink_sdk.getWayPointManager().get()->clearWayPoints();
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mavlink_sdk.getWayPointManager().get()->clearWayPoints();
 
 	mavlink_mission_clear_all_t mission_clear;
 
-	mission_clear.target_system = m_mavlink_sdk.getSysId();
-	mission_clear.target_component = m_mavlink_sdk.getCompId();
+	mission_clear.target_system = mavlink_sdk.getSysId();
+	mission_clear.target_component = mavlink_sdk.getCompId();
 	mission_clear.mission_type = MAV_MISSION_TYPE_MISSION; //MAV_MISSION_TYPE_ALL;
 	
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_mission_clear_all_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &mission_clear);
+	mavlink_msg_mission_clear_all_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mission_clear);
 
-    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
+
 
 /**
  * @brief Set the mission item with sequence number seq as current item. This means that the MAV will continue to this mission item on the shortest path (not following the mission items in-between).
@@ -312,17 +361,48 @@ void mavlinksdk::CMavlinkCommand::clearWayPoints ()
  */
 void mavlinksdk::CMavlinkCommand::setCurrentMission (const int& mission_number)
 {
-	mavlink_mission_set_current_t mission_current;
+	#ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: setCurrentMission " << std::to_string(mission_number) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
 
-	mission_current.target_system = m_mavlink_sdk.getSysId();
-	mission_current.target_component = m_mavlink_sdk.getCompId();
+	mavlink_mission_set_current_t mission_current ={0};
+
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mission_current.target_system = mavlink_sdk.getSysId();
+	mission_current.target_component = mavlink_sdk.getCompId();
 	mission_current.seq = mission_number;
 
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_mission_set_current_encode(m_mavlink_sdk.getSysId(), m_mavlink_sdk.getCompId(), &mavlink_message, &mission_current);
+	mavlink_msg_mission_set_current_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mission_current);
 
-    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;
+}
+
+
+void mavlinksdk::CMavlinkCommand::requestMissionList ()
+{
+	#ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: requestMissionList"  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
+	mavlink_mission_request_list_t mission_request_list ={0};
+
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mission_request_list.target_system = mavlink_sdk.getSysId();
+	mission_request_list.target_component = mavlink_sdk.getCompId();
+	mission_request_list.mission_type = MAV_MISSION_TYPE_MISSION;
+
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_mission_request_list_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mission_request_list);
+
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }

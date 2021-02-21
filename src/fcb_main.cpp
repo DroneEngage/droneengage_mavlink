@@ -84,7 +84,7 @@ void uavos::fcb::CFCBMain::init (const Json &jsonConfig)
     }
 
     m_andruav_missions.clear();
-
+    m_andruav_vehicle_info.manual_TX_blocked_mode = RC_SUB_ACTION_RELEASED;
     m_scheduler_thread = std::thread(SchedulerThread, (void *) this);
 
     return ;
@@ -115,12 +115,13 @@ void uavos::fcb::CFCBMain::loopScheduler ()
 
         if (m_counter%10 ==0)
         {   // each 100 msec
-            m_fcb_facade.sendGPSInfo(std::string());
             
         }
 
         if (m_counter%50 == 0)
         {
+            m_fcb_facade.sendGPSInfo(std::string());
+
             m_fcb_facade.sendNavInfo(std::string());
         }
 
@@ -356,6 +357,7 @@ void uavos::fcb::CFCBMain::onWayPointReceived(const mavlink_mission_item_int_t& 
 
 void uavos::fcb::CFCBMain::onWayPointsLoadingCompleted ()
 {
+    // ?Please check if we need to notify GCS.
     // notify that mission has been updated
     // m_fcb_facade.sendWayPoints(std::string());
 }

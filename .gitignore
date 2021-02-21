@@ -9,6 +9,7 @@ build/
 .project
 
 # build
+*.out
 *.o
 *.d
 mavlink_control

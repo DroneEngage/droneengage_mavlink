@@ -75,7 +75,9 @@
  * This is an abstract port definition to handle both serial and UDP ports.
  */
 
-namespace mavlinksdk::comm
+namespace mavlinksdk
+{
+namespace comm
 {
 	class GenericPort
 	{
@@ -89,7 +91,7 @@ namespace mavlinksdk::comm
 			virtual void stop()=0;
 	};
 }
-
+}
 
 #endif // GENERIC_PORT_H_
 

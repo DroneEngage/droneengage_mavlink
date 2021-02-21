@@ -63,7 +63,7 @@ typedef struct ANDRUAV_VEHICLE_INFO
     bool        is_armed                            = false;
     bool        is_flying                           = false;
     bool        is_tracking_mode                    = false;
-    bool        manual_TX_blocked_mode              = false;
+    u_int64_t   manual_TX_blocked_mode              ;
     bool        is_gcs_blocked                      = false;
     int16_t     flying_mode;
     int16_t     gps_mode                            ;

@@ -6,6 +6,7 @@
 #include "./helpers/colors.h"
 #include "./helpers/utils.h"
 #include "mavlink_communicator.h"
+#include "mavlink_sdk.h"
 
 
 

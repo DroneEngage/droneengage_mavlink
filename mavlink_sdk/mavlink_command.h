@@ -1,7 +1,7 @@
 #ifndef MAVLINK_COMMAND_H_
 #define MAVLINK_COMMAND_H_
 
-#include "mavlink_sdk.h"
+
 
 
 namespace mavlinksdk
@@ -14,6 +14,31 @@ namespace mavlinksdk
  */
 class CMavlinkCommand
 {
+
+    public:
+        //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
+        static CMavlinkCommand& getInstance()
+        {
+            static CMavlinkCommand instance;
+            
+            return instance;
+        };
+
+        CMavlinkCommand(CMavlinkCommand const&)       = delete;
+        void operator=(CMavlinkCommand const&)        = delete;
+
+        
+        // Note: Scott Meyers mentions in his Effective Modern
+        //       C++ book, that deleted functions should generally
+        //       be public as it results in better error messages
+        //       due to the compilers behavior to check accessibility
+        //       before deleted status
+
+        private:
+
+            CMavlinkCommand() 
+            {
+            };
 
     public:
         
@@ -32,6 +57,12 @@ class CMavlinkCommand
         void reloadWayPoints ();
         void clearWayPoints();
         void setCurrentMission (const int& mission_number);
+        void requestMissionList ();
+        void getWayPointByNumber (const int& mission_number);
+
+
+    
+        void sendMissionAck ();
 
     protected:
         void sendLongCommand (const uint16_t& command,
@@ -44,9 +75,7 @@ class CMavlinkCommand
                 const float& param6 = 0.0f,
                 const float& param7 = 0.0f);
 
-    protected:
 
-        mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 };
 
 }

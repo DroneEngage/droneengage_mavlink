@@ -40,7 +40,14 @@ class CWayPoint_Step : public CMissionItem
 };
 
 
-
+/**
+ * @brief holds andruav missions
+ * Andruav missions can be ardupilot mission or andruav mission.
+ * 
+ * * Andruav Mission can contain swarm and waiting event actions.
+ * * Ardupilot mission can contains embedded commands but no need 
+ * * to save them here as they are not handled by Andruav right now.
+ */
 typedef struct ANDRUAV_UNIT_MISSION
 {
     ANDRUAV_MISSION_TYPE mission_type;
