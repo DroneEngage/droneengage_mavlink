@@ -344,12 +344,35 @@ void uavos::fcb::CFCBMain::onWayPointReceived(const mavlink_mission_item_int_t& 
 {
    if (mission_item_int.mission_type == MAV_MISSION_TYPE_MISSION)
    {
-       const int& seq = mission_item_int.seq;
-       CWayPoint_Step *waypoint_step= new CWayPoint_Step(seq);
-       waypoint_step->x = mission_item_int.x;
-       waypoint_step->y = mission_item_int.y;
-       waypoint_step->z = mission_item_int.z;
-       m_andruav_missions.mission_items.insert({seq, std::unique_ptr<CMissionItem>(waypoint_step)});
+       switch (mission_item_int.command) 
+       {
+           case MAV_CMD_NAV_WAYPOINT:
+           {
+                const int& seq = mission_item_int.seq;
+       
+                uavos::fcb::mission::CWayPoint_Step *waypoint_step= new uavos::fcb::mission::CWayPoint_Step(seq);
+                waypoint_step->m_time_to_stay = mission_item_int.param1;
+                waypoint_step->m_accepted_radius = mission_item_int.param2;
+                waypoint_step->m_pass_radius = mission_item_int.param3;
+                waypoint_step->m_desired_yaw = mission_item_int.param4;
+                waypoint_step->m_latitude = mission_item_int.x;
+                waypoint_step->m_longitude = mission_item_int.y;
+                waypoint_step->m_altitude = mission_item_int.z;
+                m_andruav_missions.mission_items.insert(std::make_pair(seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(waypoint_step)));
+            }
+            break;
+
+            case MAV_CMD_NAV_RETURN_TO_LAUNCH:
+            {
+                const int& seq = mission_item_int.seq;
+       
+                uavos::fcb::mission::CRTL_Step *rtl_step= new uavos::fcb::mission::CRTL_Step(seq);
+                
+                m_andruav_missions.mission_items.insert(std::make_pair(seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(rtl_step)));
+            }
+            break;
+
+       }
    }
 
     return ;
@@ -359,7 +382,9 @@ void uavos::fcb::CFCBMain::onWayPointsLoadingCompleted ()
 {
     // ?Please check if we need to notify GCS.
     // notify that mission has been updated
-    // m_fcb_facade.sendWayPoints(std::string());
+    m_fcb_facade.sendWayPoints(std::string());
+
+    
 }
 
 void uavos::fcb::CFCBMain::OnACK (const int& result, const std::string& result_msg)

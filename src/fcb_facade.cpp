@@ -1,5 +1,5 @@
 #include <math.h>       /* floor */
-
+#include <memory>
 #include "./helpers/json.hpp"
 using Json = nlohmann::json;
 #include "messages.hpp"
@@ -283,11 +283,35 @@ void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)
 
 void uavos::fcb::CFCBFacade::sendWayPoints(const std::string&target_party_id)
 {
-    Json message;
 
+    uavos::fcb::CFCBMain&  fcbMain = uavos::fcb::CFCBMain::getInstance();
+    const uavos::fcb::mission::ANDRUAV_UNIT_MISSION& andruav_mission = fcbMain.getAndruavMission(); 
+    const std::size_t length = andruav_mission.mission_items.size();
+    
+
+    Json message
+    {
+        {"n", length}
+    };
+
+
+    for (int i=0; i< length; ++i)
+    {
+        // TODO START FROM HERE 
+        auto it = andruav_mission.mission_items.find(i);
+        // https://stackoverflow.com/questions/54828756/stdunique-ptr-with-stdmap
+        uavos::fcb::mission::CMissionItem *mi= it->second.get();
+
+        Json message_item = mi->getAndruavMission();
+
+        message[std::to_string(i)] = message_item;
+ 
+    }
+
+   
     if (m_sendJMSG != NULL)
     {
-        //m_sendJMSG (target_party_id, message);
+        m_sendJMSG (target_party_id, message, TYPE_AndruavResala_WayPoints, false);
     }
  
     return ;

@@ -1,13 +1,13 @@
 #ifndef FCB_ANDRUAV_MESSAGE_PARSER_H_
 #define FCB_ANDRUAV_MESSAGE_PARSER_H_
 
+#include <mavlink_command.h>
 #include <mavlink_sdk.h>
 
 #include "./helpers/json.hpp"
 using Json = nlohmann::json;
 
 #include "fcb_main.hpp"
-#include <mavlink_command.h>
 
 namespace uavos
 {

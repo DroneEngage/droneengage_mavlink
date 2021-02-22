@@ -55,7 +55,7 @@ class CMavlinkCommand
         void setYawCondition (const double& target_angle, const double& turn_rate, const bool& is_clock_wise, const bool& is_relative);
         void setNavigationSpeed ( const int& speed_type, const double& speed, const double& throttle, const bool& is_relative);
         void reloadWayPoints ();
-        void clearWayPoints();
+        void clearWayPoints ();
         void setCurrentMission (const int& mission_number);
         void requestMissionList ();
         void getWayPointByNumber (const int& mission_number);

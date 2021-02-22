@@ -37,6 +37,7 @@
 #define TYPE_AndruavResala_FlightControl        1010
 #define TYPE_AndruavMessage_DroneReport         1020
 #define Type_AndruavResala_HomeLocation         1022
+#define TYPE_AndruavResala_WayPoints            1027
 #define TYPE_AndruavResala_Arm                  1030
 #define TYPE_AndruavResala_ChangeAltitude       1031
 #define TYPE_AndruavResala_Land                 1032
@@ -46,6 +47,17 @@
 #define TYPE_AndruavResala_ChangeSpeed          1040
 #define TYPE_AndruavResala_SET_HOME_LOCATION    1048
 
+// Andruav Mission Types
+
+#define TYPE_CMissionItem                   0
+#define TYPE_CMissionItem_WayPointStep      1
+#define TYPE_CMissionAction_TakeOff         2
+#define TYPE_CMissionAction_Landing         3
+#define TYPE_CMissionAction_RTL             4
+#define TYPE_CMissionAction_Circle          5
+#define TYPE_CMissionAction_Spline          6
+#define TYPE_CMissionAction_ChangeSpeed     7
+#define TYPE_CMissionAction_ChangeHeading   8
 
 // Remote Control Sub Actions
 #define RC_SUB_ACTION_RELEASED                      0

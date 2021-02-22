@@ -27,6 +27,7 @@ OBJS = $(BUILD)/mavlink_sdk.o \
 	   $(BUILD)/fcb_facade.o \
 	   $(BUILD)/configFile.o \
 	   $(BUILD)/udpClient.o \
+	   $(BUILD)/missions.o \
 	   $(BUILD)/main.o \
 
 SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
@@ -44,6 +45,7 @@ SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
 	   ../$(SRC)/fcb_facade.cpp \
 	   ../$(SRC)/configFile.cpp \
 	   ../$(SRC)/udpClient.cpp \
+	   ../$(SRC)/missions.cpp \
 	   ../$(SRC)/main.cpp \
 	   
 

@@ -80,6 +80,12 @@ namespace fcb
                 return m_andruav_vehicle_info;
             }
 
+            const uavos::fcb::mission::ANDRUAV_UNIT_MISSION& getAndruavMission()
+            {
+                return m_andruav_missions;      
+            } 
+            
+
 
         public:
 
@@ -121,7 +127,7 @@ namespace fcb
             Json m_jsonConfig;
             int m_connection_type;
             ANDRUAV_VEHICLE_INFO m_andruav_vehicle_info;
-            ANDRUAV_UNIT_MISSION m_andruav_missions;      
+            uavos::fcb::mission::ANDRUAV_UNIT_MISSION m_andruav_missions;      
             
             
             bool m_exit_thread = false;

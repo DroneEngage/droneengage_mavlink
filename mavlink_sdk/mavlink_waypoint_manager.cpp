@@ -57,10 +57,10 @@ void mavlinksdk::CMavlinkWayPointManager::handle_mission_count (const mavlink_mi
 
     if (mission_count.mission_type == MAV_MISSION_TYPE_MISSION)
     {
-        if (m_mission_count == 0)
-        {
-            mavlinksdk::CMavlinkCommand::getInstance().sendMissionAck();
-        }
+        // if (m_mission_count == 0)
+        // {
+        //     mavlinksdk::CMavlinkCommand::getInstance().sendMissionAck();
+        // }
         
         if (m_state == WAYPOINT_STATE_READ_REQUEST) 
         {
