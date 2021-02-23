@@ -86,7 +86,6 @@ void mavlinksdk::comm::CMavlinkCommunicator::_writeThread ()
 
 void mavlinksdk::comm::CMavlinkCommunicator::read_messages ()
 {
-
 	// Blocking wait for new data
 	while ( !m_time_to_exit )
 	{
@@ -105,7 +104,6 @@ void mavlinksdk::comm::CMavlinkCommunicator::read_messages ()
 			}
             this->m_callback_communicator->OnMessageReceived (message);
         }
-		
     }
 }
 

@@ -11,7 +11,7 @@ using Json = nlohmann::json;
 
 
 #include "defines.hpp"
-#include "missions.hpp"
+#include "./mission/missions.hpp"
 #include "fcb_facade.hpp"
 
 namespace uavos
@@ -80,7 +80,7 @@ namespace fcb
                 return m_andruav_vehicle_info;
             }
 
-            const uavos::fcb::mission::ANDRUAV_UNIT_MISSION& getAndruavMission()
+            uavos::fcb::mission::ANDRUAV_UNIT_MISSION& getAndruavMission()
             {
                 return m_andruav_missions;      
             } 

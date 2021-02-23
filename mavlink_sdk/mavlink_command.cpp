@@ -7,10 +7,10 @@
 
 
 
+using namespace mavlinksdk;
 
 
-
-void mavlinksdk::CMavlinkCommand::sendLongCommand (const uint16_t& command,
+void CMavlinkCommand::sendLongCommand (const uint16_t& command,
 				const bool& confirmation,
                 const float& param1,
                 const float& param2,
@@ -51,7 +51,7 @@ void mavlinksdk::CMavlinkCommand::sendLongCommand (const uint16_t& command,
 /**
  * https://mavlink.io/en/messages/common.html#MAV_CMD_COMPONENT_ARM_DISARM
  */
-void mavlinksdk::CMavlinkCommand::doArmDisarm (const bool& arm, const bool& force)
+void CMavlinkCommand::doArmDisarm (const bool& arm, const bool& force)
 {
 
     float forceArm = 0;
@@ -78,7 +78,7 @@ void mavlinksdk::CMavlinkCommand::doArmDisarm (const bool& arm, const bool& forc
  * 
  * @param mode depends on vehicle and firmware_type.
  */
-void mavlinksdk::CMavlinkCommand::doSetMode (const int& mode)
+void CMavlinkCommand::doSetMode (const int& mode)
 {
     
 	sendLongCommand (MAV_CMD_DO_SET_MODE, true,
@@ -97,7 +97,7 @@ void mavlinksdk::CMavlinkCommand::doSetMode (const int& mode)
  * @param longitude in xx.xxxx format
  * @param altitude  in meters
  */
-void mavlinksdk::CMavlinkCommand::setHome (const float& yaw, const float& latitude, const float& longitude, const float& altitude)
+void CMavlinkCommand::setHome (const float& yaw, const float& latitude, const float& longitude, const float& altitude)
 {
     sendLongCommand (MAV_CMD_DO_SET_HOME, false,
 		0,  // use specified location
@@ -111,7 +111,7 @@ void mavlinksdk::CMavlinkCommand::setHome (const float& yaw, const float& latitu
 	return ;
 }
 
-void mavlinksdk::CMavlinkCommand::setROI (const float& latitude, const float& longitude, const float& altitude)
+void CMavlinkCommand::setROI (const float& latitude, const float& longitude, const float& altitude)
 {
     sendLongCommand (MAV_CMD_DO_SET_ROI, false,
 		0,  // use specified location
@@ -125,13 +125,13 @@ void mavlinksdk::CMavlinkCommand::setROI (const float& latitude, const float& lo
 	return ;
 }
 
-void mavlinksdk::CMavlinkCommand::resetROI ()
+void CMavlinkCommand::resetROI ()
 {
     setROI(0,0,0);
 }
 
 
-void mavlinksdk::CMavlinkCommand::cmdTerminalFlight ()
+void CMavlinkCommand::cmdTerminalFlight ()
 {
     sendLongCommand (MAV_CMD_DO_FLIGHTTERMINATION, false,
 		1);
@@ -139,7 +139,7 @@ void mavlinksdk::CMavlinkCommand::cmdTerminalFlight ()
 	return ;
 }
 
-void mavlinksdk::CMavlinkCommand::changeAltitude (const float& altitude)
+void CMavlinkCommand::changeAltitude (const float& altitude)
 {
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
@@ -153,7 +153,7 @@ void mavlinksdk::CMavlinkCommand::changeAltitude (const float& altitude)
  * 
  * @param altitude in meters [relative altitude]
  */
-void mavlinksdk::CMavlinkCommand::takeOff (const float& altitude)
+void CMavlinkCommand::takeOff (const float& altitude)
 {
     sendLongCommand (MAV_CMD_NAV_TAKEOFF, false,
 		0,  // unused
@@ -174,7 +174,7 @@ void mavlinksdk::CMavlinkCommand::takeOff (const float& altitude)
  * @param longitude in xx.xxxxx format
  * @param altitude  in meters [relative altitude]
  */
-void mavlinksdk::CMavlinkCommand::gotoGuidedPoint (const double& latitude, const double& longitude, const double& altitude)
+void CMavlinkCommand::gotoGuidedPoint (const double& latitude, const double& longitude, const double& altitude)
 {
 	
 	
@@ -233,7 +233,7 @@ void mavlinksdk::CMavlinkCommand::gotoGuidedPoint (const double& latitude, const
  * @param is_clock_wise 
  * @param is_relative relative or absolute angle
  */
-void mavlinksdk::CMavlinkCommand::setYawCondition( const double& target_angle, const double& turn_rate, const bool& is_clock_wise, const bool& is_relative)
+void CMavlinkCommand::setYawCondition( const double& target_angle, const double& turn_rate, const bool& is_clock_wise, const bool& is_relative)
 {
 	float direction = is_clock_wise?1.0f:-1.0f;
 	float relative = is_relative?1.0f:0.0f;
@@ -256,7 +256,7 @@ void mavlinksdk::CMavlinkCommand::setYawCondition( const double& target_angle, c
  * @param throttle Throttle (-1 indicates no change) %
  * @param is_relative 0: absolute, 1: relative
  */
-void mavlinksdk::CMavlinkCommand::setNavigationSpeed ( const int& speed_type, const double& speed, const double& throttle, const bool& is_relative)
+void CMavlinkCommand::setNavigationSpeed ( const int& speed_type, const double& speed, const double& throttle, const bool& is_relative)
 {
 	const int relative = is_relative == true?1:0;
 
@@ -273,7 +273,7 @@ void mavlinksdk::CMavlinkCommand::setNavigationSpeed ( const int& speed_type, co
  * @brief Accept message received from FCB.
  * 
  */
-void mavlinksdk::CMavlinkCommand::sendMissionAck ()
+void CMavlinkCommand::sendMissionAck ()
 {
 	#ifdef DEBUG
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: sendMissionAck " << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -294,7 +294,7 @@ void mavlinksdk::CMavlinkCommand::sendMissionAck ()
 }
 
 
-void mavlinksdk::CMavlinkCommand::reloadWayPoints ()
+void CMavlinkCommand::reloadWayPoints ()
 {
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
@@ -305,7 +305,7 @@ void mavlinksdk::CMavlinkCommand::reloadWayPoints ()
 }
 
 
-void mavlinksdk::CMavlinkCommand::getWayPointByNumber (const int& mission_number)
+void CMavlinkCommand::getWayPointByNumber (const int& mission_number)
 {
 	#ifdef DEBUG
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: getWayPointByNumber " << std::to_string(mission_number) << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -331,7 +331,7 @@ void mavlinksdk::CMavlinkCommand::getWayPointByNumber (const int& mission_number
 	return ;
 }
 
-void mavlinksdk::CMavlinkCommand::clearWayPoints ()
+void CMavlinkCommand::clearWayPoints ()
 {
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
@@ -359,7 +359,7 @@ void mavlinksdk::CMavlinkCommand::clearWayPoints ()
  * 
  * @param mission_number Sequence
  */
-void mavlinksdk::CMavlinkCommand::setCurrentMission (const int& mission_number)
+void CMavlinkCommand::setCurrentMission (const int& mission_number)
 {
 	#ifdef DEBUG
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: setCurrentMission " << std::to_string(mission_number) << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -384,7 +384,7 @@ void mavlinksdk::CMavlinkCommand::setCurrentMission (const int& mission_number)
 }
 
 
-void mavlinksdk::CMavlinkCommand::requestMissionList ()
+void CMavlinkCommand::requestMissionList ()
 {
 	#ifdef DEBUG
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: requestMissionList"  << _NORMAL_CONSOLE_TEXT_ << std::endl;

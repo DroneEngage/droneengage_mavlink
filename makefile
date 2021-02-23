@@ -5,8 +5,8 @@ CXXARM1=~/TDisk/raspberry_pi/zero/tools_cross_compiler/arm-bcm2708/gcc-linaro-ar
 EXE=uavos_ardupilot
 BIN=bin
 INCLUDE= -I ../c_library_v2 -I ../mavlink_sdk
-LIBS=  -lpthread -std=c++11 
-CXXFLAGS = 
+LIBS=  -lpthread 
+CXXFLAGS =  -std=c++11
 CXXFLAGS_RELEASE= $(CXXFLAGS) 
 CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g  -std=c++11 
 SRC = src
@@ -28,6 +28,7 @@ OBJS = $(BUILD)/mavlink_sdk.o \
 	   $(BUILD)/configFile.o \
 	   $(BUILD)/udpClient.o \
 	   $(BUILD)/missions.o \
+	   $(BUILD)/mission_translator.o \
 	   $(BUILD)/main.o \
 
 SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
@@ -45,7 +46,8 @@ SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
 	   ../$(SRC)/fcb_facade.cpp \
 	   ../$(SRC)/configFile.cpp \
 	   ../$(SRC)/udpClient.cpp \
-	   ../$(SRC)/missions.cpp \
+	   ../$(SRC)/mission/missions.cpp \
+	   ../$(SRC)/mission/mission_translator.cpp \
 	   ../$(SRC)/main.cpp \
 	   
 

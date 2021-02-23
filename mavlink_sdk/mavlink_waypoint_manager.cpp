@@ -9,18 +9,18 @@
 
 
 
+using namespace mavlinksdk;
 
 
 
-
-mavlinksdk::CMavlinkWayPointManager::CMavlinkWayPointManager (mavlinksdk::CCallBack_WayPoint& callback_waypoint):m_callback_waypoint(callback_waypoint)
+CMavlinkWayPointManager::CMavlinkWayPointManager (mavlinksdk::CCallBack_WayPoint& callback_waypoint):m_callback_waypoint(callback_waypoint)
 {
     
 }
 
 
 
-void mavlinksdk::CMavlinkWayPointManager::reloadWayPoints ()
+void CMavlinkWayPointManager::reloadWayPoints ()
 {
     m_mission_waiting_for_seq = 0;
     m_state = WAYPOINT_STATE_READ_REQUEST;
@@ -28,7 +28,7 @@ void mavlinksdk::CMavlinkWayPointManager::reloadWayPoints ()
 }
 
 
-void mavlinksdk::CMavlinkWayPointManager::clearWayPoints ()
+void CMavlinkWayPointManager::clearWayPoints ()
 {
     m_mission_waiting_for_seq = 0;
     m_state = WAYPOINT_STATE_IDLE;
@@ -37,7 +37,7 @@ void mavlinksdk::CMavlinkWayPointManager::clearWayPoints ()
 }
 
 
-void mavlinksdk::CMavlinkWayPointManager::handle_mission_ack (const mavlink_mission_ack_t& mission_ack)
+void CMavlinkWayPointManager::handle_mission_ack (const mavlink_mission_ack_t& mission_ack)
 {
 	#ifdef DEBUG
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handle_mission_ack "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -46,7 +46,7 @@ void mavlinksdk::CMavlinkWayPointManager::handle_mission_ack (const mavlink_miss
 }
 
 
-void mavlinksdk::CMavlinkWayPointManager::handle_mission_count (const mavlink_mission_count_t& mission_count)
+void CMavlinkWayPointManager::handle_mission_count (const mavlink_mission_count_t& mission_count)
 {
     
     m_mission_count = mission_count.count;
@@ -71,14 +71,14 @@ void mavlinksdk::CMavlinkWayPointManager::handle_mission_count (const mavlink_mi
 }
 
 
-void mavlinksdk::CMavlinkWayPointManager::handle_mission_current (const mavlink_mission_current_t& mission_current)
+void CMavlinkWayPointManager::handle_mission_current (const mavlink_mission_current_t& mission_current)
 {
     // handle_mission_item_reached detects changes
 	m_mission_current = mission_current.seq;
 }
 
 
-void mavlinksdk::CMavlinkWayPointManager::handle_mission_item (const mavlink_mission_item_int_t& mission_item_int)
+void CMavlinkWayPointManager::handle_mission_item (const mavlink_mission_item_int_t& mission_item_int)
 {
     if (m_state != WAYPOINT_STATE_READ_REQUEST) 
     {
@@ -114,13 +114,13 @@ void mavlinksdk::CMavlinkWayPointManager::handle_mission_item (const mavlink_mis
 }
 
 
-void mavlinksdk::CMavlinkWayPointManager::handle_mission_item_reached (const mavlink_mission_item_reached_t& mission_item_reached)
+void CMavlinkWayPointManager::handle_mission_item_reached (const mavlink_mission_item_reached_t& mission_item_reached)
 {
     m_callback_waypoint.onWaypointReached(mission_item_reached.seq);
 }
 
 
-void mavlinksdk::CMavlinkWayPointManager::parseMessage (const mavlink_message_t& mavlink_message)
+void CMavlinkWayPointManager::parseMessage (const mavlink_message_t& mavlink_message)
 {
     
     const int& msgid = mavlink_message.msgid;

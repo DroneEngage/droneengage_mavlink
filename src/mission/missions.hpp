@@ -6,7 +6,7 @@
 #include <iostream>
 #include <mavlink_command.h>
 
-#include "./helpers/json.hpp"
+#include "../helpers/json.hpp"
 using Json = nlohmann::json;
 
 namespace uavos
@@ -24,18 +24,20 @@ typedef enum ANDRUAV_MISSION_TYPE
 } ANDRUAV_MISSION_TYPE;
 
 
+
 class CMissionItem 
 {
 
 
     public:
-
-        virtual Json getAndruavMission   (){};
-        virtual mavlink_mission_item_int_t getArdupilotMission (){};
+        virtual void decodeMavlink (const mavlink_mission_item_int_t& mavlink_mission_item) =0;
+        virtual Json getAndruavMission   ()=0;
+        virtual mavlink_mission_item_int_t getArdupilotMission ()=0;
 
     public:
         int m_sequence;
         int m_mission_command;
+        int m_frame = MAV_FRAME_GLOBAL_RELATIVE_ALT;
         bool m_auto_continue;
         /**
          * @brief local: x position in meters * 1e4, global: latitude in degrees * 10^7
@@ -50,12 +52,14 @@ class CMissionItem
 class CRTL_Step : public CMissionItem
 {
     public:
-        CRTL_Step (){};
-        explicit CRTL_Step (const int& sequence)
+        CRTL_Step ()
         {
-            m_sequence = sequence;
-            m_mission_command = MAV_CMD_NAV_RETURN_TO_LAUNCH;
-        }
+            m_mission_command = TYPE_CMissionAction_RTL;
+        };
+        
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
+
 
     public:
         Json getAndruavMission   () override;
@@ -67,12 +71,13 @@ class CRTL_Step : public CMissionItem
 class CTakeOff_Step : public CMissionItem
 {
     public:
-        CTakeOff_Step (){};
-        explicit CTakeOff_Step (const int& sequence)
+        CTakeOff_Step ()
         {
-            m_sequence = sequence;
-            m_mission_command = MAV_CMD_NAV_TAKEOFF;
-        }
+            m_mission_command = TYPE_CMissionAction_TakeOff;
+        };
+        
+
+    void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
 
     public:
         Json getAndruavMission   () override;
@@ -115,12 +120,12 @@ class CTakeOff_Step : public CMissionItem
 class CLand_Step : public CMissionItem
 {
     public:
-        CLand_Step (){};
-        explicit CLand_Step (const int& sequence)
+        CLand_Step ()
         {
-            m_sequence = sequence;
             m_mission_command = TYPE_CMissionAction_Landing;
         }
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
 
     public:
         Json getAndruavMission   () override;
@@ -144,7 +149,7 @@ class CLand_Step : public CMissionItem
          * @brief Desired yaw angle. NaN to use the current system yaw heading mode (e.g. yaw towards next waypoint, yaw to home, etc.).
          * in degrees
          */
-        int m_desired_yaw;
+        int m_desired_yaw = 0;
 
         /**
          * @brief  in e7
@@ -169,12 +174,12 @@ class CLand_Step : public CMissionItem
 class CWayPoint_Step : public CMissionItem
 {
     public:
-        CWayPoint_Step (){};
-        explicit CWayPoint_Step (const int& sequence)
+        CWayPoint_Step ()
         {
-            m_sequence = sequence;
-            m_mission_command = MAV_CMD_NAV_WAYPOINT;
+            m_mission_command = TYPE_CMissionItem_WayPointStep;
         }
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
 
     public:
         Json getAndruavMission   () override;
@@ -186,25 +191,25 @@ class CWayPoint_Step : public CMissionItem
          * @brief Hold time. (ignored by fixed wing, time to stay at waypoint for rotary wing)
          * in seconds
          */
-        int m_time_to_stay = 0;
+        double m_time_to_stay = 0;
 
         /**
          * @brief Desired yaw angle at waypoint (rotary wing). NaN to use the current system yaw heading mode (e.g. yaw towards next waypoint, yaw to home, etc.).
          * in degrees
          */
-        int m_desired_yaw = 0;
+        double m_desired_yaw = 0;
 
         /**
          * @brief Acceptance radius (if the sphere with this radius is hit, the waypoint counts as reached)
          * in meters
          */
-        int m_accepted_radius = 0; 
+        double m_accepted_radius = 0; 
 
         /**
          * @brief 0 to pass through the WP, if > 0 radius to pass by WP. Positive value for clockwise orbit, negative value for counter-clockwise orbit. Allows trajectory control.
          * in meters
          */
-        int m_pass_radius = 0;  
+        double m_pass_radius = 0;  
 
         /**
          * @brief  in e7
@@ -225,6 +230,31 @@ class CWayPoint_Step : public CMissionItem
         int m_altitude = 0;
     
 };
+
+
+
+class CMissionItemBuilder
+{
+    public:
+    static CMissionItem * getClassByMavlinkCMD (const int& command)
+    {
+        switch (command)
+        {
+            case MAV_CMD_NAV_RETURN_TO_LAUNCH:
+            return new CRTL_Step();
+
+            case MAV_CMD_NAV_TAKEOFF:
+                return new CTakeOff_Step();
+
+            case MAV_CMD_NAV_LAND:
+                return new CLand_Step();
+
+            case MAV_CMD_NAV_WAYPOINT:
+                return new CWayPoint_Step();
+        }
+    }
+};
+
 
 
 /**

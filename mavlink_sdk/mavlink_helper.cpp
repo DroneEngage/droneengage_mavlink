@@ -3,14 +3,14 @@
 #include "./helpers/colors.h"
 #include "mavlink_helper.h"
 
-
+using namespace mavlinksdk;
 /**
  * @brief return description of MISSION_ACK
  * 
  * @param result MISSION_ACK value
  * @return std::string 
  */
-std::string mavlinksdk::CMavlinkHelper::getMissionACKResult (const int& result)
+std::string CMavlinkHelper::getMissionACKResult (const int& result)
 {
     switch (result)
     {
@@ -76,7 +76,7 @@ std::string mavlinksdk::CMavlinkHelper::getMissionACKResult (const int& result)
  * @param result MAV_CMD_ACK value
  * @return std::string 
  */
-std::string mavlinksdk::CMavlinkHelper::getACKError (const int& result)
+std::string CMavlinkHelper::getACKError (const int& result)
 {
     std::string err;
     switch (result)
@@ -132,7 +132,7 @@ std::string mavlinksdk::CMavlinkHelper::getACKError (const int& result)
  * @param mav_type  mavlink_heartbeat_t.type (MAV_TYPE)
  * @param autopilot_type mavlink_heartbeat_t.autopilot (MAV_AUTOPILOT)
  * */
-mavlinksdk::FIRMWARE_TYPE mavlinksdk::CMavlinkHelper::getFirmewareType (const int mav_type, const int autopilot_type)
+mavlinksdk::FIRMWARE_TYPE CMavlinkHelper::getFirmewareType (const int mav_type, const int autopilot_type)
 {
     if ((autopilot_type == MAV_AUTOPILOT_GENERIC) || (autopilot_type == MAV_AUTOPILOT_ARDUPILOTMEGA)) 
     {
@@ -194,7 +194,7 @@ mavlinksdk::FIRMWARE_TYPE mavlinksdk::CMavlinkHelper::getFirmewareType (const in
  * @param mode - int heartbeat.custom_mode
  * @param autopilot_type - mavlinksdk::FIRMWARE_TYPE 
  * */
-std::string mavlinksdk::CMavlinkHelper::getMode (int mode, int autopilot_type)
+std::string CMavlinkHelper::getMode (int mode, int autopilot_type)
 {
     switch (autopilot_type)
     {
@@ -215,7 +215,7 @@ std::string mavlinksdk::CMavlinkHelper::getMode (int mode, int autopilot_type)
     return "unknown";
 }
 
-std::string mavlinksdk::CMavlinkHelper::getPlaneMode (int mode)
+std::string CMavlinkHelper::getPlaneMode (int mode)
 {
     switch (mode)
     {
@@ -270,7 +270,7 @@ std::string mavlinksdk::CMavlinkHelper::getPlaneMode (int mode)
     return "unknown";
 }
 
-std::string mavlinksdk::CMavlinkHelper::getCopterMode (int mode)
+std::string CMavlinkHelper::getCopterMode (int mode)
 {
     switch (mode)
     {
@@ -327,7 +327,7 @@ std::string mavlinksdk::CMavlinkHelper::getCopterMode (int mode)
     return "unknown";
 }
 
-std::string mavlinksdk::CMavlinkHelper::getSubMode (int mode)
+std::string CMavlinkHelper::getSubMode (int mode)
 {
     switch (mode)
     {
@@ -355,7 +355,7 @@ std::string mavlinksdk::CMavlinkHelper::getSubMode (int mode)
 }
 
 
-std::string mavlinksdk::CMavlinkHelper::getRoverMode (int mode)
+std::string CMavlinkHelper::getRoverMode (int mode)
 {
 
     switch (mode)

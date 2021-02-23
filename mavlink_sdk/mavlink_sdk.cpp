@@ -7,8 +7,9 @@
 
 #include "mavlink_sdk.h"
 
+using namespace mavlinksdk;
 
-void mavlinksdk::CMavlinkSDK::start(mavlinksdk::CMavlinkEvents * mavlink_events)
+void CMavlinkSDK::start(mavlinksdk::CMavlinkEvents * mavlink_events)
 {
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "MavlinkSDK Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
@@ -24,21 +25,21 @@ void mavlinksdk::CMavlinkSDK::start(mavlinksdk::CMavlinkEvents * mavlink_events)
 
 }
 
-void mavlinksdk::CMavlinkSDK::connectUDP (const char *target_ip, int udp_port)
+void CMavlinkSDK::connectUDP (const char *target_ip, int udp_port)
 {
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "connectUDP on " << target_ip << " port " << udp_port << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
     this->m_port = std::shared_ptr<mavlinksdk::comm::GenericPort>( new mavlinksdk::comm::UDPPort(target_ip, udp_port));
 }
 
-void mavlinksdk::CMavlinkSDK::connectSerial (const char *uart_name, int baudrate)
+void CMavlinkSDK::connectSerial (const char *uart_name, int baudrate)
 {
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "connectSerial on " << uart_name << " baudrate " << baudrate << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
     this->m_port   = std::shared_ptr<mavlinksdk::comm::GenericPort>( new mavlinksdk::comm::SerialPort(uart_name, baudrate));
 }
 
-void mavlinksdk::CMavlinkSDK::stop()
+void CMavlinkSDK::stop()
 {
 
     if (this->m_port.get()!= nullptr)
@@ -46,7 +47,7 @@ void mavlinksdk::CMavlinkSDK::stop()
     this->m_stopped_called = true;
 }
 
-mavlinksdk::CMavlinkSDK::~CMavlinkSDK()
+CMavlinkSDK::~CMavlinkSDK()
 {
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CMavlinkSDK" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
@@ -57,7 +58,7 @@ mavlinksdk::CMavlinkSDK::~CMavlinkSDK()
 }
 
 
-void mavlinksdk::CMavlinkSDK::OnMessageReceived (mavlink_message_t& mavlink_message)
+void CMavlinkSDK::OnMessageReceived (mavlink_message_t& mavlink_message)
 {
     //std::cout << _SUCCESS_CONSOLE_TEXT_ << "Message Received" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
     try
@@ -79,7 +80,7 @@ void mavlinksdk::CMavlinkSDK::OnMessageReceived (mavlink_message_t& mavlink_mess
     
 }
 
-void mavlinksdk::CMavlinkSDK::OnConnected (const bool& connected) 
+void CMavlinkSDK::OnConnected (const bool& connected) 
 {
     std::cout << _SUCCESS_CONSOLE_TEXT_ << "Connected Live" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
@@ -87,7 +88,7 @@ void mavlinksdk::CMavlinkSDK::OnConnected (const bool& connected)
 }
 
 
-void mavlinksdk::CMavlinkSDK::sendMavlinkMessage (const mavlink_message_t& mavlink_message)
+void CMavlinkSDK::sendMavlinkMessage (const mavlink_message_t& mavlink_message)
 {
     
     this->m_communicator.get()->send_message(mavlink_message);

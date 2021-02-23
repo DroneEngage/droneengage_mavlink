@@ -3,7 +3,7 @@
 #include "messages.hpp"
 #include "fcb_modes.hpp"
 #include "fcb_andruav_message_parser.hpp"
-
+#include "./mission/mission_translator.hpp"
 
 /**
  * @brief Called by external scheduler at rate of 1Hz
@@ -47,7 +47,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 {
                     force = message["D"].get<bool>();
                 }
-                m_mavlinkCommand.doArmDisarm(arm,force);
+                mavlinksdk::CMavlinkCommand::getInstance().doArmDisarm(arm,force);
             }
             break;
 
@@ -68,7 +68,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                     return ;
                 }
 
-                m_mavlinkCommand.doSetMode(ardupilot_mode);
+                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
             }
             break;
 
@@ -81,11 +81,11 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
 
                 if (vehicle->isFlying()== true)
                 {
-                    m_mavlinkCommand.changeAltitude (altitude );
+                    mavlinksdk::CMavlinkCommand::getInstance().changeAltitude (altitude );
                 }
                 else
                 {
-                    m_mavlinkCommand.takeOff (altitude );
+                    mavlinksdk::CMavlinkCommand::getInstance().takeOff (altitude );
                 }
                 
             }
@@ -102,7 +102,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                     return ;
                 }
 
-                m_mavlinkCommand.doSetMode(ardupilot_mode);
+                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
             }
             break;
 
@@ -125,7 +125,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 }
                 
 
-                m_mavlinkCommand.gotoGuidedPoint (latitude, longitude, altitude / 1000.0);
+                mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint (latitude, longitude, altitude / 1000.0);
             }   
 
             break;
@@ -139,7 +139,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 double longitude = message["O"].get<double>();
                 double altitude  = message["A"].get<double>();
                 
-                m_mavlinkCommand.setHome(0, latitude, longitude, altitude);
+                mavlinksdk::CMavlinkCommand::getInstance().setHome(0, latitude, longitude, altitude);
             }
             break;
 
@@ -154,8 +154,9 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 bool is_clock_wise  = message["C"].get<bool>();
                 bool is_relative = message["L"].get<bool>();
                 
-                m_mavlinkCommand.setYawCondition( target_angle, turn_rate, is_clock_wise, is_relative);
+                mavlinksdk::CMavlinkCommand::getInstance().setYawCondition( target_angle, turn_rate, is_clock_wise, is_relative);
             }
+            break;
 
             case TYPE_AndruavResala_ChangeSpeed:
             {
@@ -171,9 +172,42 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 
                 const int speed_type = is_ground_speed?1:0;
 
-                m_mavlinkCommand.setNavigationSpeed(1, speed, throttle, is_relative);
+                mavlinksdk::CMavlinkCommand::getInstance().setNavigationSpeed(1, speed, throttle, is_relative);
             }
-            
+            break;
+
+            case TYPE_AndruavResala_UploadWayPoints:
+            {
+                //TODO: you should allow multiple messages to allow large file to be received.
+                // !UDP packet has maximum size.
+
+                /*
+                    a : std::string serialized mission file
+                */
+                std::string mission = message ["a"];
+                uavos::fcb::mission::CMissionTranslator cMissionTranslator;
+                
+                std::unique_ptr<std::map <int, std::unique_ptr<uavos::fcb::mission::CMissionItem>>> new_mission_items = cMissionTranslator.translateMissionText(mission);
+                m_fcbMain.clearWayPoints();
+                uavos::fcb::mission::ANDRUAV_UNIT_MISSION& andruav_missions = m_fcbMain.getAndruavMission();                
+                
+                
+
+                std::map<int, std::unique_ptr<uavos::fcb::mission::CMissionItem>>::iterator it;
+                for (it = new_mission_items->begin(); it != new_mission_items->end(); it++)
+                {
+                    int seq = it->first;
+                    
+                    andruav_missions.mission_items.insert(std::make_pair( seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(std::move(it->second.get()))));
+                }
+
+                //new_mission_items->clear();
+                //delete new_mission_items;
+
+                //andruav_missions.mission_items.insert(new_mission_items->begin(), new_mission_items->end()); //merge (new_andruav_mission.get()->mission_items.get());
+            }
+            break;
+
             case TYPE_AndruavResala_RemoteExecute:
             {
                 parseRemoteExecute(andruav_message);
@@ -204,12 +238,12 @@ void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_mess
 
         case RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB:
             m_fcbMain.reloadWayPoints();
-            m_mavlinkCommand.reloadWayPoints();
+            //mavlinksdk::CMavlinkCommand::getInstance().reloadWayPoints();
         break;
 
         case RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB:
             m_fcbMain.clearWayPoints();
-            m_mavlinkCommand.clearWayPoints();
+            //mavlinksdk::CMavlinkCommand::getInstance().clearWayPoints();
         break;
         
 
@@ -217,7 +251,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_mess
         break;
 
         case RemoteCommand_SET_START_MISSION_ITEM:
-            m_mavlinkCommand.setCurrentMission(cmd["n"].get<int>());
+            mavlinksdk::CMavlinkCommand::getInstance().setCurrentMission(cmd["n"].get<int>());
         break;
     } 
 }

@@ -147,8 +147,6 @@ void uavos::fcb::CFCBMain::loopScheduler ()
             {// 15 sec
             
             }
-            
-            
             m_counter_sec++;
         }
     }
@@ -160,6 +158,7 @@ void uavos::fcb::CFCBMain::loopScheduler ()
 void uavos::fcb::CFCBMain::reloadWayPoints()
 {
     m_andruav_missions.clear();
+    mavlinksdk::CMavlinkCommand::getInstance().reloadWayPoints();
 
     return ;
     
@@ -168,8 +167,8 @@ void uavos::fcb::CFCBMain::reloadWayPoints()
 void uavos::fcb::CFCBMain::clearWayPoints()
 {
     m_andruav_missions.clear();
-    //m_fcb_facade.sendWayPoints();
-
+    //m_fcb_facade.sendWayPoints(std::string());
+    mavlinksdk::CMavlinkCommand::getInstance().clearWayPoints();
     return ;
     
 }
@@ -344,35 +343,52 @@ void uavos::fcb::CFCBMain::onWayPointReceived(const mavlink_mission_item_int_t& 
 {
    if (mission_item_int.mission_type == MAV_MISSION_TYPE_MISSION)
    {
-       switch (mission_item_int.command) 
-       {
-           case MAV_CMD_NAV_WAYPOINT:
-           {
-                const int& seq = mission_item_int.seq;
+       uavos::fcb::mission::CMissionItem *mission_item  = uavos::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mission_item_int.command);
+       mission_item->decodeMavlink(mission_item_int);
+       m_andruav_missions.mission_items.insert(std::make_pair( mission_item_int.seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(mission_item)));
+            
+    //    switch (mission_item_int.command) 
+    //    {
+    //        case MAV_CMD_NAV_RETURN_TO_LAUNCH:
+    //         {
+    //             const int& seq = mission_item_int.seq;
        
-                uavos::fcb::mission::CWayPoint_Step *waypoint_step= new uavos::fcb::mission::CWayPoint_Step(seq);
-                waypoint_step->m_time_to_stay = mission_item_int.param1;
-                waypoint_step->m_accepted_radius = mission_item_int.param2;
-                waypoint_step->m_pass_radius = mission_item_int.param3;
-                waypoint_step->m_desired_yaw = mission_item_int.param4;
-                waypoint_step->m_latitude = mission_item_int.x;
-                waypoint_step->m_longitude = mission_item_int.y;
-                waypoint_step->m_altitude = mission_item_int.z;
-                m_andruav_missions.mission_items.insert(std::make_pair(seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(waypoint_step)));
-            }
-            break;
-
-            case MAV_CMD_NAV_RETURN_TO_LAUNCH:
-            {
-                const int& seq = mission_item_int.seq;
-       
-                uavos::fcb::mission::CRTL_Step *rtl_step= new uavos::fcb::mission::CRTL_Step(seq);
+    //             uavos::fcb::mission::CRTL_Step *rtl_step= new uavos::fcb::mission::CRTL_Step(mission_item_int);
                 
-                m_andruav_missions.mission_items.insert(std::make_pair(seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(rtl_step)));
-            }
-            break;
+    //             m_andruav_missions.mission_items.insert(std::make_pair(seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(rtl_step)));
+    //         }
+    //         break;
+            
+    //         case MAV_CMD_NAV_WAYPOINT:
+    //        {
+    //             const int& seq = mission_item_int.seq;
+       
+    //             uavos::fcb::mission::CWayPoint_Step *waypoint_step= new uavos::fcb::mission::CWayPoint_Step(mission_item_int);
+                
+    //             m_andruav_missions.mission_items.insert(std::make_pair(seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(waypoint_step)));
+    //         }
+    //         break;
 
-       }
+    //         case MAV_CMD_NAV_TAKEOFF:
+    //         {
+    //             const int& seq = mission_item_int.seq;
+       
+    //             uavos::fcb::mission::CTakeOff_Step *takeoff_step= new uavos::fcb::mission::CTakeOff_Step(mission_item_int);
+                
+    //             m_andruav_missions.mission_items.insert(std::make_pair(seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(takeoff_step)));
+    //         }
+    //         break;
+
+    //         case MAV_CMD_NAV_LAND:
+    //         {
+    //             const int& seq = mission_item_int.seq;
+       
+    //             uavos::fcb::mission::CLand_Step *land_step= new uavos::fcb::mission::CLand_Step(mission_item_int);
+                
+    //             m_andruav_missions.mission_items.insert(std::make_pair(seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(land_step)));
+    //         }
+    //         break;
+    //    }
    }
 
     return ;

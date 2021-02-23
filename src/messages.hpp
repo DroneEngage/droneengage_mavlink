@@ -45,6 +45,7 @@
 #define TYPE_AndruavResala_DoYAW                1035
 #define TYPE_AndruavResala_NAV_INFO             1036
 #define TYPE_AndruavResala_ChangeSpeed          1040
+#define TYPE_AndruavResala_UploadWayPoints      1046
 #define TYPE_AndruavResala_SET_HOME_LOCATION    1048
 
 // Andruav Mission Types
@@ -117,3 +118,9 @@
 // .a.k.a mobile... i.e. gps info used bu uavos comm is not from the board
 #define GPS_MODE_EXTERNAL                       1
 #define GPS_MODE_FCB                            2
+
+
+
+#define WAYPOINT_NO_CHUNK                       0
+#define WAYPOINT_CHUNK                          1
+#define WAYPOINT_LAST_CHUNK                     999

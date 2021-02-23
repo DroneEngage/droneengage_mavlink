@@ -192,7 +192,7 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
     
     while (!m_stopped_called)
     {
-        
+        // TODO: you should send header ot message length and handle if total message size is larger than MAXLINE.
         n = recvfrom(m_SocketFD, (char *)buffer, MAXLINE,  
                 MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
         

@@ -34,7 +34,6 @@ namespace fcb
 
             uavos::fcb::CFCBMain&  m_fcbMain = uavos::fcb::CFCBMain::getInstance();
             mavlinksdk::CMavlinkSDK& m_mavlinksdk = mavlinksdk::CMavlinkSDK::getInstance();
-            mavlinksdk::CMavlinkCommand& m_mavlinkCommand = mavlinksdk::CMavlinkCommand::getInstance();
             uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
             
     };
