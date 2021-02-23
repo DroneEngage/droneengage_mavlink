@@ -198,10 +198,10 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 {
                     int seq = it->first;
                     
-                    andruav_missions.mission_items.insert(std::make_pair( seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(std::move(it->second.get()))));
+                    andruav_missions.mission_items.insert(std::make_pair( seq, std::move(it->second)));
                 }
 
-                //new_mission_items->clear();
+                new_mission_items->clear();
                 //delete new_mission_items;
 
                 //andruav_missions.mission_items.insert(new_mission_items->begin(), new_mission_items->end()); //merge (new_andruav_mission.get()->mission_items.get());
