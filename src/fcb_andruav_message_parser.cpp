@@ -202,9 +202,9 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 }
 
                 new_mission_items->clear();
-                //delete new_mission_items;
-
-                //andruav_missions.mission_items.insert(new_mission_items->begin(), new_mission_items->end()); //merge (new_andruav_mission.get()->mission_items.get());
+                
+                m_fcbMain.saveWayPointsToFCB();
+                
             }
             break;
 

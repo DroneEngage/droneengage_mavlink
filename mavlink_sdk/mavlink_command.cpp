@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <common/mavlink.h>
 
 #include "mavlink_command.h"
 #include "mavlink_sdk.h"
@@ -401,6 +401,58 @@ void CMavlinkCommand::requestMissionList ()
 	// Encode
 	mavlink_message_t mavlink_message;
 	mavlink_msg_mission_request_list_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mission_request_list);
+
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;
+}
+
+
+void CMavlinkCommand::setMissionCount (const int& mission_count, MAV_MISSION_TYPE mission_type)
+{
+	#ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: requestMissionList"  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
+	mavlink_mission_count_t mission_count_msg = {0};
+
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mission_count_msg.target_system = mavlink_sdk.getSysId();
+	mission_count_msg.target_component = mavlink_sdk.getCompId();
+	mission_count_msg.mission_type = mission_type;
+	mission_count_msg.count = mission_count;
+
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_mission_count_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mission_count_msg);
+
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;
+}
+
+
+void CMavlinkCommand::writeMission (std::map <int, mavlink_mission_item_int_t> mavlink_mission)
+{
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+
+	mavlink_sdk.getWayPointManager().get()->saveWayPoints(mavlink_mission, MAV_MISSION_TYPE::MAV_MISSION_TYPE_MISSION);	
+
+	return ;
+}
+
+
+void CMavlinkCommand::writeMissionItem (mavlink_mission_item_int_t mavlink_mission)
+{
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mavlink_mission.target_system = mavlink_sdk.getSysId();
+	mavlink_mission.target_component = mavlink_sdk.getCompId();
+	
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_mission_item_int_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mavlink_mission);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 

@@ -1,6 +1,6 @@
 #ifndef WAYPOINT_MANAGER_H_
 #define WAYPOINT_MANAGER_H_
-
+#include <map>
 #include "mavlink_helper.h"
 
 //class mavlinksdk::CMavlinkCommand;
@@ -24,11 +24,11 @@ class CCallBack_WayPoint
 {
     public:
 
-    virtual void onWaypointReached(const int& sequence)        {};
-    virtual void onWayPointsLoadingCompleted() {}; 
-    virtual void onMissionACK (const int& result, const int& mission_type, const std::string& result_msg) {};
-    virtual void onWayPointReceived (const mavlink_mission_item_int_t& mission_item_int) {};
-        
+    virtual void onWaypointReached(const int& sequence)                                                             {};
+    virtual void onWayPointsLoadingCompleted()                                                                      {}; 
+    virtual void onMissionACK (const int& result, const int& mission_type, const std::string& result_msg)           {};
+    virtual void onMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)  {};
+    virtual void onWayPointReceived (const mavlink_mission_item_int_t& mission_item_int)                            {};
 };
 
 class CMavlinkWayPointManager
@@ -45,6 +45,7 @@ class CMavlinkWayPointManager
 
             void reloadWayPoints();
             void clearWayPoints();
+            void saveWayPoints (std::map <int, mavlink_mission_item_int_t> mavlink_mission, const MAV_MISSION_TYPE& mission_type);
 
 
     protected:
@@ -55,6 +56,9 @@ class CMavlinkWayPointManager
             inline void handle_mission_item (const mavlink_mission_item_int_t& mission_item_int);
             inline void handle_mission_item_reached (const mavlink_mission_item_reached_t& mission_item_reached);
 
+    protected:
+            void writeMissionItems ();  
+            void writeMissionItem(mavlink_mission_item_int_t& mission_item_int);
 
     // Class Members
     protected:
@@ -62,7 +66,10 @@ class CMavlinkWayPointManager
 
         uint16_t  m_mission_current = 0;
         uint16_t  m_mission_count   = 0;
+        uint16_t  m_mission_write_count   = 0;
+        uint16_t  m_mission_write_current   = 0;
         uint16_t  m_mission_waiting_for_seq   = 0;
+        std::map <int, mavlink_mission_item_int_t> m_mavlink_mission;
 
         int m_state = WAYPOINT_STATE_IDLE;
         

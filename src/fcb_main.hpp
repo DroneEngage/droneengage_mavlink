@@ -91,6 +91,7 @@ namespace fcb
 
            void clearWayPoints();
            void reloadWayPoints();
+           void saveWayPointsToFCB();
 
 
         // Events implementation of mavlinksdk::CMavlinkEvents
@@ -109,6 +110,9 @@ namespace fcb
             void onWaypointReached(const int& seq) override;
             void onWayPointReceived(const mavlink_mission_item_int_t& mission_item_int) override;
             void onWayPointsLoadingCompleted ();
+            void onMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg) override;            
+
+
 
         protected: 
             void OnHeartBeat ();
@@ -137,6 +141,9 @@ namespace fcb
             u_int64_t m_last_start_flying =0 ;
             u_int64_t m_counter =0;
             u_int64_t m_counter_sec =0;
+            
+            
+            
     };
 }
 }

@@ -49,6 +49,7 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>  CMissionTranslat
                     
                     mavlink_mission_item_int_t mavlink_mission_item;
                     mavlink_mission_item.seq = i;
+                    mavlink_mission_item.frame = frame;
                     mavlink_mission_item.autocontinue = auto_continue?1:0;
                     mavlink_mission_item.command = command;
                     mavlink_mission_item.param1 = param1;
@@ -57,7 +58,7 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>  CMissionTranslat
                     mavlink_mission_item.param4 = param4;
                     mavlink_mission_item.x = x * 10000000;
                     mavlink_mission_item.y = y * 10000000;
-                    mavlink_mission_item.z = z * 10000000;
+                    mavlink_mission_item.z = z;
 
                     uavos::fcb::mission::CMissionItem *mission_item = uavos::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mavlink_mission_item.command);
                     mission_item->decodeMavlink (mavlink_mission_item);

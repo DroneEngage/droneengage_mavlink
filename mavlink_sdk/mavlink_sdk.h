@@ -106,6 +106,14 @@ namespace mavlinksdk
                 m_mavlink_events->onMissionACK (result, mission_type, result_msg);
             }
 
+
+            inline void onMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg) override 
+            {
+                std::cout << _INFO_CONSOLE_TEXT << "onMissionSaveFinished " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->onMissionSaveFinished (result, mission_type, result_msg);
+            }
+        
+
             inline void onWaypointReached (const int& sequence) override 
             {
                 std::cout << _INFO_CONSOLE_TEXT << "onWaypointReached " << std::to_string(sequence) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
@@ -123,7 +131,7 @@ namespace mavlinksdk
                 m_mavlink_events->onWayPointsLoadingCompleted();
             }
    
-
+    
             
         // CCallback_Vehicle inheritance
         protected:

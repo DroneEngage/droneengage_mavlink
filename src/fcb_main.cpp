@@ -164,11 +164,46 @@ void uavos::fcb::CFCBMain::reloadWayPoints()
     
 }
 
+/**
+ * @brief clear way points from andruav and fcb.
+ * * In FCB it clears all types of maps.
+ * * But in andruav geo fence is not affected by this command.
+ * 
+ */
 void uavos::fcb::CFCBMain::clearWayPoints()
 {
     m_andruav_missions.clear();
     //m_fcb_facade.sendWayPoints(std::string());
     mavlinksdk::CMavlinkCommand::getInstance().clearWayPoints();
+    return ;
+    
+}
+
+/**
+ * @brief uploads mavlink mission items to FCB.
+ * 
+ */
+void uavos::fcb::CFCBMain::saveWayPointsToFCB()
+{
+    //m_andruav_missions.clear();
+    //m_fcb_facade.sendWayPoints(std::string());
+    
+    const std::size_t length = m_andruav_missions.mission_items.size();
+    if (length == 0)
+    {
+        // ignore
+        return ;
+    }
+
+    
+    std::map <int, mavlink_mission_item_int_t> mavlink_mission;
+    for (int i=0; i<length; ++i)
+    {
+        mavlink_mission.insert(std::make_pair(i,m_andruav_missions.mission_items.at(i).get()->getArdupilotMission()));
+    }
+
+    m_mavlink_sdk.getWayPointManager().get()->saveWayPoints(mavlink_mission, MAV_MISSION_TYPE_MISSION);
+
     return ;
     
 }
@@ -403,6 +438,28 @@ void uavos::fcb::CFCBMain::onWayPointsLoadingCompleted ()
     
 }
 
+/**
+ * @brief called when ACK receivied while writing messages.
+ * if result is MAV_MISSION_RESULT::MAV_MISSION_ACCEPTED then mission has been successfully uploaded 
+ * 
+ * @param result 
+ * @param mission_type 
+ * @param result_msg 
+ */
+void uavos::fcb::CFCBMain::onMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)
+{
+    if (result == MAV_MISSION_RESULT::MAV_MISSION_ACCEPTED)
+    {
+        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_INFO, "mission saved successfully");
+        reloadWayPoints();
+    }
+    else
+    {
+        // broadcast error.
+        onMissionACK(result, mission_type, result_msg);
+    }
+}
+            
 void uavos::fcb::CFCBMain::OnACK (const int& result, const std::string& result_msg)
 {
     int sevirity;

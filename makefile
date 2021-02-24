@@ -6,9 +6,10 @@ EXE=uavos_ardupilot
 BIN=bin
 INCLUDE= -I ../c_library_v2 -I ../mavlink_sdk
 LIBS=  -lpthread 
-CXXFLAGS =  -std=c++11
-CXXFLAGS_RELEASE= $(CXXFLAGS) 
-CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g  -std=c++11 
+CXXFLAGS =  -std=c++11 -Wno-return-type -Wno-address-of-packed-member 
+
+CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE
+CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g  
 SRC = src
 BUILD = build
 
@@ -61,7 +62,7 @@ mavlink_control: mavlink_control.cpp serial_port.cpp udp_port.cpp autopilot_inte
 
 
 release: uavos_ardupilot.release
-	$(CXX)  -o $(BIN)/$(EXE).so  $(CXXFLAGS_RELEASE)  $(OBJS)   $(LIBS)  ;
+	$(CXX)  $(CXXFLAGS_RELEASE)  -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS)  ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
@@ -78,14 +79,14 @@ arm_debug: uavos_ardupilot.arm.debug
 uavos_ardupilot.release: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXX)   -c   $(SRCS)  $(INCLUDE)  -Waddress-of-packed-member ; 
+	$(CXX)   $(CXXFLAGS_RELEASE)  -c   $(SRCS)  $(INCLUDE)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 
 uavos_ardupilot.debug: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXX)   $(CXXFLAGS_DEBUG) -g -DDEBUG -c   $(SRCS)  $(INCLUDE)  ; 
+	$(CXX)   $(CXXFLAGS_DEBUG)  -c   $(SRCS)  $(INCLUDE)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 

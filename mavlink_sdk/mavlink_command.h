@@ -1,7 +1,8 @@
 #ifndef MAVLINK_COMMAND_H_
 #define MAVLINK_COMMAND_H_
 
-
+#include <map>
+#include <common/mavlink.h>
 
 
 namespace mavlinksdk
@@ -59,8 +60,9 @@ class CMavlinkCommand
         void setCurrentMission (const int& mission_number);
         void requestMissionList ();
         void getWayPointByNumber (const int& mission_number);
-
-
+        void setMissionCount (const int& mission_count, MAV_MISSION_TYPE mission_type);
+        void writeMission (std::map <int, mavlink_mission_item_int_t> mavlink_mission);
+        void writeMissionItem (mavlink_mission_item_int_t mavlink_mission);
     
         void sendMissionAck ();
 

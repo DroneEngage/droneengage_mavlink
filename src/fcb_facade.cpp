@@ -287,75 +287,23 @@ void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)
 
 std::mutex g_pages_mutex;
 
+/**
+* @brief Chunked Waypoint version
+* In this version field "i" is mandatory
+* "i" = WAYPOINT_CHUNK except the last one is WAYPOINT_LAST_CHUNK
+* A chunk may contain zero or more waypoints.
+* "n" represents number of waypoint in the chunk.
+* waypoints are numbered zero-based in each chunk.
+*/
 void uavos::fcb::CFCBFacade::sendWayPoints(const std::string&target_party_id)
 {
 
     std::lock_guard<std::mutex> guard(g_pages_mutex);
     
     uavos::fcb::CFCBMain&  fcbMain = uavos::fcb::CFCBMain::getInstance();
-    const uavos::fcb::mission::ANDRUAV_UNIT_MISSION& andruav_mission = fcbMain.getAndruavMission(); 
-    const std::size_t length = andruav_mission.mission_items.size();
+    const uavos::fcb::mission::ANDRUAV_UNIT_MISSION& andruav_missions = fcbMain.getAndruavMission(); 
+    const std::size_t length = andruav_missions.mission_items.size();
     
-
-    // Json message
-    // {
-    //     {"n", length},
-    //     {"i", WAYPOINT_NO_CHUNK}  // optional 
-    // };
-
-
-    // for (int i=0; i< length; ++i)
-    // {
-    //     auto it = andruav_mission.mission_items.find(i);
-    //     uavos::fcb::mission::CMissionItem *mi= it->second.get();
-
-    //     Json message_item = mi->getAndruavMission();
-
-    //     message[std::to_string(i)] = message_item;
- 
-    // }
-
-   
-    // if (m_sendJMSG != NULL)
-    // {
-    //     m_sendJMSG (target_party_id, message, TYPE_AndruavResala_WayPoints, false);
-    // }
-
-
-    /**
-     * @brief Chunked Waypoint version
-     * In this version field "i" is mandatory
-     * "i" = WAYPOINT_CHUNK except the last one is WAYPOINT_LAST_CHUNK
-     * A chunk may contain zero or more waypoints.
-     * "n" represents number of waypoint in the chunk.
-     * waypoints are numbered zero-based in each chunk.
-     */
-    // for (int i=0; i< length; ++i)
-    // {
-
-    //     Json message
-    //     {
-    //         {"n", 1}
-    //     };
-    //     auto it = andruav_mission.mission_items.find(i);
-    //     uavos::fcb::mission::CMissionItem *mi= it->second.get();
-
-    //     Json message_item = mi->getAndruavMission();
-    //     if (i<length-1)
-    //     {
-    //         message["i"] = WAYPOINT_CHUNK;
-    //     }
-    //     else
-    //     {
-    //         message["i"] = WAYPOINT_LAST_CHUNK;
-    //     }
-    //     message[std::to_string(0)] = message_item;
-
-    //     if (m_sendJMSG != NULL)
-    //     {
-    //         m_sendJMSG (target_party_id, message, TYPE_AndruavResala_WayPoints, false);
-    //     }
-    // }
 
     if (length ==0)
     {
@@ -380,7 +328,7 @@ void uavos::fcb::CFCBFacade::sendWayPoints(const std::string&target_party_id)
         int lastsentIndex = 0;
         for (int j =0; (j<MAX_WAYPOINT_CHUNK) && (j+i < length); ++j)
         {
-            auto it = andruav_mission.mission_items.find(i+j);
+            auto it = andruav_missions.mission_items.find(i+j);
             uavos::fcb::mission::CMissionItem *mi= it->second.get();
             
             Json message_item = mi->getAndruavMission();

@@ -70,7 +70,7 @@ void CMavlinkSDK::OnMessageReceived (mavlink_message_t& mavlink_message)
         this->m_mavlink_waypoint_manager.get()->parseMessage(mavlink_message);
 
     
-    this->m_mavlink_events->OnMessageReceived(mavlink_message);
+        this->m_mavlink_events->OnMessageReceived(mavlink_message);
     }
     catch(const std::exception& e)
     {

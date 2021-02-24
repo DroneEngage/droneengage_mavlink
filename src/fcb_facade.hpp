@@ -14,6 +14,11 @@ namespace uavos
 {
 namespace fcb
 {
+    /**
+     * @brief Mainly this class handles communication received from FCB or andruav fcb unit internal status
+     * and sends it to communicator and server.
+     * 
+     */
     class CFCBFacade
     {
 

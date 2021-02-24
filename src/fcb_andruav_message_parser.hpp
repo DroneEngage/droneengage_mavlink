@@ -14,6 +14,10 @@ namespace uavos
 namespace fcb
 {
 
+    /**
+     * @brief This class parses messages received via communicator and executes it.
+     * 
+     */
     class CFCBAndruavResalaParser
     {
         public:
