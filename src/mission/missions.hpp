@@ -25,6 +25,7 @@ typedef enum ANDRUAV_MISSION_TYPE
 
 
 
+
 class CMissionItem 
 {
 
@@ -39,13 +40,215 @@ class CMissionItem
         int m_mission_command;
         int m_frame = MAV_FRAME_GLOBAL_RELATIVE_ALT;
         bool m_auto_continue;
-        /**
-         * @brief local: x position in meters * 1e4, global: latitude in degrees * 10^7
-         * 
-         */
-        
+        bool m_current = false;
         
 
+};
+
+
+/**
+ * @brief zero delay can be used later to store mission related to andruav.
+ * Assuming zero delays is an andruav related mission.
+ * 
+ */
+class CDummy_Step : public CMissionItem
+{
+    public:
+        CDummy_Step ()
+        {
+            m_mission_command = TYPE_CMissionAction_DummyMission;
+        };
+        
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
+
+
+    public:
+        Json getAndruavMission   () override;
+        mavlink_mission_item_int_t getArdupilotMission () override;
+
+};
+
+
+/**
+ * @brief Delay the next navigation command a number of seconds or until a specified time
+ * 
+ */
+class CDelay_Step : public CMissionItem
+{
+    public:
+        CDelay_Step ()
+        {
+            m_mission_command = TYPE_CMissionAction_Delay;
+        };
+        
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
+
+
+    public:
+        Json getAndruavMission   () override;
+        mavlink_mission_item_int_t getArdupilotMission () override;
+
+    public:
+        /**
+         * @brief Delay (-1 to enable time-of-day fields)
+         * 
+         */
+        int m_delay = -1;
+        /**
+         * @brief hour (24h format, UTC, -1 to ignore)
+         * 
+         */
+        int m_delay_hours   = -1;
+        /**
+         * @brief minute (24h format, UTC, -1 to ignore)
+         * 
+         */
+        int m_delay_minutes = -1;
+        /**
+         * @brief second (24h format, UTC, -1 to ignore)
+         * 
+         */
+        int m_delay_seconds = -1;
+
+
+};
+
+/**
+ * @brief Delay mission state machine.
+ * 
+ */
+class CDelay_State_Machine_Step : public CMissionItem
+{
+    public:
+        CDelay_State_Machine_Step ()
+        {
+            m_mission_command = TYPE_CMissionAction_Delay_STATE_MACHINE;
+        };
+        
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
+
+
+    public:
+        Json getAndruavMission   () override;
+        mavlink_mission_item_int_t getArdupilotMission () override;
+
+    public:
+        /**
+         * @brief minimum zero in seconds
+         * 
+         */
+        int m_delay_seconds = 0;
+
+};
+
+
+
+class CChange_Heading_Step : public CMissionItem
+{
+    public:
+        CChange_Heading_Step ()
+        {
+            m_mission_command = TYPE_CMissionAction_ChangeHeading;
+        };
+        
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
+
+
+    public:
+        Json getAndruavMission   () override;
+        mavlink_mission_item_int_t getArdupilotMission () override;
+
+    public:
+       
+       /**
+        * @brief target angle, 0 is north in deg
+        * 
+        */
+       double m_angle;
+
+       /**
+        * @brief angular speed in deg/sec
+        * 
+        */
+       double m_angular_speed;
+
+       /**
+        * @brief direction: -1: counter clockwise, 1: clockwise 
+        * 
+        */
+       double m_direction;
+
+       /**
+        * @brief 0: absolute angle, 1: relative offset
+        * 
+        */
+       double m_relative;
+
+};
+
+
+class CLoiter_Turns_Step : public CMissionItem
+{
+    public:
+        CLoiter_Turns_Step ()
+        {
+            m_mission_command = TYPE_CMissionAction_Circle;
+        };
+        
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
+
+
+    public:
+        Json getAndruavMission   () override;
+        mavlink_mission_item_int_t getArdupilotMission () override;
+
+        /**
+         * @brief  Number of turns. min 0
+         * 
+         */
+        int m_num_of_turn;
+
+        /**
+         * @brief  Leave loiter circle only once heading towards the next waypoint (0 = False)
+         * 
+         */
+        bool m_heading_required;
+
+        /**
+         * @brief Loiter circle exit location and/or path to next waypoint ("xtrack") for forward-only moving vehicles (not multicopters). 0 for the vehicle to converge towards the center xtrack when it leaves the loiter (the line between the centers of the current and next waypoint), 1 to converge to the direct line between the location that the vehicle exits the loiter radius and the next waypoint. Otherwise the angle (in degrees) between the tangent of the loiter circle and the center xtrack at which the vehicle must leave the loiter (and converge to the center xtrack). 
+         * NaN to use the current system default xtrack behaviour.
+         * 
+         */
+        double m_xtrack_location;
+
+        /**
+         * @brief  Loiter radius around waypoint for forward-only moving vehicles (not multicopters). If positive loiter clockwise, else counter-clockwise	
+         * 
+         */
+        double m_radius;
+
+        /**
+         * @brief  in e7
+         * 
+         */
+        int m_latitude = 0;
+
+        /**
+         * @brief in e7
+         * 
+         */
+        int m_longitude = 0;
+
+        /**
+         * @brief in meters
+         * 
+         */
+        int m_altitude = 0;
 };
 
 
@@ -117,6 +320,7 @@ class CTakeOff_Step : public CMissionItem
         int m_altitude = 0;
 };
 
+
 class CLand_Step : public CMissionItem
 {
     public:
@@ -170,6 +374,7 @@ class CLand_Step : public CMissionItem
         int m_altitude = 0;
 
 };
+
 
 class CWayPoint_Step : public CMissionItem
 {
@@ -232,16 +437,19 @@ class CWayPoint_Step : public CMissionItem
 };
 
 
-
 class CMissionItemBuilder
 {
     public:
-    static CMissionItem * getClassByMavlinkCMD (const int& command)
+    static CMissionItem * getClassByMavlinkCMD (const mavlink_mission_item_int_t& mission_item_int)
     {
-        switch (command)
+        switch (mission_item_int.command)
         {
+
+            case MAV_CMD_NAV_DELAY:
+                return new CDelay_Step();
+
             case MAV_CMD_NAV_RETURN_TO_LAUNCH:
-            return new CRTL_Step();
+                return new CRTL_Step();
 
             case MAV_CMD_NAV_TAKEOFF:
                 return new CTakeOff_Step();
@@ -251,7 +459,19 @@ class CMissionItemBuilder
 
             case MAV_CMD_NAV_WAYPOINT:
                 return new CWayPoint_Step();
+
+
+            case MAV_CMD_CONDITION_DELAY:
+                if (mission_item_int.param1 == 0)
+                {
+                    return new CDummy_Step();
+                }
+            default:
+               return new CDelay_State_Machine_Step();
+
         }
+
+        
     }
 };
 

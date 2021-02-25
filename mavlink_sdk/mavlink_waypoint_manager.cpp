@@ -36,7 +36,13 @@ void CMavlinkWayPointManager::clearWayPoints ()
 
 }
 
-
+/**
+ * @brief Upload Mission to Ardupilot.
+ * This is the entery function.
+ * 
+ * @param mavlink_mission std::map of mavlink_missions
+ * @param mission_type MAV_MISSION_TYPE
+ */
 void CMavlinkWayPointManager::saveWayPoints (std::map <int, mavlink_mission_item_int_t> mavlink_mission, const MAV_MISSION_TYPE& mission_type)
 {
     m_state = WAYPOINT_STATE_WRITING_WP_COUNT;
@@ -86,10 +92,11 @@ void CMavlinkWayPointManager::handle_mission_count (const mavlink_mission_count_
     {
         case MAV_MISSION_TYPE_MISSION:
         {
-            // if (m_mission_count == 0)
-            // {
-            //     mavlinksdk::CMavlinkCommand::getInstance().sendMissionAck();
-            // }
+            if (m_mission_count == 0)
+            {
+                //mavlinksdk::CMavlinkCommand::getInstance().sendMissionAck();
+                return ;
+            }
             
             switch (m_state)
             {
@@ -148,28 +155,36 @@ void CMavlinkWayPointManager::handle_mission_item (const mavlink_mission_item_in
     #ifdef DEBUG
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: mission_item_int.seq " << std::to_string(mission_item_int.seq) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
-    
-    m_callback_waypoint.onWayPointReceived (mission_item_int);
-
+    if (m_state == WAYPOINT_STATE_READ_REQUEST) 
+    {
+        m_callback_waypoint.onWayPointReceived (mission_item_int);
+    }
     if (mission_item_int.mission_type == MAV_MISSION_TYPE_MISSION)
     {
+        if (m_mission_waiting_for_seq == mission_item_int.seq)
+        {
+            m_mission_waiting_for_seq +=1;
+            m_mission_waiting_for_seq %=m_mission_count+1;
             
-        if (m_mission_count == mission_item_int.seq + 1)
+        }
+
+        const int next_seq = mission_item_int.seq + 1;
+        if (m_mission_count == next_seq)
         {
             // inform FCB that you received missions.
             std::cout << _SUCCESS_CONSOLE_TEXT_ << "Mission Received Way points count: " << std::to_string(m_mission_count) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-            m_state = WAYPOINT_STATE_IDLE;
             mavlinksdk::CMavlinkCommand::getInstance().sendMissionAck();
-            m_callback_waypoint.onWayPointsLoadingCompleted();
+            if (m_state == WAYPOINT_STATE_READ_REQUEST) 
+            {
+                m_state = WAYPOINT_STATE_IDLE;
+                m_callback_waypoint.onWayPointsLoadingCompleted();
+            }
         }
         else
         {
-            if (m_mission_waiting_for_seq == mission_item_int.seq)
-            {
-                m_mission_waiting_for_seq +=1;
-                mavlinksdk::CMavlinkCommand::getInstance().getWayPointByNumber(m_mission_waiting_for_seq);
-            }
+            mavlinksdk::CMavlinkCommand::getInstance().getWayPointByNumber(next_seq);
         }
+        
     }
 }
 

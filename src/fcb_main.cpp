@@ -378,52 +378,9 @@ void uavos::fcb::CFCBMain::onWayPointReceived(const mavlink_mission_item_int_t& 
 {
    if (mission_item_int.mission_type == MAV_MISSION_TYPE_MISSION)
    {
-       uavos::fcb::mission::CMissionItem *mission_item  = uavos::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mission_item_int.command);
+       uavos::fcb::mission::CMissionItem *mission_item  = uavos::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mission_item_int);
        mission_item->decodeMavlink(mission_item_int);
        m_andruav_missions.mission_items.insert(std::make_pair( mission_item_int.seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(mission_item)));
-            
-    //    switch (mission_item_int.command) 
-    //    {
-    //        case MAV_CMD_NAV_RETURN_TO_LAUNCH:
-    //         {
-    //             const int& seq = mission_item_int.seq;
-       
-    //             uavos::fcb::mission::CRTL_Step *rtl_step= new uavos::fcb::mission::CRTL_Step(mission_item_int);
-                
-    //             m_andruav_missions.mission_items.insert(std::make_pair(seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(rtl_step)));
-    //         }
-    //         break;
-            
-    //         case MAV_CMD_NAV_WAYPOINT:
-    //        {
-    //             const int& seq = mission_item_int.seq;
-       
-    //             uavos::fcb::mission::CWayPoint_Step *waypoint_step= new uavos::fcb::mission::CWayPoint_Step(mission_item_int);
-                
-    //             m_andruav_missions.mission_items.insert(std::make_pair(seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(waypoint_step)));
-    //         }
-    //         break;
-
-    //         case MAV_CMD_NAV_TAKEOFF:
-    //         {
-    //             const int& seq = mission_item_int.seq;
-       
-    //             uavos::fcb::mission::CTakeOff_Step *takeoff_step= new uavos::fcb::mission::CTakeOff_Step(mission_item_int);
-                
-    //             m_andruav_missions.mission_items.insert(std::make_pair(seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(takeoff_step)));
-    //         }
-    //         break;
-
-    //         case MAV_CMD_NAV_LAND:
-    //         {
-    //             const int& seq = mission_item_int.seq;
-       
-    //             uavos::fcb::mission::CLand_Step *land_step= new uavos::fcb::mission::CLand_Step(mission_item_int);
-                
-    //             m_andruav_missions.mission_items.insert(std::make_pair(seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(land_step)));
-    //         }
-    //         break;
-    //    }
    }
 
     return ;
@@ -451,7 +408,7 @@ void uavos::fcb::CFCBMain::onMissionSaveFinished (const int& result, const int& 
     if (result == MAV_MISSION_RESULT::MAV_MISSION_ACCEPTED)
     {
         m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_INFO, "mission saved successfully");
-        reloadWayPoints();
+        //reloadWayPoints();
     }
     else
     {

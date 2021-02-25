@@ -8,7 +8,7 @@ INCLUDE= -I ../c_library_v2 -I ../mavlink_sdk
 LIBS=  -lpthread 
 CXXFLAGS =  -std=c++11 -Wno-return-type -Wno-address-of-packed-member 
 
-CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE
+CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE -s
 CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g  
 SRC = src
 BUILD = build

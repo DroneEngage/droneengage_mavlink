@@ -50,15 +50,18 @@
 
 // Andruav Mission Types
 
-#define TYPE_CMissionItem                   0
-#define TYPE_CMissionItem_WayPointStep      1
-#define TYPE_CMissionAction_TakeOff         2
-#define TYPE_CMissionAction_Landing         3
-#define TYPE_CMissionAction_RTL             4
-#define TYPE_CMissionAction_Circle          5
-#define TYPE_CMissionAction_Spline          6
-#define TYPE_CMissionAction_ChangeSpeed     7
-#define TYPE_CMissionAction_ChangeHeading   8
+#define TYPE_CMissionItem                                   0
+#define TYPE_CMissionItem_WayPointStep                      16 // same as mavlink
+#define TYPE_CMissionAction_TakeOff                         22 // same as mavlink
+#define TYPE_CMissionAction_Landing                         21 // same as mavlink
+#define TYPE_CMissionAction_RTL                             20 // same as mavlink
+#define TYPE_CMissionAction_Circle                          18 // same as mavlink MAV_CMD_NAV_LOITER_TURNS
+#define TYPE_CMissionAction_Spline                          6
+#define TYPE_CMissionAction_ChangeSpeed                     7
+#define TYPE_CMissionAction_ChangeHeading                 115 // same as mavlink 
+#define TYPE_CMissionAction_Delay                          93 // same as mavlink 
+#define TYPE_CMissionAction_Delay_STATE_MACHINE           112 // same as mavlink
+#define TYPE_CMissionAction_DummyMission                99999
 
 // Remote Control Sub Actions
 #define RC_SUB_ACTION_RELEASED                      0

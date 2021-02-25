@@ -180,14 +180,27 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
             {
                 //TODO: you should allow multiple messages to allow large file to be received.
                 // !UDP packet has maximum size.
-
+                
                 /*
                     a : std::string serialized mission file
                 */
+                if ((message.contains("a")!=true) || (message["a"].type() != Json::value_t::string))
+                {
+                    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
+
+                    break ;
+                }
+
                 std::string mission = message ["a"];
                 uavos::fcb::mission::CMissionTranslator cMissionTranslator;
                 
                 std::unique_ptr<std::map <int, std::unique_ptr<uavos::fcb::mission::CMissionItem>>> new_mission_items = cMissionTranslator.translateMissionText(mission);
+                if (new_mission_items == std::nullptr_t())
+                {
+                    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
+
+                    break ;
+                }
                 m_fcbMain.clearWayPoints();
                 uavos::fcb::mission::ANDRUAV_UNIT_MISSION& andruav_missions = m_fcbMain.getAndruavMission();                
                 

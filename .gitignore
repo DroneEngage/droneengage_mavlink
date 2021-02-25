@@ -12,6 +12,8 @@ build/
 *.out
 *.o
 *.d
+*.asm
+*.plan
 mavlink_control
 
 # mac
