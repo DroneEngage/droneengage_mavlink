@@ -604,6 +604,23 @@ class CMissionItemBuilder
             case MAV_CMD_NAV_WAYPOINT:
                 return new CWayPoint_Step();
 
+            case MAV_CMD_CONDITION_YAW:
+                return new CChange_Heading_Step();
+
+            case MAV_CMD_DO_CHANGE_SPEED:
+                return new CChange_Speed_Step();
+
+            case MAV_CMD_DO_CHANGE_ALTITUDE:
+                return new CChange_Altitude_Step();
+
+            case MAV_CMD_NAV_CONTINUE_AND_CHANGE_ALT:
+                return new CContinue_And_Change_Altitude_Step();
+
+            case MAV_CMD_NAV_GUIDED_ENABLE:
+                return new CGuided_Enabled_Step();
+
+            case MAV_CMD_NAV_LOITER_TURNS:
+                return new CLoiter_Turns_Step();
 
             case MAV_CMD_CONDITION_DELAY:
                 if (mission_item_int.param1 == 0)

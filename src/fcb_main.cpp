@@ -258,6 +258,8 @@ void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbe
 
     m_fcb_facade.sendID(std::string());
 
+    mavlinksdk::CMavlinkCommand::getInstance().requestParametersList();
+   
     return ;
 }
 
@@ -467,7 +469,17 @@ void uavos::fcb::CFCBMain::OnHomePositionUpdated(const mavlink_home_position_t& 
 
     return ;
 }
-            
+
+
+void uavos::fcb::CFCBMain::OnParamChanged(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)
+{
+    #ifdef DEBUG
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 
+		<< std::string(param_name) << " : " << "count: " << std::to_string(param_message.param_index) 
+		<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
+		<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+	#endif
+}
 
 void uavos::fcb::CFCBMain::alertUavosOffline()
 {

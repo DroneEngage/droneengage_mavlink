@@ -1,8 +1,12 @@
+#ifndef HELPERS_H_
+#define HELPERS_H_
+
 #include <iostream>
 #include <cctype>
 #include <algorithm>
 #include <sys/time.h>
-
+#include <vector>
+#include <sstream>
 
 inline uint64_t
 get_time_usec()
@@ -30,3 +34,26 @@ std::string str_tolower(std::string s) {
                   );
     return s;
 }
+
+
+
+std::vector<std::string> split_string_by_delimeter(const std::string& str, const char& delimeter)
+{
+    auto result = std::vector<std::string>{};
+    auto ss = std::stringstream{str};
+
+    for (std::string line; std::getline(ss, line, delimeter);)
+        result.push_back(line);
+
+    return result;
+}
+
+
+
+std::vector<std::string> split_string_by_newline(const std::string& str)
+{
+    return split_string_by_delimeter (str, '\n');
+}
+
+
+#endif

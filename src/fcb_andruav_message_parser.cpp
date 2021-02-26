@@ -204,8 +204,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 m_fcbMain.clearWayPoints();
                 uavos::fcb::mission::ANDRUAV_UNIT_MISSION& andruav_missions = m_fcbMain.getAndruavMission();                
                 
-                
-
+             
                 std::map<int, std::unique_ptr<uavos::fcb::mission::CMissionItem>>::iterator it;
                 for (it = new_mission_items->begin(); it != new_mission_items->end(); it++)
                 {

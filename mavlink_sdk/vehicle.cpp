@@ -111,12 +111,80 @@ void mavlinksdk::CVehicle::handle_home_position (const mavlink_home_position_t& 
 	}
 }
 
+/**
+ * @brief 
+ * ! Value & Names are corrupted when returned
+ * ! messages are not handled correctly no by madsdk module.
+ * TODO: please fix
+ * 
+ * @param param_message 
+ */
+void mavlinksdk::CVehicle::handle_param_ext_value  (const mavlink_param_ext_value_t& param_message)
+{
+	/**
+		@param param_id
+		Onboard parameter id, terminated by NULL if the length is less than 16 human-readable chars and WITHOUT null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes storage if the ID is stored as string
+	*/
+	char param_id[17], param_value[129];
+	param_id[16] =0;
+	memcpy((void *)&param_id[0], param_message.param_id,16);
+	memcpy((void *)&param_value[0], param_message.param_value,128);
+	
+	
+	#ifdef DEBUG
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 
+		<< std::string(param_id) << " : " << "count: " << std::to_string(param_message.param_index) 
+		<< " : " << std::to_string(param_message.param_type) << " : " << param_value
+		<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+	#endif
+}
+
+
+/**
+ * @brief 
+ * List of all parameters as a response of PARAM_REQUEST_LIST
+ * 
+ * @param param_message 
+ */
+void mavlinksdk::CVehicle::handle_param_value (const mavlink_param_value_t& param_message)
+{
+	bool changed = false;
+	bool fire_event = false;
+	char param_id[17];
+	param_id[16] =0;
+	memcpy((void *)&param_id[0], param_message.param_id,16);
+	std::string param_name = std::string(param_id);
+
+	Parameter_Value pv;
+	pv.param_type = param_message.param_type;
+	pv.parameter_value = param_message.param_value;
+	
+	
+	auto it = m_parameters_list.find(param_name);
+
+	if (it != m_parameters_list.end()) 
+	{
+		changed = (it->second.parameter_value == param_message.param_value);
+	} 
+
+	m_parameters_list.insert(std::make_pair(param_name, pv));
+
+	m_callback_vehicle.OnParamChanged (param_name, param_message, changed);
+
+	#ifdef DEBUG
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 
+		<< param_name << " : " << "count: " << std::to_string(param_message.param_index) 
+		<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
+		<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+	#endif
+}
+
+
 void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_message)
 {
 
-	const int& msgid = mavlink_message.msgid;
-	
-	switch (msgid)
+	const u_int32_t msgid = mavlink_message.msgid;
+	switch (mavlink_message.msgid)
 	{
         case MAVLINK_MSG_ID_HEARTBEAT:
 		{
@@ -237,22 +305,33 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		}
 		break;
 
-		case MAVLINK_MSG_ID_PARAM_EXT_REQUEST_READ:
-		{
-			// mavlink2
-			// TODO: to be implemented
-		}
-		
 		case MAVLINK_MSG_ID_PARAM_EXT_REQUEST_LIST:
 		{
+			// never called
+		}
+		
+
+		case MAVLINK_MSG_ID_PARAM_VALUE:
+		{
 			// mavlink2
 			// TODO: to be implemented
+
+			mavlink_param_value_t param_message;
+			mavlink_msg_param_value_decode(&mavlink_message, &param_message);
+			
+			handle_param_value (param_message);
 		}
+		
 		
 		case MAVLINK_MSG_ID_PARAM_EXT_VALUE:
 		{
 			// mavlink2
 			// TODO: to be implemented
+			
+			// mavlink_param_ext_value_t param_message;
+			// mavlink_msg_param_ext_value_decode(&mavlink_message, &param_message);
+			
+			// handle_param_ext_value (param_message);
 		}
 		
 		case MAVLINK_MSG_ID_PARAM_EXT_ACK:

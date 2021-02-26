@@ -30,6 +30,8 @@ namespace mavlinksdk
         virtual void OnModeChanges(const int& custom_mode, const int& firmware_type)                                    {};
         virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)                                {};
     
+        virtual void OnParamChanged(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)  {};
+    
 
         //CCallBack_WayPoint
         virtual void onWaypointReached(const int& seq)                                                                  {};

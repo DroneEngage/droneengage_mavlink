@@ -176,7 +176,7 @@ Json CGuided_Enabled_Step::getAndruavMission()
     */
     Json message =
     {
-        {"t", TYPE_CMissionAction_Delay_STATE_MACHINE},
+        {"t", TYPE_CMissionAction_Guided_Enabled},
         {"s", this->m_sequence},
         {"e", this->m_enabled}
     };
@@ -190,7 +190,7 @@ mavlink_mission_item_int_t CGuided_Enabled_Step::getArdupilotMission()
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
     mavlink_mission.seq = m_sequence;
-    mavlink_mission.command = MAV_CMD_CONDITION_DELAY;
+    mavlink_mission.command = MAV_CMD_NAV_GUIDED_ENABLE;
     mavlink_mission.current = m_current?1:0;
     mavlink_mission.autocontinue = m_auto_continue?1:0;
     mavlink_mission.frame = m_frame;
@@ -221,7 +221,7 @@ Json CChange_Altitude_Step::getAndruavMission()
     */
     Json message =
     {
-        {"t", TYPE_CMissionAction_Delay_STATE_MACHINE},
+        {"t", TYPE_CMissionAction_ChangeAlt},
         {"s", this->m_sequence},
         {"r", this->m_ascend_descent_rate}
     };
@@ -312,12 +312,17 @@ void CChange_Speed_Step::decodeMavlink (const mavlink_mission_item_int_t& missio
 Json CChange_Speed_Step::getAndruavMission()
 {
     /*
-        t : TYPE_CMissionAction_RTL
+        t : TYPE_CMissionAction_ChangeSpeed
         s : sequence
+        p : speed
+       [t]: if null then speedtype is ground speed.
+        r : is relative
+        l : throttle in % if -1 then ignored.
+
     */
     Json message =
     {
-        {"t", TYPE_CMissionAction_RTL},
+        {"t", TYPE_CMissionAction_ChangeSpeed},
         {"s", this->m_sequence},
         {"p", this->m_speed},
         {"t", this->m_speed_type},
@@ -369,12 +374,12 @@ void CChange_Heading_Step::decodeMavlink (const mavlink_mission_item_int_t& miss
 Json CChange_Heading_Step::getAndruavMission()
 {
     /*
-        t : TYPE_CMissionAction_RTL
+        t : TYPE_CMissionAction_ChangeHeading
         s : sequence
     */
     Json message =
     {
-        {"t", TYPE_CMissionAction_RTL},
+        {"t", TYPE_CMissionAction_ChangeHeading},
         {"s", this->m_sequence},
         {"b", this->m_angle},
         {"c", this->m_angular_speed},
@@ -536,7 +541,7 @@ void CTakeOff_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_ite
 Json CTakeOff_Step::getAndruavMission()
 {
     /*
-        t : TYPE_CMissionAction_RTL
+        t : TYPE_CMissionAction_TakeOff
         s : sequence
         l : altitude
         p : minimum_pitch
@@ -599,7 +604,7 @@ void CLand_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_i
 Json CLand_Step::getAndruavMission()
 {
     /*
-        t : TYPE_CMissionAction_RTL
+        t : TYPE_CMissionAction_Landing
         s : sequence
     */
     Json message =

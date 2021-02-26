@@ -175,7 +175,13 @@ namespace mavlinksdk
             inline void OnHomePositionUpdated(const mavlink_home_position_t& home_position)  override
             {
                 m_mavlink_events->OnHomePositionUpdated (home_position);
-            }
+            };
+
+            inline void OnParamChanged(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override 
+            {
+                m_mavlink_events->OnParamChanged (param_name, param_message, changed);
+            };
+    
             
 
 

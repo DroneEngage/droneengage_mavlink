@@ -467,18 +467,89 @@ void CMavlinkCommand::writeMissionItem (mavlink_mission_item_int_t mavlink_missi
 }
 
 
+/**
+ * @brief 
+ * Request all parameters of this component. After this request, all parameters are emitted. The parameter microservice is documented at https://mavlink.io/en/services/parameter.html
+ * 
+ */
 void CMavlinkCommand::requestParametersList ()
 {
-	//TODO to be implemented	
+	
+	mavlink_param_request_list_t mavlink_param;
+
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mavlink_param.target_system = mavlink_sdk.getSysId();
+	mavlink_param.target_component = mavlink_sdk.getCompId();
+	
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_param_request_list_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mavlink_param);
+
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;	
+}
+
+/**
+ * @brief 
+ * (MAVLink 2) Request all parameters of this component. All parameters should be emitted in response as PARAM_EXT_VALUE.
+ * ! messages are not handled correctly no by madsdk module.
+ * TODO: please fix
+ */
+void CMavlinkCommand::requestExtParametersList ()
+{
+	
+	// mavlink_param_ext_request_list_t mavlink_param;
+
+	// mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	// mavlink_param.target_system = mavlink_sdk.getSysId();
+	// mavlink_param.target_component = mavlink_sdk.getCompId();
+	
+	// // Encode
+	// mavlink_message_t mavlink_message;
+	// mavlink_msg_param_ext_request_list_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mavlink_param);
+
+    // mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;	
 }
 
 
-void CMavlinkCommand::writeParameter (const std::string& parameter, const double &value)
+void CMavlinkCommand::writeParameter (const std::string& param_name, const double &value)
 {
 	//TODO to be implemented	
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	const std::map<std::string, Parameter_Value>& parameters_list = mavlink_sdk.getVehicle().get()->getParametersList();
+	
+
+	mavlink_param_set_t mavlink_param;
+	
+	auto it = parameters_list.find(param_name);
+
+	if (it != parameters_list.end())
+	{
+		return ; // not found
+	} 
+	
+	mavlink_param.target_system = mavlink_sdk.getSysId();
+	mavlink_param.target_component = mavlink_sdk.getCompId();
+	
+	mavlink_param.param_value = value;
+	mavlink_param.param_type = it->second.param_type;
+	memcpy (mavlink_param.param_id, it->first.c_str(), 16);
+	
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_param_set_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mavlink_param);
+
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;
 }
 
-void CMavlinkCommand::readParameter (const std::string& parameter)
+void CMavlinkCommand::readParameter (const std::string& param_name)
 {
 	//TODO to be implemented	
 }
