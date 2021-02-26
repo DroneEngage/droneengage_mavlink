@@ -63,8 +63,19 @@ class CMavlinkCommand
         void setMissionCount (const int& mission_count, MAV_MISSION_TYPE mission_type);
         void writeMission (std::map <int, mavlink_mission_item_int_t> mavlink_mission);
         void writeMissionItem (mavlink_mission_item_int_t mavlink_mission);
-    
         void sendMissionAck ();
+        void writeParameter (const std::string& parameter, const double &value);
+        void readParameter (const std::string& parameter);
+        
+        /**
+         * @brief 
+         * Request all parameters of this component. After this request, all parameters are emitted.
+         * 
+         */
+        void requestParametersList ();
+
+
+        
 
     protected:
         void sendLongCommand (const uint16_t& command,

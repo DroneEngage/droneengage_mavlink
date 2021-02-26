@@ -237,6 +237,29 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		}
 		break;
 
+		case MAVLINK_MSG_ID_PARAM_EXT_REQUEST_READ:
+		{
+			// mavlink2
+			// TODO: to be implemented
+		}
+		
+		case MAVLINK_MSG_ID_PARAM_EXT_REQUEST_LIST:
+		{
+			// mavlink2
+			// TODO: to be implemented
+		}
+		
+		case MAVLINK_MSG_ID_PARAM_EXT_VALUE:
+		{
+			// mavlink2
+			// TODO: to be implemented
+		}
+		
+		case MAVLINK_MSG_ID_PARAM_EXT_ACK:
+		{
+			// mavlink2
+			// TODO: to be implemented
+		}
 		
 		default:
 		{

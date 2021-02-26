@@ -56,8 +56,11 @@
 #define TYPE_CMissionAction_Landing                         21 // same as mavlink
 #define TYPE_CMissionAction_RTL                             20 // same as mavlink
 #define TYPE_CMissionAction_Circle                          18 // same as mavlink MAV_CMD_NAV_LOITER_TURNS
+#define TYPE_CMissionAction_Guided_Enabled                  92 // same as mavlink
 #define TYPE_CMissionAction_Spline                          6
-#define TYPE_CMissionAction_ChangeSpeed                     7
+#define TYPE_CMissionAction_ChangeSpeed                    178 // same as mavlink
+#define TYPE_CMissionAction_ChangeAlt                     113 // same as mavlink   
+#define TYPE_CMissionAction_CONTINUE_AND_CHANGE_ALT       30  // same as mavlink  
 #define TYPE_CMissionAction_ChangeHeading                 115 // same as mavlink 
 #define TYPE_CMissionAction_Delay                          93 // same as mavlink 
 #define TYPE_CMissionAction_Delay_STATE_MACHINE           112 // same as mavlink

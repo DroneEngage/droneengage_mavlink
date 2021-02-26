@@ -155,6 +155,201 @@ mavlink_mission_item_int_t CDelay_State_Machine_Step::getArdupilotMission()
     return mavlink_mission;
 }
 
+//*********************************** Guided Enabled Step
+void CGuided_Enabled_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
+{
+    
+    m_sequence = mission_item_int.seq;
+    m_auto_continue = mission_item_int.autocontinue;
+    m_frame = mission_item_int.frame;
+   
+    m_enabled = mission_item_int.param1==1?true:false;
+
+}
+
+Json CGuided_Enabled_Step::getAndruavMission()
+{
+    /*
+        t : TYPE_CMissionAction_RTL
+        s : sequence
+        e : enable guided mode
+    */
+    Json message =
+    {
+        {"t", TYPE_CMissionAction_Delay_STATE_MACHINE},
+        {"s", this->m_sequence},
+        {"e", this->m_enabled}
+    };
+
+    return message;
+}
+
+mavlink_mission_item_int_t CGuided_Enabled_Step::getArdupilotMission()
+{
+    mavlink_mission_item_int_t mavlink_mission = {0};
+
+    mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
+    mavlink_mission.seq = m_sequence;
+    mavlink_mission.command = MAV_CMD_CONDITION_DELAY;
+    mavlink_mission.current = m_current?1:0;
+    mavlink_mission.autocontinue = m_auto_continue?1:0;
+    mavlink_mission.frame = m_frame;
+
+    mavlink_mission.param1 = this->m_enabled==true?1:0; 
+    
+    return mavlink_mission;
+}
+
+//*********************************** Change Altitude Step
+void CChange_Altitude_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
+{
+    
+    m_sequence = mission_item_int.seq;
+    m_auto_continue = mission_item_int.autocontinue;
+    m_frame = mission_item_int.frame;
+   
+    m_ascend_descent_rate = mission_item_int.param1;
+    
+}
+
+Json CChange_Altitude_Step::getAndruavMission()
+{
+    /*
+        t : TYPE_CMissionAction_RTL
+        s : sequence
+        e : enable guided mode
+    */
+    Json message =
+    {
+        {"t", TYPE_CMissionAction_Delay_STATE_MACHINE},
+        {"s", this->m_sequence},
+        {"r", this->m_ascend_descent_rate}
+    };
+
+    return message;
+}
+
+mavlink_mission_item_int_t CChange_Altitude_Step::getArdupilotMission()
+{
+    mavlink_mission_item_int_t mavlink_mission = {0};
+
+    mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
+    mavlink_mission.seq = m_sequence;
+    mavlink_mission.command = MAV_CMD_DO_CHANGE_ALTITUDE;
+    mavlink_mission.current = m_current?1:0;
+    mavlink_mission.autocontinue = m_auto_continue?1:0;
+    mavlink_mission.frame = m_frame;
+
+    mavlink_mission.param1 = m_ascend_descent_rate; 
+    
+    return mavlink_mission;
+}
+
+//*********************************** Continue And Change Altitude Step
+void CContinue_And_Change_Altitude_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
+{
+    
+    m_sequence = mission_item_int.seq;
+    m_auto_continue = mission_item_int.autocontinue;
+    m_frame = mission_item_int.frame;
+   
+    m_ascend_descent_command = mission_item_int.param1;
+    m_desired_altitude = mission_item_int.z;
+    
+}
+
+Json CContinue_And_Change_Altitude_Step::getAndruavMission()
+{
+    /*
+        t : TYPE_CMissionAction_RTL
+        s : sequence
+        e : enable guided mode
+    */
+    Json message =
+    {
+        {"t", TYPE_CMissionAction_CONTINUE_AND_CHANGE_ALT},
+        {"s", this->m_sequence},
+        {"c", this->m_ascend_descent_command},
+        {"a", this->m_desired_altitude}
+    };
+
+    return message;
+}
+
+mavlink_mission_item_int_t CContinue_And_Change_Altitude_Step::getArdupilotMission()
+{
+    mavlink_mission_item_int_t mavlink_mission = {0};
+
+    mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
+    mavlink_mission.seq = m_sequence;
+    mavlink_mission.command = MAV_CMD_NAV_CONTINUE_AND_CHANGE_ALT;
+    mavlink_mission.current = m_current?1:0;
+    mavlink_mission.autocontinue = m_auto_continue?1:0;
+    mavlink_mission.frame = m_frame;
+
+    mavlink_mission.param1 = m_ascend_descent_command; 
+    mavlink_mission.z = m_desired_altitude; 
+    
+    return mavlink_mission;
+}
+
+//***********************************CChange_Speed_Step
+
+void CChange_Speed_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
+{
+    
+    m_sequence = mission_item_int.seq;
+    m_auto_continue = mission_item_int.autocontinue;
+    m_frame = mission_item_int.frame;
+
+    m_speed_type = mission_item_int.param1;
+    m_speed = mission_item_int.param2;
+    m_throttle = mission_item_int.param3;
+    m_relative = mission_item_int.param4 == 0? false:true;
+   
+}
+
+Json CChange_Speed_Step::getAndruavMission()
+{
+    /*
+        t : TYPE_CMissionAction_RTL
+        s : sequence
+    */
+    Json message =
+    {
+        {"t", TYPE_CMissionAction_RTL},
+        {"s", this->m_sequence},
+        {"p", this->m_speed},
+        {"t", this->m_speed_type},
+        {"r", (this->m_relative==0)?true:false}, // inverted here .. leave it as is
+        {"l", this->m_throttle},
+        
+    };
+
+    return message;
+}
+
+mavlink_mission_item_int_t CChange_Speed_Step::getArdupilotMission()
+{
+    mavlink_mission_item_int_t mavlink_mission = {0};
+
+    mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
+    mavlink_mission.seq = m_sequence;
+    mavlink_mission.command = MAV_CMD_DO_CHANGE_SPEED;
+    mavlink_mission.current = m_current?1:0;
+    mavlink_mission.autocontinue = m_auto_continue?1:0;
+    mavlink_mission.frame = m_frame;
+
+    mavlink_mission.param1 = this->m_speed_type;
+    mavlink_mission.param2 = this->m_speed;
+    mavlink_mission.param3 = this->m_throttle;
+    mavlink_mission.param4 = (this->m_relative==true)?1:0; 
+
+    
+    return mavlink_mission;
+}
+
+
 //***********************************CChange_Heading_Step
 
 void CChange_Heading_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)

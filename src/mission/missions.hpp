@@ -146,6 +146,150 @@ class CDelay_State_Machine_Step : public CMissionItem
 
 
 
+/**
+ * @brief hand control over to an external controller.
+ * * This message is a candidate from companion computer sync tasks
+ */
+class CGuided_Enabled_Step : public CMissionItem
+{
+    public:
+        CGuided_Enabled_Step ()
+        {
+            m_mission_command = TYPE_CMissionAction_Guided_Enabled;
+        };
+        
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
+
+
+    public:
+        Json getAndruavMission   () override;
+        mavlink_mission_item_int_t getArdupilotMission () override;
+
+    public:
+        /**
+         * @brief enable / disable guided mode
+         * 
+         */
+        bool m_enabled = false;
+
+};
+
+
+
+class CChange_Altitude_Step : public CMissionItem
+{
+    public:
+        CChange_Altitude_Step ()
+        {
+            m_mission_command = TYPE_CMissionAction_ChangeAlt;
+        };
+        
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
+
+
+    public:
+        Json getAndruavMission   () override;
+        mavlink_mission_item_int_t getArdupilotMission () override;
+
+    public:
+       
+       /**
+        * @brief Descent / Ascend rate. m/s
+        * 
+        */
+       double m_ascend_descent_rate=0 ;
+};
+
+
+
+
+class CContinue_And_Change_Altitude_Step : public CMissionItem
+{
+    public:
+        CContinue_And_Change_Altitude_Step ()
+        {
+            m_mission_command = TYPE_CMissionAction_CONTINUE_AND_CHANGE_ALT;
+        };
+        
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
+
+
+    public:
+        Json getAndruavMission   () override;
+        mavlink_mission_item_int_t getArdupilotMission () override;
+
+    public:
+       
+       /**
+        * @brief Climb or Descend
+        * 0 = Neutral, command completes when within 5m of this command's altitude, 
+        * 1 = Climbing, command completes when at or above this command's altitude,
+        * 2 = Descending, command completes when at or below this command's altitude.
+        * 
+        */
+       double m_ascend_descent_command = 0 ;
+
+        /**
+         * @brief Desired altitude
+         * 
+         */
+       double m_desired_altitude;
+};
+
+class CChange_Speed_Step : public CMissionItem
+{
+    public:
+        CChange_Speed_Step ()
+        {
+            m_mission_command = TYPE_CMissionAction_ChangeSpeed;
+        };
+        
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
+
+
+    public:
+        Json getAndruavMission   () override;
+        mavlink_mission_item_int_t getArdupilotMission () override;
+
+    public:
+       
+       /**
+        * @brief Speed type 
+        * 0=Airspeed 
+        * 1=Ground Speed 
+        * 2=Climb Speed
+        * 3=Descent Speed
+        * 
+        */
+       int m_speed_type = 1;  // ground speed
+
+       /**
+        * @brief Speed (-1 indicates no change)
+        * m/s
+        * 
+        */
+       double m_speed = -1;
+
+       /**
+        * @brief Throttle (-1 indicates no change) 
+        * in % (-1:100%)
+        * 
+        */
+       double m_throttle = -1;
+
+       /**
+        * @brief 0: absolute, 1: relative
+        * 
+        */
+       bool m_relative;
+
+};
+
+
 class CChange_Heading_Step : public CMissionItem
 {
     public:

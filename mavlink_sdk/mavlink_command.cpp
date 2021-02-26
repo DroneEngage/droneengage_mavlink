@@ -254,7 +254,7 @@ void CMavlinkCommand::setYawCondition( const double& target_angle, const double&
  * @param speed Speed (-1 indicates no change) m/s
  * @param is_ground_speed 
  * @param throttle Throttle (-1 indicates no change) %
- * @param is_relative 0: absolute, 1: relative
+ * @param is_relative false: absolute, true: relative
  */
 void CMavlinkCommand::setNavigationSpeed ( const int& speed_type, const double& speed, const double& throttle, const bool& is_relative)
 {
@@ -408,6 +408,13 @@ void CMavlinkCommand::requestMissionList ()
 }
 
 
+/**
+ * @brief Set mission count required by ardupilot to start receiving messages from companion computer.
+ * * This method is called internally by CMavlinkWayPointManager.
+ *
+ * @param mission_count 
+ * @param mission_type 
+ */
 void CMavlinkCommand::setMissionCount (const int& mission_count, MAV_MISSION_TYPE mission_type)
 {
 	#ifdef DEBUG
@@ -457,4 +464,21 @@ void CMavlinkCommand::writeMissionItem (mavlink_mission_item_int_t mavlink_missi
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
+}
+
+
+void CMavlinkCommand::requestParametersList ()
+{
+	//TODO to be implemented	
+}
+
+
+void CMavlinkCommand::writeParameter (const std::string& parameter, const double &value)
+{
+	//TODO to be implemented	
+}
+
+void CMavlinkCommand::readParameter (const std::string& parameter)
+{
+	//TODO to be implemented	
 }
