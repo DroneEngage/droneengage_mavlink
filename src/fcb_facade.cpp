@@ -215,7 +215,7 @@ void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)
     
     int voltage = 0.0f;
 
-    for (int i=0; i<=10 ; ++i)
+    for (int i=0; i<10 ; ++i)
     {
         if ( vehicle->getMsgBatteryStatus().voltages[i] != 65535)
             voltage += vehicle->getMsgBatteryStatus().voltages[i];

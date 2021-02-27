@@ -41,10 +41,14 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
             {
                 // A  : bool arm/disarm
                 // [D]: bool force 
+                if (!validateField(message, "A", Json::value_t::boolean)) return ;
+                
                 bool arm = message["A"].get<bool>();
                 bool force = false;
                 if (message.contains("D") == true)
                 {
+                    if (!validateField(message, "D", Json::value_t::boolean)) return ;
+                
                     force = message["D"].get<bool>();
                 }
                 mavlinksdk::CMavlinkCommand::getInstance().doArmDisarm(arm,force);
@@ -58,6 +62,8 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 // [a]: latitude
                 // [r]: radius 
 
+                if (!validateField(message, "F", Json::value_t::number_integer)) return ;
+                
                 int andruav_mode = message["F"].get<int>();
                 double langitude = 0.0f;
                 // TODO: Missing circle and guided go to here mode.
@@ -75,6 +81,8 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
             case TYPE_AndruavResala_ChangeAltitude:
             {
                 // a : altitude 
+                if (!validateField(message, "a", Json::value_t::number_float)) return ;
+                
                 double altitude = message["a"].get<double>();
                 
                 mavlinksdk::CVehicle *vehicle =  m_mavlinksdk.getVehicle().get();
@@ -112,11 +120,17 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 //  g : longitude
                 // [l]: altitude
                 // other fields are obscelete.
+                
+                if (!validateField(message, "a", Json::value_t::number_float)) return ;
+                if (!validateField(message, "g", Json::value_t::number_float)) return ;
+                
                 double latitude  = message["a"].get<double>();
                 double longitude = message["g"].get<double>();
                 double altitude  = m_mavlinksdk.getVehicle().get()->getMsgGlobalPositionInt().relative_alt;
                 if (message.contains("l") == true)
                 {
+                    if (!validateField(message, "l", Json::value_t::number_float)) return ;
+
                     double alt = message["l"].get<double>();
                     if (alt != 0.0)
                     {
@@ -135,6 +149,10 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 // T: latitude
                 // O: longitude
                 // A: altitude
+                if (!validateField(message, "T", Json::value_t::number_float)) return ;
+                if (!validateField(message, "O", Json::value_t::number_float)) return ;
+                if (!validateField(message, "A", Json::value_t::number_float)) return ;
+
                 double latitude  = message["T"].get<double>();
                 double longitude = message["O"].get<double>();
                 double altitude  = message["A"].get<double>();
@@ -149,6 +167,11 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 // R : turn_rate
                 // C : is_clock_wise
                 // L : is_relative
+                if (!validateField(message, "A", Json::value_t::number_float)) return ;
+                if (!validateField(message, "R", Json::value_t::number_float)) return ;
+                if (!validateField(message, "C", Json::value_t::boolean)) return ;
+                if (!validateField(message, "L", Json::value_t::boolean)) return ;
+
                 double target_angle  = message["A"].get<double>();
                 double turn_rate = message["R"].get<double>();
                 bool is_clock_wise  = message["C"].get<bool>();
@@ -164,6 +187,10 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 // b : is_ground_speed
                 // c : throttle
                 // d : is_relative
+                if (!validateField(message, "a", Json::value_t::number_float)) return ;
+                if (!validateField(message, "b", Json::value_t::boolean)) return ;
+                if (!validateField(message, "c", Json::value_t::number_float)) return ;
+                if (!validateField(message, "d", Json::value_t::boolean)) return ;
 
                 double speed = message["a"].get<double>();
                 bool is_ground_speed = message["b"].get<bool>();
@@ -184,7 +211,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 /*
                     a : std::string serialized mission file
                 */
-                if ((message.contains("a")!=true) || (message["a"].type() != Json::value_t::string))
+                if (!validateField(message, "a", Json::value_t::string)) 
                 {
                     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
 
@@ -220,6 +247,23 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
             }
             break;
 
+            case TYPE_AndruavResala_ServoChannel:
+            {
+                // n : servo_channel
+                // v : servo_value
+
+                if (!validateField(message, "n",Json::value_t::number_integer)) return ;
+                if (!validateField(message, "v",Json::value_t::number_integer)) return ;
+
+                int servo_channel = message["n"].get<int>();
+                int servo_value = message["v"].get<int>();
+                if (servo_value == 9999) servo_value = 2000;
+                if (servo_value == 0) servo_value = 1000;
+                mavlinksdk::CMavlinkCommand::getInstance().setServo (servo_channel, servo_value);
+            
+            }
+            break;
+
             case TYPE_AndruavResala_RemoteExecute:
             {
                 parseRemoteExecute(andruav_message);
@@ -239,6 +283,9 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
 void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_message)
 {
     const Json cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+    
+    if (!validateField(cmd, "C", Json::value_t::number_integer)) return ;
+                
     const int remoteCommand = cmd["C"].get<int>();
     std::cout << "cmd: " << remoteCommand << std::endl;
     switch (remoteCommand)
@@ -263,6 +310,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_mess
         break;
 
         case RemoteCommand_SET_START_MISSION_ITEM:
+            if (!validateField(cmd, "n", Json::value_t::number_integer)) return ;
             mavlinksdk::CMavlinkCommand::getInstance().setCurrentMission(cmd["n"].get<int>());
         break;
     } 

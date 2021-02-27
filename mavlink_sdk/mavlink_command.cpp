@@ -517,6 +517,13 @@ void CMavlinkCommand::requestExtParametersList ()
 }
 
 
+/**
+ * @brief 
+ *  Write parameter by name.
+ * !NOT TESTED
+ * @param param_name 
+ * @param value 
+ */
 void CMavlinkCommand::writeParameter (const std::string& param_name, const double &value)
 {
 	//TODO to be implemented	
@@ -549,7 +556,54 @@ void CMavlinkCommand::writeParameter (const std::string& param_name, const doubl
 	return ;
 }
 
+
+/**
+ * @brief 
+ * ! Not Tested
+ * @param param_name name is saved in parameters_list = mavlink_sdk.getVehicle().get()->getParametersList()
+ */
 void CMavlinkCommand::readParameter (const std::string& param_name)
 {
 	//TODO to be implemented	
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	const std::map<std::string, Parameter_Value>& parameters_list = mavlink_sdk.getVehicle().get()->getParametersList();
+	
+
+	mavlink_param_request_read_t mavlink_param;
+	
+	auto it = parameters_list.find(param_name);
+
+	if (it != parameters_list.end())
+	{
+		return ; // not found
+	} 
+	
+	mavlink_param.target_system = mavlink_sdk.getSysId();
+	mavlink_param.target_component = mavlink_sdk.getCompId();
+	memcpy (mavlink_param.param_id, it->first.c_str(), 16);
+	mavlink_param.param_index = -1;
+	
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_param_request_read_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mavlink_param);
+
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;	
+}
+
+
+/**
+ * @brief 
+ * Set servo value using channel.
+ * @param channel Servo instance number.
+ * @param pwm Pulse Width Modulation.  us
+ */
+void CMavlinkCommand::setServo (const int& channel, const int& pwm)
+{
+	sendLongCommand (MAV_CMD_DO_SET_SERVO, false,
+		(float) channel, 
+		(float) pwm);
+
+	return ;
 }

@@ -36,6 +36,17 @@ namespace fcb
         protected:
             void parseRemoteExecute (Json &andruav_message);
 
+            inline bool validateField (const Json& message, const char *field_name, Json::value_t field_type)
+            {
+                if (
+                    (!message.contains(field_name) == false) 
+                    || (message["n"].type() != field_type)
+                    ) 
+                    return false;
+
+                return true;
+            }
+
             uavos::fcb::CFCBMain&  m_fcbMain = uavos::fcb::CFCBMain::getInstance();
             mavlinksdk::CMavlinkSDK& m_mavlinksdk = mavlinksdk::CMavlinkSDK::getInstance();
             uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();

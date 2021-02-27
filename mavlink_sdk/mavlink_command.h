@@ -75,6 +75,7 @@ class CMavlinkCommand
         void requestExtParametersList ();
         void requestParametersList ();
 
+        void setServo (const int& channel, const int& pwm);
         
 
     protected:
