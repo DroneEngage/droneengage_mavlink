@@ -86,7 +86,7 @@ uavos_ardupilot.release: copy
 uavos_ardupilot.debug: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXX)   $(CXXFLAGS_DEBUG)  -c   $(SRCS)  $(INCLUDE)  ; 
+	$(CXX)   $(CXXFLAGS_DEBUG)  -c  $(SRCS)  $(INCLUDE);
 	cd .. ; 
 	@echo "compliling finished ..."
 

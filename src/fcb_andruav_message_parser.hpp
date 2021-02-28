@@ -40,7 +40,7 @@ namespace fcb
             {
                 if (
                     (!message.contains(field_name) == false) 
-                    || (message["n"].type() != field_type)
+                    || (message[field_name].type() != field_type)
                     ) 
                     return false;
 
