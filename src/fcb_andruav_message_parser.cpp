@@ -62,7 +62,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 // [a]: latitude
                 // [r]: radius 
 
-                if (!validateField(message, "F", Json::value_t::number_integer)) return ;
+                if (!validateField(message, "F", Json::value_t::number_unsigned)) return ;
                 
                 int andruav_mode = message["F"].get<int>();
                 double langitude = 0.0f;
@@ -252,8 +252,8 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 // n : servo_channel
                 // v : servo_value
 
-                if (!validateField(message, "n",Json::value_t::number_integer)) return ;
-                if (!validateField(message, "v",Json::value_t::number_integer)) return ;
+                if (!validateField(message, "n",Json::value_t::number_unsigned)) return ;
+                if (!validateField(message, "v",Json::value_t::number_unsigned)) return ;
 
                 int servo_channel = message["n"].get<int>();
                 int servo_value = message["v"].get<int>();
@@ -284,7 +284,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_mess
 {
     const Json cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
     
-    if (!validateField(cmd, "C", Json::value_t::number_integer)) return ;
+    if (!validateField(cmd, "C", Json::value_t::number_unsigned)) return ;
                 
     const int remoteCommand = cmd["C"].get<int>();
     std::cout << "cmd: " << remoteCommand << std::endl;
@@ -310,7 +310,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_mess
         break;
 
         case RemoteCommand_SET_START_MISSION_ITEM:
-            if (!validateField(cmd, "n", Json::value_t::number_integer)) return ;
+            if (!validateField(cmd, "n", Json::value_t::number_unsigned)) return ;
             mavlinksdk::CMavlinkCommand::getInstance().setCurrentMission(cmd["n"].get<int>());
         break;
     } 

@@ -42,7 +42,7 @@ void uavos::fcb::CFCBFacade::sendID(const std::string&target_party_id)
             {"AR", vehicle->isArmed()},
             {"FL", vehicle->isFlying()},
             {"TP", TelemetryProtocol_DroneKit_Telemetry},
-            {"SD", false},
+            //{"SD", false},
             {"z", andruav_vehicle_info.flying_last_start_time},
             {"a", andruav_vehicle_info.flying_total_duration},
             {"b", andruav_vehicle_info.is_tracking_mode},

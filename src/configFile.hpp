@@ -38,7 +38,7 @@ namespace uavos
 
         public:
             void InitConfigFile (const char* fileURL);
-            Json& GetConfigJSON();
+            const Json& GetConfigJSON();
 
         protected:
             void ReadFile (const char * fileURL);

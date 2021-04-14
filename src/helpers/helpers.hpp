@@ -8,52 +8,16 @@
 #include <vector>
 #include <sstream>
 
-inline uint64_t
-get_time_usec()
-{
-	static struct timeval _time_stamp;
-	gettimeofday(&_time_stamp, NULL);
-	return _time_stamp.tv_sec*1000000 + _time_stamp.tv_usec;
-}
+uint64_t get_time_usec();
 
-inline int wait_time_nsec (const time_t& seconds, const long& nano_seconds)
-{
-	struct timespec _time_wait, tim2;
-	_time_wait.tv_sec = seconds;
-	_time_wait.tv_nsec = nano_seconds;
-	
-	return nanosleep(&_time_wait, &tim2);
-}
+int wait_time_nsec (const time_t& seconds, const long& nano_seconds);
 
-std::string str_tolower(std::string s) {
-    std::transform(s.begin(), s.end(), s.begin(), 
-                // static_cast<int(*)(int)>(std::tolower)         // wrong
-                // [](int c){ return std::tolower(c); }           // wrong
-                // [](char c){ return std::tolower(c); }          // wrong
-                   [](unsigned char c){ return std::tolower(c); } // correct
-                  );
-    return s;
-}
+std::string str_tolower(std::string s);
 
+std::vector<std::string> split_string_by_delimeter(const std::string& str, const char& delimeter);
 
+std::vector<std::string> split_string_by_newline(const std::string& str);
 
-std::vector<std::string> split_string_by_delimeter(const std::string& str, const char& delimeter)
-{
-    auto result = std::vector<std::string>{};
-    auto ss = std::stringstream{str};
-
-    for (std::string line; std::getline(ss, line, delimeter);)
-        result.push_back(line);
-
-    return result;
-}
-
-
-
-std::vector<std::string> split_string_by_newline(const std::string& str)
-{
-    return split_string_by_delimeter (str, '\n');
-}
-
+std::string removeComments(std::string prgm);
 
 #endif

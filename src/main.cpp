@@ -1,5 +1,4 @@
 #include <iostream>
-#include <unistd.h> //sleep
 #include <signal.h>
 
 #include "./helpers/colors.hpp"
@@ -72,7 +71,7 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
 **/
 const Json createJSONID (bool reSend)
 {
-        Json& jsonConfig = cConfigFile.GetConfigJSON();
+        const Json& jsonConfig = cConfigFile.GetConfigJSON();
         Json jsonID;        
         
         jsonID[INTERMODULE_COMMAND_TYPE] =  CMD_TYPE_INTERMODULE;
@@ -87,7 +86,9 @@ const Json createJSONID (bool reSend)
         ms["z"] = reSend;
 
         jsonID[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
-        std::cout << jsonID.dump(4) << std::endl;              
+        #ifdef DEBUG
+            std::cout << jsonID.dump(4) << std::endl;              
+        #endif
         return jsonID;
 }
 
@@ -111,7 +112,7 @@ void onReceive (const char * jsonMessage, int len)
     
         if (messageType== TYPE_AndruavModule_ID)
         {
-        const Json moduleID = cmd ["e"];
+        const Json moduleID = cmd ["f"];
         PartyID = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
         GroupID = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
 
@@ -148,7 +149,7 @@ void init (int argc, char *argv[])
 
     
     cConfigFile.InitConfigFile (configName.c_str());
-    Json& jsonConfig = cConfigFile.GetConfigJSON();
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
     
 
     // UDP Server
@@ -203,8 +204,6 @@ void quit_handler( int sig )
 	catch (int error){}
 
     exit(0);
-	
-
 }
 
 

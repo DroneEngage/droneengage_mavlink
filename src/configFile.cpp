@@ -6,14 +6,14 @@
 #include <fstream>
 #include <memory> 
 #include "./helpers/colors.hpp"
-
+#include "./helpers/helpers.hpp"
 
 #include "configFile.hpp"
 
 using namespace uavos;
 
 
-Json& CConfigFile::GetConfigJSON()
+const Json& CConfigFile::GetConfigJSON()
 {
     return  m_ConfigJSON;
 }
@@ -48,13 +48,7 @@ void CConfigFile::ReadFile (const char * fileURL)
 
 void CConfigFile::ParseData (std::string jsonString)
 {
+
+    m_ConfigJSON = Json::parse(removeComments(jsonString));
     
-
-    m_ConfigJSON = Json::parse(jsonString);
-
-    // cout << "module_id: " << m_ConfigJSON["module_id"] << endl;
-
-    // cout << "module_features: " << m_ConfigJSON["module_features"][1] << endl;
-
-    // cout << "module_features len: " << m_ConfigJSON["module_features"].size() << endl;
 }

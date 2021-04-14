@@ -8,7 +8,16 @@ namespace uavos
 namespace fcb
 {
 
- class CFCBModes 
+    
+ 
+ /**
+  * @brief 
+  * This class handles tmapping between Andruav Modes and Ardupilot modes.
+  * Andruav modes are global not related to a vehicle.
+  * i.e. Guided mode is the same number for all vehicles. Although not all fields are allowable. 
+  * 
+  */
+  class CFCBModes 
     {
         private: 
             // Disallow creating an instance of this class.

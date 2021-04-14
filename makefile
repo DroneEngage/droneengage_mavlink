@@ -30,6 +30,7 @@ OBJS = $(BUILD)/mavlink_sdk.o \
 	   $(BUILD)/udpClient.o \
 	   $(BUILD)/missions.o \
 	   $(BUILD)/mission_translator.o \
+	   $(BUILD)/helpers.o \
 	   $(BUILD)/main.o \
 
 SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
@@ -49,6 +50,7 @@ SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
 	   ../$(SRC)/udpClient.cpp \
 	   ../$(SRC)/mission/missions.cpp \
 	   ../$(SRC)/mission/mission_translator.cpp \
+	   ../$(SRC)/helpers/helpers.cpp \
 	   ../$(SRC)/main.cpp \
 	   
 

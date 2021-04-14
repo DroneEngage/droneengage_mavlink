@@ -24,7 +24,7 @@ namespace fcb
 
         public:
 
-            public:
+            
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
             static CFCBFacade& getInstance()
             {
@@ -79,7 +79,7 @@ namespace fcb
                 m_sendJMSG = sendJMSG;
             };
 
-        protected:
+        private:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
             
             SENDJMSG_CALLBACK m_sendJMSG = NULL;

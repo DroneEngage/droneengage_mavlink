@@ -79,6 +79,14 @@ uavos::comm::CUDPClient::~CUDPClient ()
 
 }
 
+/**
+ * @brief 
+ * 
+ * @param targetIP communication server ip
+ * @param broadcatsPort communication server port
+ * @param host uavos-module listening ips default is 0.0.0.0
+ * @param listenningPort uavos-module listerning port.
+ */
 void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort)
 {
 
