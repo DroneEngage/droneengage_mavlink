@@ -80,8 +80,13 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
 
             case TYPE_AndruavResala_ChangeAltitude:
             {
+                #ifdef DEBUG
+                    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: TYPE_AndruavResala_ChangeAltitude " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                #endif
                 // a : altitude 
-                if (!validateField(message, "a", Json::value_t::number_float)) return ;
+                if ((!validateField(message, "a", Json::value_t::number_float)) 
+                && (!validateField(message, "a", Json::value_t::number_unsigned)))
+                    return ;
                 
                 double altitude = message["a"].get<double>();
                 
@@ -129,8 +134,10 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 double altitude  = m_mavlinksdk.getVehicle().get()->getMsgGlobalPositionInt().relative_alt;
                 if (message.contains("l") == true)
                 {
-                    if (!validateField(message, "l", Json::value_t::number_float)) return ;
-
+                    if ((!validateField(message, "l", Json::value_t::number_float)) 
+                    && (!validateField(message, "l", Json::value_t::number_unsigned)))
+                        return ;
+                
                     double alt = message["l"].get<double>();
                     if (alt != 0.0)
                     {
@@ -167,8 +174,12 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 // R : turn_rate
                 // C : is_clock_wise
                 // L : is_relative
-                if (!validateField(message, "A", Json::value_t::number_float)) return ;
-                if (!validateField(message, "R", Json::value_t::number_float)) return ;
+                if ((!validateField(message, "A", Json::value_t::number_float)) 
+                && (!validateField(message, "A", Json::value_t::number_unsigned)))
+                    return ;
+                if ((!validateField(message, "R", Json::value_t::number_float)) 
+                && (!validateField(message, "R", Json::value_t::number_unsigned)))
+                    return ;
                 if (!validateField(message, "C", Json::value_t::boolean)) return ;
                 if (!validateField(message, "L", Json::value_t::boolean)) return ;
 
@@ -187,9 +198,13 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 // b : is_ground_speed
                 // c : throttle
                 // d : is_relative
-                if (!validateField(message, "a", Json::value_t::number_float)) return ;
+                if ((!validateField(message, "a", Json::value_t::number_float)) 
+                && (!validateField(message, "a", Json::value_t::number_unsigned)))
+                    return ;
                 if (!validateField(message, "b", Json::value_t::boolean)) return ;
-                if (!validateField(message, "c", Json::value_t::number_float)) return ;
+                if ((!validateField(message, "c", Json::value_t::number_float)) 
+                && (!validateField(message, "c", Json::value_t::number_unsigned)))
+                    return ;
                 if (!validateField(message, "d", Json::value_t::boolean)) return ;
 
                 double speed = message["a"].get<double>();
