@@ -196,13 +196,13 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
     
     struct sockaddr_in  cliaddr;
     int n;
-    __socklen_t len;
+     __socklen_t sender_address_size = sizeof (cliaddr);
     
     while (!m_stopped_called)
     {
         // TODO: you should send header ot message length and handle if total message size is larger than MAXLINE.
         n = recvfrom(m_SocketFD, (char *)buffer, MAXLINE,  
-                MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
+                MSG_WAITALL, ( struct sockaddr *) &cliaddr, &sender_address_size);
         
         if (n > 0) 
         {
