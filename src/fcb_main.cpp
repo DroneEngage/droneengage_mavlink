@@ -9,7 +9,6 @@
 #include "messages.hpp"
 #include "fcb_modes.hpp"
 #include "fcb_main.hpp"
-#include "fcb_traffic_optimizer.hpp"
 
 
 void SchedulerThread(void * This) {
@@ -78,6 +77,7 @@ void uavos::fcb::CFCBMain::init (const Json &jsonConfig)
 {
     m_jsonConfig = jsonConfig;
 
+    
     if (connectToFCB() == true)
     {
         m_mavlink_sdk.start(this);
@@ -208,10 +208,10 @@ void uavos::fcb::CFCBMain::saveWayPointsToFCB()
     
 }
 
-void uavos::fcb::CFCBMain::OnMessageReceived (mavlink_message_t& mavlink_message)
+void uavos::fcb::CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_message)
 {
     //std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnMessageReceived" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    uavos::fcb::CMavlinkTrafficOptimizer::ShouldForwardThisMessage (mavlink_message);
+    //m_traffic_optimizer.shouldForwardThisMessage (mavlink_message);
 
     if (mavlink_message.msgid == MAVLINK_MSG_ID_HEARTBEAT)
     {

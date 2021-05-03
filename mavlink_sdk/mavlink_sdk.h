@@ -95,7 +95,7 @@ namespace mavlinksdk
 
         // CCallback_Communicator inheritance
         protected:
-            void OnMessageReceived (mavlink_message_t& mavlink_message) override;
+            void OnMessageReceived (const mavlink_message_t& mavlink_message) override;
             void OnConnected (const bool& connected) override;
 
         // CCalback_WayPointManager inheritance
