@@ -27,28 +27,30 @@
 #define INTERMODULE_MODULE_KEY          "GU"
 
 
-#define TYPE_AndruavModule_ID                   9100
+#define TYPE_AndruavModule_ID                       9100
 
-#define TYPE_AndruavResala_GPS                  1002
-#define TYPE_AndruavResala_POWER                1003
-#define TYPE_AndruavResala_ID 	                1004
-#define TYPE_AndruavResala_RemoteExecute 		1005     
-#define TYPE_AndruavResala_Error                1008    
-#define TYPE_AndruavResala_FlightControl        1010
-#define TYPE_AndruavMessage_DroneReport         1020
-#define Type_AndruavResala_HomeLocation         1022
-#define TYPE_AndruavResala_WayPoints            1027
-#define TYPE_AndruavResala_Arm                  1030
-#define TYPE_AndruavResala_ChangeAltitude       1031
-#define TYPE_AndruavResala_Land                 1032
-#define TYPE_AndruavResala_GuidedPoint          1033
-#define TYPE_AndruavResala_DoYAW                1035
-#define TYPE_AndruavResala_NAV_INFO             1036
-#define TYPE_AndruavResala_ChangeSpeed          1040
-#define TYPE_AndruavResala_UploadWayPoints      1046
-#define TYPE_AndruavResala_SET_HOME_LOCATION    1048
+#define TYPE_AndruavResala_GPS                      1002
+#define TYPE_AndruavResala_POWER                    1003
+#define TYPE_AndruavResala_ID 	                    1004
+#define TYPE_AndruavResala_RemoteExecute 		    1005     
+#define TYPE_AndruavResala_Error                    1008    
+#define TYPE_AndruavResala_FlightControl            1010
+#define TYPE_AndruavMessage_DroneReport             1020
+#define Type_AndruavResala_HomeLocation             1022
+#define TYPE_AndruavResala_WayPoints                1027
+#define TYPE_AndruavResala_Arm                      1030
+#define TYPE_AndruavResala_ChangeAltitude           1031
+#define TYPE_AndruavResala_Land                     1032
+#define TYPE_AndruavResala_GuidedPoint              1033
+#define TYPE_AndruavResala_DoYAW                    1035
+#define TYPE_AndruavResala_NAV_INFO                 1036
+#define TYPE_AndruavResala_ChangeSpeed              1040
+#define TYPE_AndruavResala_UploadWayPoints          1046
+#define TYPE_AndruavResala_RemoteControlSettings	1047
+#define TYPE_AndruavResala_SET_HOME_LOCATION        1048
+#define TYPE_AndruavResala_RemoteControl2		    1052
 
-#define TYPE_AndruavResala_ServoChannel         6001
+#define TYPE_AndruavResala_ServoChannel             6001
 
 // Andruav Mission Types
 

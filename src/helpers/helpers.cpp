@@ -7,8 +7,7 @@
 
 #include "helpers.hpp"
 
-uint64_t
-get_time_usec()
+uint64_t get_time_usec()
 {
 	static struct timeval _time_stamp;
 	gettimeofday(&_time_stamp, NULL);

@@ -13,7 +13,7 @@ using Json = nlohmann::json;
 #include "defines.hpp"
 #include "./mission/missions.hpp"
 #include "fcb_facade.hpp"
-
+#include "fcb_traffic_optimizer.hpp"
 namespace uavos
 {
 namespace fcb
@@ -120,7 +120,8 @@ namespace fcb
         protected:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
             uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
-        
+            uavos::fcb::CMavlinkTrafficOptimizer& m_mavlink_optimizer = uavos::fcb::CMavlinkTrafficOptimizer::getInstance();
+
         protected:
             int getConnectionType ();
             bool connectToFCB ();

@@ -12,7 +12,7 @@
     "fcbConnectionURI": 
     {"type": "udp",
       "ip": "127.0.0.1",
-      "port":16455
+      "port":14550
     },
 
     "fcbConnectionURI2":
@@ -30,7 +30,8 @@
     "groupID": "1",
   
   
-
+    "Default_Optimization_Level" : 2,
+    
     "Message_Timeouts":
     { 
       "1": [0,250,500,1000],

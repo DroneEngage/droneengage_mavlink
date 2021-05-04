@@ -279,6 +279,21 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
             }
             break;
 
+            case TYPE_AndruavResala_RemoteControlSettings:
+            {
+                // b: remote control setting
+            }
+
+            case TYPE_AndruavResala_RemoteControl2:
+            {
+                // value: [0,1000] IMPORTANT: -1 means channel release so min is 0
+                // 'R': Rudder
+                // 'T': Throttle
+                // 'A': Aileron
+                // 'E': Elevator
+			
+            }
+
             case TYPE_AndruavResala_RemoteExecute:
             {
                 parseRemoteExecute(andruav_message);

@@ -77,7 +77,9 @@ void uavos::fcb::CFCBMain::init (const Json &jsonConfig)
 {
     m_jsonConfig = jsonConfig;
 
-    
+    m_mavlink_optimizer.init (m_jsonConfig["Message_Timeouts"]);
+    m_mavlink_optimizer.setOptimizationLevel(m_jsonConfig["Default_Optimization_Level"].get<int>());
+
     if (connectToFCB() == true)
     {
         m_mavlink_sdk.start(this);
@@ -118,6 +120,11 @@ void uavos::fcb::CFCBMain::loopScheduler ()
             
         }
 
+        if (m_counter%30 ==0)
+        {   // each 300 msec
+            
+        }
+
         if (m_counter%50 == 0)
         {
             m_fcb_facade.sendGPSInfo(std::string());
@@ -126,7 +133,11 @@ void uavos::fcb::CFCBMain::loopScheduler ()
         }
 
         if (m_counter %100 ==0)
-        {// each second
+        {
+            // each second
+         
+            // .................
+
             if (this->m_counter_sec % 2 ==0)
             {// 2 sec
 
@@ -147,6 +158,7 @@ void uavos::fcb::CFCBMain::loopScheduler ()
             {// 15 sec
             
             }
+
             m_counter_sec++;
         }
     }
@@ -212,7 +224,8 @@ void uavos::fcb::CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_m
 {
     //std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnMessageReceived" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     //m_traffic_optimizer.shouldForwardThisMessage (mavlink_message);
-
+    const bool resend = m_mavlink_optimizer.shouldForwardThisMessage (mavlink_message);
+    
     if (mavlink_message.msgid == MAVLINK_MSG_ID_HEARTBEAT)
     {
         OnHeartBeat();

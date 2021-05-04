@@ -72,6 +72,10 @@ typedef struct ANDRUAV_VEHICLE_INFO
     int16_t     vehicle_type                        = 0;
 
     int16_t     current_waypoint                    = 0;         
+
+    bool        is_rcChannelBlock                   = false; //TODO not implemented
+    int16_t     rc_channels[16]                     = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
 }   ANDRUAV_VEHICLE_INFO;
 
 
