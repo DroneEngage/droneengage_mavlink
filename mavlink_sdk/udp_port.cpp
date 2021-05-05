@@ -200,6 +200,11 @@ write_message(const mavlink_message_t &message)
 
 	// Translate message to buffer
 	unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, &message);
+	if (len >= 300) 
+	{
+		std::cout << "ERROR LEN = " << std::to_string(len) << std::endl;
+		exit (0);
+	}
 
 	// Write buffer to UDP port, locks port while writing
 	int bytesWritten = _write_port(buf,len);
@@ -315,14 +320,15 @@ _read_port(uint8_t &cp)
 		struct sockaddr_in addr;
 		len = sizeof(struct sockaddr_in);
 		result = recvfrom(sock, &buff, BUFF_LEN, 0, (struct sockaddr *)&addr, &len);
-		if(tx_port < 0){
+		//if(tx_port < 0){
+			//always read port as ardupilot app may restart and get another port.
 			if(strcmp(inet_ntoa(addr.sin_addr), target_ip) == 0){
 				tx_port = ntohs(addr.sin_port);
-				printf("Got first packet, sending to %s:%i\n", target_ip, rx_port);
+				//printf("Got first packet, sending to %s:%i\n", target_ip, rx_port);
 			}else{
 				printf("ERROR: Got packet from %s:%i but listening on %s\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port), target_ip);
 			}
-		}
+		//}
 		if(result > 0){
 			buff_len=result;
 			buff_ptr=0;
