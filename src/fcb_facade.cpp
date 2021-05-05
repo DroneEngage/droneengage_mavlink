@@ -46,7 +46,7 @@ void uavos::fcb::CFCBFacade::sendID(const std::string&target_party_id)
             {"z", andruav_vehicle_info.flying_last_start_time},
             {"a", andruav_vehicle_info.flying_total_duration},
             {"b", andruav_vehicle_info.is_tracking_mode},
-            {"C", andruav_vehicle_info.manual_TX_blocked_mode},
+            {"C", andruav_vehicle_info.rc_sub_action},
             {"B", andruav_vehicle_info.is_gcs_blocked}
         };
         
@@ -405,3 +405,7 @@ void uavos::fcb::CFCBFacade::sendWayPointReached (const std::string&target_party
  
     return ;
 }
+
+
+
+

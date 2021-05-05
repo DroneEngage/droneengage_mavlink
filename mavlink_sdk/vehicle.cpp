@@ -180,6 +180,11 @@ void mavlinksdk::CVehicle::handle_param_value (const mavlink_param_value_t& para
 }
 
 
+void mavlinksdk::CVehicle::handle_rc_channels_raw  (const mavlink_rc_channels_t& rc_channels)
+{
+	m_rc_channels = rc_channels;
+}
+
 void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_message)
 {
 
@@ -309,6 +314,7 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		{
 			// never called
 		}
+		break;
 		
 
 		case MAVLINK_MSG_ID_PARAM_VALUE:
@@ -321,6 +327,7 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			
 			handle_param_value (param_message);
 		}
+		break;
 		
 		
 		case MAVLINK_MSG_ID_PARAM_EXT_VALUE:
@@ -333,13 +340,24 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			
 			// handle_param_ext_value (param_message);
 		}
+		break;
 		
 		case MAVLINK_MSG_ID_PARAM_EXT_ACK:
 		{
 			// mavlink2
 			// TODO: to be implemented
 		}
+		break;
 		
+		case MAVLINK_MSG_ID_RC_CHANNELS:
+		{
+			mavlink_rc_channels_t rc_message;
+			mavlink_msg_rc_channels_decode(&mavlink_message, &rc_message);
+			
+			handle_rc_channels_raw (rc_message);
+		}
+		break;
+
 		default:
 		{
 			// printf("Warning, did not handle message id %i\n",message.msgid);

@@ -607,3 +607,71 @@ void CMavlinkCommand::setServo (const int& channel, const int& pwm)
 
 	return ;
 }
+
+/**
+ * @brief Send RCChannels from 1 to channel_length others will set to zero.
+ * *S to zero will release these channels.
+ * from channel 1 to 8:
+ * 			value UINT16_MAX means ignore & value 0 means release.
+ * from channel 9 to 18:
+ * 		    value 0 or UINT16_MAX meanse ignore & value (UINT16_MAX-1) means release.
+ * @param channels array of MAX_RC_CHANNELS contains PWM values.
+ * @param channel_length a number <= MAX_RC_CHANNELS (16) Minimum value is 1
+ */
+void CMavlinkCommand::sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], int channel_length)
+{
+	if ((channel_length >MAX_RC_CHANNELS) || (channel_length >MAX_RC_CHANNELS))
+	{
+		channel_length = MAX_RC_CHANNELS;
+	}
+
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mavlink_rc_channels_override_t mavlink_rc_channels = {0};
+	mavlink_rc_channels.target_system    = mavlink_sdk.getSysId();
+	mavlink_rc_channels.target_component = mavlink_sdk.getCompId();
+	
+	mavlink_rc_channels.chan1_raw = channel_length>=1?channels[0]:0;
+    mavlink_rc_channels.chan2_raw = channel_length>=2?channels[1]:0;
+    mavlink_rc_channels.chan3_raw = channel_length>=3?channels[2]:0;
+	mavlink_rc_channels.chan4_raw = channel_length>=4?channels[3]:0;
+    mavlink_rc_channels.chan5_raw = channel_length>=5?channels[4]:0;
+    mavlink_rc_channels.chan6_raw = channel_length>=6?channels[5]:0;
+    mavlink_rc_channels.chan7_raw = channel_length>=7?channels[6]:0;
+    mavlink_rc_channels.chan8_raw = channel_length>=8?channels[7]:0;
+    mavlink_rc_channels.chan9_raw = channel_length>=9?channels[8]:0;
+    mavlink_rc_channels.chan10_raw = channel_length>=10?channels[9]:0;
+    mavlink_rc_channels.chan11_raw = channel_length>=11?channels[10]:0;
+    mavlink_rc_channels.chan12_raw = channel_length>=12?channels[11]:0;
+    mavlink_rc_channels.chan13_raw = channel_length>=13?channels[12]:0;
+    mavlink_rc_channels.chan14_raw = channel_length>=14?channels[13]:0;
+    mavlink_rc_channels.chan15_raw = channel_length>=15?channels[14]:0;
+    mavlink_rc_channels.chan16_raw = channel_length>=16?channels[15]:0;
+	mavlink_rc_channels.chan15_raw = channel_length>=16?channels[16]:0;
+    mavlink_rc_channels.chan16_raw = channel_length>=17?channels[17]:0;
+	
+    mavlink_message_t mavlink_message;
+	mavlink_msg_rc_channels_override_encode (255, mavlink_sdk.getCompId(), &mavlink_message, &mavlink_rc_channels);
+
+	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	// #ifdef DEBUG
+    //     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT 
+	// 			<< std::to_string(mavlink_rc_channels.chan1_raw) << " - "
+	// 			<< std::to_string(mavlink_rc_channels.chan2_raw) << " - "
+	// 			<< std::to_string(mavlink_rc_channels.chan3_raw) << " - "
+	// 			<< std::to_string(mavlink_rc_channels.chan4_raw) << " - "
+	// 			<< std::to_string(mavlink_rc_channels.chan5_raw) << " - "
+	// 			<< std::to_string(mavlink_rc_channels.chan6_raw) << " - "
+	// 			<< std::to_string(mavlink_rc_channels.chan7_raw) << " - "
+	// 			<< std::to_string(mavlink_rc_channels.chan8_raw) << " - "
+	// 			<< std::to_string(mavlink_rc_channels.chan9_raw) << " - "
+	// 			<< std::to_string(mavlink_rc_channels.chan10_raw) << " - "
+	// 			<< std::to_string(mavlink_rc_channels.chan11_raw) << " - "
+	// 			<< std::to_string(mavlink_rc_channels.chan12_raw) 
+	// 			<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+    // #endif
+
+	return ;
+}
+        

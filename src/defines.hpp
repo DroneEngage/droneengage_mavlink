@@ -15,6 +15,8 @@
 #define RADIANS_TO_DEGREES 180.0f / PI
 
 
+#define RCCHANNEL_OVERRIDES_TIMEOUT 3000000
+
 typedef enum ANDRUAV_UNIT_TYPE
 {
         VEHICLE_TYPE_UNKNOWN    = 0,
@@ -57,24 +59,45 @@ typedef enum ANDRUAV_UNIT_MODE
     
 } ANDRUAV_UNIT_MODE ;
 
+
+typedef enum RC_SUB_ACTION 
+{
+    // there is no RCChannel info sent to Drone.
+    RC_SUB_ACTION_RELEASED                      =   0,
+    // 1500 channels values are sent. TX is no longer effective.
+    RC_SUB_ACTION_CENTER_CHANNELS               =   1,
+    // last TX readings are freezed and sent as fixed values. TX is no longer effective.
+    RC_SUB_ACTION_FREEZE_CHANNELS               =   2,
+    // RCChannels is being sent to Drone. TX  is no longer effective for some channels.
+    RC_SUB_ACTION_JOYSTICK_CHANNELS             =   4,
+    // Velocity is sent for Thr, Pitch, Roll , YAWRate ... applicable in Arducopter and Rover
+    // Drone may switch {@link _7adath_FCB_RemoteControlSettings#RC_SUB_ACTION_JOYSTICK_CHANNELS} to this automatically if drone mode is guided.
+    RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED      =   8
+} RC_SUB_ACTION;
+
 typedef struct ANDRUAV_VEHICLE_INFO 
 {
-    bool        use_fcb                             = false;
-    bool        is_armed                            = false;
-    bool        is_flying                           = false;
-    bool        is_tracking_mode                    = false;
-    int16_t     manual_TX_blocked_mode              ;
-    bool        is_gcs_blocked                      = false;
-    int16_t     flying_mode;
-    int16_t     gps_mode                            ;
-    u_int64_t   flying_total_duration               = 0;
-    u_int64_t   flying_last_start_time              = 0;
-    int16_t     vehicle_type                        = 0;
+    bool                use_fcb                             = false;
+    bool                is_armed                            = false;
+    bool                is_flying                           = false;
+    bool                is_tracking_mode                    = false;
+    bool                is_gcs_blocked                      = false;
+    int16_t             flying_mode;
+    int16_t             gps_mode                            ;
+    u_int64_t           flying_total_duration               = 0;
+    u_int64_t           flying_last_start_time              = 0;
+    int16_t             vehicle_type                        = 0;
 
-    int16_t     current_waypoint                    = 0;         
+    int16_t             current_waypoint                    = 0;         
 
-    bool        is_rcChannelBlock                   = false; //TODO not implemented
-    int16_t     rc_channels[16]                     = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    bool                is_rcChannelBlock                   = false; //TODO not implemented
+    RC_SUB_ACTION       rc_sub_action                       = RC_SUB_ACTION::RC_SUB_ACTION_RELEASED;
+    bool                rc_command_active                   = false;      
+    u_int64_t           rc_command_last_update_time         = 0l;    
+    int16_t             rc_channels[18]                     = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    int16_t             rc_channels_min[18]                 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    int16_t             rc_channels_max[18]                 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    bool                rc_channels_reverse[18];
 
 }   ANDRUAV_VEHICLE_INFO;
 

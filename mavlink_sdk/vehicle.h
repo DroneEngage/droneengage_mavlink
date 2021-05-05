@@ -74,6 +74,7 @@ namespace mavlinksdk
             inline void handle_home_position    (const mavlink_home_position_t& home_position);
             inline void handle_param_ext_value  (const mavlink_param_ext_value_t& param_message);
             inline void handle_param_value      (const mavlink_param_value_t& param_message);
+            inline void handle_rc_channels_raw  (const mavlink_rc_channels_t& rc_channels);
 
         // Vechile Methods
         public:
@@ -152,6 +153,11 @@ namespace mavlinksdk
                 return m_nav_controller;
             }
 
+            inline const mavlink_rc_channels_t& getRCChannels ()
+            {
+                return m_rc_channels;
+            }
+
             inline const std::string& getLastStatusText ()
             {
                 return m_status_text;
@@ -216,6 +222,9 @@ namespace mavlinksdk
 
             // Desired (pitch, roll, yaw, wp_dist, alt_error)
             mavlink_nav_controller_output_t m_nav_controller;
+
+            // RCChannels
+            mavlink_rc_channels_t   m_rc_channels;
 
             // Status Text
             std::string m_status_text;

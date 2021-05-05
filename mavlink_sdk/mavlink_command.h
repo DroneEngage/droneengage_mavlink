@@ -4,6 +4,7 @@
 #include <map>
 #include <common/mavlink.h>
 
+#define MAX_RC_CHANNELS     18
 
 namespace mavlinksdk
 {
@@ -66,6 +67,8 @@ class CMavlinkCommand
         void sendMissionAck ();
         void writeParameter (const std::string& param_name, const double &value);
         void readParameter (const std::string& param_name);
+        
+        void sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], int channel_length);
         
         /**
          * @brief 

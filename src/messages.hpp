@@ -70,12 +70,12 @@
 #define TYPE_CMissionAction_Delay_STATE_MACHINE           112 // same as mavlink
 #define TYPE_CMissionAction_DummyMission                99999
 
-// Remote Control Sub Actions
-#define RC_SUB_ACTION_RELEASED                      0
-#define RC_SUB_ACTION_CENTER_CHANNELS               1
-#define RC_SUB_ACTION_FREEZE_CHANNELS               2
-#define RC_SUB_ACTION_JOYSTICK_CHANNELS             4
-#define RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED      8
+// // Remote Control Sub Actions
+// #define RC_SUB_ACTION_RELEASED                      0
+// #define RC_SUB_ACTION_CENTER_CHANNELS               1
+// #define RC_SUB_ACTION_FREEZE_CHANNELS               2
+// #define RC_SUB_ACTION_JOYSTICK_CHANNELS             4
+// #define RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED      8
 
 // Remote Execute Commands
 #define RemoteCommand_GET_WAY_POINTS             500 // get from andruav not FCB but you can still read from fcb and refresh all   
@@ -99,6 +99,7 @@
 #define ERROR_3DR                               7
 #define ERROR_GPS                               10
 #define ERROR_POWER                             11
+#define ERROR_RCCONTROL                         12
 #define ERROR_GEO_FENCE_ERROR                   100
 
 // 0	MAV_SEVERITY_EMERGENCY	System is unusable. This is a "panic" condition.

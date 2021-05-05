@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 
 #include <vehicle.h>
 
@@ -76,7 +77,8 @@ bool uavos::fcb::CFCBMain::connectToFCB ()
 void uavos::fcb::CFCBMain::init (const Json &jsonConfig)
 {
     m_jsonConfig = jsonConfig;
-
+    
+    initVehicleChannelLimits();
     m_mavlink_optimizer.init (m_jsonConfig["Message_Timeouts"]);
     m_mavlink_optimizer.setOptimizationLevel(m_jsonConfig["Default_Optimization_Level"].get<int>());
 
@@ -86,7 +88,7 @@ void uavos::fcb::CFCBMain::init (const Json &jsonConfig)
     }
 
     m_andruav_missions.clear();
-    m_andruav_vehicle_info.manual_TX_blocked_mode = RC_SUB_ACTION_RELEASED;
+    m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_RELEASED;
     m_scheduler_thread = std::thread(SchedulerThread, (void *) this);
 
     return ;
@@ -106,6 +108,106 @@ void uavos::fcb::CFCBMain::uninit ()
     return ;
 }
 
+void uavos::fcb::CFCBMain::initVehicleChannelLimits()
+{
+    if (!m_jsonConfig.contains("RC_channelReverse")
+        || !m_jsonConfig.contains("RC_channelLimitsMax")
+        || !m_jsonConfig.contains("RC_channelLimitsMin"))
+    {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "RC Channels RC_channelReverse, RC_channelLimitsMax or RC_channelLimitsMin not found" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        exit(0);
+    }
+    
+    int index =0;
+    Json values = m_jsonConfig["RC_channelReverse"];
+    for (auto it = values.begin(); it != values.end(); ++it){
+            std::cout << *it << std::endl;
+            m_andruav_vehicle_info.rc_channels_reverse[index] = *it==1?true:false;
+            index++;
+    }
+
+    index =0;
+    values = m_jsonConfig["RC_channelLimitsMax"];
+    for (auto it = values.begin(); it != values.end(); ++it){
+            std::cout << *it << std::endl;
+            m_andruav_vehicle_info.rc_channels_max[index] = *it;
+            index++;
+    }
+
+    index =0;
+    values = m_jsonConfig["RC_channelLimitsMin"];
+    for (auto it = values.begin(); it != values.end(); ++it){
+            std::cout << *it << std::endl;
+            m_andruav_vehicle_info.rc_channels_min[index] = *it;
+            index++;
+    }
+}
+
+
+/**
+ * @brief Send periodic RCControl values to FCB board to avoid timeout.
+ * 
+ * 
+ */
+void uavos::fcb::CFCBMain::remoteControlSignal ()
+{
+    if (!m_andruav_vehicle_info.rc_command_active) return ;
+    const u_int64_t now = get_time_usec();
+
+    switch (m_andruav_vehicle_info.rc_sub_action)
+    {
+        case RC_SUB_ACTION::RC_SUB_ACTION_RELEASED:
+        {
+            // should ignore these values.
+        }
+        break;
+
+        case RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS:
+        {
+            // should ignore these values.
+            mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,16);
+
+        }
+        break;
+        
+        case RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS:
+        {
+            // should ignore these values.
+            mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,16);
+
+        }
+        break;
+        
+        case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS:
+        {
+            if (now - m_andruav_vehicle_info.rc_command_last_update_time > RCCHANNEL_OVERRIDES_TIMEOUT)
+            {
+                m_andruav_vehicle_info.rc_command_active = false;
+                
+                const int ardupilot_mode = uavos::fcb::CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type);
+                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
+            }
+            mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,16);
+
+        }
+        break;
+
+        case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED:
+        {
+            if (now - m_andruav_vehicle_info.rc_command_last_update_time > RCCHANNEL_OVERRIDES_TIMEOUT)
+            {
+                releaseRemoteControl();
+                const int ardupilot_mode = uavos::fcb::CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type);
+                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
+                return ;
+            }
+
+            //mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,16);
+        }
+        break;
+    }
+}
+
 void uavos::fcb::CFCBMain::loopScheduler ()
 {
     while (!m_exit_thread)
@@ -117,7 +219,7 @@ void uavos::fcb::CFCBMain::loopScheduler ()
 
         if (m_counter%10 ==0)
         {   // each 100 msec
-            
+            remoteControlSignal();
         }
 
         if (m_counter%30 ==0)
@@ -141,6 +243,8 @@ void uavos::fcb::CFCBMain::loopScheduler ()
             if (this->m_counter_sec % 2 ==0)
             {// 2 sec
 
+                // update ranges dynamically.
+                initVehicleChannelLimits();
             }
 
             if (m_counter_sec % 5 ==0)
@@ -279,8 +383,6 @@ void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbe
 
 void uavos::fcb::CFCBMain::OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)
 {
-    std::unique_ptr<mavlinksdk::CVehicle>& vehicle = m_mavlink_sdk.getVehicle();
-
     m_andruav_vehicle_info.vehicle_type = uavos::fcb::CFCBModes::getAndruavVehicleType (heartbeat.type, heartbeat.autopilot);
 
     m_fcb_facade.sendID(std::string());
@@ -499,4 +601,198 @@ void uavos::fcb::CFCBMain::alertUavosOffline()
 
 
     return ;
+}
+
+
+
+/**
+ * @brief This function get PWM signal from Andruav [-500,500] value and afetr applying reverse, deadband & limites.
+ * 
+ * @param scaled_channels 
+ * @param ignode_dead_band 
+ * @return int16_t 
+ */
+void uavos::fcb::CFCBMain::calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output)
+{
+    
+    for (int i=0; i<16;++i)
+    {
+        int scaled_channel = scaled_channels[i];
+
+        if (scaled_channel == -999) 
+        {
+            output[i] = 0;
+            continue;
+        }
+
+        scaled_channel = scaled_channel - 500; // range from [-500,500]
+        if ((!ignode_dead_band) && (abs(scaled_channel) < 20)) 
+        {
+            scaled_channel = 0;
+        }
+
+        // Apply Reverse
+        if (m_andruav_vehicle_info.rc_channels_reverse[i])
+        {
+            scaled_channel = -scaled_channel;
+        }
+
+        // Limit Min Max
+        const int min_value = 1500 - m_andruav_vehicle_info.rc_channels_min[i];
+        const int max_value = m_andruav_vehicle_info.rc_channels_max[i] - 1500;
+
+        if (scaled_channel <=0)
+        {
+            output[i] = int (min_value / 500.0f * scaled_channel);
+        }
+        else
+        {
+            output[i] = int (max_value / 500.0f * scaled_channel);
+        }
+
+        output[i]+=1500;
+    }
+}
+
+
+void uavos::fcb::CFCBMain::releaseRemoteControl()
+{
+    memset(m_andruav_vehicle_info.rc_channels, 0, 16 * sizeof(int16_t));
+    m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_RELEASED;
+    m_andruav_vehicle_info.rc_command_active = false;
+
+    mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,16);
+
+    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Released."));
+
+}
+
+
+
+/**
+ * @brief Set first 4 FOUR channels to 1500 and release others.
+ * 
+ */
+void uavos::fcb::CFCBMain::centerRemoteControl()
+{
+    memset(m_andruav_vehicle_info.rc_channels, 0, 16 * sizeof(int16_t));
+    memset(m_andruav_vehicle_info.rc_channels, 1500, 4 * sizeof(int16_t));
+    
+    m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS;
+    m_andruav_vehicle_info.rc_command_active = true;
+    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Centered and Locked"));
+}
+
+
+/**
+ * @brief Read the current 8 EIGHT channels of RC and save them.
+ * Other channels are released.
+ * 
+ */
+void uavos::fcb::CFCBMain::freezeRemoteControl()
+{
+    
+    memset(m_andruav_vehicle_info.rc_channels, 0, 16 * sizeof(int16_t));
+    
+    const mavlink_rc_channels_t& mavlink_rc_channels = m_mavlink_sdk.getVehicle().get()->getRCChannels();
+
+    m_andruav_vehicle_info.rc_channels[0] = mavlink_rc_channels.chan1_raw;    
+    m_andruav_vehicle_info.rc_channels[1] = mavlink_rc_channels.chan2_raw;
+    m_andruav_vehicle_info.rc_channels[2] = mavlink_rc_channels.chan3_raw;
+    m_andruav_vehicle_info.rc_channels[3] = mavlink_rc_channels.chan4_raw;
+    m_andruav_vehicle_info.rc_channels[4] = mavlink_rc_channels.chan5_raw;
+    m_andruav_vehicle_info.rc_channels[5] = mavlink_rc_channels.chan6_raw;
+    m_andruav_vehicle_info.rc_channels[6] = mavlink_rc_channels.chan7_raw;
+    m_andruav_vehicle_info.rc_channels[7] = mavlink_rc_channels.chan8_raw;
+
+    m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS;
+    m_andruav_vehicle_info.rc_command_active = true;
+    
+    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Freeze Mode"));
+
+}
+
+/**
+ * @brief Override channels. Overridden channels are determined dynamically.
+ * 
+ */
+void uavos::fcb::CFCBMain::enableRemoteControl()
+{
+    m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
+    m_andruav_vehicle_info.rc_command_active = false;  // remote control data will enable it                   
+    m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS;
+    
+    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Joystick Mode"));
+}
+
+
+void uavos::fcb::CFCBMain::enableRemoteControlGuided()
+{
+    m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
+    m_andruav_vehicle_info.rc_command_active = false;  // remote control data will enable it       
+    m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED;
+    
+    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Joystick Guided Mode"));
+}
+
+
+
+/**
+ * @brief 
+ * 
+ * @param rc_channels values from [-500,500] ... -1 meanse release channel.
+ */
+void uavos::fcb::CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
+{
+    
+    
+    switch (m_andruav_vehicle_info.rc_sub_action)
+    {
+        case RC_SUB_ACTION::RC_SUB_ACTION_RELEASED:
+        {
+            // should ignore these values.
+        }
+        break;
+
+        case RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS:
+        {
+            // should ignore these values.
+        }
+        break;
+        
+        case RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS:
+        {
+            // should ignore these values.
+        }
+        break;
+        
+        case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS:
+        {
+            m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
+            m_andruav_vehicle_info.rc_command_active = true;
+            
+            int16_t rc_chammels_pwm[16] = {0};
+
+            calculateChannels(rc_channels, true, rc_chammels_pwm);
+            
+            for (int i=0; i<18; ++i)
+            {
+                m_andruav_vehicle_info.rc_channels[i] = rc_chammels_pwm[i];
+            }
+
+            mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,18);
+
+        }
+        break;
+        
+        case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED:
+        {
+            m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
+
+            //!NoT Implemented
+    
+        }
+        break;
+    }
+
 }

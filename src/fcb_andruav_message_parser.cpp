@@ -64,10 +64,10 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
 
                 if (!validateField(message, "F", Json::value_t::number_unsigned)) return ;
                 
-                int andruav_mode = message["F"].get<int>();
+                const int andruav_mode = message["F"].get<int>();
                 double langitude = 0.0f;
                 // TODO: Missing circle and guided go to here mode.
-                int ardupilot_mode = uavos::fcb::CFCBModes::getArduPilotMode(andruav_mode, m_fcbMain.getAndruavVehicleInfo().vehicle_type);
+                const int ardupilot_mode = uavos::fcb::CFCBModes::getArduPilotMode(andruav_mode, m_fcbMain.getAndruavVehicleInfo().vehicle_type);
                 if (ardupilot_mode == E_UNDEFINED_MODE)
                 {   
                     //TODO: Send Error Message
@@ -282,16 +282,70 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
             case TYPE_AndruavResala_RemoteControlSettings:
             {
                 // b: remote control setting
+                
+                if (!validateField(message, "b",Json::value_t::number_unsigned)) return ;
+                
+                int rc_sub_action = message["b"].get<int>();
+                
+                switch (rc_sub_action)
+                {
+                    case RC_SUB_ACTION::RC_SUB_ACTION_RELEASED:
+                        m_fcbMain.releaseRemoteControl();
+                    break;
+
+                    case RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS:
+                        m_fcbMain.centerRemoteControl();
+                    break;
+
+                    case RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS:
+                        m_fcbMain.freezeRemoteControl();
+                    break;
+
+                    case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS:
+                        m_fcbMain.enableRemoteControl();
+                    break;
+
+                    case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED:
+                        m_fcbMain.enableRemoteControlGuided();
+                    break;
+                                
+                }
             }
+            break;
 
             case TYPE_AndruavResala_RemoteControl2:
             {
-                // value: [0,1000] IMPORTANT: -1 means channel release so min is 0
+                // value: [0,1000] IMPORTANT: -999 means channel release
                 // 'R': Rudder
                 // 'T': Throttle
                 // 'A': Aileron
                 // 'E': Elevator
-			
+                // ['w']: Aux-1 optional 
+                // ['x']: Aux-2 optional
+                // ['y']: Aux-3 optional
+                // ['z']: Aux-4 optional
+                if (!validateField(message, "R",Json::value_t::number_unsigned)) return ;
+                if (!validateField(message, "T",Json::value_t::number_unsigned)) return ;
+                if (!validateField(message, "A",Json::value_t::number_unsigned)) return ;
+                if (!validateField(message, "E",Json::value_t::number_unsigned)) return ;
+                
+                int16_t rc_channels[16] = {0};
+                rc_channels[3] = message["R"].get<int>();
+                rc_channels[2] = message["T"].get<int>();
+                rc_channels[0] = message["A"].get<int>();
+                rc_channels[1] = message["E"].get<int>();
+                rc_channels[4] = validateField(message, "w",Json::value_t::number_integer)?message["w"].get<int>():-999;
+                rc_channels[5] = validateField(message, "x",Json::value_t::number_integer)?message["x"].get<int>():-999;
+                rc_channels[6] = validateField(message, "y",Json::value_t::number_integer)?message["y"].get<int>():-999;
+                rc_channels[7] = validateField(message, "z",Json::value_t::number_integer)?message["z"].get<int>():-999;
+
+                for (int i=8;i<18;++i)
+                {
+                    rc_channels[i] = -999;
+                }
+
+                m_fcbMain.updateRemoteControlChannels(rc_channels);
+
             }
 
             case TYPE_AndruavResala_RemoteExecute:

@@ -20,7 +20,12 @@ namespace fcb
 {
 
 
-    
+    /**
+     * @brief This class is the heart of FCB module. 
+     * It handles logic and vehicle states that is related to Andruav.
+     * It also communicates with physical FCB using mavlinksdk library.
+     * 
+     */
     class CFCBMain: public mavlinksdk::CMavlinkEvents
     {
         public:
@@ -93,11 +98,20 @@ namespace fcb
            void reloadWayPoints();
            void saveWayPointsToFCB();
 
+            void releaseRemoteControl();
+            void updateRemoteControlChannels(const int16_t rc_channels[18]);
+
+            void remoteControlSignal();
+            void centerRemoteControl();
+            void freezeRemoteControl();
+            void enableRemoteControl();
+            void enableRemoteControlGuided();
 
         // Events implementation of mavlinksdk::CMavlinkEvents
         public:
             void OnMessageReceived (const mavlink_message_t& mavlink_message) override;           
             void OnConnected (const bool& connected) override;
+            void OnHeartBeat ();
             void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat) override;
             void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat) override ;
             void OnArmed (const bool& armed) override;
@@ -114,21 +128,24 @@ namespace fcb
             void OnParamChanged(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override;
 
 
-        protected: 
-            void OnHeartBeat ();
-        
-        protected:
+        private: 
+            void initVehicleChannelLimits();
+            
+
+
+        private:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
             uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
             uavos::fcb::CMavlinkTrafficOptimizer& m_mavlink_optimizer = uavos::fcb::CMavlinkTrafficOptimizer::getInstance();
 
-        protected:
+        private:
             int getConnectionType ();
             bool connectToFCB ();
             
+            void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
             
 
-        protected:
+        private:
             Json m_jsonConfig;
             int m_connection_type;
             ANDRUAV_VEHICLE_INFO m_andruav_vehicle_info;
@@ -137,8 +154,6 @@ namespace fcb
             
             bool m_exit_thread = false;
             std::thread m_scheduler_thread;
-
-        private:
             u_int64_t m_last_start_flying =0 ;
             u_int64_t m_counter =0;
             u_int64_t m_counter_sec =0;
