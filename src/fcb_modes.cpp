@@ -619,7 +619,7 @@ int uavos::fcb::CFCBModes::getArduPilotMode(const int& andruav_unit_mode, const 
                     return COPTER_MODE_BRAKE;
 
                 case VEHICLE_TYPE_PLANE:
-                    return VEHICLE_MODE_LOITER;
+                    return PLANE_MODE_LOITER;
 
                 case VEHICLE_TYPE_ROVER:
                     return ROVER_MODE_HOLD;
