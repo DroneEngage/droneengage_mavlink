@@ -1,7 +1,5 @@
 CXX=g++
-CXXARM=arm-linux-gnueabihf-g++
-CXXARM2=~/TDisk/raspberry_pi/zero/tools_cross_compiler/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf//bin/arm-linux-gnueabihf-g++
-CXXARM1=~/TDisk/raspberry_pi/zero/tools_cross_compiler/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++
+CXXARM=/opt/cross-pi-gcc/bin/arm-linux-gnueabihf-g++
 EXE=uavos_ardupilot
 BIN=bin
 INCLUDE= -I ../c_library_v2 -I ../mavlink_sdk

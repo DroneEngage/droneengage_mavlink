@@ -7,7 +7,6 @@
     "s2s_udp_listening_ip": "127.0.0.1", 
     "s2s_udp_listening_port": "60003", 
     
-    "unitID": "ad_uavos_os", 
     "telemetryLevel": "1", 
     "fcbConnectionURI": 
     {"type": "udp",

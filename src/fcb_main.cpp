@@ -121,7 +121,6 @@ void uavos::fcb::CFCBMain::initVehicleChannelLimits()
     int index =0;
     Json values = m_jsonConfig["RC_channelReverse"];
     for (auto it = values.begin(); it != values.end(); ++it){
-            std::cout << *it << std::endl;
             m_andruav_vehicle_info.rc_channels_reverse[index] = *it==1?true:false;
             index++;
     }
@@ -129,7 +128,6 @@ void uavos::fcb::CFCBMain::initVehicleChannelLimits()
     index =0;
     values = m_jsonConfig["RC_channelLimitsMax"];
     for (auto it = values.begin(); it != values.end(); ++it){
-            std::cout << *it << std::endl;
             m_andruav_vehicle_info.rc_channels_max[index] = *it;
             index++;
     }
@@ -137,7 +135,6 @@ void uavos::fcb::CFCBMain::initVehicleChannelLimits()
     index =0;
     values = m_jsonConfig["RC_channelLimitsMin"];
     for (auto it = values.begin(); it != values.end(); ++it){
-            std::cout << *it << std::endl;
             m_andruav_vehicle_info.rc_channels_min[index] = *it;
             index++;
     }

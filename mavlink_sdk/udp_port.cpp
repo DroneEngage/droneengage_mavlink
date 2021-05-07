@@ -326,6 +326,7 @@ _read_port(uint8_t &cp)
 				tx_port = ntohs(addr.sin_port);
 				//printf("Got first packet, sending to %s:%i\n", target_ip, rx_port);
 			}else{
+				target_ip = inet_ntoa(addr.sin_addr);
 				printf("ERROR: Got packet from %s:%i but listening on %s\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port), target_ip);
 			}
 		//}
