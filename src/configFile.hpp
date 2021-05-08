@@ -37,7 +37,8 @@ namespace uavos
             
 
         public:
-            void InitConfigFile (const char* fileURL);
+            void initConfigFile (const char* fileURL);
+            void reloadFile ();
             const Json& GetConfigJSON();
 
         protected:
@@ -46,6 +47,7 @@ namespace uavos
             
 
         private:
+            std::string m_file_url;
             std::stringstream m_fileContents;
             Json m_ConfigJSON;
         

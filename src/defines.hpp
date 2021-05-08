@@ -97,6 +97,7 @@ typedef struct ANDRUAV_VEHICLE_INFO
     int16_t             rc_channels[18]                     = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     int16_t             rc_channels_min[18]                 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     int16_t             rc_channels_max[18]                 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    bool                rc_channels_enabled[18];
     bool                rc_channels_reverse[18];
 
 }   ANDRUAV_VEHICLE_INFO;

@@ -19,13 +19,23 @@ const Json& CConfigFile::GetConfigJSON()
 }
 
 
-void CConfigFile::InitConfigFile (const char* fileURL)
+void CConfigFile::initConfigFile (const char* fileURL)
 {
-    CConfigFile::ReadFile (fileURL);
+    m_file_url = std::string(fileURL);
+
+    CConfigFile::ReadFile (m_file_url.c_str());
     
     CConfigFile::ParseData (m_fileContents.str());
-    
 }
+
+
+void CConfigFile::reloadFile ()
+{
+    CConfigFile::ReadFile (m_file_url.c_str());
+    
+    CConfigFile::ParseData (m_fileContents.str());
+}
+
 
 
 void CConfigFile::ReadFile (const char * fileURL)
@@ -40,8 +50,11 @@ void CConfigFile::ReadFile (const char * fileURL)
     }
     
     std::cout << _SUCCESS_CONSOLE_TEXT_ << " succeeded "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
+    
+    m_fileContents.str("");
     m_fileContents <<  stream.rdbuf();
+    
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << m_fileContents.str() << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
     return ;
 }

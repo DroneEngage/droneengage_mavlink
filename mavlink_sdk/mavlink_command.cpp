@@ -608,6 +608,42 @@ void CMavlinkCommand::setServo (const int& channel, const int& pwm)
 	return ;
 }
 
+
+void CMavlinkCommand::releaseRCChannels()
+{
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mavlink_rc_channels_override_t mavlink_rc_channels = {0};
+	mavlink_rc_channels.target_system    = mavlink_sdk.getSysId();
+	mavlink_rc_channels.target_component = mavlink_sdk.getCompId();
+	
+	// mavlink_rc_channels.chan1_raw = channel_length>=1?channels[0]:0;
+    // mavlink_rc_channels.chan2_raw = channel_length>=2?channels[1]:0;
+    // mavlink_rc_channels.chan3_raw = channel_length>=3?channels[2]:0;
+	// mavlink_rc_channels.chan4_raw = channel_length>=4?channels[3]:0;
+    // mavlink_rc_channels.chan5_raw = channel_length>=5?channels[4]:0;
+    // mavlink_rc_channels.chan6_raw = channel_length>=6?channels[5]:0;
+    // mavlink_rc_channels.chan7_raw = channel_length>=7?channels[6]:0;
+    // mavlink_rc_channels.chan8_raw = channel_length>=8?channels[7]:0;
+    mavlink_rc_channels.chan9_raw  = UINT16_MAX-1;
+    mavlink_rc_channels.chan10_raw = UINT16_MAX-1;
+    mavlink_rc_channels.chan11_raw = UINT16_MAX-1;
+    mavlink_rc_channels.chan12_raw = UINT16_MAX-1;
+    mavlink_rc_channels.chan13_raw = UINT16_MAX-1;
+    mavlink_rc_channels.chan14_raw = UINT16_MAX-1;
+    mavlink_rc_channels.chan15_raw = UINT16_MAX-1;
+    mavlink_rc_channels.chan16_raw = UINT16_MAX-1;
+	mavlink_rc_channels.chan15_raw = UINT16_MAX-1;
+    mavlink_rc_channels.chan16_raw = UINT16_MAX-1;
+	
+    mavlink_message_t mavlink_message;
+	mavlink_msg_rc_channels_override_encode (255, mavlink_sdk.getCompId(), &mavlink_message, &mavlink_rc_channels);
+
+	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;
+}
+
 /**
  * @brief Send RCChannels from 1 to channel_length others will set to zero.
  * *S to zero will release these channels.

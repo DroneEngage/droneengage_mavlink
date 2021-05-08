@@ -148,7 +148,7 @@ void init (int argc, char *argv[])
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING PLUGIN ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     
-    cConfigFile.InitConfigFile (configName.c_str());
+    cConfigFile.initConfigFile (configName.c_str());
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
     
 
@@ -166,7 +166,7 @@ void init (int argc, char *argv[])
     cUDPClient.start();
 
     cFCBMain.registerSendJMSG(sendJMSG);
-    cFCBMain.init(jsonConfig);
+    cFCBMain.init();
     
 }
 

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdlib>
+#include <csignal>
 
 #include <vehicle.h>
 
@@ -7,6 +8,7 @@
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
 
+#include "configFile.hpp"
 #include "messages.hpp"
 #include "fcb_modes.hpp"
 #include "fcb_main.hpp"
@@ -74,9 +76,10 @@ bool uavos::fcb::CFCBMain::connectToFCB ()
 }
 
 
-void uavos::fcb::CFCBMain::init (const Json &jsonConfig)
+void uavos::fcb::CFCBMain::init ()
 {
-    m_jsonConfig = jsonConfig;
+    uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
+    m_jsonConfig = cConfigFile.GetConfigJSON();
     
     initVehicleChannelLimits();
     m_mavlink_optimizer.init (m_jsonConfig["Message_Timeouts"]);
@@ -110,30 +113,45 @@ void uavos::fcb::CFCBMain::uninit ()
 
 void uavos::fcb::CFCBMain::initVehicleChannelLimits()
 {
-    if (!m_jsonConfig.contains("RC_channelReverse")
-        || !m_jsonConfig.contains("RC_channelLimitsMax")
-        || !m_jsonConfig.contains("RC_channelLimitsMin"))
+    uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
+    cConfigFile.reloadFile();
+    m_jsonConfig = cConfigFile.GetConfigJSON();
+    
+    if (!m_jsonConfig.contains("RC_Channels")
+        || !m_jsonConfig["RC_Channels"].contains("RC_channelEnabled")
+        || !m_jsonConfig["RC_Channels"].contains("RC_channelReverse")
+        || !m_jsonConfig["RC_Channels"].contains("RC_channelLimitsMax")
+        || !m_jsonConfig["RC_Channels"].contains("RC_channelLimitsMin"))
     {
-        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "RC Channels RC_channelReverse, RC_channelLimitsMax or RC_channelLimitsMin not found" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        exit(0);
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "RC Channels RC_channelEnabled, RC_channelReverse, RC_channelLimitsMax or RC_channelLimitsMin not found" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        raise(SIGABRT);
     }
     
     int index =0;
-    Json values = m_jsonConfig["RC_channelReverse"];
+    Json values;
+    
+    values = m_jsonConfig["RC_Channels"]["RC_channelEnabled"];
+    for (auto it = values.begin(); it != values.end(); ++it){
+            m_andruav_vehicle_info.rc_channels_enabled[index] = *it==1?true:false;
+            index++;
+    }
+
+    index =0;
+    values = m_jsonConfig["RC_Channels"]["RC_channelReverse"];
     for (auto it = values.begin(); it != values.end(); ++it){
             m_andruav_vehicle_info.rc_channels_reverse[index] = *it==1?true:false;
             index++;
     }
 
     index =0;
-    values = m_jsonConfig["RC_channelLimitsMax"];
+    values = m_jsonConfig["RC_Channels"]["RC_channelLimitsMax"];
     for (auto it = values.begin(); it != values.end(); ++it){
             m_andruav_vehicle_info.rc_channels_max[index] = *it;
             index++;
     }
 
     index =0;
-    values = m_jsonConfig["RC_channelLimitsMin"];
+    values = m_jsonConfig["RC_Channels"]["RC_channelLimitsMin"];
     for (auto it = values.begin(); it != values.end(); ++it){
             m_andruav_vehicle_info.rc_channels_min[index] = *it;
             index++;
@@ -622,6 +640,12 @@ void uavos::fcb::CFCBMain::calculateChannels(const int16_t scaled_channels[16], 
             continue;
         }
 
+        if (!m_andruav_vehicle_info.rc_channels_enabled[i])
+        {
+            output[i] = 0;
+            continue;
+        }
+
         scaled_channel = scaled_channel - 500; // range from [-500,500]
         if ((!ignode_dead_band) && (abs(scaled_channel) < 20)) 
         {
@@ -658,7 +682,7 @@ void uavos::fcb::CFCBMain::releaseRemoteControl()
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_RELEASED;
     m_andruav_vehicle_info.rc_command_active = false;
 
-    mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,16);
+    mavlinksdk::CMavlinkCommand::getInstance().releaseRCChannels();
 
     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Released."));
 

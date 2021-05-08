@@ -72,7 +72,7 @@ debug: uavos_ardupilot.debug
 	@echo "DONE."
 
 arm_debug: uavos_ardupilot.arm.debug
-	$(CXXARM)  $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE).so   $(OBJS)   $(LIBS) ;
+	$(CXXARM)  $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE)_arm.so   $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 

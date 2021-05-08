@@ -67,7 +67,7 @@ namespace fcb
 
         public:
 
-            void init (const Json &jsonConfig);
+            void init ();
             void uninit ();
 
             void loopScheduler();
