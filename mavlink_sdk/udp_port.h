@@ -129,8 +129,8 @@ namespace comm
 
 			const static int BUFF_LEN=2041;
 			char buff[BUFF_LEN];
-			int buff_ptr;
-			int buff_len;
+			int buff_ptr=0;
+			int buff_len=0;
 			bool debug;
 			std::string target_ip_cached;
 			const char *target_ip;

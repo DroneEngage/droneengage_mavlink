@@ -54,7 +54,9 @@ void CConfigFile::ReadFile (const char * fileURL)
     m_fileContents.str("");
     m_fileContents <<  stream.rdbuf();
     
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << m_fileContents.str() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #ifdef DEBUG
+    //std::cout << _SUCCESS_CONSOLE_TEXT_ << m_fileContents.str() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     
     return ;
 }

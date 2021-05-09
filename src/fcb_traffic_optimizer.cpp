@@ -6,12 +6,12 @@ void uavos::fcb::CMavlinkTrafficOptimizer::init(const Json &mavlink_messages_con
 {
     int n=mavlink_messages_config.size(); // n = 2
     for(auto it=mavlink_messages_config.begin();it!=mavlink_messages_config.end();++it){
-        std::cout << it.key() << std::endl;
+        //std::cout << it.key() << std::endl;
         int message_id = std::stoi (it.key());
         const std::vector<int> values = it.value();
         int index = 0;
         for (auto it = values.begin(); it != values.end(); ++it){
-            std::cout << *it << std::endl;
+            //std::cout << *it << std::endl;
             m_message[message_id].timeout[index%4] = *it;
             index++;
         }
