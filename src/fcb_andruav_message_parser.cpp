@@ -286,30 +286,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 if (!validateField(message, "b",Json::value_t::number_unsigned)) return ;
                 
                 int rc_sub_action = message["b"].get<int>();
-                
-                switch (rc_sub_action)
-                {
-                    case RC_SUB_ACTION::RC_SUB_ACTION_RELEASED:
-                        m_fcbMain.releaseRemoteControl();
-                    break;
-
-                    case RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS:
-                        m_fcbMain.centerRemoteControl();
-                    break;
-
-                    case RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS:
-                        m_fcbMain.freezeRemoteControl();
-                    break;
-
-                    case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS:
-                        m_fcbMain.enableRemoteControl();
-                    break;
-
-                    case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED:
-                        m_fcbMain.enableRemoteControlGuided();
-                    break;
-                                
-                }
+                m_fcbMain.adjustRemoteJoystickByMode((RC_SUB_ACTION)rc_sub_action);
             }
             break;
 

@@ -710,4 +710,46 @@ void CMavlinkCommand::sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], in
 
 	return ;
 }
+
+/**
+ * @brief Control velocity and turning rate of vehicle in guided mode.
+ * 
+ * @param vx 
+ * @param vy 
+ * @param vz 
+ * @param yaw_rate 
+ */
+void CMavlinkCommand::ctrlGuidedVelocityInLocalFrame (const float vx, const float vy, const float vz, const float yaw_rate)
+{
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mavlink_set_position_target_local_ned_t mavlink_set_position = {0};
+
+
+	mavlink_set_position.target_system    = mavlink_sdk.getSysId();
+	mavlink_set_position.target_component = mavlink_sdk.getCompId();
+	
+	mavlink_set_position.type_mask =  POSITION_TARGET_TYPEMASK_X_IGNORE |
+									  POSITION_TARGET_TYPEMASK_Y_IGNORE |
+									  POSITION_TARGET_TYPEMASK_Z_IGNORE |
+									  POSITION_TARGET_TYPEMASK_AX_IGNORE |
+									  POSITION_TARGET_TYPEMASK_AY_IGNORE |
+									  POSITION_TARGET_TYPEMASK_AZ_IGNORE |
+									  POSITION_TARGET_TYPEMASK_YAW_IGNORE;
+
+    mavlink_set_position.coordinate_frame = MAV_FRAME_BODY_OFFSET_NED;
+
+	mavlink_set_position.vx = vx;
+	mavlink_set_position.vy = vy;
+	mavlink_set_position.vz = vz;
+
+	mavlink_set_position.yaw_rate = yaw_rate;
+
+	mavlink_message_t mavlink_message;
+	mavlink_msg_set_position_target_local_ned_encode (255, mavlink_sdk.getCompId(), &mavlink_message, &mavlink_set_position);
+
+	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;
+}
         

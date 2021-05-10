@@ -199,8 +199,13 @@ void uavos::fcb::CFCBMain::remoteControlSignal ()
             {
                 m_andruav_vehicle_info.rc_command_active = false;
                 
+                releaseRemoteControl();
+                
+                // if RC Timeout then switch to brake or equivelant mode.
                 const int ardupilot_mode = uavos::fcb::CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type);
                 mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
+
+                return ;
             }
             mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,16);
 
@@ -212,8 +217,11 @@ void uavos::fcb::CFCBMain::remoteControlSignal ()
             if (now - m_andruav_vehicle_info.rc_command_last_update_time > RCCHANNEL_OVERRIDES_TIMEOUT)
             {
                 releaseRemoteControl();
+                
+                // if RC Timeout then switch to brake or equivelant mode.
                 const int ardupilot_mode = uavos::fcb::CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type);
                 mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
+                
                 return ;
             }
 
@@ -586,7 +594,7 @@ void uavos::fcb::CFCBMain::OnModeChanges(const int& custom_mode, const int& firm
 {
     
     m_andruav_vehicle_info.flying_mode = uavos::fcb::CFCBModes::getAndruavMode (custom_mode, m_andruav_vehicle_info.vehicle_type);
-
+    adjustRemoteJoystickByMode(m_andruav_vehicle_info.rc_sub_action);
     m_fcb_facade.sendID(std::string());
 
     return ;
@@ -725,6 +733,16 @@ void uavos::fcb::CFCBMain::freezeRemoteControl()
     m_andruav_vehicle_info.rc_channels[5] = mavlink_rc_channels.chan6_raw;
     m_andruav_vehicle_info.rc_channels[6] = mavlink_rc_channels.chan7_raw;
     m_andruav_vehicle_info.rc_channels[7] = mavlink_rc_channels.chan8_raw;
+    m_andruav_vehicle_info.rc_channels[8] = mavlink_rc_channels.chan9_raw;    
+    m_andruav_vehicle_info.rc_channels[9] = mavlink_rc_channels.chan10_raw;
+    m_andruav_vehicle_info.rc_channels[10] = mavlink_rc_channels.chan11_raw;
+    m_andruav_vehicle_info.rc_channels[11] = mavlink_rc_channels.chan12_raw;
+    m_andruav_vehicle_info.rc_channels[12] = mavlink_rc_channels.chan13_raw;
+    m_andruav_vehicle_info.rc_channels[13] = mavlink_rc_channels.chan14_raw;
+    m_andruav_vehicle_info.rc_channels[14] = mavlink_rc_channels.chan15_raw;
+    m_andruav_vehicle_info.rc_channels[15] = mavlink_rc_channels.chan16_raw;
+    m_andruav_vehicle_info.rc_channels[16] = mavlink_rc_channels.chan17_raw;
+    m_andruav_vehicle_info.rc_channels[17] = mavlink_rc_channels.chan18_raw;
 
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS;
     m_andruav_vehicle_info.rc_command_active = true;
@@ -749,14 +767,66 @@ void uavos::fcb::CFCBMain::enableRemoteControl()
 
 void uavos::fcb::CFCBMain::enableRemoteControlGuided()
 {
+
     m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
     m_andruav_vehicle_info.rc_command_active = false;  // remote control data will enable it       
+    
+    // release channels
+    memset(m_andruav_vehicle_info.rc_channels, 0, 16 * sizeof(int16_t));
+    mavlinksdk::CMavlinkCommand::getInstance().releaseRCChannels();
+
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED;
     
     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Joystick Guided Mode"));
+
+    return ;
 }
 
 
+void uavos::fcb::CFCBMain::adjustRemoteJoystickByMode (RC_SUB_ACTION rc_sub_action)
+{
+    switch (rc_sub_action)
+    {
+        case RC_SUB_ACTION::RC_SUB_ACTION_RELEASED:
+        { 
+            releaseRemoteControl();
+        }
+        break;
+
+        case RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS:
+        {
+            centerRemoteControl();
+        }
+        break;
+
+        case RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS:
+        {
+            freezeRemoteControl();
+        }
+        break;
+
+        case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS:
+        case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED:
+        {
+            if (m_andruav_vehicle_info.flying_mode == VEHICLE_MODE_GUIDED)
+            {
+                //if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS)
+                    enableRemoteControlGuided();
+            }
+            else
+            {
+                //if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED)
+                    enableRemoteControl();
+            }
+
+        }
+        break;
+
+                                
+    }
+    
+    
+}
 
 /**
  * @brief 
@@ -765,7 +835,6 @@ void uavos::fcb::CFCBMain::enableRemoteControlGuided()
  */
 void uavos::fcb::CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
 {
-    
     
     switch (m_andruav_vehicle_info.rc_sub_action)
     {
@@ -810,7 +879,16 @@ void uavos::fcb::CFCBMain::updateRemoteControlChannels(const int16_t rc_channels
         {
             m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
 
-            //!NoT Implemented
+            int16_t rc_chammels_pwm[16] = {0};
+
+            calculateChannels(rc_channels, true, rc_chammels_pwm);
+            
+            mavlinksdk::CMavlinkCommand::getInstance().ctrlGuidedVelocityInLocalFrame (
+                (1500 - rc_chammels_pwm[1]) / 100.0f,
+                (rc_chammels_pwm[0] - 1500) / 100.0f,
+                (1500 - rc_chammels_pwm[2]) / 100.0f,
+                (rc_chammels_pwm[3]-1500)   / 100.0f
+            );
     
         }
         break;

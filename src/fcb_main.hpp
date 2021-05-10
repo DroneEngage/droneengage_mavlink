@@ -101,6 +101,7 @@ namespace fcb
             void releaseRemoteControl();
             void updateRemoteControlChannels(const int16_t rc_channels[18]);
 
+            void adjustRemoteJoystickByMode(RC_SUB_ACTION rc_sub_action);
             void remoteControlSignal();
             void centerRemoteControl();
             void freezeRemoteControl();
@@ -144,7 +145,6 @@ namespace fcb
             
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
             
-
         private:
             Json m_jsonConfig;
             int m_connection_type;

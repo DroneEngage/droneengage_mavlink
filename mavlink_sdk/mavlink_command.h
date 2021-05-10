@@ -71,6 +71,9 @@ class CMavlinkCommand
         void releaseRCChannels();
         void sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], int channel_length);
         
+
+        void ctrlGuidedVelocityInLocalFrame (const float vx, const float vy, const float vz, const float yaw_rate);
+
         /**
          * @brief 
          * (MAVLink 2) Request all parameters of this component. All parameters should be emitted in response as PARAM_EXT_VALUE.
