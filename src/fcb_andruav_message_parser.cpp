@@ -158,11 +158,15 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 // A: altitude
                 if (!validateField(message, "T", Json::value_t::number_float)) return ;
                 if (!validateField(message, "O", Json::value_t::number_float)) return ;
-                if (!validateField(message, "A", Json::value_t::number_float)) return ;
+                //if (!validateField(message, "A", Json::value_t::number_float)) return ;
 
                 double latitude  = message["T"].get<double>();
                 double longitude = message["O"].get<double>();
                 double altitude  = message["A"].get<double>();
+                if (altitude == 0)
+                {
+                    altitude  = m_mavlinksdk.getVehicle().get()->getMsgHomePosition().altitude / 1000.0f; // convert to meter
+                }
                 
                 mavlinksdk::CMavlinkCommand::getInstance().setHome(0, latitude, longitude, altitude);
             }
@@ -203,7 +207,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                     return ;
                 if (!validateField(message, "b", Json::value_t::boolean)) return ;
                 if ((!validateField(message, "c", Json::value_t::number_float)) 
-                && (!validateField(message, "c", Json::value_t::number_unsigned)))
+                && (!validateField(message, "c", Json::value_t::number_integer)))
                     return ;
                 if (!validateField(message, "d", Json::value_t::boolean)) return ;
 

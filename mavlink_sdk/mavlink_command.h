@@ -84,6 +84,7 @@ class CMavlinkCommand
 
         void setServo (const int& channel, const int& pwm);
         
+        void requestHomeLocation ();
 
     protected:
         void sendLongCommand (const uint16_t& command,

@@ -609,6 +609,18 @@ void CMavlinkCommand::setServo (const int& channel, const int& pwm)
 }
 
 
+/**
+ * @brief 
+ * request vehicle to send its hole location.
+ * 
+ */
+void CMavlinkCommand::requestHomeLocation ()
+{
+	sendLongCommand (MAV_CMD_GET_HOME_POSITION, false);
+
+	return ;
+}
+
 void CMavlinkCommand::releaseRCChannels()
 {
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();

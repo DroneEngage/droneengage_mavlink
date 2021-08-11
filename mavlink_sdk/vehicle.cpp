@@ -103,7 +103,7 @@ void mavlinksdk::CVehicle::handle_home_position (const mavlink_home_position_t& 
 							|| (m_home_position.latitude != home_position.latitude)
 							|| (m_home_position.latitude != home_position.latitude));
 
-	m_home_position = home_position;
+	memcpy((void *) &m_home_position, (void *) &home_position, sizeof(mavlink_home_position_t));
 
 	if (home_changed == true)
 	{

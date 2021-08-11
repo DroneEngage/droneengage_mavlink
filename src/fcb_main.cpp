@@ -398,6 +398,8 @@ void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbe
 
     m_fcb_facade.sendID(std::string());
 
+    mavlinksdk::CMavlinkCommand::getInstance().requestHomeLocation();
+    
     mavlinksdk::CMavlinkCommand::getInstance().requestParametersList();
    
     return ;
@@ -409,7 +411,8 @@ void uavos::fcb::CFCBMain::OnHeartBeat_Resumed (const mavlink_heartbeat_t& heart
     m_andruav_vehicle_info.vehicle_type = uavos::fcb::CFCBModes::getAndruavVehicleType (heartbeat.type, heartbeat.autopilot);
 
     m_fcb_facade.sendID(std::string());
-
+    
+    
     return ;
 }
             
