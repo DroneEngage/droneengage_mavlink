@@ -107,6 +107,7 @@ git_submodule:
 copy: clean
 	mkdir -p $(BIN); \
 	cp config.*.json $(BIN); 
+	cp config_*.json $(BIN); 
 	@echo "copying finished"
 
 clean:
