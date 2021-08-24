@@ -3,7 +3,7 @@ CXXARM=/opt/cross-pi-gcc/bin/arm-linux-gnueabihf-g++
 EXE=uavos_ardupilot
 BIN=bin
 INCLUDE= -I ../c_library_v2 -I ../mavlink_sdk
-LIBS=  -lpthread 
+LIBS=  -lpthread -lmavlink_sdk -L ./mavlink_sdk/bin
 CXXFLAGS =  -std=c++11 -Wno-return-type -Wno-address-of-packed-member 
 
 CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE -s
@@ -11,15 +11,7 @@ CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g
 SRC = src
 BUILD = build
 
-OBJS = $(BUILD)/mavlink_sdk.o \
-	   $(BUILD)/mavlink_waypoint_manager.o \
-	   $(BUILD)/mavlink_communicator.o \
-	   $(BUILD)/mavlink_command.o \
-	   $(BUILD)/serial_port.o \
-	   $(BUILD)/udp_port.o \
-	   $(BUILD)/vehicle.o \
-	   $(BUILD)/mavlink_helper.o \
-	   $(BUILD)/fcb_main.o \
+OBJS = $(BUILD)/fcb_main.o \
 	   $(BUILD)/fcb_modes.o \
 	   $(BUILD)/fcb_andruav_message_parser.o \
 	   $(BUILD)/fcb_traffic_optimizer.o \
@@ -31,15 +23,7 @@ OBJS = $(BUILD)/mavlink_sdk.o \
 	   $(BUILD)/helpers.o \
 	   $(BUILD)/main.o \
 
-SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
-	   ../mavlink_sdk/mavlink_waypoint_manager.cpp \
-	   ../mavlink_sdk/mavlink_communicator.cpp \
-	   ../mavlink_sdk/mavlink_command.cpp \
-	   ../mavlink_sdk/serial_port.cpp \
-	   ../mavlink_sdk/udp_port.cpp \
-	   ../mavlink_sdk/vehicle.cpp \
-	   ../mavlink_sdk/mavlink_helper.cpp \
-	   ../$(SRC)/fcb_main.cpp \
+SRCS = ../$(SRC)/fcb_main.cpp \
 	   ../$(SRC)/fcb_modes.cpp \
 	   ../$(SRC)/fcb_andruav_message_parser.cpp \
 	   ../$(SRC)/fcb_traffic_optimizer.cpp \
@@ -52,16 +36,10 @@ SRCS = ../mavlink_sdk/mavlink_sdk.cpp \
 	   ../$(SRC)/main.cpp \
 	   
 
-
-all: git_submodule release
-
-
 mavlink_control: mavlink_control.cpp serial_port.cpp udp_port.cpp autopilot_interface.cpp
 	$(CXX) -g -Wall  $(INCLUDE) mavlink_control.cpp serial_port.cpp udp_port.cpp autopilot_interface.cpp -o $(BIN)/$(EXE) $(LIBS)
 
-
-
-release: uavos_ardupilot.release
+release: mavlink_sdk.release
 	$(CXX)  $(CXXFLAGS_RELEASE)  -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS)  ;
 	@echo "building finished ..."; 
 	@echo "DONE."
@@ -75,6 +53,17 @@ arm_debug: uavos_ardupilot.arm.debug
 	$(CXXARM)  $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE)_arm.so   $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
+
+
+mavlink_sdk.release: uavos_ardupilot.release
+	@echo "Building MAVlink SDK"
+	cd ./mavlink_sdk ; \
+	make release ;
+
+mavlink_sdk.debug: uavos_ardupilot.debug
+	@echo "Building MAVlink SDK"
+	cd ./mavlink_sdk ; \
+	make debug ;
 
 uavos_ardupilot.release: copy
 	mkdir -p $(BUILD); \
