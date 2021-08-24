@@ -55,6 +55,7 @@
         "map": "cpp",
         "set": "cpp",
         "forward_list": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "*.ipp": "cpp"
     }
 }

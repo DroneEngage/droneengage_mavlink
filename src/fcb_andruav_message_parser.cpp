@@ -178,11 +178,11 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 // R : turn_rate
                 // C : is_clock_wise
                 // L : is_relative
-                if ((!validateField(message, "A", Json::value_t::number_float)) 
-                && (!validateField(message, "A", Json::value_t::number_unsigned)))
+                if ((!validateField(message, "A", Json::value_t::number_unsigned)) 
+                && (!validateField(message, "A", Json::value_t::number_integer)))
                     return ;
-                if ((!validateField(message, "R", Json::value_t::number_float)) 
-                && (!validateField(message, "R", Json::value_t::number_unsigned)))
+                if ((!validateField(message, "R", Json::value_t::number_unsigned)) 
+                && (!validateField(message, "R", Json::value_t::number_integer)))
                     return ;
                 if (!validateField(message, "C", Json::value_t::boolean)) return ;
                 if (!validateField(message, "L", Json::value_t::boolean)) return ;
