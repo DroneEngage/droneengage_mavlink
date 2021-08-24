@@ -1,6 +1,7 @@
 
 # unix files
 *~
+.vscode/*
 
 # eclipse
 .settings/
