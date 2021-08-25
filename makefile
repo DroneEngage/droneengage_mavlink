@@ -44,12 +44,12 @@ release: mavlink_sdk.release
 	@echo "building finished ..."; 
 	@echo "DONE."
 
-debug: uavos_ardupilot.debug
+debug: mavlink_sdk.debug
 	$(CXX) $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE).so     $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
-arm_debug: uavos_ardupilot.arm.debug
+arm_debug: mavlink_sdk.arm.debug
 	$(CXXARM)  $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE)_arm.so   $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
@@ -64,6 +64,11 @@ mavlink_sdk.debug: uavos_ardupilot.debug
 	@echo "Building MAVlink SDK"
 	cd ./mavlink_sdk ; \
 	make debug ;
+
+mavlink_sdk.arm.debug: uavos_ardupilot.arm.debug
+	@echo "Building MAVlink SDK"
+	cd ./mavlink_sdk ; \
+	make arm_debug ;
 
 uavos_ardupilot.release: copy
 	mkdir -p $(BUILD); \

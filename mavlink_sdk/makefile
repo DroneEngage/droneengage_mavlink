@@ -45,12 +45,20 @@ release: mavlink_sdk.release
 	@echo "DONE."
 
 debug: mavlink_sdk.debug
-	#$(CXX) $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE).so     $(OBJS)   $(LIBS) ;
+	cd $(BUILD) ; \
+	ar r $(EXE).a *.o ; \
+	mv *.a ../$(BIN) ;
+	cd .. ;
+	pwd ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 arm_debug: mavlink_sdk.arm.debug
-	#$(CXXARM)  $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE)_arm.so   $(OBJS)   $(LIBS) ;
+	cd $(BUILD) ; \
+	ar r $(EXE).a *.o ; \
+	mv *.a ../$(BIN) ;
+	cd .. ;
+	pwd ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
@@ -60,6 +68,7 @@ mavlink_sdk.release: copy
 	$(CXX)   $(CXXFLAGS_RELEASE)  -c   $(SRCS)  $(INCLUDE)  ; \
 	cd .. ; 
 	@echo "compliling finished ..."
+
 
 mavlink_sdk.debug: copy
 	mkdir -p $(BUILD); \
