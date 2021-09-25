@@ -66,13 +66,13 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
                 bool auto_continue = mission_item_element["autoContinue"].get<bool>();
                 int command = mission_item_element["command"].get<int>();
                 int frame = mission_item_element["frame"].get<int>();
-                double param1 = mission_item_element["params"][0].get<double>();
-                double param2 = mission_item_element["params"][1].get<double>();
-                double param3 = mission_item_element["params"][2].get<double>();
-                double param4 = mission_item_element["params"][3].get<double>();
-                double x = mission_item_element["params"][4].get<double>();
-                double y = mission_item_element["params"][5].get<double>();
-                double z = mission_item_element["params"][6].get<double>();
+                double param[7];
+
+                for (int i=0; i<7; ++i)
+                {
+                    param[i] = mission_item_element["params"][i].is_null()?0:mission_item_element["params"][i].get<double>();    
+                }
+
                     
                 mavlink_mission_item_int_t mavlink_mission_item;
                 mavlink_mission_item.seq = i+1; // message zero is home
@@ -80,13 +80,13 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
                 mavlink_mission_item.autocontinue = auto_continue?1:0;
                 mavlink_mission_item.current = false;
                 mavlink_mission_item.command = command;
-                mavlink_mission_item.param1 = param1;
-                mavlink_mission_item.param2 = param2;
-                mavlink_mission_item.param3 = param3;
-                mavlink_mission_item.param4 = param4;
-                mavlink_mission_item.x = x * 10000000;
-                mavlink_mission_item.y = y * 10000000;
-                mavlink_mission_item.z = z;
+                mavlink_mission_item.param1 = param[0];
+                mavlink_mission_item.param2 = param[1];
+                mavlink_mission_item.param3 = param[2];
+                mavlink_mission_item.param4 = param[3];
+                mavlink_mission_item.x = param[4] * 10000000;
+                mavlink_mission_item.y = param[5] * 10000000;
+                mavlink_mission_item.z = param[6];
 
                 uavos::fcb::mission::CMissionItem *mission_item = uavos::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mavlink_mission_item);
                 if (mission_item != nullptr)
