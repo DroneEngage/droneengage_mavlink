@@ -67,6 +67,10 @@ namespace fcb
 
             void init(const Json &mavlink_messages_config);
 
+            /*
+            * @details Determines stream optimization. A critical parameter for network bandwidth.
+            * @param level from 0 to 3. Zero means no optimization and 3 max optimization.
+            */
             void setOptimizationLevel (int level)
             {
                 if (level <= OPTIMIZE_LEVEL_0) level = OPTIMIZE_LEVEL_0;
@@ -76,7 +80,7 @@ namespace fcb
             }
 
             /**
-             * @brief Returns true if the message should be forward via telemetry to GCS.
+             * @details Returns true if the message should be forward via telemetry to GCS.
              * Settings of this message are stored in config.json file.
              * @link m_optimization_level @endlink is used to select timeout value.
              * @param mavlink_message 

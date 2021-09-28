@@ -34,10 +34,10 @@ namespace mavlinksdk
     
 
         //CCallBack_WayPoint
-        virtual void onWaypointReached(const int& seq)                                                                  {};
-        virtual void onWayPointReceived(const mavlink_mission_item_int_t& mission_item_int)                             {};
-        virtual void onWayPointsLoadingCompleted ()                                                                     {};
-        virtual void onMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)  {};
+        virtual void OnWaypointReached(const int& seq)                                                                  {};
+        virtual void OnWayPointReceived(const mavlink_mission_item_int_t& mission_item_int)                             {};
+        virtual void OnWayPointsLoadingCompleted ()                                                                     {};
+        virtual void OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)  {};
         virtual void onMissionACK (const int& result, const int& mission_type, const std::string& result_msg)           {}; 
 
         // CCallBack_Communicator Related

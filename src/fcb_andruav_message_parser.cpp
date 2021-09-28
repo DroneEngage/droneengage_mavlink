@@ -5,6 +5,7 @@
 #include "fcb_andruav_message_parser.hpp"
 #include "./mission/mission_translator.hpp"
 
+
 /**
  * @brief Called by external scheduler at rate of 1Hz
  * */
@@ -32,7 +33,10 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
     else
     {
         Json message = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
-        std::cout << "messageType: " << messageType << std::endl;
+        
+        #ifdef DEBUG
+            std::cout << "messageType: " << messageType << std::endl;
+        #endif
         
         switch (messageType)
         {
@@ -121,6 +125,11 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
 
             case TYPE_AndruavResala_GuidedPoint:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().flying_mode != VEHICLE_MODE_GUIDED) 
+                {
+                    uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Mode is not GUIDED");
+                }
+
                 //  a : latitude
                 //  g : longitude
                 // [l]: altitude
@@ -147,6 +156,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 
 
                 mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint (latitude, longitude, altitude / 1000.0);
+                uavos::fcb::CFCBFacade::getInstance().sendFCBTargetLocation (andruav_message[ANDRUAV_PROTOCOL_SENDER], latitude, longitude, altitude);
             }   
 
             break;
@@ -232,7 +242,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 */
                 if (!validateField(message, "a", Json::value_t::string)) 
                 {
-                    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
+                    uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
 
                     break ;
                 }
@@ -243,7 +253,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
                 std::unique_ptr<std::map <int, std::unique_ptr<uavos::fcb::mission::CMissionItem>>> new_mission_items = cMissionTranslator.translateMissionText(mission);
                 if (new_mission_items == std::nullptr_t())
                 {
-                    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
+                    uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
 
                     break ;
                 }
@@ -357,26 +367,38 @@ void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_mess
     {
         case TYPE_AndruavResala_SET_HOME_LOCATION:
             
-            m_fcb_facade.sendHomeLocation(andruav_message[ANDRUAV_PROTOCOL_SENDER]);
+            uavos::fcb::CFCBFacade::getInstance().sendHomeLocation(andruav_message[ANDRUAV_PROTOCOL_SENDER]);
         break;
 
         case RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB:
             m_fcbMain.reloadWayPoints();
-            //mavlinksdk::CMavlinkCommand::getInstance().reloadWayPoints();
         break;
 
         case RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB:
             m_fcbMain.clearWayPoints();
-            //mavlinksdk::CMavlinkCommand::getInstance().clearWayPoints();
         break;
         
 
         case RemoteCommand_CLEAR_FENCE_DATA:
+            //TODO: PLease Implement
         break;
 
         case RemoteCommand_SET_START_MISSION_ITEM:
             if (!validateField(cmd, "n", Json::value_t::number_unsigned)) return ;
             mavlinksdk::CMavlinkCommand::getInstance().setCurrentMission(cmd["n"].get<int>());
+        break;
+
+
+        case RemoteCommand_TELEMETRYCTRL:
+            if (!validateField(cmd, "Act", Json::value_t::number_unsigned)) return ;
+            int requestType = cmd["Act"].get<int>();
+            int streamingLevel = -1;
+            if (validateField(cmd, "LVL", Json::value_t::number_unsigned))
+            {
+                streamingLevel = cmd["LVL"].get<int>();
+            }
+            
+            m_fcbMain.toggleMavlinkStreaming(andruav_message[ANDRUAV_PROTOCOL_SENDER], requestType, streamingLevel);
         break;
     } 
 }

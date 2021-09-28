@@ -10,7 +10,7 @@ using Json = nlohmann::json;
 
 
 
-void uavos::fcb::CFCBFacade::sendID(const std::string&target_party_id)
+void uavos::fcb::CFCBFacade::sendID(const std::string&target_party_id)  const
 {
     /*
          VT : vehicle type
@@ -62,7 +62,7 @@ void uavos::fcb::CFCBFacade::sendID(const std::string&target_party_id)
 }
 
 
-void uavos::fcb::CFCBFacade::requestID(const std::string&target_party_id)
+void uavos::fcb::CFCBFacade::requestID(const std::string&target_party_id)  const
 {
     Json message = 
         {
@@ -78,7 +78,7 @@ void uavos::fcb::CFCBFacade::requestID(const std::string&target_party_id)
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendErrorMessage (const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description)
+void uavos::fcb::CFCBFacade::sendErrorMessage (const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description)  const
 {
     /*
         EN : error number  "not currently processed".
@@ -99,16 +99,18 @@ void uavos::fcb::CFCBFacade::sendErrorMessage (const std::string&target_party_id
         m_sendJMSG (target_party_id, message, TYPE_AndruavResala_Error, false);
     }
  
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "sendErrorMessage " << _NORMAL_CONSOLE_TEXT_ << description << std::endl;
+    
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendTelemetryPanic(const std::string& target_party_id)
+void uavos::fcb::CFCBFacade::sendTelemetryPanic(const std::string& target_party_id)  const
 {
 
 }
 
 
-void uavos::fcb::CFCBFacade::sendGPSInfo(const std::string&target_party_id)
+void uavos::fcb::CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
 {
     /*
         3D           : int 3D fix
@@ -164,7 +166,7 @@ void uavos::fcb::CFCBFacade::sendGPSInfo(const std::string&target_party_id)
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendNavInfo(const std::string&target_party_id)
+void uavos::fcb::CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
 {
     /*
         a : nav_roll
@@ -196,7 +198,7 @@ void uavos::fcb::CFCBFacade::sendNavInfo(const std::string&target_party_id)
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendIMUInfo(const std::string&target_party_id)
+void uavos::fcb::CFCBFacade::sendIMUInfo(const std::string&target_party_id)  const
 {
     Json message;
 
@@ -208,7 +210,7 @@ void uavos::fcb::CFCBFacade::sendIMUInfo(const std::string&target_party_id)
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)
+void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
 {
 
     mavlinksdk::CVehicle *vehicle =  m_mavlink_sdk.getVehicle().get();
@@ -259,7 +261,8 @@ void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)
+
+void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
 {
     
     mavlinksdk::CVehicle *vehicle =  m_mavlink_sdk.getVehicle().get();
@@ -285,17 +288,46 @@ void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)
     return ;
 }
 
+/**
+* @brief Send points of destination guided point.
+* @details This function sends destination points after confirmed from FCB.
+* GCS sends these points to uavos and then oavos sends it to FCB then uavos should send it back to gcs as a confirmation.
+*/
+void uavos::fcb::CFCBFacade::sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude) const
+{
+    
+    /*
+        T : latitude in xx.xxxxx
+        O : longitude in xx.xxxxx
+        A : altitude in meters
+    */
+    Json message=
+    {
+        {"T", latitude},
+        {"O", longitude},
+        {"A", altitude}
+    };
+
+    if (m_sendJMSG != NULL)
+    {
+        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_DistinationLocation, false);
+    }
+ 
+    return ;
+}
+
+
 std::mutex g_pages_mutex;
 
 /**
-* @brief Chunked Waypoint version
+* @details Chunked Waypoint version
 * In this version field "i" is mandatory
 * "i" = WAYPOINT_CHUNK except the last one is WAYPOINT_LAST_CHUNK
 * A chunk may contain zero or more waypoints.
 * "n" represents number of waypoint in the chunk.
 * waypoints are numbered zero-based in each chunk.
 */
-void uavos::fcb::CFCBFacade::sendWayPoints(const std::string&target_party_id)
+void uavos::fcb::CFCBFacade::sendWayPoints(const std::string&target_party_id) const
 {
 
     std::lock_guard<std::mutex> guard(g_pages_mutex);
@@ -359,32 +391,36 @@ void uavos::fcb::CFCBFacade::sendWayPoints(const std::string&target_party_id)
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendTelemetryData(const std::string&target_party_id)
+void uavos::fcb::CFCBFacade::sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
+{
+
+    
+    
+    
+    char * msg_ptr = new char[mavlink_message.len];
+    strcpy(msg_ptr,(char *) &mavlink_message);
+    std::unique_ptr<char[]> msg = std::unique_ptr<char[]> (msg_ptr);
+        
+    m_sendBMSG (target_party_id, msg_ptr, mavlink_message.len, TYPE_AndruavMessage_LightTelemetry, false);
+    
+    msg.release();
+    return ;
+}
+
+void uavos::fcb::CFCBFacade::sendServoReadings(const std::string&target_party_id)  const
 {
     Json message;
 
     if (m_sendJMSG != NULL)
     {
-        //m_sendJMSG (target_party_id, message);
-    }
- 
-    return ;
-}
-
-void uavos::fcb::CFCBFacade::sendServoReadings(const std::string&target_party_id)
-{
-    Json message;
-
-    if (m_sendJMSG != NULL)
-    {
-        //m_sendJMSG (target_party_id, message);
+        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_LightTelemetry, false);;
     }
 
     return ;
 }
 
 
-void uavos::fcb::CFCBFacade::sendWayPointReached (const std::string&target_party_id, const int& mission_sequence)
+void uavos::fcb::CFCBFacade::sendWayPointReached (const std::string&target_party_id, const int& mission_sequence)  const
 {
     /*
         R: Report Type

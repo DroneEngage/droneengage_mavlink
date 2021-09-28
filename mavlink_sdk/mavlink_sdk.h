@@ -107,28 +107,28 @@ namespace mavlinksdk
             }
 
 
-            inline void onMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg) override 
+            inline void OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg) override 
             {
-                std::cout << _INFO_CONSOLE_TEXT << "onMissionSaveFinished " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
-                m_mavlink_events->onMissionSaveFinished (result, mission_type, result_msg);
+                std::cout << _INFO_CONSOLE_TEXT << "OnMissionSaveFinished " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->OnMissionSaveFinished (result, mission_type, result_msg);
             }
         
 
-            inline void onWaypointReached (const int& sequence) override 
+            inline void OnWaypointReached (const int& sequence) override 
             {
-                std::cout << _INFO_CONSOLE_TEXT << "onWaypointReached " << std::to_string(sequence) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
-                m_mavlink_events->onWaypointReached (sequence);
+                std::cout << _INFO_CONSOLE_TEXT << "OnWaypointReached " << std::to_string(sequence) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->OnWaypointReached (sequence);
             }
 
-            inline void onWayPointReceived (const mavlink_mission_item_int_t& mission_item_int) override
+            inline void OnWayPointReceived (const mavlink_mission_item_int_t& mission_item_int) override
             {
-                std::cout << _INFO_CONSOLE_TEXT << "onWayPointReceived " << std::to_string(mission_item_int.seq) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
-                m_mavlink_events->onWayPointReceived (mission_item_int);
+                std::cout << _INFO_CONSOLE_TEXT << "OnWayPointReceived " << std::to_string(mission_item_int.seq) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->OnWayPointReceived (mission_item_int);
             }
 
-            inline void onWayPointsLoadingCompleted () override 
+            inline void OnWayPointsLoadingCompleted () override 
             {
-                m_mavlink_events->onWayPointsLoadingCompleted();
+                m_mavlink_events->OnWayPointsLoadingCompleted();
             }
    
     
@@ -145,25 +145,37 @@ namespace mavlinksdk
             };
             inline void OnArmed (const bool& armed) override 
             {
-                std::cout << _INFO_CONSOLE_TEXT << "OnArmed " << std::to_string(armed) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                #ifdef DEBUG
+                    std::cout << _INFO_CONSOLE_TEXT << "OnArmed " << std::to_string(armed) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                #endif
+
                 m_mavlink_events->OnArmed (armed);
 
             };
             inline void OnFlying (const bool& isFlying) override 
             {
-                std::cout << _INFO_CONSOLE_TEXT << "OnFlying " << std::to_string(isFlying) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                #ifdef DEBUG
+                    std::cout << _INFO_CONSOLE_TEXT << "OnFlying " << std::to_string(isFlying) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                #endif
+
                 m_mavlink_events->OnFlying (isFlying);
             };
 
             inline void OnACK (const int& result, const std::string& result_msg) override 
             {
-                std::cout << _INFO_CONSOLE_TEXT << "OnACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                #ifdef DEBUG
+                    std::cout << _INFO_CONSOLE_TEXT << "OnACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                #endif
+
                 m_mavlink_events->OnACK (result, result_msg);
             };
 
             inline void OnStatusText (const std::uint8_t& severity, const std::string& status) override 
             {
-                std::cout << _INFO_CONSOLE_TEXT << "Status " << status << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                #ifdef DEBUG
+                    std::cout << _INFO_CONSOLE_TEXT << "Status " << status << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                #endif
+
                 m_mavlink_events->OnStatusText (severity, status);
             };
             

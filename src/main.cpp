@@ -31,36 +31,84 @@ void uninit ();
 
 
 
+/**
+ * @brief sends binary packet
+ * @details sends binary packet.
+ * Binary packet always has JSON header then 0 then binary data.
+ * 
+ * @param targetPartyID 
+ * @param bmsg 
+ * @param andruav_message_id 
+ * @param internal_message if true @link INTERMODULE_MODULE_KEY @endlink equaqls to Module key
+ */
+void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message)
+{
+    Json fullMessage;
+
+    std::string msgRoutingType = CMD_COMM_GROUP;
+    if (internal_message == true)
+    {
+        msgRoutingType = CMD_TYPE_INTERMODULE;
+        fullMessage[INTERMODULE_MODULE_KEY]             = ModuleKey;
+    }
+    else
+    {
+        if (targetPartyID.length() != 0 )
+        {
+                    
+            msgRoutingType = CMD_COMM_INDIVIDUAL;
+            fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]     = targetPartyID;
+        }
+        
+    }
+        
+        fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(msgRoutingType);
+        fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
+        std::string json_msg = fullMessage.dump();
+        char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
+        std::unique_ptr<char []> msg = std::unique_ptr<char []> (msg_ptr);
+        strcpy(msg_ptr,json_msg.c_str());
+        msg_ptr[json_msg.length()] = 0;
+        strncpy(&msg[json_msg.length()+1], bmsg, bmsg_length);
+
+        cUDPClient.SendBMSG(msg_ptr, json_msg.length()+1+bmsg_length);
+        
+        msg.release();
+}
+
+
+/**
+ * @brief sends JSON packet
+ * @details sends JSON packet.
+ * 
+ * 
+ * @param targetPartyID 
+ * @param jmsg 
+ * @param andruav_message_id 
+ * @param internal_message if true @link INTERMODULE_MODULE_KEY @endlink equaqls to Module key
+ */
 void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& andruav_message_id, const bool& internal_message)
 {
         
         Json fullMessage;
 
-        std::string commType = CMD_COMM_INDIVIDUAL;
+        std::string msgRoutingType = CMD_COMM_GROUP;
         if (internal_message == true)
         {
-            commType = CMD_TYPE_INTERMODULE;
+            msgRoutingType = CMD_TYPE_INTERMODULE;
             fullMessage[INTERMODULE_MODULE_KEY]             = ModuleKey;
         }
         else
         {
             if (targetPartyID.length() != 0 )
             {
-                    
-                /* 
-                    commType other than CMD_COMM_INDIVIDUAL is set by uavos_comm
-                    commType = CMD_COMM_GROUP; 
-                    commType = CMD_COMM_INDIVIDUAL;
-                    
-                    based on the existence of ANDRUAV_PROTOCOL_TARGET_ID
-                */
-
+                msgRoutingType = CMD_COMM_INDIVIDUAL;
                 fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]     = targetPartyID;
             }
         
         }
         
-        fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(commType);
+        fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(msgRoutingType);
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = jmsg;
         cUDPClient.SendJMSG(fullMessage.dump());
@@ -112,21 +160,20 @@ void onReceive (const char * jsonMessage, int len)
     
         if (messageType== TYPE_AndruavModule_ID)
         {
-        const Json moduleID = cmd ["f"];
-        PartyID = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
-        GroupID = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
+            const Json moduleID = cmd ["f"];
+            PartyID = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+            GroupID = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
 
-        if (!bFirstReceived)
-        { 
-            // tell server you dont need to send ID again.
-            std::cout << _SUCCESS_CONSOLE_TEXT_ << "Communicator Server Found " <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-            Json jsonID = createJSONID(false);
-            cUDPClient.SetJSONID (jsonID.dump());
-            bFirstReceived = true;
+            if (!bFirstReceived)
+            { 
+                // tell server you dont need to send ID again.
+                std::cout << _SUCCESS_CONSOLE_TEXT_ << "Communicator Server Found " <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                Json jsonID = createJSONID(false);
+                cUDPClient.SetJSONID (jsonID.dump());
+                bFirstReceived = true;
+            }
+            return ;
         }
-        return ;
-        }
-
     }
     
     cAndruavResalaParser.parseMessage(jMsg);
@@ -166,6 +213,7 @@ void init (int argc, char *argv[])
     cUDPClient.start();
 
     cFCBMain.registerSendJMSG(sendJMSG);
+    cFCBMain.registerSendBMSG(sendBMSG);
     cFCBMain.init();
     
 }

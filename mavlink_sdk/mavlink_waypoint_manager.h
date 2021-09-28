@@ -24,11 +24,11 @@ class CCallBack_WayPoint
 {
     public:
 
-    virtual void onWaypointReached(const int& sequence)                                                             {};
-    virtual void onWayPointsLoadingCompleted()                                                                      {}; 
+    virtual void OnWaypointReached(const int& sequence)                                                             {};
+    virtual void OnWayPointsLoadingCompleted()                                                                      {}; 
     virtual void onMissionACK (const int& result, const int& mission_type, const std::string& result_msg)           {};
-    virtual void onMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)  {};
-    virtual void onWayPointReceived (const mavlink_mission_item_int_t& mission_item_int)                            {};
+    virtual void OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)  {};
+    virtual void OnWayPointReceived (const mavlink_mission_item_int_t& mission_item_int)                            {};
 };
 
 class CMavlinkWayPointManager

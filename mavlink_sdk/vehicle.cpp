@@ -279,7 +279,6 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			mavlink_home_position_t home_position;
 
 			mavlink_msg_home_position_decode(&mavlink_message, &(home_position));
-
 			handle_home_position (home_position);
 		
         }
@@ -294,17 +293,18 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		case MAVLINK_MSG_ID_COMMAND_ACK:
 		{
 			mavlink_command_ack_t command_ack;
+			
 			mavlink_msg_command_ack_decode(&mavlink_message, &command_ack);
-
 			handle_cmd_ack(command_ack);
+
 		}
 		break;
 
 		case MAVLINK_MSG_ID_STATUSTEXT:
 		{
 			mavlink_statustext_t status_text;
-			mavlink_msg_statustext_decode(&mavlink_message, &status_text);
 
+			mavlink_msg_statustext_decode(&mavlink_message, &status_text);
 			handle_status_text (status_text);
 			
 		}

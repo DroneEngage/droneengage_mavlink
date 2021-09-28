@@ -44,31 +44,34 @@
 #define TYPE_AndruavResala_GuidedPoint              1033
 #define TYPE_AndruavResala_DoYAW                    1035
 #define TYPE_AndruavResala_NAV_INFO                 1036
+#define TYPE_AndruavMessage_DistinationLocation     1037
 #define TYPE_AndruavResala_ChangeSpeed              1040
 #define TYPE_AndruavResala_UploadWayPoints          1046
 #define TYPE_AndruavResala_RemoteControlSettings	1047
 #define TYPE_AndruavResala_SET_HOME_LOCATION        1048
 #define TYPE_AndruavResala_RemoteControl2		    1052
 
+#define TYPE_AndruavMessage_LightTelemetry          2022
+
 #define TYPE_AndruavResala_ServoChannel             6001
 
 // Andruav Mission Types
 
-#define TYPE_CMissionItem                                   0
+#define TYPE_CMissionItem                                    0
+#define TYPE_CMissionAction_Spline                           6
 #define TYPE_CMissionItem_WayPointStep                      16 // same as mavlink
-#define TYPE_CMissionAction_TakeOff                         22 // same as mavlink
-#define TYPE_CMissionAction_Landing                         21 // same as mavlink
-#define TYPE_CMissionAction_RTL                             20 // same as mavlink
 #define TYPE_CMissionAction_Circle                          18 // same as mavlink MAV_CMD_NAV_LOITER_TURNS
+#define TYPE_CMissionAction_RTL                             20 // same as mavlink
+#define TYPE_CMissionAction_Landing                         21 // same as mavlink
+#define TYPE_CMissionAction_TakeOff                         22 // same as mavlink
+#define TYPE_CMissionAction_CONTINUE_AND_CHANGE_ALT         30  // same as mavlink  
 #define TYPE_CMissionAction_Guided_Enabled                  92 // same as mavlink
-#define TYPE_CMissionAction_Spline                          6
+#define TYPE_CMissionAction_Delay                           93 // same as mavlink 
+#define TYPE_CMissionAction_Delay_STATE_MACHINE            112 // same as mavlink
+#define TYPE_CMissionAction_ChangeAlt                      113 // same as mavlink   
+#define TYPE_CMissionAction_ChangeHeading                  115 // same as mavlink 
 #define TYPE_CMissionAction_ChangeSpeed                    178 // same as mavlink
-#define TYPE_CMissionAction_ChangeAlt                     113 // same as mavlink   
-#define TYPE_CMissionAction_CONTINUE_AND_CHANGE_ALT       30  // same as mavlink  
-#define TYPE_CMissionAction_ChangeHeading                 115 // same as mavlink 
-#define TYPE_CMissionAction_Delay                          93 // same as mavlink 
-#define TYPE_CMissionAction_Delay_STATE_MACHINE           112 // same as mavlink
-#define TYPE_CMissionAction_DummyMission                99999
+#define TYPE_CMissionAction_DummyMission                 99999
 
 // // Remote Control Sub Actions
 // #define RC_SUB_ACTION_RELEASED                      0
@@ -78,6 +81,7 @@
 // #define RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED      8
 
 // Remote Execute Commands
+#define RemoteCommand_TELEMETRYCTRL              108 // Telemetry streaming
 #define RemoteCommand_GET_WAY_POINTS             500 // get from andruav not FCB but you can still read from fcb and refresh all   
 #define RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB 501
 #define RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB  502
@@ -135,3 +139,9 @@
 #define WAYPOINT_NO_CHUNK                       0
 #define WAYPOINT_CHUNK                          1
 #define WAYPOINT_LAST_CHUNK                     999
+
+
+// Telemetry Request Remote Execute
+#define CONST_TELEMETRY_REQUEST_START		1
+#define CONST_TELEMETRY_REQUEST_END			2
+#define CONST_TELEMETRY_REQUEST_RESUME		3

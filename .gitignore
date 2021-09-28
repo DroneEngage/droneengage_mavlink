@@ -25,3 +25,6 @@ mavlink_control
 /Debug/
 
 *.txt
+
+
+/doxygen_doc

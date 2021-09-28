@@ -20,6 +20,13 @@ namespace fcb
 {
 
 
+    typedef struct 
+    {
+        std::string party_id;
+        bool is_online;
+
+    } ANDRUAV_UNIT_STRUCT;
+
     /**
      * @brief This class is the heart of FCB module. 
      * It handles logic and vehicle states that is related to Andruav.
@@ -72,9 +79,24 @@ namespace fcb
 
             void loopScheduler();
 
-            void registerSendJMSG (SENDJMSG_CALLBACK sendJMSG)
+            /**
+             * @details register callback function to send message using it.
+             * 
+             * @param sendJMSG of type @link SEND_JMSG_CALLBACK @endlink 
+             */
+            void registerSendJMSG (SEND_JMSG_CALLBACK sendJMSG)
             {
                 m_fcb_facade.setSendJMSG(sendJMSG);
+            };            
+
+            /**
+             * @details register callback function to send message using it.
+             * 
+             * @param sendBMSG of type @link SEND_BMSG_CALLBACK @endlink 
+             */
+            void registerSendBMSG (SEND_BMSG_CALLBACK sendJMSG)
+            {
+                m_fcb_facade.setSendBMSG(sendJMSG);
             };            
 
             /* cannot connect to uavos comm*/
@@ -94,9 +116,9 @@ namespace fcb
 
         public:
 
-           void clearWayPoints();
-           void reloadWayPoints();
-           void saveWayPointsToFCB();
+            void clearWayPoints();
+            void reloadWayPoints();
+            void saveWayPointsToFCB();
 
             void releaseRemoteControl();
             void updateRemoteControlChannels(const int16_t rc_channels[18]);
@@ -107,6 +129,8 @@ namespace fcb
             void freezeRemoteControl();
             void enableRemoteControl();
             void enableRemoteControlGuided();
+
+            void toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level);
 
         // Events implementation of mavlinksdk::CMavlinkEvents
         public:
@@ -122,18 +146,16 @@ namespace fcb
             void OnHomePositionUpdated(const mavlink_home_position_t& home_position)  override;
             void onMissionACK (const int& result, const int& mission_type, const std::string& result_msg)override;
             void OnACK (const int& result, const std::string& result_msg) override;
-            void onWaypointReached(const int& seq) override;
-            void onWayPointReceived(const mavlink_mission_item_int_t& mission_item_int) override;
-            void onWayPointsLoadingCompleted ();
-            void onMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg) override;            
+            void OnWaypointReached(const int& seq) override;
+            void OnWayPointReceived(const mavlink_mission_item_int_t& mission_item_int) override;
+            void OnWayPointsLoadingCompleted ();
+            void OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg) override;            
             void OnParamChanged(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override;
 
 
         private: 
             void initVehicleChannelLimits();
-            
-
-
+     
         private:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
             uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
@@ -150,7 +172,12 @@ namespace fcb
             int m_connection_type;
             ANDRUAV_VEHICLE_INFO m_andruav_vehicle_info;
             uavos::fcb::mission::ANDRUAV_UNIT_MISSION m_andruav_missions;      
-            
+
+            /**
+             * @brief Andruav units subscribed in telemetry streaming.
+             * 
+             */
+            std::vector<std::unique_ptr<uavos::fcb::ANDRUAV_UNIT_STRUCT>> m_TelemetryUnits;
             
             bool m_exit_thread = false;
             std::thread m_scheduler_thread;

@@ -60,29 +60,36 @@ namespace fcb
 
         public:
 
-            void sendID(const std::string&target_party_id);
-            void requestID(const std::string&target_party_id);
-            void sendTelemetryPanic(const std::string&target_party_id);
-            void sendErrorMessage(const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description);
-            void sendGPSInfo(const std::string&target_party_id);
-            void sendNavInfo(const std::string&target_party_id);
-            void sendIMUInfo(const std::string&target_party_id);
-            void sendPowerInfo(const std::string&target_party_id);
-            void sendHomeLocation(const std::string&target_party_id);
-            void sendWayPoints(const std::string&target_party_id);
-            void sendTelemetryData(const std::string&target_party_id);
-            void sendServoReadings(const std::string&target_party_id);
-            void sendWayPointReached (const std::string&target_party_id, const int& mission_sequence);
+            void sendID(const std::string&target_party_id) const;
+            void requestID(const std::string&target_party_id) const;
+            void sendTelemetryPanic(const std::string&target_party_id) const;
+            void sendErrorMessage(const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const;
+            void sendGPSInfo(const std::string&target_party_id) const;
+            void sendNavInfo(const std::string&target_party_id) const;
+            void sendIMUInfo(const std::string&target_party_id) const;
+            void sendPowerInfo(const std::string&target_party_id) const;
+            void sendHomeLocation(const std::string&target_party_id) const;
+            void sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude) const;
+            void sendWayPoints(const std::string&target_party_id) const;
+            void sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message) const;
+            void sendServoReadings(const std::string&target_party_id) const;
+            void sendWayPointReached (const std::string&target_party_id, const int& mission_sequence) const;
             
-            void setSendJMSG (SENDJMSG_CALLBACK sendJMSG)
+            void setSendJMSG (SEND_JMSG_CALLBACK sendJMSG)
             {
                 m_sendJMSG = sendJMSG;
+            };
+            
+            void setSendBMSG (SEND_BMSG_CALLBACK sendBMSG)
+            {
+                m_sendBMSG = sendBMSG;
             };
 
         private:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
             
-            SENDJMSG_CALLBACK m_sendJMSG = NULL;
+            SEND_JMSG_CALLBACK m_sendJMSG = NULL;
+            SEND_BMSG_CALLBACK m_sendBMSG = NULL;
     };
 }
 }

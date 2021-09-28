@@ -292,3 +292,24 @@ void uavos::comm::CUDPClient::SendJMSG(const std::string& jmsg)
     
 
 }
+
+
+/**
+ * Sends binary to Communicator
+ **/
+void uavos::comm::CUDPClient::SendBMSG (const char * msg, const int length)
+{
+    
+    try
+    {
+    sendto(m_SocketFD, msg, length,  
+        MSG_CONFIRM, (const struct sockaddr *) m_CommunicatorModuleAddress, 
+            sizeof(struct sockaddr_in));         
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    
+
+}

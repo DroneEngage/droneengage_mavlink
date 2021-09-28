@@ -25,6 +25,7 @@ bool uavos::fcb::CMavlinkTrafficOptimizer::shouldForwardThisMessage (const mavli
     if ((now - message_optimization_card->time_of_last_sent_message) >= message_optimization_card->timeout[m_optimization_level])
     {
         message_optimization_card->time_of_last_sent_message = now;
+        return true;
     }
     return false;
 }

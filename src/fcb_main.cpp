@@ -351,11 +351,29 @@ void uavos::fcb::CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_m
 {
     //std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnMessageReceived" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     //m_traffic_optimizer.shouldForwardThisMessage (mavlink_message);
-    const bool resend = m_mavlink_optimizer.shouldForwardThisMessage (mavlink_message);
     
     if (mavlink_message.msgid == MAVLINK_MSG_ID_HEARTBEAT)
     {
         OnHeartBeat();
+    }
+
+    // if streaming active check each message to forward.
+    if (m_mavlink_optimizer.shouldForwardThisMessage (mavlink_message))
+    {
+        std::vector<std::unique_ptr<uavos::fcb::ANDRUAV_UNIT_STRUCT>> ::iterator it;
+        
+        for(it=m_TelemetryUnits.begin(); it!=m_TelemetryUnits.end(); it++)
+        {
+            uavos::fcb::ANDRUAV_UNIT_STRUCT *unit_ptr = it->get();
+        
+            if (unit_ptr->is_online == true)
+            {
+                #ifdef DEBUG
+	                std::cout << "send to " << unit_ptr->party_id << std::endl;
+                #endif
+                m_fcb_facade.sendTelemetryData (unit_ptr->party_id, mavlink_message);
+            }
+        }
     }
 
     return ;
@@ -459,7 +477,7 @@ void uavos::fcb::CFCBMain::OnFlying (const bool& is_flying)
 
 void uavos::fcb::CFCBMain::OnStatusText (const std::uint8_t& severity, const std::string& status)
 {
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText " << _NORMAL_CONSOLE_TEXT_ << status << std::endl;
     
     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, severity, status);
 
@@ -504,12 +522,11 @@ void uavos::fcb::CFCBMain::onMissionACK (const int& result, const int& mission_t
     }
 
     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, sevirity, result_msg);
-
     return ;
 }
 
 
-void uavos::fcb::CFCBMain::onWaypointReached(const int& seq) 
+void uavos::fcb::CFCBMain::OnWaypointReached(const int& seq) 
 {
     m_andruav_vehicle_info.current_waypoint = seq;
     m_fcb_facade.sendWayPointReached (std::string(), seq);
@@ -517,7 +534,7 @@ void uavos::fcb::CFCBMain::onWaypointReached(const int& seq)
     return ;
 }
 
-void uavos::fcb::CFCBMain::onWayPointReceived(const mavlink_mission_item_int_t& mission_item_int)
+void uavos::fcb::CFCBMain::OnWayPointReceived(const mavlink_mission_item_int_t& mission_item_int)
 {
    if (mission_item_int.mission_type == MAV_MISSION_TYPE_MISSION)
    {
@@ -529,7 +546,7 @@ void uavos::fcb::CFCBMain::onWayPointReceived(const mavlink_mission_item_int_t& 
     return ;
 }
 
-void uavos::fcb::CFCBMain::onWayPointsLoadingCompleted ()
+void uavos::fcb::CFCBMain::OnWayPointsLoadingCompleted ()
 {
     // ?Please check if we need to notify GCS.
     // notify that mission has been updated
@@ -546,7 +563,7 @@ void uavos::fcb::CFCBMain::onWayPointsLoadingCompleted ()
  * @param mission_type 
  * @param result_msg 
  */
-void uavos::fcb::CFCBMain::onMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)
+void uavos::fcb::CFCBMain::OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)
 {
     if (result == MAV_MISSION_RESULT::MAV_MISSION_ACCEPTED)
     {
@@ -898,3 +915,72 @@ void uavos::fcb::CFCBMain::updateRemoteControlChannels(const int16_t rc_channels
     }
 
 }
+
+
+/**
+ * @details Starts, Stops & Update Mavlink streaming to other units & GCS.
+ * 
+ * @param target_party_id 
+ * @param request_type @link CONST_TELEMETRY_REQUEST_START @endlink @link CONST_TELEMETRY_REQUEST_END @endlink @link CONST_TELEMETRY_REQUEST_RESUME @endlink 
+ * @param streaming_level from 0 means no optimization to 3 max optimization.
+ */
+void uavos::fcb::CFCBMain::toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level)
+{
+        printf("toggleMavlinkStreaming %s %d %d\r\n", target_party_id.c_str(), request_type, streaming_level);
+
+        if (streaming_level != -1)
+        {
+            // update streaming level globally.
+            m_mavlink_optimizer.setOptimizationLevel(streaming_level);
+            m_mavlink_optimizer.reset_timestamps();
+        }
+        
+        if (!target_party_id.empty())
+        {
+            std::vector<std::unique_ptr<uavos::fcb::ANDRUAV_UNIT_STRUCT>> ::iterator it;
+            
+            bool found = false;
+            for(it=m_TelemetryUnits.begin(); it!=m_TelemetryUnits.end(); it++)
+            {
+                uavos::fcb::ANDRUAV_UNIT_STRUCT *unit = it->get();
+                
+                std::cout << "compare to " << unit->party_id << " to " << target_party_id << std::endl;
+                
+                if (unit->party_id.compare(target_party_id)==0)
+                {
+                    found = true;
+                    if (request_type == CONST_TELEMETRY_REQUEST_END)
+                    {
+                        std::cout << "found unit->is_online = false" << std::endl;
+                        unit->is_online = false;
+                    }
+                    else
+                    {
+                        std::cout << "compare to " << unit->party_id << " to " << target_party_id << std::endl;
+                        if (unit->party_id.compare(target_party_id)==0)
+                        {
+                            std::cout << "found unit->is_online = true" << std::endl;
+                            unit->is_online = true;
+                        }
+                    }
+                }
+            }
+
+            if (!found && (request_type != CONST_TELEMETRY_REQUEST_END))
+            {
+                std::cout << "Adding to m_TelemetryUnits " << target_party_id << std::endl;
+                uavos::fcb::ANDRUAV_UNIT_STRUCT * unit_ptr= new uavos::fcb::ANDRUAV_UNIT_STRUCT;
+                unit_ptr->party_id = target_party_id;
+                unit_ptr->is_online = true;
+                
+                m_TelemetryUnits.push_back(std::unique_ptr<uavos::fcb::ANDRUAV_UNIT_STRUCT> (unit_ptr));
+            }
+        }
+
+        
+
+        return ;
+
+        return ;
+}
+

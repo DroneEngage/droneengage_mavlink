@@ -44,47 +44,47 @@ class CMavlinkCommand
 
     public:
         
-        void doSetMode   (const int& mode);
-        void doArmDisarm (const bool& arm, const bool& force);
+        void doSetMode   (const int& mode)  const;
+        void doArmDisarm (const bool& arm, const bool& force)  const;
             
-        void setHome (const float& yaw, const float& latitude, const float& longitude, const float& altitude);
-        void setROI (const float& latitude, const float& longitude, const float& altitude);
-        void resetROI ();
-        void cmdTerminalFlight ();
-        void changeAltitude (const float& altitude);
-        void takeOff (const float& altitude);
-        void gotoGuidedPoint (const double& latitude, const double& longitude, const double& altitude);
-        void setYawCondition (const double& target_angle, const double& turn_rate, const bool& is_clock_wise, const bool& is_relative);
-        void setNavigationSpeed ( const int& speed_type, const double& speed, const double& throttle, const bool& is_relative);
-        void reloadWayPoints ();
-        void clearWayPoints ();
-        void setCurrentMission (const int& mission_number);
-        void requestMissionList ();
-        void getWayPointByNumber (const int& mission_number);
-        void setMissionCount (const int& mission_count, MAV_MISSION_TYPE mission_type);
-        void writeMission (std::map <int, mavlink_mission_item_int_t> mavlink_mission);
-        void writeMissionItem (mavlink_mission_item_int_t mavlink_mission);
-        void sendMissionAck ();
-        void writeParameter (const std::string& param_name, const double &value);
-        void readParameter (const std::string& param_name);
+        void setHome (const float& yaw, const float& latitude, const float& longitude, const float& altitude) const;
+        void setROI (const float& latitude, const float& longitude, const float& altitude) const;
+        void resetROI () const;
+        void cmdTerminateFlight () const;
+        void changeAltitude (const float& altitude) const;
+        void takeOff (const float& altitude) const;
+        void gotoGuidedPoint (const double& latitude, const double& longitude, const double& altitude) const;
+        void setYawCondition (const double& target_angle, const double& turn_rate, const bool& is_clock_wise, const bool& is_relative) const;
+        void setNavigationSpeed ( const int& speed_type, const double& speed, const double& throttle, const bool& is_relative) const;
+        void reloadWayPoints () const;
+        void clearWayPoints () const;
+        void setCurrentMission (const int& mission_number) const;
+        void requestMissionList () const;
+        void getWayPointByNumber (const int& mission_number) const;
+        void setMissionCount (const int& mission_count, MAV_MISSION_TYPE mission_type) const;
+        void writeMission (std::map <int, mavlink_mission_item_int_t> mavlink_mission) const;
+        void writeMissionItem (mavlink_mission_item_int_t mavlink_mission) const;
+        void sendMissionAck () const;
+        void writeParameter (const std::string& param_name, const double &value) const;
+        void readParameter (const std::string& param_name) const;
         
-        void releaseRCChannels();
-        void sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], int channel_length);
+        void releaseRCChannels() const;
+        void sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], int channel_length) const;
         
 
-        void ctrlGuidedVelocityInLocalFrame (const float vx, const float vy, const float vz, const float yaw_rate);
+        void ctrlGuidedVelocityInLocalFrame (const float vx, const float vy, const float vz, const float yaw_rate) const;
 
         /**
          * @brief 
          * (MAVLink 2) Request all parameters of this component. All parameters should be emitted in response as PARAM_EXT_VALUE.
          * 
          */
-        void requestExtParametersList ();
-        void requestParametersList ();
+        void requestExtParametersList () const;
+        void requestParametersList () const;
 
-        void setServo (const int& channel, const int& pwm);
+        void setServo (const int& channel, const int& pwm) const;
         
-        void requestHomeLocation ();
+        void requestHomeLocation () const;
 
     protected:
         void sendLongCommand (const uint16_t& command,
@@ -95,7 +95,7 @@ class CMavlinkCommand
                 const float& param4 = 0.0f,
                 const float& param5 = 0.0f,
                 const float& param6 = 0.0f,
-                const float& param7 = 0.0f);
+                const float& param7 = 0.0f)  const;
 
 
 };
