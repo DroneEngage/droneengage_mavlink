@@ -3,6 +3,9 @@
 
 #include <map>
 
+#include <common/mavlink.h>
+#include <ardupilotmega/ardupilotmega.h>
+
 #include "mavlink_helper.h"
 
 namespace mavlinksdk

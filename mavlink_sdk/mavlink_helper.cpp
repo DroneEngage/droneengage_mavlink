@@ -81,7 +81,7 @@ std::string CMavlinkHelper::getACKError (const int& result)
     std::string err;
     switch (result)
     {
-        case 0:  // I found ZEO reply with success !!
+        //case 0:  // I found ZEO reply with success !!
         case MAV_CMD_ACK_OK:
             err = "succeeded";
             break;

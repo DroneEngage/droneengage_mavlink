@@ -1,5 +1,4 @@
 #include <iostream>
-#include <common/mavlink.h>
 
 #include "mavlink_command.h"
 #include "mavlink_sdk.h"

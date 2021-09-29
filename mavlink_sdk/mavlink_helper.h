@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <string>
-#include <common/mavlink.h>
 
 namespace mavlinksdk
 {

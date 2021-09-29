@@ -1,5 +1,4 @@
 #include <iostream>
-#include <common/mavlink.h>
 #include "helpers/colors.h"
 #include "mavlink_helper.h"
 #include "mavlink_command.h"

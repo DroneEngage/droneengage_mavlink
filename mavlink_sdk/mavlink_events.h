@@ -1,7 +1,6 @@
 #ifndef MAVLINK_CEVENTS_H_
 #define MAVLINK_CEVENTS_H_
 #include <iostream>
-#include <common/common.h>
 
 namespace mavlinksdk
 {

@@ -3,6 +3,7 @@
 
 #include <map>
 #include <common/mavlink.h>
+#include <ardupilotmega/ardupilotmega.h>
 
 #define MAX_RC_CHANNELS     18
 

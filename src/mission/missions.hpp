@@ -4,7 +4,7 @@
 #include <map>
 #include <memory>
 #include <iostream>
-#include <mavlink_command.h>
+#include <all/all.h>
 
 #include "../helpers/json.hpp"
 using Json = nlohmann::json;

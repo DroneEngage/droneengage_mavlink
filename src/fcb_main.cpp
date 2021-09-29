@@ -585,7 +585,6 @@ void uavos::fcb::CFCBMain::OnACK (const int& result, const std::string& result_m
     {
         case MAV_RESULT_ACCEPTED:
         case MAV_RESULT_IN_PROGRESS:
-        case MAV_RESULT_CANCELLED:
             sevirity = NOTIFICATION_TYPE_INFO;
         break;
 
@@ -603,6 +602,7 @@ void uavos::fcb::CFCBMain::OnACK (const int& result, const std::string& result_m
             sevirity = NOTIFICATION_TYPE_WARNING;
         break;
     }
+
 
     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, sevirity, result_msg);
 

@@ -4,7 +4,6 @@
 
 #include "./helpers/colors.h"
 #include "./helpers/utils.h"
-#include <common/mavlink.h>
 #include "vehicle.h"
 
 
