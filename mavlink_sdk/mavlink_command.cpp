@@ -47,6 +47,13 @@ void CMavlinkCommand::sendLongCommand (const uint16_t& command,
 }
 
 
+void CMavlinkCommand::sendNative(const mavlink_message_t mavlink_message) const
+{
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	return ;
+}
 
 /**
  * https://mavlink.io/en/messages/common.html#MAV_CMD_COMPONENT_ARM_DISARM

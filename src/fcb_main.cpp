@@ -368,7 +368,7 @@ void uavos::fcb::CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_m
         
             if (unit_ptr->is_online == true)
             {
-                #ifdef DEBUG
+                #ifdef DEBUG_2
 	                std::cout << "send to " << unit_ptr->party_id << std::endl;
                 #endif
                 m_fcb_facade.sendTelemetryData (unit_ptr->party_id, mavlink_message);

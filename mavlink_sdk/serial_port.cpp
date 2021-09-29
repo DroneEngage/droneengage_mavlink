@@ -108,9 +108,7 @@ initialize_defaults()
 // ------------------------------------------------------------------------------
 //   Read from Serial
 // ------------------------------------------------------------------------------
-int
-mavlinksdk::comm::SerialPort::
-read_message(mavlink_message_t &message)
+int mavlinksdk::comm::SerialPort::read_message(mavlink_message_t &message)
 {
 	uint8_t          cp;
 	mavlink_status_t status;

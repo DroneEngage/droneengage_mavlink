@@ -40,8 +40,7 @@ class CUDPClient
         void stop();
         void SetJSONID (std::string jsonID);
         void SetMessageOnReceive (void (*onReceive)(const char *, int len));
-        void SendJMSG(const std::string& jmsg);
-        void SendBMSG(const char * msg, const int length);
+        void sendMSG(const char * msg, const int length);
 
     protected:
         // This static function only needed once

@@ -30,7 +30,7 @@ namespace fcb
 
         public:
 
-            void parseMessage (Json &andruav_message);
+            void parseMessage (Json &andruav_message, const char * message, const int & message_length);
             void Scheduler_1Hz ();
             
         protected:

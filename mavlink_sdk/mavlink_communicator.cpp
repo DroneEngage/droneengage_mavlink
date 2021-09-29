@@ -60,7 +60,11 @@ const int mavlinksdk::comm::CMavlinkCommunicator::send_message (const mavlink_me
 	return len;
 }
 
-void mavlinksdk::comm::CMavlinkCommunicator::_readThread ()
+/**
+ * @brief called in a separate thread for loop on reading.
+ * @details loop and process message by @link read_messages @endlink 
+ */
+void mavlinksdk::comm::CMavlinkCommunicator::readThread ()
 {
     std::cout << _SUCCESS_CONSOLE_TEXT_ << "_readThread Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
  
@@ -78,12 +82,22 @@ void mavlinksdk::comm::CMavlinkCommunicator::_readThread ()
 }
 
 
-void mavlinksdk::comm::CMavlinkCommunicator::_writeThread ()
+void mavlinksdk::comm::CMavlinkCommunicator::writeThread ()
 {
     std::cout << _SUCCESS_CONSOLE_TEXT_ << "_writeThread Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+
+	while ( !m_time_to_exit )
+	{
+		wait_time_nsec(1,0); // Read batches at 10Hz
+	}
 }
 
 
+/**
+ * @brief does actuall reading.
+ * @details reads from port and sends CCallBack_Communicator::OnConnected CCallBack_Communicator::OnMessageRecieved
+ * @see @link CCallBack_Communicator @endlink
+ */
 void mavlinksdk::comm::CMavlinkCommunicator::read_messages ()
 {
 	// Blocking wait for new data
@@ -113,25 +127,38 @@ void mavlinksdk::comm::CMavlinkCommunicator::read_messages ()
 //  Pthread Starter Helper Functions
 // ------------------------------------------------------------------------------
 
+/**
+ * @brief Reading thread
+ * calls @link readThread @endlink readThread
+ * @param args pointer of type @link CMavlinkCommunicator @endlink
+ * @return void* 
+ */
 void* mavlinksdk::comm::startReadThread(void *args)
 {
 	// takes an autopilot object argument
 	mavlinksdk::comm::CMavlinkCommunicator *comm = (mavlinksdk::comm::CMavlinkCommunicator *)args;
 
 	// run the object's read thread
-	comm->_readThread();
+	comm->readThread();
 
 	// done!
 	return NULL;
 }
 
+
+/**
+ * @brief Writing thread
+ * calls @link CMavlinkCommunicator @endlink writeThread.
+ * @param args  pointer of type @link CMavlinkCommunicator @endlink
+ * @return void* 
+ */
 void* mavlinksdk::comm::startWriteThread(void *args)
 {
 	// takes an autopilot object argument
 	mavlinksdk::comm::CMavlinkCommunicator *comm = (mavlinksdk::comm::CMavlinkCommunicator *)args;
 
 	// run the object's read thread
-	comm->_writeThread();
+	comm->writeThread();
 
 	// done!
 	return NULL;

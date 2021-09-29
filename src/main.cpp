@@ -26,7 +26,7 @@ uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
 
 uavos::comm::CUDPClient& cUDPClient = uavos::comm::CUDPClient::getInstance();  
 
-void onReceive (const char * jsonMessage, int len);
+void onReceive (const char * message, int len);
 void uninit ();
 
 
@@ -65,13 +65,18 @@ void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bm
         fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(msgRoutingType);
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
         std::string json_msg = fullMessage.dump();
+        
+        // prepare an array for the whole message
         char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
         std::unique_ptr<char []> msg = std::unique_ptr<char []> (msg_ptr);
+        // copy json part
         strcpy(msg_ptr,json_msg.c_str());
+        // add zero '0' delimeter
         msg_ptr[json_msg.length()] = 0;
-        strncpy(&msg[json_msg.length()+1], bmsg, bmsg_length);
+        // copy binary message
+        memcpy(&msg[json_msg.length()+1], bmsg, bmsg_length);
 
-        cUDPClient.SendBMSG(msg_ptr, json_msg.length()+1+bmsg_length);
+        cUDPClient.sendMSG(msg_ptr, json_msg.length()+1+bmsg_length);
         
         msg.release();
 }
@@ -111,7 +116,8 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
         fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(msgRoutingType);
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = jmsg;
-        cUDPClient.SendJMSG(fullMessage.dump());
+        const std::string msg = fullMessage.dump();
+        cUDPClient.sendMSG(msg.c_str(), msg.length());
 }
 
 /**
@@ -140,18 +146,16 @@ const Json createJSONID (bool reSend)
         return jsonID;
 }
 
-void onReceive (const char * jsonMessage, int len)
+void onReceive (const char * message, int len)
 {
     static bool bFirstReceived = false;
         
     #ifdef DEBUG        
-        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: " << jsonMessage << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
-
     
-    Json jMsg;
     
-    jMsg = Json::parse(jsonMessage);
+    Json jMsg = Json::parse(message);
 
     if (std::strcmp(jMsg[INTERMODULE_COMMAND_TYPE].get<std::string>().c_str(),CMD_TYPE_INTERMODULE)==0)
     {
@@ -176,7 +180,7 @@ void onReceive (const char * jsonMessage, int len)
         }
     }
     
-    cAndruavResalaParser.parseMessage(jMsg);
+    cAndruavResalaParser.parseMessage(jMsg, message, len);
     
 }
 

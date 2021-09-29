@@ -23,25 +23,25 @@ namespace comm
     };
 
 
+    
     /**
-     * *Important: This class is singleton so that module can handle only one vehicle. It is designed to be simple.
+     * @brief 
+     * @details Important: This class is singleton so that module can handle only one vehicle. It is designed to be simple.
      * 
-     * */
+     * 
+     */
     class CMavlinkCommunicator
     {
 
         public:
         
             CMavlinkCommunicator (std::shared_ptr<mavlinksdk::comm::GenericPort> port,
-                        CCallBack_Communicator* callback_communicator): m_port(port)
+                        CCallBack_Communicator* callback_communicator): m_port(port), m_callback_communicator(callback_communicator)
             {
-                //m_port = port;
-
-                m_callback_communicator = callback_communicator;
+                  
             }
 
             ~CMavlinkCommunicator();
-
 
         protected:
             std::shared_ptr<mavlinksdk::comm::GenericPort> m_port;
@@ -57,8 +57,8 @@ namespace comm
             void start ();
             void stop ();
             const int send_message (const mavlink_message_t& mavlink_message);
-            void _readThread ();
-            void _writeThread ();
+            void readThread ();
+            void writeThread ();
 
         protected:
             void read_messages ();

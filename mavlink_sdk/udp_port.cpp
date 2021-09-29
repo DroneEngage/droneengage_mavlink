@@ -64,8 +64,7 @@
 // ------------------------------------------------------------------------------
 //   Con/De structors
 // ------------------------------------------------------------------------------
-mavlinksdk::comm::UDPPort::
-UDPPort(const char * target_ip_, int udp_port_)
+mavlinksdk::comm::UDPPort::UDPPort(const char * target_ip_, int udp_port_)
 {
 	initialize_defaults();
 	target_ip_cached = std::string(target_ip_);
@@ -112,13 +111,11 @@ initialize_defaults()
 // ------------------------------------------------------------------------------
 //   Read from UDP
 // ------------------------------------------------------------------------------
-int
-mavlinksdk::comm::UDPPort::
-read_message(mavlink_message_t &message)
+int mavlinksdk::comm::UDPPort::read_message(mavlink_message_t &message)
 {
 	uint8_t          cp;
 	mavlink_status_t status;
-	uint8_t          msgReceived = false;
+	uint8_t          msgReceived = 0;
 
 	// --------------------------------------------------------------------------
 	//   READ FROM PORT
@@ -137,7 +134,7 @@ read_message(mavlink_message_t &message)
 		msgReceived = mavlink_parse_char(MAVLINK_COMM_1, cp, &message, &status);
 
 		// check for dropped packets
-		if ( (lastStatus.packet_rx_drop_count != status.packet_rx_drop_count) && debug )
+		if ((lastStatus.packet_rx_drop_count != status.packet_rx_drop_count) && debug )
 		{
 			printf("ERROR: DROPPED %d PACKETS\n", status.packet_rx_drop_count);
 			unsigned char v=cp;
@@ -192,9 +189,7 @@ read_message(mavlink_message_t &message)
 // ------------------------------------------------------------------------------
 //   Write to UDP
 // ------------------------------------------------------------------------------
-int
-mavlinksdk::comm::UDPPort::
-write_message(const mavlink_message_t &message)
+int mavlinksdk::comm::UDPPort::write_message(const mavlink_message_t &message)
 {
 	char buf[300];
 
@@ -219,12 +214,11 @@ write_message(const mavlink_message_t &message)
 // ------------------------------------------------------------------------------
 //   Open UDP Port
 // ------------------------------------------------------------------------------
+
 /**
  * throws EXIT_FAILURE if could not open the port
  */
-void
-mavlinksdk::comm::UDPPort::
-start()
+void mavlinksdk::comm::UDPPort::start()
 {
 	// --------------------------------------------------------------------------
 	//   OPEN PORT
@@ -278,9 +272,7 @@ start()
 // ------------------------------------------------------------------------------
 //   Close UDP Port
 // ------------------------------------------------------------------------------
-void
-mavlinksdk::comm::UDPPort::
-stop()
+void mavlinksdk::comm::UDPPort::stop()
 {
 	std::cout << _INFO_CONSOLE_TEXT << "Closing UDP Port" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
@@ -301,9 +293,7 @@ stop()
 // ------------------------------------------------------------------------------
 //   Read Port with Lock
 // ------------------------------------------------------------------------------
-int
-mavlinksdk::comm::UDPPort::
-_read_port(uint8_t &cp)
+int mavlinksdk::comm::UDPPort::_read_port(uint8_t &cp)
 {
 
 	socklen_t len;

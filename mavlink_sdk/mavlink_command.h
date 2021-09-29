@@ -86,6 +86,8 @@ class CMavlinkCommand
         
         void requestHomeLocation () const;
 
+        void sendNative(const mavlink_message_t mavlink_message) const;
+
     protected:
         void sendLongCommand (const uint16_t& command,
                 const bool& confirmation = false,

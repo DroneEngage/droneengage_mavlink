@@ -19,9 +19,10 @@ void Scheduler_1Hz ()
  * 
  * @param andruav_message message received from uavos_comm
  */
-void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
+void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * full_message, const int & full_message_length)
 {
     const int messageType = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+    bool is_binary = !(full_message[full_message_length-1]==125 || (full_message[full_message_length-2]==125));   // "}".charCodeAt(0)  IS TEXT / BINARY Msg  
     
     if (messageType == TYPE_AndruavResala_RemoteExecute)
     {
@@ -33,10 +34,6 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
     else
     {
         Json message = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
-        
-        #ifdef DEBUG
-            std::cout << "messageType: " << messageType << std::endl;
-        #endif
         
         switch (messageType)
         {
@@ -339,9 +336,21 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message)
 
             }
 
-            case TYPE_AndruavResala_RemoteExecute:
-            {
-                parseRemoteExecute(andruav_message);
+            case TYPE_AndruavMessage_LightTelemetry:
+            { // this is a binary message
+                // search for char '0' and then binary message is the next byte after it.
+                const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
+                int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1) );
+
+                mavlink_status_t status;
+	            mavlink_message_t mavlink_message;
+                for (int i=0; i<binary_length; ++ i)
+                {
+		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_1, binary_message[i+ 1], &mavlink_message, &status);
+                }
+
+                 mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
+                
             }
             break;
 
