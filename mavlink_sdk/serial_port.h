@@ -132,7 +132,7 @@ namespace comm
 			void initialize_defaults();
 
 			bool debug;
-			const char *uart_name;
+			std::string uart_name;
 			int  baudrate;
 			bool is_open;
 

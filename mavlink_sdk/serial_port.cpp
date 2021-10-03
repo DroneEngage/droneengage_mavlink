@@ -66,7 +66,7 @@ mavlinksdk::comm::SerialPort::
 SerialPort(const char *uart_name_ , int baudrate_)
 {
 	initialize_defaults();
-	uart_name = uart_name_;
+	uart_name = std::string(uart_name_);
 	baudrate  = baudrate_;
 }
 
@@ -92,7 +92,7 @@ initialize_defaults()
 	fd     = -1;
 	is_open = false;
 
-	uart_name = (char*)"/dev/ttyUSB0";
+	uart_name = std::string("/dev/ttyUSB0");
 	baudrate  = 57600;
 
 	// Start mutex
@@ -218,7 +218,7 @@ start()
 	// --------------------------------------------------------------------------
 	printf("OPEN PORT\n");
 
-	fd = _open_port(uart_name);
+	fd = _open_port(uart_name.c_str());
 
 	// Check success
 	if (fd == -1)
@@ -242,14 +242,14 @@ start()
 	}
 	if (fd <= 0)
 	{
-		printf("Connection attempt to port %s with %d baud, 8N1 failed, exiting.\n", uart_name, baudrate);
+		std::cout << "Connection attempt to port" <<  uart_name << " with "<< baudrate << " baud, 8N1 failed, exiting." << std::endl;
 		throw EXIT_FAILURE;
 	}
 
 	// --------------------------------------------------------------------------
 	//   CONNECTED!
 	// --------------------------------------------------------------------------
-	printf("Connected to %s with %d baud, 8 data bits, no parity, 1 stop bit (8N1)\n", uart_name, baudrate);
+	std::cout << "Connection attempt to port" <<  uart_name << " with "<< baudrate << " baud, 8 data bits, no parity, 1 stop bit (8N1)." << std::endl;
 	lastStatus.packet_rx_drop_count = 0;
 
 	is_open = true;
@@ -430,8 +430,22 @@ _setup_port(int baud, int data_bits, int stop_bits, bool parity, bool hardware_c
 				return false;
 			}
 			break;
+		case 500000:
+			if (cfsetispeed(&config, B500000) < 0 || cfsetospeed(&config, B500000) < 0)
+			{
+				fprintf(stderr, "\nERROR: Could not set desired baud rate of %d Baud\n", baud);
+				return false;
+			}
+			break;
 		case 921600:
 			if (cfsetispeed(&config, B921600) < 0 || cfsetospeed(&config, B921600) < 0)
+			{
+				fprintf(stderr, "\nERROR: Could not set desired baud rate of %d Baud\n", baud);
+				return false;
+			}
+			break;
+		case 1500000:
+			if (cfsetispeed(&config, B1500000) < 0 || cfsetospeed(&config, B1500000) < 0)
 			{
 				fprintf(stderr, "\nERROR: Could not set desired baud rate of %d Baud\n", baud);
 				return false;
