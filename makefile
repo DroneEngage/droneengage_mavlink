@@ -1,11 +1,14 @@
 CXX=g++
 CXXARM=/opt/cross-pi-gcc/bin/arm-linux-gnueabihf-g++
+CXXARM_ZERO=g++
 EXE=uavos_ardupilot
 BIN=bin
 INCLUDE= -I ../c_library_v2 -I ../mavlink_sdk
+INCLUDE_ARM_ZERO =  -I ../c_library_v2 -I ../mavlink_sdk
 LIBS=  -lpthread -lmavlink_sdk -L ./mavlink_sdk/bin
-CXXFLAGS =  -std=c++11 -Wno-return-type -Wno-address-of-packed-member 
+LIBS_ARM_ZERO = -lpthread -lmavlink_sdk -L ./mavlink_sdk/bin
 
+CXXFLAGS =  -std=c++11 -Wno-return-type -Wno-address-of-packed-member 
 CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE -s
 CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g  
 SRC = src
@@ -61,6 +64,11 @@ arm_debug: mavlink_sdk.arm.debug
 	@echo "DONE."
 
 
+arm_release_zero: mavlink_sdk.arm.release.zero
+	$(CXXARM_ZERO)  $(CXXFLAGS_RELEASE) -o $(BIN)/$(EXE).so   $(OBJS)   $(LIBS_ARM_ZERO) ;
+	@echo "building finished ..."; 
+	@echo "DONE."
+
 mavlink_sdk.release: uavos_ardupilot.release
 	@echo "Building MAVlink SDK"
 	cd ./mavlink_sdk ; \
@@ -80,6 +88,11 @@ mavlink_sdk.arm.debug: uavos_ardupilot.arm.debug
 	@echo "Building MAVlink SDK"
 	cd ./mavlink_sdk ; \
 	make arm_debug ;
+
+mavlink_sdk.arm.release.zero: uavos_ardupilot.arm.release.zero
+	@echo "Building MAVlink SDK"
+	cd ./mavlink_sdk ; \
+	make arm_release_zero ;
 
 uavos_ardupilot.release: copy
 	mkdir -p $(BUILD); \
@@ -110,7 +123,12 @@ uavos_ardupilot.arm.debug: copy
 	cd .. ; 
 	@echo "compliling finished ..."
 
-
+uavos_ardupilot.arm.release.zero: copy
+	mkdir -p $(BUILD); \
+	cd $(BUILD); \
+	$(CXXARM_ZERO)   $(CXXFLAGS_RELEASE) -Wno-psabi  -c   $(SRCS)  $(INCLUDE_ARM_ZERO)  ; 
+	cd .. ; 
+	@echo "compliling finished ..."
 
 git_submodule:
 	git submodule update --init --recursive
