@@ -78,6 +78,8 @@ bool uavos::fcb::CFCBMain::connectToFCB ()
 
 void uavos::fcb::CFCBMain::init ()
 {
+    m_exit_thread = false;
+    
     uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
     m_jsonConfig = cConfigFile.GetConfigJSON();
     
@@ -101,13 +103,21 @@ void uavos::fcb::CFCBMain::init ()
 void uavos::fcb::CFCBMain::uninit ()
 {
     // exit thread.
+    if (m_exit_thread == true) 
+    {
+        std::cout << "m_exit_thread == true" << std::endl;
+        return ;
+    }
+
     m_exit_thread = true;
+
     m_scheduler_thread.join();
 
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CFCBMain  Scheduler Thread Off" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
+    
     return ;
 }
 
@@ -235,7 +245,7 @@ void uavos::fcb::CFCBMain::loopScheduler ()
 {
     while (!m_exit_thread)
     {
-        
+        // timer each 10m sec.
         wait_time_nsec (0,10000000);
 
         m_counter++;
@@ -252,9 +262,9 @@ void uavos::fcb::CFCBMain::loopScheduler ()
 
         if (m_counter%50 == 0)
         {
-            m_fcb_facade.sendGPSInfo(std::string());
+            //m_fcb_facade.sendGPSInfo(std::string());
 
-            m_fcb_facade.sendNavInfo(std::string());
+            //m_fcb_facade.sendNavInfo(std::string());
         }
 
         if (m_counter %100 ==0)

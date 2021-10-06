@@ -118,7 +118,11 @@ void uavos::comm::CUDPClient::stop()
     m_stopped_called = true;
 
     if (m_SocketFD != -1)
-        close (m_SocketFD);
+    {
+        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Close UDP Socket" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        //https://stackoverflow.com/questions/6389970/unblock-recvfrom-when-socket-is-closed
+        shutdown(m_SocketFD, SHUT_RDWR);
+    }
     
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
@@ -196,6 +200,7 @@ void uavos::comm::CUDPClient::InternelSenderIDEntry()
 {
 
     std::cout << "InternelSenderIDEntry called" << std::endl; 
+
     while (!m_stopped_called)
     {   
         if (m_JsonID.empty() == false)
@@ -235,9 +240,9 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
     
     try
     {
-    sendto(m_SocketFD, msg, length,  
-        MSG_CONFIRM, (const struct sockaddr *) m_CommunicatorModuleAddress, 
-            sizeof(struct sockaddr_in));         
+        sendto(m_SocketFD, msg, length,  
+            MSG_CONFIRM, (const struct sockaddr *) m_CommunicatorModuleAddress, 
+                sizeof(struct sockaddr_in));         
     }
     catch(const std::exception& e)
     {

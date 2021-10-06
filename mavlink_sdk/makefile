@@ -1,8 +1,10 @@
 CXX=g++
 CXXARM=/opt/cross-pi-gcc/bin/arm-linux-gnueabihf-g++
+CXXARM_ZERO=g++
 EXE=libmavlink_sdk
 BIN=bin
 INCLUDE= -I ../../c_library_v2 -I ../mavlink_sdk
+INCLUDE_ARM_ZERO= -I ../../c_library_v2 -I ../mavlink_sdk
 LIBS=  -lpthread 
 CXXFLAGS =  -std=c++11 -Wno-return-type -Wno-address-of-packed-member 
 
@@ -71,10 +73,19 @@ arm_debug: mavlink_sdk.arm.debug
 	@echo "building finished ..."; 
 	@echo "DONE."
 
-mavlink_sdk.release: copy
+arm_release_zero: mavlink_sdk.arm.release.zero
+	cd $(BUILD) ; \
+	ar r $(EXE).a *.o ; \
+	mv *.a ../$(BIN) ;
+	cd .. ;
+	pwd ;
+	@echo "building finished ..."; 
+	@echo "DONE."
+
+mavlink_sdk.arm.release.zero: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXX)   $(CXXFLAGS_RELEASE)  -c   $(SRCS)  $(INCLUDE)  ; \
+	$(CXXARM_ZERO)   $(CXXFLAGS_RELEASE) -Wno-psabi -c   $(SRCS)  $(INCLUDE_ARM_ZERO)  ; \
 	cd .. ; 
 	@echo "compliling finished ..."
 

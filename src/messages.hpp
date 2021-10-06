@@ -27,33 +27,37 @@
 #define INTERMODULE_MODULE_KEY          "GU"
 
 
-#define TYPE_AndruavModule_ID                       9100
+#define TYPE_AndruavModule_ID                           9100
 
-#define TYPE_AndruavResala_GPS                      1002
-#define TYPE_AndruavResala_POWER                    1003
-#define TYPE_AndruavResala_ID 	                    1004
-#define TYPE_AndruavResala_RemoteExecute 		    1005     
-#define TYPE_AndruavResala_Error                    1008    
-#define TYPE_AndruavResala_FlightControl            1010
-#define TYPE_AndruavMessage_DroneReport             1020
-#define Type_AndruavResala_HomeLocation             1022
-#define TYPE_AndruavResala_WayPoints                1027
-#define TYPE_AndruavResala_Arm                      1030
-#define TYPE_AndruavResala_ChangeAltitude           1031
-#define TYPE_AndruavResala_Land                     1032
-#define TYPE_AndruavResala_GuidedPoint              1033
-#define TYPE_AndruavResala_DoYAW                    1035
-#define TYPE_AndruavResala_NAV_INFO                 1036
-#define TYPE_AndruavMessage_DistinationLocation     1037
-#define TYPE_AndruavResala_ChangeSpeed              1040
-#define TYPE_AndruavResala_UploadWayPoints          1046
-#define TYPE_AndruavResala_RemoteControlSettings	1047
-#define TYPE_AndruavResala_SET_HOME_LOCATION        1048
-#define TYPE_AndruavResala_RemoteControl2		    1052
+#define TYPE_AndruavMessage_GPS                         1002
+#define TYPE_AndruavMessage_POWER                       1003
+#define TYPE_AndruavMessage_ID 	                        1004
+#define TYPE_AndruavMessage_RemoteExecute 		        1005     
+#define TYPE_AndruavMessage_Error                       1008    
+#define TYPE_AndruavMessage_FlightControl               1010
+#define TYPE_AndruavMessage_DroneReport                 1020
+#define TYPE_AndruavMessage_HomeLocation                1022
+#define TYPE_AndruavMessage_WayPoints                   1027
+#define TYPE_AndruavMessage_Arm                         1030
+#define TYPE_AndruavMessage_ChangeAltitude              1031
+#define TYPE_AndruavMessage_Land                        1032
+#define TYPE_AndruavMessage_GuidedPoint                 1033
+#define TYPE_AndruavMessage_DoYAW                       1035
+#define TYPE_AndruavMessage_NAV_INFO                    1036
+#define TYPE_AndruavMessage_DistinationLocation         1037
+#define TYPE_AndruavMessage_ChangeSpeed                 1040
+#define TYPE_AndruavMessage_UploadWayPoints             1046
+#define TYPE_AndruavMessage_RemoteControlSettings	    1047
+#define TYPE_AndruavMessage_SET_HOME_LOCATION           1048
+#define TYPE_AndruavMessage_RemoteControl2		        1052
 
-#define TYPE_AndruavMessage_LightTelemetry          2022
+#define TYPE_AndruavMessage_LightTelemetry              2022
 
-#define TYPE_AndruavResala_ServoChannel             6001
+// New JSON Messages 
+#define TYPE_AndruavMessage_ServoChannel                6001
+
+// New Binary Messages 
+#define TYPE_AndruavMessage_MAVLINK                     6502
 
 // Andruav Mission Types
 
@@ -74,20 +78,20 @@
 #define TYPE_CMissionAction_DummyMission                 99999
 
 // // Remote Control Sub Actions
-// #define RC_SUB_ACTION_RELEASED                      0
-// #define RC_SUB_ACTION_CENTER_CHANNELS               1
-// #define RC_SUB_ACTION_FREEZE_CHANNELS               2
-// #define RC_SUB_ACTION_JOYSTICK_CHANNELS             4
-// #define RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED      8
+// #define RC_SUB_ACTION_RELEASED                           0
+// #define RC_SUB_ACTION_CENTER_CHANNELS                    1
+// #define RC_SUB_ACTION_FREEZE_CHANNELS                    2
+// #define RC_SUB_ACTION_JOYSTICK_CHANNELS                  4
+// #define RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED           8
 
 // Remote Execute Commands
-#define RemoteCommand_TELEMETRYCTRL              108 // Telemetry streaming
-#define RemoteCommand_GET_WAY_POINTS             500 // get from andruav not FCB but you can still read from fcb and refresh all   
-#define RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB 501
-#define RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB  502
-#define RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB  502
-#define RemoteCommand_CLEAR_FENCE_DATA 	         503 // andruav fence
-#define RemoteCommand_SET_START_MISSION_ITEM     504
+#define RemoteCommand_TELEMETRYCTRL                         108 // Telemetry streaming
+#define RemoteCommand_GET_WAY_POINTS                        500 // get from andruav not FCB but you can still read from fcb and refresh all   
+#define RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB            501
+#define RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB             502
+#define RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB             502
+#define RemoteCommand_CLEAR_FENCE_DATA 	                    503 // andruav fence
+#define RemoteCommand_SET_START_MISSION_ITEM                504
 
 // Drone Report
 #define Drone_Report_NAV_ItemReached            1

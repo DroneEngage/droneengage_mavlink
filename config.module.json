@@ -12,13 +12,13 @@
   "fcbConnectionURI": 
   {"type": "udp",
     "ip": "0.0.0.0",
-    "port":14550
+    "port":14551
   },
 
-  "fcbConnectionURI2":
+  "fcbConnectionURI_serial":
   {
     "type": "serial",
-    "port": "/dev/ttyACM0",
+    "port": "/home/mhefny/ttyUSB23",
     "baudrate": 115200
   },
 

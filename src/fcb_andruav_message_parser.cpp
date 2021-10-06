@@ -24,7 +24,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
     const int messageType = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
     bool is_binary = !(full_message[full_message_length-1]==125 || (full_message[full_message_length-2]==125));   // "}".charCodeAt(0)  IS TEXT / BINARY Msg  
     
-    if (messageType == TYPE_AndruavResala_RemoteExecute)
+    if (messageType == TYPE_AndruavMessage_RemoteExecute)
     {
         parseRemoteExecute(andruav_message);
 
@@ -38,7 +38,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
         switch (messageType)
         {
 
-            case TYPE_AndruavResala_Arm:
+            case TYPE_AndruavMessage_Arm:
             {
                 // A  : bool arm/disarm
                 // [D]: bool force 
@@ -56,7 +56,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             }
             break;
 
-            case TYPE_AndruavResala_FlightControl:
+            case TYPE_AndruavMessage_FlightControl:
             {
                 // F  : andruve unit mode
                 // [g]: longitude
@@ -79,10 +79,10 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             }
             break;
 
-            case TYPE_AndruavResala_ChangeAltitude:
+            case TYPE_AndruavMessage_ChangeAltitude:
             {
                 #ifdef DEBUG
-                    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: TYPE_AndruavResala_ChangeAltitude " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: TYPE_AndruavMessage_ChangeAltitude " << _NORMAL_CONSOLE_TEXT_ << std::endl;
                 #endif
                 // a : altitude 
                 if ((!validateField(message, "a", Json::value_t::number_float)) 
@@ -105,7 +105,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             }
             break;
 
-            case TYPE_AndruavResala_Land:
+            case TYPE_AndruavMessage_Land:
             {
                 //TODO: could be included in change mode.
 
@@ -120,7 +120,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             }
             break;
 
-            case TYPE_AndruavResala_GuidedPoint:
+            case TYPE_AndruavMessage_GuidedPoint:
             {
                 if (m_fcbMain.getAndruavVehicleInfo().flying_mode != VEHICLE_MODE_GUIDED) 
                 {
@@ -158,7 +158,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
 
             break;
 
-            case TYPE_AndruavResala_SET_HOME_LOCATION:
+            case TYPE_AndruavMessage_SET_HOME_LOCATION:
             {
                 // T: latitude
                 // O: longitude
@@ -179,7 +179,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             }
             break;
 
-            case TYPE_AndruavResala_DoYAW:
+            case TYPE_AndruavMessage_DoYAW:
             {
                 // A : target_angle
                 // R : turn_rate
@@ -203,7 +203,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             }
             break;
 
-            case TYPE_AndruavResala_ChangeSpeed:
+            case TYPE_AndruavMessage_ChangeSpeed:
             {
                 // a : speed
                 // b : is_ground_speed
@@ -229,7 +229,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             }
             break;
 
-            case TYPE_AndruavResala_UploadWayPoints:
+            case TYPE_AndruavMessage_UploadWayPoints:
             {
                 //TODO: you should allow multiple messages to allow large file to be received.
                 // !UDP packet has maximum size.
@@ -273,7 +273,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             }
             break;
 
-            case TYPE_AndruavResala_ServoChannel:
+            case TYPE_AndruavMessage_ServoChannel:
             {
                 // n : servo_channel
                 // v : servo_value
@@ -290,7 +290,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             }
             break;
 
-            case TYPE_AndruavResala_RemoteControlSettings:
+            case TYPE_AndruavMessage_RemoteControlSettings:
             {
                 // b: remote control setting
                 
@@ -301,7 +301,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             }
             break;
 
-            case TYPE_AndruavResala_RemoteControl2:
+            case TYPE_AndruavMessage_RemoteControl2:
             {
                 // value: [0,1000] IMPORTANT: -999 means channel release
                 // 'R': Rudder
@@ -374,7 +374,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_mess
     std::cout << "cmd: " << remoteCommand << std::endl;
     switch (remoteCommand)
     {
-        case TYPE_AndruavResala_SET_HOME_LOCATION:
+        case TYPE_AndruavMessage_SET_HOME_LOCATION:
             
             uavos::fcb::CFCBFacade::getInstance().sendHomeLocation(andruav_message[ANDRUAV_PROTOCOL_SENDER]);
         break;

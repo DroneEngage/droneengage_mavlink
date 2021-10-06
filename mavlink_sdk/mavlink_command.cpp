@@ -500,7 +500,7 @@ void CMavlinkCommand::requestParametersList () const
 /**
  * @brief 
  * (MAVLink 2) Request all parameters of this component. All parameters should be emitted in response as PARAM_EXT_VALUE.
- * ! messages are not handled correctly no by madsdk module.
+ * ! messages are not handled correctly no by mavsdk module.
  * TODO: please fix
  */
 void CMavlinkCommand::requestExtParametersList () const

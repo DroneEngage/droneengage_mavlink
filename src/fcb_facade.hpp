@@ -72,6 +72,8 @@ namespace fcb
             void sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude) const;
             void sendWayPoints(const std::string&target_party_id) const;
             void sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message) const;
+            void sendMavlinkData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const;
+            void sendMavlinkData_2(const std::string&target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2)  const;
             void sendServoReadings(const std::string&target_party_id) const;
             void sendWayPointReached (const std::string&target_party_id, const int& mission_sequence) const;
             
