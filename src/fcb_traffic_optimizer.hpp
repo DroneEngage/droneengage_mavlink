@@ -95,17 +95,19 @@ namespace fcb
              */
             void reset_timestamps()
             {
-                for (int i=0; i< TIME_STAMP_MSG_LEN; ++i)
+                for(auto it=m_message.begin();it!=m_message.end();++it)
                 {
-                    m_message[i].time_of_last_sent_message = 0;
+                    T_MessageOptimizeCard card = it->second;
+                    card.time_of_last_sent_message = 0;
                 }
-
+                
                 return;
             }
 
         private:
 
-            T_MessageOptimizeCard m_message[TIME_STAMP_MSG_LEN];
+            //T_MessageOptimizeCard m_message[TIME_STAMP_MSG_LEN];
+            std::map<int, T_MessageOptimizeCard> m_message;
             int m_optimization_level = OPTIMIZATION_LEVEL_DEFAULT;
            
     };
