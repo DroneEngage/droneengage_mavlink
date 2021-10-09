@@ -262,9 +262,9 @@ void uavos::fcb::CFCBMain::loopScheduler ()
 
         if (m_counter%50 == 0)
         {
-            //m_fcb_facade.sendGPSInfo(std::string());
+            m_fcb_facade.sendGPSInfo(std::string());
 
-            //m_fcb_facade.sendNavInfo(std::string());
+            m_fcb_facade.sendNavInfo(std::string());
         }
 
         if (m_counter %100 ==0)
