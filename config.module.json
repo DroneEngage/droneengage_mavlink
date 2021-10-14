@@ -1,14 +1,14 @@
 { 
   "module_id": "FCB_CTRL", 
-  "module_class": "fcb", 
-  "module_features": ["T", "R"], 
+
   "s2s_udp_target_ip": "127.0.0.1",
   "s2s_udp_target_port": "60000", 
   "s2s_udp_listening_ip": "127.0.0.1", 
   "s2s_udp_listening_port": "60003", 
   
   
-  "telemetryLevel": "1", 
+  "telemetryLevel": "2", 
+  
   "fcbConnectionURI": 
   {"type": "udp",
     "ip": "0.0.0.0",

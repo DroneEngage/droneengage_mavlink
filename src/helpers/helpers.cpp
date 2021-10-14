@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include <cctype>
 #include <algorithm>
 #include <sys/time.h>
@@ -98,3 +99,29 @@ std::string removeComments(std::string prgm)
     } 
     return res; 
 } 
+
+
+/**
+ * @brief Get the linux machine id object
+ * 
+ * @return std::string 
+ */
+std::string get_linux_machine_id ()
+{
+    FILE *f = fopen("/etc/machine-id", "r");
+	if (!f) {
+		return std::string();
+	}
+    char line[256]; 
+    memset (line,0,255);
+    char * read = fgets(line, 256, f);
+    if (read!= NULL)
+    {
+        line[strlen(line)-1]=0; // remove "\n" from the read
+        return std::string(line);
+    }
+    else
+    {
+        return std::string("");
+    }
+}

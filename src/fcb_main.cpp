@@ -78,8 +78,9 @@ bool uavos::fcb::CFCBMain::connectToFCB ()
 
 void uavos::fcb::CFCBMain::init ()
 {
-    m_exit_thread = false;
     
+    m_exit_thread = false; 
+
     uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
     m_jsonConfig = cConfigFile.GetConfigJSON();
     
@@ -94,8 +95,11 @@ void uavos::fcb::CFCBMain::init ()
 
     m_andruav_missions.clear();
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_RELEASED;
+    
     m_scheduler_thread = std::thread(SchedulerThread, (void *) this);
 
+    
+    
     return ;
 }
 

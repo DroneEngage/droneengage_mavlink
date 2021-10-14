@@ -20,4 +20,5 @@ std::vector<std::string> split_string_by_newline(const std::string& str);
 
 std::string removeComments(std::string prgm);
 
+extern std::string get_linux_machine_id ();
 #endif

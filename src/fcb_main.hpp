@@ -180,14 +180,11 @@ namespace fcb
              */
             std::vector<std::unique_ptr<uavos::fcb::ANDRUAV_UNIT_STRUCT>> m_TelemetryUnits;
             
-            bool m_exit_thread;
+            bool m_exit_thread = true;
             std::thread m_scheduler_thread;
             u_int64_t m_last_start_flying =0 ;
             u_int64_t m_counter =0;
             u_int64_t m_counter_sec =0;
-            
-            
-            
     };
 }
 }
