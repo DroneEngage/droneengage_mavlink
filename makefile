@@ -24,6 +24,8 @@ OBJS = $(BUILD)/fcb_main.o \
 	   $(BUILD)/missions.o \
 	   $(BUILD)/mission_translator.o \
 	   $(BUILD)/helpers.o \
+	   $(BUILD)/util_rpi.o \
+	   $(BUILD)/getopt_cpp.o \
 	   $(BUILD)/main.o \
 
 SRCS = ../$(SRC)/fcb_main.cpp \
@@ -36,6 +38,8 @@ SRCS = ../$(SRC)/fcb_main.cpp \
 	   ../$(SRC)/mission/missions.cpp \
 	   ../$(SRC)/mission/mission_translator.cpp \
 	   ../$(SRC)/helpers/helpers.cpp \
+	   ../$(SRC)/helpers/util_rpi.cpp \
+	   ../$(SRC)/helpers/getopt_cpp.cpp \
 	   ../$(SRC)/main.cpp \
 	   
 
@@ -43,17 +47,17 @@ mavlink_control: mavlink_control.cpp serial_port.cpp udp_port.cpp autopilot_inte
 	$(CXX) -g -Wall  $(INCLUDE) mavlink_control.cpp serial_port.cpp udp_port.cpp autopilot_interface.cpp -o $(BIN)/$(EXE) $(LIBS)
 
 release: mavlink_sdk.release
-	$(CXX)  $(CXXFLAGS_RELEASE)  -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS)  ;
+	$(CXX)  $(CXXFLAGS_RELEASE)  -O2 -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS)  ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 debug: mavlink_sdk.debug
-	$(CXX) $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE).so     $(OBJS)   $(LIBS) ;
+	$(CXX) $(CXXFLAGS_DEBUG) -Og -o $(BIN)/$(EXE).so     $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 arm_release: mavlink_sdk.arm.release
-	$(CXXARM)  $(CXXFLAGS_RELEASE) -o $(BIN)/$(EXE)_arm.so   $(OBJS)   $(LIBS) ;
+	$(CXXARM)  $(CXXFLAGS_RELEASE) -O2 -o $(BIN)/$(EXE)_arm.so   $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
@@ -97,14 +101,14 @@ mavlink_sdk.arm.release.zero: uavos_ardupilot.arm.release.zero
 uavos_ardupilot.release: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXX)   $(CXXFLAGS_RELEASE)  -c   $(SRCS)  $(INCLUDE)  ; 
+	$(CXX)   $(CXXFLAGS_RELEASE)  -O2 -c   $(SRCS)  $(INCLUDE)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 
 uavos_ardupilot.debug: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXX)   $(CXXFLAGS_DEBUG)  -c  $(SRCS)  $(INCLUDE);
+	$(CXX)   $(CXXFLAGS_DEBUG) -Og -c  $(SRCS)  $(INCLUDE);
 	cd .. ; 
 	@echo "compliling finished ..."
 
@@ -112,7 +116,7 @@ uavos_ardupilot.debug: copy
 uavos_ardupilot.arm.release: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXXARM)   $(CXXFLAGS_RELEASE) -c   $(SRCS)  $(INCLUDE)  ; 
+	$(CXXARM)   $(CXXFLAGS_RELEASE) -O2-c   $(SRCS)  $(INCLUDE)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 

@@ -89,11 +89,17 @@ mavlink_sdk.arm.release.zero: copy
 	cd .. ; 
 	@echo "compliling finished ..."
 
+mavlink_sdk.release: copy
+	mkdir -p $(BUILD); \
+	cd $(BUILD); \
+	$(CXX)   $(CXXFLAGS_RELEASE)  -O2 -c  $(SRCS)  $(INCLUDE);
+	cd .. ; 
+	@echo "compliling finished ..."
 
 mavlink_sdk.debug: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXX)   $(CXXFLAGS_DEBUG)  -c  $(SRCS)  $(INCLUDE);
+	$(CXX)   $(CXXFLAGS_DEBUG)  -Og -c  $(SRCS)  $(INCLUDE);
 	cd .. ; 
 	@echo "compliling finished ..."
 
@@ -101,14 +107,14 @@ mavlink_sdk.debug: copy
 mavlink_sdk.arm.release: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXXARM)   $(CXXFLAGS_RELEASE) -c   $(SRCS)  $(INCLUDE)  ; 
+	$(CXXARM)   $(CXXFLAGS_RELEASE) -O2 -c   $(SRCS)  $(INCLUDE)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 
 mavlink_sdk.arm.debug: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXXARM)   $(CXXFLAGS_DEBUG)  -c   $(SRCS)  $(INCLUDE)  ; 
+	$(CXXARM)   $(CXXFLAGS_DEBUG)  -Og -c   $(SRCS)  $(INCLUDE)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 
