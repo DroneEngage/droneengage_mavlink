@@ -49,7 +49,9 @@ void CMavlinkSDK::stop()
 
 CMavlinkSDK::~CMavlinkSDK()
 {
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CMavlinkSDK" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #ifdef DEBUG
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CMavlinkSDK" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
 
     if (this->m_stopped_called == false)
     {
