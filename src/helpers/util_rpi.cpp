@@ -28,6 +28,7 @@ bool helpers::CUtil_Rpi::get_cpu_serial (std::string &cpu_serial)   const
 		if (strncmp(line, "Serial", 6) == 0) {
 			char serial_string[16 + 1];
 			strcpy(serial_string, strchr(line, ':') + 2);
+            serial_string[16]=0; // remove extra \n
             cpu_serial = serial_string;
             found = true;
 		}
