@@ -1,36 +1,46 @@
 { 
+  // A name and GUID for this module as multiple modules sometimes can be added.
   "module_id": "FCB_CTRL", 
-
+  "module_key": "E289FEE7-F4AD-44EF-A257-C9A361316BE7", 
+  
+  // IP & Port Communication Module is listening to.
   "s2s_udp_target_ip": "127.0.0.1",
   "s2s_udp_target_port": "60000", 
+  // IP & Port of this module
   "s2s_udp_listening_ip": "127.0.0.1", 
   "s2s_udp_listening_port": "60003", 
   
   
-  "telemetryLevel": "2", 
-  
+  // How to connect to Ardupilot board
+  // Using udp connection
   "fcbConnectionURI": 
   {"type": "udp",
     "ip": "0.0.0.0",
     "port":14550
   },
+   
+  // Using serial interface
+  // "fcbConnectionURI":
+  // {
+  //   "type": "serial",
+  //   "port": "/home/mhefny/ttyUSB23",
+  //   "baudrate": 115200
+  // },
 
-  "fcbConnectionURI_serial":
-  {
-    "type": "serial",
-    "port": "/home/mhefny/ttyUSB23",
-    "baudrate": 115200
-  },
-
-  "fcbAutoConnect": true, 
-  "enable_INS": false,
-  "enable_IMU_LOGGING": false,
-  "module_key": "E289FEE7-F4AD-44EF-A257-C9A361316BE7", 
+  
+  
+  
+  // DONT EDIT
   "module_messages": [1005, 1007, 1010, 1021, 1030, 1031, 1032, 1033, 1034, 1035, 1037, 1040, 1041, 1043, 1044, 1046, 1047, 1048, 1052, 2022, 6001, 6501], 
+  
+  // DONT EDIT
   "groupID": "1",
 
 
-  "Default_Optimization_Level" : 2,
+  
+  // Default optimization level. This number controls the rate at which mavlink is sent in telemetry mode.
+  // Adjust it to reduce bandwidth 0 - max bandwidth 3 - min bandwidth
+  "Default_Optimization_Level" : 2, 
   
   "Message_Timeouts":
   { 
@@ -56,25 +66,18 @@
       "241": [0,250,1000,2000],    // VIBRATION 
     "11030": [0,250,500,1000],     // ESC_TELEMETRY_1_TO_4
     "11031": [0,250,500,1000],     // ESC_TELEMETRY_5_TO_8
-    "11032": [0,250,500,1000]     // ESC_TELEMETRY_9_TO_12
+    "11032": [0,250,500,1000]      // ESC_TELEMETRY_9_TO_12
       
   },
   
+  // Used for Gamepad control via Drone-Engage Web Client
+  // Determine channels enabled, reverse, max & min PWM range
   "RC_Channels":
   {
   "RC_channelEnabled": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   "RC_channelReverse": [1,-1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   "RC_channelLimitsMax": [1850,2000,1750,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000],
   "RC_channelLimitsMin": [1150,1000,1300,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
-  },
-  
-  "Traking_PID": 
-  {
-  "elevator_P": 50, "elevator_I": 5, "elevator_D": 0, 
-  "rudder_P": 0, "rudder_I": 0, "rudder_D": 0, 
-  "aliron_P": 50, "aliron_I":5, "aliron_D": 0
   }
-
-
 }
 
