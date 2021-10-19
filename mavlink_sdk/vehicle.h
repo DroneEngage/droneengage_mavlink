@@ -71,102 +71,105 @@ namespace mavlinksdk
 
         protected:
 
-            inline void handle_heart_beat       (const mavlink_heartbeat_t& heartbeat);
-            inline void handle_cmd_ack          (const mavlink_command_ack_t& command_ack);
-            inline void handle_status_text      (const mavlink_statustext_t& status_text);
-            inline void handle_home_position    (const mavlink_home_position_t& home_position);
-            inline void handle_param_ext_value  (const mavlink_param_ext_value_t& param_message);
-            inline void handle_param_value      (const mavlink_param_value_t& param_message);
-            inline void handle_rc_channels_raw  (const mavlink_rc_channels_t& rc_channels);
-
+            void handle_heart_beat       (const mavlink_heartbeat_t& heartbeat);
+            void handle_cmd_ack          (const mavlink_command_ack_t& command_ack);
+            void handle_status_text      (const mavlink_statustext_t& status_text);
+            void handle_home_position    (const mavlink_home_position_t& home_position);
+            void handle_param_ext_value  (const mavlink_param_ext_value_t& param_message);
+            void handle_param_value      (const mavlink_param_value_t& param_message);
+            void handle_rc_channels_raw  (const mavlink_rc_channels_t& rc_channels);
+            
         // Vechile Methods
         public:
-            inline const mavlinksdk::FIRMWARE_TYPE getFirmwareType()
+
+            const bool isFCBConnected() const;
+
+            const mavlinksdk::FIRMWARE_TYPE getFirmwareType()
             {
                 return m_firmware_type;
             }
 
-            inline const bool isArmed()
+            const bool isArmed()
             {
                 return m_armed;
             }
             
-            inline const bool isFlying()
+            const bool isFlying() const
             {
                 return m_is_flying;
             } 
 
-            inline const mavlink_heartbeat_t& getMsgHeartBeat ()
+            const mavlink_heartbeat_t& getMsgHeartBeat () const
             {
                 return m_heartbeat;
             }
 
-            inline const mavlink_sys_status_t& getMsgSysStatus ()
+            const mavlink_sys_status_t& getMsgSysStatus () const
             {
                 return m_sys_status;
             }
 
-            inline const mavlink_battery_status_t& getMsgBatteryStatus ()
+            const mavlink_battery_status_t& getMsgBatteryStatus () const
             {
                 return m_battery_status;
             }
 
-            inline const mavlink_radio_status_t& getMsgRadioStatus ()
+            const mavlink_radio_status_t& getMsgRadioStatus () const
             {
                 return m_radio_status;
             }
 
-            inline const mavlink_local_position_ned_t& getMsgLocalPositionNED ()
+            const mavlink_local_position_ned_t& getMsgLocalPositionNED () const
             {
                 return m_local_position_ned;
             }
 
-            inline const mavlink_global_position_int_t& getMsgGlobalPositionInt ()
+            const mavlink_global_position_int_t& getMsgGlobalPositionInt () const
             {
                 return m_global_position_int;
             }
 
-            inline const mavlink_position_target_local_ned_t& getMsgTargetPositionLocalNED ()
+            const mavlink_position_target_local_ned_t& getMsgTargetPositionLocalNED () const
             {
                 return m_position_target_local_ned;
             }
 
-            inline const mavlink_position_target_global_int_t& getMsgTargetPositionGlobalInt ()
+            const mavlink_position_target_global_int_t& getMsgTargetPositionGlobalInt () const
             {
                 return m_position_target_global_int;
             }
 
-            inline const mavlink_gps_raw_int_t& getMSGGPSRaw ()
+            const mavlink_gps_raw_int_t& getMSGGPSRaw () const
             {
                 return m_gps_raw_int;
             }
 
-            inline const mavlink_attitude_t& getMsgAttitude ()
+            const mavlink_attitude_t& getMsgAttitude () const
             {
                 return m_attitude;
             }
 
-            inline const mavlink_home_position_t& getMsgHomePosition ()
+            const mavlink_home_position_t& getMsgHomePosition () const
             {
                 return m_home_position;
             }
 
-            inline const mavlink_nav_controller_output_t& getMsgNavController()
+            const mavlink_nav_controller_output_t& getMsgNavController() const
             {
                 return m_nav_controller;
             }
 
-            inline const mavlink_rc_channels_t& getRCChannels ()
+            const mavlink_rc_channels_t& getRCChannels () const
             {
                 return m_rc_channels;
             }
 
-            inline const std::string& getLastStatusText ()
+            const std::string& getLastStatusText () const
             {
                 return m_status_text;
             }
 
-            inline const std::map<std::string, Parameter_Value>& getParametersList()
+            const std::map<std::string, Parameter_Value>& getParametersList() const
             {
                 return m_parameters_list;
             }

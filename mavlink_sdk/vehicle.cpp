@@ -77,6 +77,17 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 }
 
 
+/**
+ * @brief Drone is disconnected if no heartbeat has been recieved for @link HEART_BEAT_TIMEOUT @endlink
+ * 
+ * @return true 
+ * @return false 
+ */
+const bool mavlinksdk::CVehicle::isFCBConnected() const
+{
+	return !((get_time_usec() - time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT]) > HEART_BEAT_TIMEOUT);
+}
+
 void mavlinksdk::CVehicle::handle_cmd_ack (const mavlink_command_ack_t& command_ack)
 {
 	m_callback_vehicle.OnACK (command_ack.result, mavlinksdk::CMavlinkHelper::getACKError (command_ack.result));
