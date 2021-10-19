@@ -8,6 +8,7 @@
 
 #define E_UNDEFINED_MODE          9999
 
+#define TelemetryProtocol_No_Telemetry       0
 #define TelemetryProtocol_DroneKit_Telemetry 4
 
 #define PI  3.1415926535897932384626433832795

@@ -133,6 +133,8 @@ namespace fcb
 
             void toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level);
 
+            bool isFCBConnected () const { return m_fcb_connected;}; 
+
         // Events implementation of mavlinksdk::CMavlinkEvents
         public:
             void OnMessageReceived (const mavlink_message_t& mavlink_message) override;           
@@ -154,6 +156,8 @@ namespace fcb
             void OnParamChanged(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override;
 
 
+        public:
+            
         private: 
             void initVehicleChannelLimits();
      
@@ -163,7 +167,7 @@ namespace fcb
             uavos::fcb::CMavlinkTrafficOptimizer& m_mavlink_optimizer = uavos::fcb::CMavlinkTrafficOptimizer::getInstance();
 
         private:
-            int getConnectionType ();
+            int getConnectionType () const; 
             bool connectToFCB ();
             
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
@@ -185,6 +189,9 @@ namespace fcb
             u_int64_t m_last_start_flying =0 ;
             u_int64_t m_counter =0;
             u_int64_t m_counter_sec =0;
+
+
+            bool m_fcb_connected = false;
     };
 }
 }

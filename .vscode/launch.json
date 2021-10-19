@@ -8,7 +8,7 @@
             "name": "(gdb) Attach",
             "type": "cppdbg",
             "request": "attach",
-            "program": "{workspaceFolder}/bin/uavos_ardupilot.so",
+            "program": "{workspaceFolder}/bin/de_ardupilot.so",
             "processId": "${command:pickProcess}",
             "MIMode": "gdb",
             "setupCommands": [
@@ -23,7 +23,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/uavos_ardupilot.so",
+            "program": "${workspaceFolder}/bin/de_ardupilot.so",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/bin/",

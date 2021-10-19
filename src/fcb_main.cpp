@@ -24,7 +24,7 @@ void SchedulerThread(void * This) {
     return ;
 }
 
-int uavos::fcb::CFCBMain::getConnectionType ()
+int uavos::fcb::CFCBMain::getConnectionType () const 
 {
     std::string connection = str_tolower(m_jsonConfig["fcbConnectionURI"]["type"].get<std::string>());
 
@@ -287,7 +287,14 @@ void uavos::fcb::CFCBMain::loopScheduler ()
             if (m_counter_sec % 5 ==0)
             {// 5 sec
                 m_fcb_facade.sendPowerInfo(std::string());
-            
+                bool fcb_connected = m_mavlink_sdk.getVehicle().get()->isFCBConnected();
+
+                if (fcb_connected != m_fcb_connected)
+                {
+                   m_fcb_connected = fcb_connected;
+                   m_fcb_facade.sendID(std::string());
+                }
+    
             }
 
             if (m_counter_sec % 10 ==0)
@@ -720,6 +727,8 @@ void uavos::fcb::CFCBMain::calculateChannels(const int16_t scaled_channels[16], 
 
 void uavos::fcb::CFCBMain::releaseRemoteControl()
 {
+    if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_RELEASED) return ;
+
     memset(m_andruav_vehicle_info.rc_channels, 0, 16 * sizeof(int16_t));
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_RELEASED;
     m_andruav_vehicle_info.rc_command_active = false;
@@ -738,6 +747,8 @@ void uavos::fcb::CFCBMain::releaseRemoteControl()
  */
 void uavos::fcb::CFCBMain::centerRemoteControl()
 {
+    if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS) return ;
+    
     memset(m_andruav_vehicle_info.rc_channels, 0, 16 * sizeof(int16_t));
     memset(m_andruav_vehicle_info.rc_channels, 1500, 4 * sizeof(int16_t));
     
@@ -754,6 +765,8 @@ void uavos::fcb::CFCBMain::centerRemoteControl()
  */
 void uavos::fcb::CFCBMain::freezeRemoteControl()
 {
+    
+    if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS) return ;
     
     memset(m_andruav_vehicle_info.rc_channels, 0, 16 * sizeof(int16_t));
     
