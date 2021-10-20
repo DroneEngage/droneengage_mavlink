@@ -8,14 +8,16 @@
 
 
 
-mavlinksdk::CVehicle::CVehicle(mavlinksdk::CCallBack_Vehicle& callback_vehicle): m_callback_vehicle(callback_vehicle)
+
+mavlinksdk::CVehicle::CVehicle()
 {
-	
 	time_stamps.reset_timestamps();
 }
 
-
-
+void mavlinksdk::CVehicle::set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* callback_vehicle)
+{
+	m_callback_vehicle = callback_vehicle;
+}
 
 
 void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbeat)
@@ -43,32 +45,32 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	{  // Notify that we have something alive here.
 		m_heart_beat_first = true;
 		m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
-		m_callback_vehicle.OnHeartBeat_First (heartbeat);
+		m_callback_vehicle->OnHeartBeat_First (heartbeat);
 	}
 	else 
 	if ((get_time_usec() - time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT]) > HEART_BEAT_TIMEOUT)
 	{  // Notify when heart beat get live again.
 		m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
-		m_callback_vehicle.OnHeartBeat_Resumed (heartbeat);
+		m_callback_vehicle->OnHeartBeat_Resumed (heartbeat);
 	}
 
 	// Detect change in arm status
 	if (m_armed != is_armed)
 	{
 		m_armed = is_armed;
-		m_callback_vehicle.OnArmed(m_armed);
+		m_callback_vehicle->OnArmed(m_armed);
 	}
 
 	// Detect change in flying status
 	if (m_is_flying != is_flying)
 	{
 		m_is_flying = is_flying;
-		m_callback_vehicle.OnFlying(m_is_flying);
+		m_callback_vehicle->OnFlying(m_is_flying);
 	}
 	
 	if (is_mode_changed)
 	{
-		m_callback_vehicle.OnModeChanges (m_heartbeat.custom_mode, m_firmware_type);
+		m_callback_vehicle->OnModeChanges (m_heartbeat.custom_mode, m_firmware_type);
 	}
 	
 	
@@ -90,7 +92,7 @@ const bool mavlinksdk::CVehicle::isFCBConnected() const
 
 void mavlinksdk::CVehicle::handle_cmd_ack (const mavlink_command_ack_t& command_ack)
 {
-	m_callback_vehicle.OnACK (command_ack.result, mavlinksdk::CMavlinkHelper::getACKError (command_ack.result));
+	m_callback_vehicle->OnACK (command_ack.result, mavlinksdk::CMavlinkHelper::getACKError (command_ack.result));
 }
 
 
@@ -103,7 +105,7 @@ void mavlinksdk::CVehicle::handle_status_text (const mavlink_statustext_t& statu
 	msg[51] = 0;
 	m_status_text = std::string(msg);
 	m_status_severity = status_text.severity;
-	this->m_callback_vehicle.OnStatusText(m_status_severity, m_status_text);
+	this->m_callback_vehicle->OnStatusText(m_status_severity, m_status_text);
 }
 
 
@@ -117,7 +119,7 @@ void mavlinksdk::CVehicle::handle_home_position (const mavlink_home_position_t& 
 
 	if (home_changed == true)
 	{
-		this->m_callback_vehicle.OnHomePositionUpdated(m_home_position);
+		this->m_callback_vehicle->OnHomePositionUpdated(m_home_position);
 	}
 }
 
@@ -179,7 +181,7 @@ void mavlinksdk::CVehicle::handle_param_value (const mavlink_param_value_t& para
 
 	m_parameters_list.insert(std::make_pair(param_name, pv));
 
-	m_callback_vehicle.OnParamChanged (param_name, param_message, changed);
+	m_callback_vehicle->OnParamChanged (param_name, param_message, changed);
 
 	#ifdef DEBUG
 	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 

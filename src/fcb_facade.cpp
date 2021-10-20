@@ -29,7 +29,7 @@ void uavos::fcb::CFCBFacade::sendID(const std::string&target_party_id)  const
 
     */
     uavos::fcb::CFCBMain&  fcbMain = uavos::fcb::CFCBMain::getInstance();
-    mavlinksdk::CVehicle *vehicle =  m_mavlink_sdk.getVehicle().get();
+    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
         
     const ANDRUAV_VEHICLE_INFO& andruav_vehicle_info = fcbMain.getAndruavVehicleInfo();
 
@@ -39,8 +39,8 @@ void uavos::fcb::CFCBFacade::sendID(const std::string&target_party_id)  const
             {"FM", andruav_vehicle_info.flying_mode},
             {"GM", andruav_vehicle_info.gps_mode},
             {"FI", andruav_vehicle_info.use_fcb},
-            {"AR", vehicle->isArmed()},
-            {"FL", vehicle->isFlying()},
+            {"AR", vehicle.isArmed()},
+            {"FL", vehicle.isFlying()},
             {"TP", fcbMain.isFCBConnected()?TelemetryProtocol_DroneKit_Telemetry:TelemetryProtocol_No_Telemetry},
             //{"SD", false},
             {"z", andruav_vehicle_info.flying_last_start_time},
@@ -133,9 +133,9 @@ void uavos::fcb::CFCBFacade::sendGPSInfo(const std::string&target_party_id)  con
 
     uavos::fcb::CFCBMain&  fcbMain = uavos::fcb::CFCBMain::getInstance();
             
-    mavlinksdk::CVehicle *vehicle =  m_mavlink_sdk.getVehicle().get();
-    const mavlink_gps_raw_int_t& gps = vehicle->getMSGGPSRaw();
-    const mavlink_global_position_int_t&  gpos = vehicle->getMsgGlobalPositionInt();
+    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
+    const mavlink_gps_raw_int_t& gps = vehicle.getMSGGPSRaw();
+    const mavlink_global_position_int_t&  gpos = vehicle.getMsgGlobalPositionInt();
     //const ANDRUAV_VEHICLE_INFO& andruav_vehicle_info = fcbMain.getAndruavVehicleInfo();
 
     
@@ -189,9 +189,9 @@ void uavos::fcb::CFCBFacade::sendNavInfo(const std::string&target_party_id)  con
         f : alt_error
     */
 
-    mavlinksdk::CVehicle *vehicle =  m_mavlink_sdk.getVehicle().get();
-    const mavlink_attitude_t& attitude = vehicle->getMsgAttitude();
-    const mavlink_nav_controller_output_t& nav_controller = vehicle->getMsgNavController();
+    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
+    const mavlink_attitude_t& attitude = vehicle.getMsgAttitude();
+    const mavlink_nav_controller_output_t& nav_controller = vehicle.getMsgNavController();
     
     // Obsolete
     // Json message =
@@ -237,10 +237,10 @@ void uavos::fcb::CFCBFacade::sendIMUInfo(const std::string&target_party_id)  con
 void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
 {
 
-    mavlinksdk::CVehicle *vehicle =  m_mavlink_sdk.getVehicle().get();
+    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
     
     int voltage = 0.0f;
-    const mavlink_battery_status_t& battery_status = vehicle->getMsgBatteryStatus();
+    const mavlink_battery_status_t& battery_status = vehicle.getMsgBatteryStatus();
     // for (int i=0; i<10 ; ++i)
     // {
     //     if ( battery_status.voltages[i] != 65535)
@@ -271,10 +271,10 @@ void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)  c
     //     {"BT", 0.0},
     //     {"HBL", 0.0},
     //     {"FV", voltage},
-    //     {"FI", vehicle->getMsgBatteryStatus().current_battery * 10 },
-    //     {"FR", vehicle->getMsgBatteryStatus().battery_remaining},
-    //     {"T", vehicle->getMsgBatteryStatus().temperature},
-    //     {"C", vehicle->getMsgBatteryStatus().current_consumed}
+    //     {"FI", vehicle.getMsgBatteryStatus().current_battery * 10 },
+    //     {"FR", vehicle.getMsgBatteryStatus().battery_remaining},
+    //     {"T", vehicle.getMsgBatteryStatus().temperature},
+    //     {"C", vehicle.getMsgBatteryStatus().current_consumed}
     // };
 
     if (m_sendJMSG != NULL)
@@ -294,8 +294,8 @@ void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)  c
 void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
 {
     
-    mavlinksdk::CVehicle *vehicle =  m_mavlink_sdk.getVehicle().get();
-    const mavlink_home_position_t& home = vehicle->getMsgHomePosition();
+    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
+    const mavlink_home_position_t& home = vehicle.getMsgHomePosition();
     
     /*
         T : latitude in xx.xxxxx

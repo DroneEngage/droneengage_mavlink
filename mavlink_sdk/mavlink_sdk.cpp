@@ -16,9 +16,9 @@ void CMavlinkSDK::start(mavlinksdk::CMavlinkEvents * mavlink_events)
     this->m_mavlink_events = mavlink_events;
 
     this->m_port.get()->start();
-    
-    this->m_vehicle      = std::unique_ptr<mavlinksdk::CVehicle> ( new mavlinksdk::CVehicle(*this->m_callback_vehicle));
-    this->m_mavlink_waypoint_manager= std::unique_ptr<mavlinksdk::CMavlinkWayPointManager> ( new mavlinksdk::CMavlinkWayPointManager(*this->m_callback_waypoint));
+
+    mavlinksdk::CVehicle::getInstance().set_callback_vehicle (this->m_callback_vehicle);
+    mavlinksdk::CMavlinkWayPointManager::getInstance().set_callback_waypoint (this->m_callback_waypoint);
     this->m_communicator = std::unique_ptr<mavlinksdk::comm::CMavlinkCommunicator> ( new mavlinksdk::comm::CMavlinkCommunicator(this->m_port, this));
     this->m_communicator.get()->start();
 
@@ -68,8 +68,8 @@ void CMavlinkSDK::OnMessageReceived (const mavlink_message_t& mavlink_message)
         m_sysid  = mavlink_message.sysid;
 	    m_compid = mavlink_message.compid;
 
-        this->m_vehicle.get()->parseMessage(mavlink_message);
-        this->m_mavlink_waypoint_manager.get()->parseMessage(mavlink_message);
+        mavlinksdk::CVehicle::getInstance().parseMessage(mavlink_message);
+        mavlinksdk::CMavlinkWayPointManager::getInstance().parseMessage(mavlink_message);
 
     
         this->m_mavlink_events->OnMessageReceived(mavlink_message);

@@ -69,16 +69,7 @@ namespace mavlinksdk
 
         // Writing Status
         public:    
-            std::unique_ptr<mavlinksdk::CVehicle>& getVehicle  ()
-            {
-                return m_vehicle;
-            }
-
-            std::unique_ptr<mavlinksdk::CMavlinkWayPointManager>& getWayPointManager()
-            {
-                return m_mavlink_waypoint_manager;
-            }
-
+            
             void sendMavlinkMessage(const mavlink_message_t& mavlink_message);
             
         protected:
@@ -87,8 +78,6 @@ namespace mavlinksdk
               mavlinksdk::CCallBack_WayPoint* m_callback_waypoint;
               std::shared_ptr<mavlinksdk::comm::GenericPort> m_port;
               std::unique_ptr<mavlinksdk::comm::CMavlinkCommunicator> m_communicator;
-              std::unique_ptr<mavlinksdk::CVehicle> m_vehicle;
-              std::unique_ptr<mavlinksdk::CMavlinkWayPointManager> m_mavlink_waypoint_manager;
               bool m_stopped_called = false;
               int m_sysid;
               int m_compid;

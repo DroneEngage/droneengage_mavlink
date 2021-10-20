@@ -91,9 +91,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
                 
                 double altitude = message["a"].get<double>();
                 
-                mavlinksdk::CVehicle *vehicle =  m_mavlinksdk.getVehicle().get();
-
-                if (vehicle->isFlying()== true)
+                if (mavlinksdk::CVehicle::getInstance().isFlying()== true)
                 {
                     mavlinksdk::CMavlinkCommand::getInstance().changeAltitude (altitude );
                 }
@@ -137,7 +135,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
                 
                 double latitude  = message["a"].get<double>();
                 double longitude = message["g"].get<double>();
-                double altitude  = m_mavlinksdk.getVehicle().get()->getMsgGlobalPositionInt().relative_alt;
+                double altitude  = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt().relative_alt;
                 if (message.contains("l") == true)
                 {
                     if ((!validateField(message, "l", Json::value_t::number_float)) 
@@ -172,7 +170,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
                 double altitude  = message["A"].get<double>();
                 if (altitude == 0)
                 {
-                    altitude  = m_mavlinksdk.getVehicle().get()->getMsgHomePosition().altitude / 1000.0f; // convert to meter
+                    altitude  = mavlinksdk::CVehicle::getInstance().getMsgHomePosition().altitude / 1000.0f; // convert to meter
                 }
                 
                 mavlinksdk::CMavlinkCommand::getInstance().setHome(0, latitude, longitude, altitude);
@@ -317,7 +315,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
                 if (!validateField(message, "A",Json::value_t::number_unsigned)) return ;
                 if (!validateField(message, "E",Json::value_t::number_unsigned)) return ;
                 
-                int16_t rc_channels[16] = {0};
+                int16_t rc_channels[18] = {0};
                 rc_channels[3] = message["R"].get<int>();
                 rc_channels[2] = message["T"].get<int>();
                 rc_channels[0] = message["A"].get<int>();

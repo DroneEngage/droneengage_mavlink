@@ -1,7 +1,11 @@
 #ifndef WAYPOINT_MANAGER_H_
 #define WAYPOINT_MANAGER_H_
 #include <map>
-#include "mavlink_helper.h"
+
+#include <common/mavlink.h>
+#include <ardupilotmega/ardupilotmega.h>
+
+
 
 //class mavlinksdk::CMavlinkCommand;
 
@@ -17,7 +21,7 @@ namespace mavlinksdk
 
 
 /**
- * @brief This class manage waypoints
+ * @brief This class manages waypoints
  * 
  */
 class CCallBack_WayPoint
@@ -34,10 +38,39 @@ class CCallBack_WayPoint
 class CMavlinkWayPointManager
 {
     public:
+            //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
+            static CMavlinkWayPointManager& getInstance()
+            {
+                static CMavlinkWayPointManager instance;
+                return instance;
+            }
+
+            CMavlinkWayPointManager(CMavlinkWayPointManager const&)               = delete;
+            void operator=(CMavlinkWayPointManager const&)                        = delete;
+
         
-        explicit CMavlinkWayPointManager(mavlinksdk::CCallBack_WayPoint& callback_waypoint);
-        ~CMavlinkWayPointManager() {};
+            // Note: Scott Meyers mentions in his Effective Modern
+            //       C++ book, that deleted functions should generally
+            //       be public as it results in better error messages
+            //       due to the compilers behavior to check accessibility
+            //       before deleted status
+
+        private:
+
+            CMavlinkWayPointManager() {};
+
+        public:
+            
+            ~CMavlinkWayPointManager ()
+            {
+
+            }
+
+        
+        public:
+        
     
+        void set_callback_waypoint (mavlinksdk::CCallBack_WayPoint* callback_waypoint);
         void parseMessage (const mavlink_message_t& mavlink_message);
     
 
@@ -62,7 +95,7 @@ class CMavlinkWayPointManager
 
     // Class Members
     protected:
-        mavlinksdk::CCallBack_WayPoint& m_callback_waypoint;
+        mavlinksdk::CCallBack_WayPoint* m_callback_waypoint;
 
         uint16_t  m_mission_current = 0;
         uint16_t  m_mission_count   = 0;

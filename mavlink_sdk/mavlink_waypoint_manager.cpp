@@ -1,5 +1,5 @@
 #include <iostream>
-#include "helpers/colors.h"
+#include "./helpers/colors.h"
 #include "mavlink_helper.h"
 #include "mavlink_command.h"
 #include "mavlink_waypoint_manager.h"
@@ -11,12 +11,10 @@
 using namespace mavlinksdk;
 
 
-
-CMavlinkWayPointManager::CMavlinkWayPointManager (mavlinksdk::CCallBack_WayPoint& callback_waypoint):m_callback_waypoint(callback_waypoint)
+void CMavlinkWayPointManager::set_callback_waypoint (mavlinksdk::CCallBack_WayPoint* callback_waypoint)
 {
-    
+	m_callback_waypoint = callback_waypoint;
 }
-
 
 
 void CMavlinkWayPointManager::reloadWayPoints ()
@@ -31,7 +29,7 @@ void CMavlinkWayPointManager::clearWayPoints ()
 {
     m_mission_waiting_for_seq = 0;
     m_state = WAYPOINT_STATE_IDLE;
-    m_callback_waypoint.OnWayPointsLoadingCompleted();
+    m_callback_waypoint->OnWayPointsLoadingCompleted();
 
 }
 
@@ -68,13 +66,13 @@ void CMavlinkWayPointManager::handle_mission_ack (const mavlink_mission_ack_t& m
         break;
 
         case WAYPOINT_STATE_WRITING_ACK:
-            m_callback_waypoint.OnMissionSaveFinished(mission_ack.type, mission_ack.mission_type, mavlinksdk::CMavlinkHelper::getMissionACKResult (mission_ack.type));        
+            m_callback_waypoint->OnMissionSaveFinished(mission_ack.type, mission_ack.mission_type, mavlinksdk::CMavlinkHelper::getMissionACKResult (mission_ack.type));        
         break;
 
         default:
         break;
     }
-    m_callback_waypoint.onMissionACK (mission_ack.type, mission_ack.mission_type, mavlinksdk::CMavlinkHelper::getMissionACKResult (mission_ack.type));
+    m_callback_waypoint->onMissionACK (mission_ack.type, mission_ack.mission_type, mavlinksdk::CMavlinkHelper::getMissionACKResult (mission_ack.type));
 }
 
 
@@ -156,7 +154,7 @@ void CMavlinkWayPointManager::handle_mission_item (const mavlink_mission_item_in
     #endif
     if (m_state == WAYPOINT_STATE_READ_REQUEST) 
     {
-        m_callback_waypoint.OnWayPointReceived (mission_item_int);
+        m_callback_waypoint->OnWayPointReceived (mission_item_int);
     }
     if (mission_item_int.mission_type == MAV_MISSION_TYPE_MISSION)
     {
@@ -176,7 +174,7 @@ void CMavlinkWayPointManager::handle_mission_item (const mavlink_mission_item_in
             if (m_state == WAYPOINT_STATE_READ_REQUEST) 
             {
                 m_state = WAYPOINT_STATE_IDLE;
-                m_callback_waypoint.OnWayPointsLoadingCompleted();
+                m_callback_waypoint->OnWayPointsLoadingCompleted();
             }
         }
         else
@@ -190,7 +188,7 @@ void CMavlinkWayPointManager::handle_mission_item (const mavlink_mission_item_in
 
 void CMavlinkWayPointManager::handle_mission_item_reached (const mavlink_mission_item_reached_t& mission_item_reached)
 {
-    m_callback_waypoint.OnWaypointReached(mission_item_reached.seq);
+    m_callback_waypoint->OnWaypointReached(mission_item_reached.seq);
 }
 
 

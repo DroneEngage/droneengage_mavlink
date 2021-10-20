@@ -60,13 +60,41 @@ namespace mavlinksdk
 
     class CVehicle
     {
-        public:
         
-            explicit CVehicle(mavlinksdk::CCallBack_Vehicle& callback_vehicle);
-            ~CVehicle() {};
-    
-            void parseMessage       (const mavlink_message_t& mavlink_message);
-    
+        public:
+            //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
+            static CVehicle& getInstance()
+            {
+                static CVehicle instance;
+
+                return instance;
+            }
+
+            CVehicle(CVehicle const&)               = delete;
+            void operator=(CVehicle const&)         = delete;
+
+        
+            // Note: Scott Meyers mentions in his Effective Modern
+            //       C++ book, that deleted functions should generally
+            //       be public as it results in better error messages
+            //       due to the compilers behavior to check accessibility
+            //       before deleted status
+
+        private:
+
+            CVehicle();
+
+        public:
+            
+            ~CVehicle ()
+            {
+
+            }
+
+        public:
+
+            void set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* callback_vehicle);
+            void parseMessage (const mavlink_message_t& mavlink_message);
 
 
         protected:
@@ -81,6 +109,8 @@ namespace mavlinksdk
             
         // Vechile Methods
         public:
+
+            
 
             const bool isFCBConnected() const;
 
@@ -176,7 +206,7 @@ namespace mavlinksdk
 
         // Class Members
         protected:
-            mavlinksdk::CCallBack_Vehicle& m_callback_vehicle;
+            mavlinksdk::CCallBack_Vehicle* m_callback_vehicle;
             bool m_heart_beat_first = false;
 
 
@@ -234,7 +264,7 @@ namespace mavlinksdk
 
             // Status Text
             std::string m_status_text;
-            std::uint8_t m_status_severity;
+            std::uint8_t m_status_severity =0;
 
             // Time Stamps
             Time_Stamps time_stamps;

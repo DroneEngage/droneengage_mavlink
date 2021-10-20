@@ -3,7 +3,7 @@
 #include <csignal>
 
 #include <vehicle.h>
-
+#include <mavlink_waypoint_manager.h>
 
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
@@ -194,7 +194,7 @@ void uavos::fcb::CFCBMain::remoteControlSignal ()
         case RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS:
         {
             // should ignore these values.
-            mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,16);
+            mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,18);
 
         }
         break;
@@ -202,7 +202,7 @@ void uavos::fcb::CFCBMain::remoteControlSignal ()
         case RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS:
         {
             // should ignore these values.
-            mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,16);
+            mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,18);
 
         }
         break;
@@ -221,7 +221,7 @@ void uavos::fcb::CFCBMain::remoteControlSignal ()
 
                 return ;
             }
-            mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,16);
+            mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,18);
 
         }
         break;
@@ -239,7 +239,7 @@ void uavos::fcb::CFCBMain::remoteControlSignal ()
                 return ;
             }
 
-            //mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,16);
+            //mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,18);
         }
         break;
     }
@@ -287,7 +287,7 @@ void uavos::fcb::CFCBMain::loopScheduler ()
             if (m_counter_sec % 5 ==0)
             {// 5 sec
                 m_fcb_facade.sendPowerInfo(std::string());
-                bool fcb_connected = m_mavlink_sdk.getVehicle().get()->isFCBConnected();
+                bool fcb_connected = mavlinksdk::CVehicle::getInstance().isFCBConnected();
 
                 if (fcb_connected != m_fcb_connected)
                 {
@@ -362,7 +362,7 @@ void uavos::fcb::CFCBMain::saveWayPointsToFCB()
         mavlink_mission.insert(std::make_pair(i,m_andruav_missions.mission_items.at(i).get()->getArdupilotMission()));
     }
 
-    m_mavlink_sdk.getWayPointManager().get()->saveWayPoints(mavlink_mission, MAV_MISSION_TYPE_MISSION);
+    mavlinksdk::CMavlinkWayPointManager::getInstance().saveWayPoints(mavlink_mission, MAV_MISSION_TYPE_MISSION);
 
     return ;
     
@@ -676,10 +676,10 @@ void uavos::fcb::CFCBMain::alertUavosOffline()
  * @param ignode_dead_band 
  * @return int16_t 
  */
-void uavos::fcb::CFCBMain::calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output)
+void uavos::fcb::CFCBMain::calculateChannels(const int16_t scaled_channels[18], const bool ignode_dead_band, int16_t *output)
 {
     
-    for (int i=0; i<16;++i)
+    for (int i=0; i<18;++i)
     {
         int scaled_channel = scaled_channels[i];
 
@@ -729,7 +729,7 @@ void uavos::fcb::CFCBMain::releaseRemoteControl()
 {
     if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_RELEASED) return ;
 
-    memset(m_andruav_vehicle_info.rc_channels, 0, 16 * sizeof(int16_t));
+    memset(m_andruav_vehicle_info.rc_channels, 0, 18 * sizeof(int16_t));
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_RELEASED;
     m_andruav_vehicle_info.rc_command_active = false;
 
@@ -749,7 +749,7 @@ void uavos::fcb::CFCBMain::centerRemoteControl()
 {
     if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS) return ;
     
-    memset(m_andruav_vehicle_info.rc_channels, 0, 16 * sizeof(int16_t));
+    memset(m_andruav_vehicle_info.rc_channels, 0, 18 * sizeof(int16_t));
     memset(m_andruav_vehicle_info.rc_channels, 1500, 4 * sizeof(int16_t));
     
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS;
@@ -768,7 +768,6 @@ void uavos::fcb::CFCBMain::freezeRemoteControl()
     
     if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS) return ;
     
-    memset(m_andruav_vehicle_info.rc_channels, 0, 16 * sizeof(int16_t));
     
     const mavlink_rc_channels_t& mavlink_rc_channels = mavlinksdk::CVehicle::getInstance().getRCChannels();
 
@@ -819,7 +818,7 @@ void uavos::fcb::CFCBMain::enableRemoteControlGuided()
     m_andruav_vehicle_info.rc_command_active = false;  // remote control data will enable it       
     
     // release channels
-    memset(m_andruav_vehicle_info.rc_channels, 0, 16 * sizeof(int16_t));
+    memset(m_andruav_vehicle_info.rc_channels, 0, 18 * sizeof(int16_t));
     mavlinksdk::CMavlinkCommand::getInstance().releaseRCChannels();
 
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED;
@@ -926,7 +925,7 @@ void uavos::fcb::CFCBMain::updateRemoteControlChannels(const int16_t rc_channels
         {
             m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
 
-            int16_t rc_chammels_pwm[16] = {0};
+            int16_t rc_chammels_pwm[18] = {0};
 
             calculateChannels(rc_channels, true, rc_chammels_pwm);
             

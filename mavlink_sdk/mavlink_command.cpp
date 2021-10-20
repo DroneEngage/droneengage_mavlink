@@ -2,7 +2,7 @@
 
 #include "mavlink_command.h"
 #include "mavlink_sdk.h"
-
+#include "mavlink_waypoint_manager.h"
 
 
 
@@ -46,6 +46,11 @@ void CMavlinkCommand::sendLongCommand (const uint16_t& command,
 }
 
 
+/**
+ * @brief forward any mavlink message to FCB. No previous processing
+ * 
+ * @param mavlink_message 
+ */
 void CMavlinkCommand::sendNative(const mavlink_message_t mavlink_message) const
 {
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
@@ -149,7 +154,7 @@ void CMavlinkCommand::changeAltitude (const float& altitude) const
 {
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
-	const mavlink_global_position_int_t& mavlink_global_position_int = mavlink_sdk.getVehicle().get()->getMsgGlobalPositionInt();
+	const mavlink_global_position_int_t& mavlink_global_position_int = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt();
 	
 	gotoGuidedPoint(mavlink_global_position_int.lat / 10000000.0f, mavlink_global_position_int.lon / 10000000.0f, altitude );
 }
@@ -302,11 +307,8 @@ void CMavlinkCommand::sendMissionAck () const
 
 void CMavlinkCommand::reloadWayPoints () const
 {
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-	
-	mavlink_sdk.getWayPointManager().get()->reloadWayPoints();
+	mavlinksdk::CMavlinkWayPointManager::getInstance().reloadWayPoints();
 
-	
 	return ;
 }
 
@@ -341,7 +343,7 @@ void CMavlinkCommand::clearWayPoints () const
 {
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
-	mavlink_sdk.getWayPointManager().get()->clearWayPoints();
+	mavlinksdk::CMavlinkWayPointManager::getInstance().clearWayPoints();
 
 	mavlink_mission_clear_all_t mission_clear;
 
@@ -448,9 +450,7 @@ void CMavlinkCommand::setMissionCount (const int& mission_count, MAV_MISSION_TYP
 
 void CMavlinkCommand::writeMission (std::map <int, mavlink_mission_item_int_t> mavlink_mission) const
 {
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-
-	mavlink_sdk.getWayPointManager().get()->saveWayPoints(mavlink_mission, MAV_MISSION_TYPE::MAV_MISSION_TYPE_MISSION);	
+	mavlinksdk::CMavlinkWayPointManager::getInstance().saveWayPoints(mavlink_mission, MAV_MISSION_TYPE::MAV_MISSION_TYPE_MISSION);	
 
 	return ;
 }
@@ -534,7 +534,7 @@ void CMavlinkCommand::writeParameter (const std::string& param_name, const doubl
 {
 	//TODO to be implemented	
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-	const std::map<std::string, Parameter_Value>& parameters_list = mavlink_sdk.getVehicle().get()->getParametersList();
+	const std::map<std::string, Parameter_Value>& parameters_list = mavlinksdk::CVehicle::getInstance().getParametersList();
 	
 
 	mavlink_param_set_t mavlink_param;
@@ -566,13 +566,13 @@ void CMavlinkCommand::writeParameter (const std::string& param_name, const doubl
 /**
  * @brief 
  * ! Not Tested
- * @param param_name name is saved in parameters_list = mavlink_sdk.getVehicle().get()->getParametersList()
+ * @param param_name name is saved in parameters_list = mavlinksdk::CVehicle::getInstance().getParametersList()
  */
 void CMavlinkCommand::readParameter (const std::string& param_name) const
 {
 	//TODO to be implemented	
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-	const std::map<std::string, Parameter_Value>& parameters_list = mavlink_sdk.getVehicle().get()->getParametersList();
+	const std::map<std::string, Parameter_Value>& parameters_list = mavlinksdk::CVehicle::getInstance().getParametersList();
 	
 
 	mavlink_param_request_read_t mavlink_param;
@@ -701,8 +701,8 @@ void CMavlinkCommand::sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], in
     mavlink_rc_channels.chan14_raw = channel_length>=14?channels[13]:0;
     mavlink_rc_channels.chan15_raw = channel_length>=15?channels[14]:0;
     mavlink_rc_channels.chan16_raw = channel_length>=16?channels[15]:0;
-	mavlink_rc_channels.chan15_raw = channel_length>=16?channels[16]:0;
-    mavlink_rc_channels.chan16_raw = channel_length>=17?channels[17]:0;
+	mavlink_rc_channels.chan15_raw = channel_length>=17?channels[16]:0;
+    mavlink_rc_channels.chan16_raw = channel_length>=18?channels[17]:0;
 	
     mavlink_message_t mavlink_message;
 	mavlink_msg_rc_channels_override_encode (255, mavlink_sdk.getCompId(), &mavlink_message, &mavlink_rc_channels);
