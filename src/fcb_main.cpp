@@ -770,7 +770,7 @@ void uavos::fcb::CFCBMain::freezeRemoteControl()
     
     memset(m_andruav_vehicle_info.rc_channels, 0, 16 * sizeof(int16_t));
     
-    const mavlink_rc_channels_t& mavlink_rc_channels = m_mavlink_sdk.getVehicle().get()->getRCChannels();
+    const mavlink_rc_channels_t& mavlink_rc_channels = mavlinksdk::CVehicle::getInstance().getRCChannels();
 
     m_andruav_vehicle_info.rc_channels[0] = mavlink_rc_channels.chan1_raw;    
     m_andruav_vehicle_info.rc_channels[1] = mavlink_rc_channels.chan2_raw;
@@ -908,7 +908,7 @@ void uavos::fcb::CFCBMain::updateRemoteControlChannels(const int16_t rc_channels
             m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
             m_andruav_vehicle_info.rc_command_active = true;
             
-            int16_t rc_chammels_pwm[16] = {0};
+            int16_t rc_chammels_pwm[18] = {0};
 
             calculateChannels(rc_channels, true, rc_chammels_pwm);
             
