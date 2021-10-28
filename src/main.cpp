@@ -62,7 +62,7 @@ void uninit ();
  */
 void _version (void)
 {
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ "UAVOS Communicator version " << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ "Drone-Engage Communicator version " << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
 
 
