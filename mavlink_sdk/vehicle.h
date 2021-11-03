@@ -271,7 +271,7 @@ namespace mavlinksdk
 
             // Vehicle is armed
             bool m_armed     = false;
-            // Flying or Diving
+            // Flying or Diving => Armed Ready to take-off. It is not necessary physically flying
             bool m_is_flying = false;
             // Firmware Type
             mavlinksdk::FIRMWARE_TYPE m_firmware_type = FIRMWARE_TYPE_UNKNOWN;

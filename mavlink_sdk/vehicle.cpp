@@ -26,7 +26,7 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	const bool is_armed  = (heartbeat.base_mode & MAV_MODE_FLAG_SAFETY_ARMED) != 0;
 
 	
-	const bool is_flying = ((heartbeat.system_status == MAV_STATE_ACTIVE) || 
+	const bool is_flying = is_armed && ((heartbeat.system_status == MAV_STATE_ACTIVE) || 
            	             ((heartbeat.system_status == MAV_STATE_CRITICAL) || (m_heartbeat.system_status == MAV_STATE_EMERGENCY)));
 
 	//Detect mode change
