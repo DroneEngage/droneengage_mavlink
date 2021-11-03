@@ -12,7 +12,9 @@
 #define JSON_INTERMODULE_MODULE_KEY             "e"
 #define JSON_INTERMODULE_HARDWARE_ID            "s"
 #define JSON_INTERMODULE_HARDWARE_TYPE          "t"
+#define JSON_INTERMODULE_TIMESTAMP_INSTANCE     "u"
 #define JSON_INTERMODULE_RESEND                 "z"
+
 
 
 

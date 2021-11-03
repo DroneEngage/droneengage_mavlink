@@ -1,6 +1,6 @@
 #include <iostream>
 #include <signal.h>
-
+#include <ctime>
 
 #include "version.h"
 #include "./helpers/colors.hpp"
@@ -16,6 +16,7 @@
 using namespace uavos;
 
 
+std::time_t time_stamp;
 
 bool exit_me = false;
 
@@ -213,6 +214,7 @@ const Json createJSONID (bool reSend)
         ms[JSON_INTERMODULE_HARDWARE_ID]            = hardware_serial; 
         ms[JSON_INTERMODULE_HARDWARE_TYPE]          = HARDWARE_TYPE_CPU; 
         ms[JSON_INTERMODULE_RESEND]                 = reSend;
+        ms[JSON_INTERMODULE_TIMESTAMP_INSTANCE]     = time_stamp;
 
         jsonID[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
         #ifdef DEBUG
@@ -324,6 +326,7 @@ void init (int argc, char *argv[])
     // Reading Configuration
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING PLUGIN ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
+    std::cout << std::asctime(std::localtime(&time_stamp)) << time_stamp << " seconds since the Epoch" << std::endl;
 
     
     // Define module features
@@ -399,6 +402,8 @@ void quit_handler( int sig )
 
 int main (int argc, char *argv[])
 {
+    time_stamp = std::time(nullptr);
+     
     init (argc, argv);
 
     while (!exit_me)
