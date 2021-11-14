@@ -47,6 +47,7 @@ namespace mavlinksdk
     {
         public:
 
+        virtual void OnBoardRestarted ()                                                                {};
         virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)                           {};
         virtual void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)                         {};
         virtual void OnArmed (const bool& armed)                                                        {};
@@ -106,6 +107,7 @@ namespace mavlinksdk
             void handle_param_ext_value  (const mavlink_param_ext_value_t& param_message);
             void handle_param_value      (const mavlink_param_value_t& param_message);
             void handle_rc_channels_raw  (const mavlink_rc_channels_t& rc_channels);
+            void handle_system_time      (const mavlink_system_time_t& system_time);
             
         // Vechile Methods
         public:
@@ -194,6 +196,11 @@ namespace mavlinksdk
                 return m_rc_channels;
             }
 
+            const mavlink_system_time_t& getSystemTime() const 
+            {  
+                return m_system_time;
+            }
+
             const std::string& getLastStatusText () const
             {
                 return m_status_text;
@@ -261,6 +268,9 @@ namespace mavlinksdk
 
             // RCChannels
             mavlink_rc_channels_t   m_rc_channels;
+
+            // System Time
+            mavlink_system_time_t  m_system_time;
 
             // Status Text
             std::string m_status_text;

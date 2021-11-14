@@ -142,6 +142,7 @@ namespace fcb
             void OnHeartBeat ();
             void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat) override;
             void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat) override ;
+            void OnBoardRestarted () override;
             void OnArmed (const bool& armed) override;
             void OnFlying (const bool& isFlying) override;
             void OnStatusText (const std::uint8_t& severity, const std::string& status) override;

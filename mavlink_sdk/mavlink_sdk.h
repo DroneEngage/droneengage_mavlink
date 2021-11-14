@@ -12,7 +12,7 @@
 
 namespace mavlinksdk
 {
-    class CMavlinkSDK : protected mavlinksdk::comm::CCallBack_Communicator, protected mavlinksdk::CCallBack_Vehicle, protected mavlinksdk::CMavlinkEvents, protected mavlinksdk::CCallBack_WayPoint
+    class CMavlinkSDK : protected mavlinksdk::comm::CCallBack_Communicator, protected mavlinksdk::CCallBack_Vehicle, protected mavlinksdk::CCallBack_WayPoint
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -124,6 +124,10 @@ namespace mavlinksdk
             
         // CCallback_Vehicle inheritance
         protected:
+            inline void OnBoardRestarted () override 
+            {
+                m_mavlink_events->OnBoardRestarted ();
+            };
             inline void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat) override 
             {
                 m_mavlink_events->OnHeartBeat_First (heartbeat);

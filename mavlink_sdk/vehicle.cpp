@@ -12,13 +12,14 @@
 mavlinksdk::CVehicle::CVehicle()
 {
 	time_stamps.reset_timestamps();
+	m_system_time.time_boot_ms = 0;
+	m_system_time.time_unix_usec = 0;
 }
 
 void mavlinksdk::CVehicle::set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* callback_vehicle)
 {
 	m_callback_vehicle = callback_vehicle;
 }
-
 
 void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbeat)
 {
@@ -197,6 +198,16 @@ void mavlinksdk::CVehicle::handle_rc_channels_raw  (const mavlink_rc_channels_t&
 	m_rc_channels = rc_channels;
 }
 
+void mavlinksdk::CVehicle::handle_system_time (const mavlink_system_time_t& system_time)
+{
+	if ((system_time.time_boot_ms < m_system_time.time_boot_ms) && (m_system_time.time_boot_ms > 0))
+	{
+		m_callback_vehicle->OnBoardRestarted();
+	}
+
+	m_system_time = system_time;
+}
+
 void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_message)
 {
 
@@ -216,6 +227,15 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			
 		}
         break;
+
+		case MAVLINK_MSG_ID_SYSTEM_TIME:
+		{
+			mavlink_system_time_t system_time;
+			mavlink_msg_system_time_decode(&mavlink_message, &(system_time));
+
+			handle_system_time (system_time);
+		}
+		break;
 
         case MAVLINK_MSG_ID_SYS_STATUS:
 		{

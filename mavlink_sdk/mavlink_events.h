@@ -5,7 +5,7 @@
 namespace mavlinksdk
 {
     /**
-     * @brief This class holds all callback functions from mavlink_sdk library.
+     * @brief This class holds all exposed to outter useres callback functions from mavlink_sdk library.
      * All functions are virtual and user can override only needed functions.
      * 
      */
@@ -19,6 +19,7 @@ namespace mavlinksdk
         // CCallBack_Vehicle Related
         virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)                                           {};
         virtual void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)                                         {};
+        virtual void OnBoardRestarted ()                                                                                {};
         virtual void OnArmed  (const bool& armed)                                                                       {};
         virtual void OnFlying (const bool& isFlying)                                                                    {};
         virtual void OnACK    (const int& result, const std::string& result_msg)                                        {};

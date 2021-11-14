@@ -454,6 +454,16 @@ void uavos::fcb::CFCBMain::OnHeartBeat_Resumed (const mavlink_heartbeat_t& heart
     
     return ;
 }
+
+void uavos::fcb::CFCBMain::OnBoardRestarted ()
+{
+    std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Flight Controller Restarted" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    
+    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "FCB boad has been restarted");
+
+    return ;
+}
+
             
 void uavos::fcb::CFCBMain::OnArmed (const bool& armed)
 {
