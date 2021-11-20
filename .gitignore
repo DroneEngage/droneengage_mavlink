@@ -27,3 +27,9 @@ mavlink_control
 *.txt
 doxygen_doc/
 
+mav.parm
+mav.tlog
+mav.tlog.raw
+eeprom.bin
+/terrain
+
