@@ -10,9 +10,10 @@
   
   "telemetryLevel": "1", 
   "fcbConnectionURI": 
-  {"type": "udp",
+  {
+    "type": "udp",
     "ip": "0.0.0.0",
-    "port":14550
+    "port":17551
   },
 
   "fcbConnectionURI2":

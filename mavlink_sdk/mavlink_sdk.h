@@ -1,6 +1,7 @@
 #ifndef MAVLINK_SDK_H_
 #define MAVLINK_SDK_H_
 
+
 #include <memory>
 #include "./helpers/colors.h"
 #include "generic_port.h"
@@ -89,10 +90,10 @@ namespace mavlinksdk
 
         // CCalback_WayPointManager inheritance
         protected:
-            inline void onMissionACK (const int& result, const int& mission_type, const std::string& result_msg)  override
+            inline void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)  override
             {
-                std::cout << _INFO_CONSOLE_TEXT << "onMissionACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
-                m_mavlink_events->onMissionACK (result, mission_type, result_msg);
+                std::cout << _INFO_CONSOLE_TEXT << "OnMissionACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                m_mavlink_events->OnMissionACK (result, mission_type, result_msg);
             }
 
 
@@ -154,13 +155,13 @@ namespace mavlinksdk
                 m_mavlink_events->OnFlying (isFlying);
             };
 
-            inline void OnACK (const int& result, const std::string& result_msg) override 
+            inline void OnACK (const int& acknowledged_cmd, const int& result, const std::string& result_msg) override 
             {
                 #ifdef DEBUG
-                    std::cout << _INFO_CONSOLE_TEXT << "OnACK " << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                    std::cout << _INFO_CONSOLE_TEXT << "OnACK  of CMD" << std::to_string(acknowledged_cmd) << " RES:" << std::to_string(result) << " - " << result_msg << _NORMAL_CONSOLE_TEXT_ << std::endl;    
                 #endif
 
-                m_mavlink_events->OnACK (result, result_msg);
+                m_mavlink_events->OnACK (acknowledged_cmd, result, result_msg);
             };
 
             inline void OnStatusText (const std::uint8_t& severity, const std::string& status) override 
@@ -182,9 +183,9 @@ namespace mavlinksdk
                 m_mavlink_events->OnHomePositionUpdated (home_position);
             };
 
-            inline void OnParamChanged(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override 
+            inline void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override 
             {
-                m_mavlink_events->OnParamChanged (param_name, param_message, changed);
+                m_mavlink_events->OnParamReceived (param_name, param_message, changed);
             };
     
             

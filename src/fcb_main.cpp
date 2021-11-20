@@ -428,6 +428,11 @@ void uavos::fcb::CFCBMain::OnHeartBeat ()
     return ;
 }
 
+/**
+ * @brief Called when HearBeat is received for the first time.
+ * 
+ * @param heartbeat 
+ */
 void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)
 {
     
@@ -437,8 +442,10 @@ void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbe
 
     m_fcb_facade.sendID(std::string());
 
+    // request home location
     mavlinksdk::CMavlinkCommand::getInstance().requestHomeLocation();
     
+    // request parameters
     mavlinksdk::CMavlinkCommand::getInstance().requestParametersList();
    
     return ;
@@ -516,7 +523,7 @@ void uavos::fcb::CFCBMain::OnStatusText (const std::uint8_t& severity, const std
     
 }
 
-void uavos::fcb::CFCBMain::onMissionACK (const int& result, const int& mission_type, const std::string& result_msg)
+void uavos::fcb::CFCBMain::OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)
 {
     int sevirity;
 
@@ -604,11 +611,11 @@ void uavos::fcb::CFCBMain::OnMissionSaveFinished (const int& result, const int& 
     else
     {
         // broadcast error.
-        onMissionACK(result, mission_type, result_msg);
+        OnMissionACK(result, mission_type, result_msg);
     }
 }
             
-void uavos::fcb::CFCBMain::OnACK (const int& result, const std::string& result_msg)
+void uavos::fcb::CFCBMain::OnACK (const int& acknowledged_cmd, const int& result, const std::string& result_msg)
 {
     int sevirity;
 
@@ -660,14 +667,23 @@ void uavos::fcb::CFCBMain::OnHomePositionUpdated(const mavlink_home_position_t& 
 }
 
 
-void uavos::fcb::CFCBMain::OnParamChanged(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)
+/**
+ * @brief Called when parameter is recieved for first time or its value has changed.
+ * @details Forward parameters only when changed = true. As parameters are sent in chunks to save bandwidth.
+ * @param param_name parameter name
+ * @param param_message parameter mavlink message
+ * @param changed true if changed & false if new
+ */
+void uavos::fcb::CFCBMain::OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)
 {
     #ifdef DEBUG
 	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 
-		<< std::string(param_name) << " : " << "count: " << std::to_string(param_message.param_index) 
+		<< std::string(param_name) << " : " << "count: " << std::to_string(param_message.param_index) << " of " << std::to_string(param_message.param_count)
 		<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
 		<< _NORMAL_CONSOLE_TEXT_ << std::endl;
 	#endif
+
+    if (changed) m_fcb_facade.sendParameterValue(std::string(), param_message);
 }
 
 void uavos::fcb::CFCBMain::alertUavosOffline()

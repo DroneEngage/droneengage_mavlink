@@ -22,7 +22,7 @@ namespace mavlinksdk
         virtual void OnBoardRestarted ()                                                                                {};
         virtual void OnArmed  (const bool& armed)                                                                       {};
         virtual void OnFlying (const bool& isFlying)                                                                    {};
-        virtual void OnACK    (const int& result, const std::string& result_msg)                                        {};
+        virtual void OnACK    (const int& acknowledged_cmd, const int& result, const std::string& result_msg)           {};
         virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)                             {};
         /*
         * vehicle_mode = mavlinksdk::CMavlinkHelper::getMode (m_heartbeat.custom_mode, m_firmware_type)
@@ -30,7 +30,7 @@ namespace mavlinksdk
         virtual void OnModeChanges(const int& custom_mode, const int& firmware_type)                                    {};
         virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)                                {};
     
-        virtual void OnParamChanged(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)  {};
+        virtual void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)  {};
     
 
         //CCallBack_WayPoint
@@ -38,7 +38,7 @@ namespace mavlinksdk
         virtual void OnWayPointReceived(const mavlink_mission_item_int_t& mission_item_int)                             {};
         virtual void OnWayPointsLoadingCompleted ()                                                                     {};
         virtual void OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)  {};
-        virtual void onMissionACK (const int& result, const int& mission_type, const std::string& result_msg)           {}; 
+        virtual void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)           {}; 
 
         // CCallBack_Communicator Related
 

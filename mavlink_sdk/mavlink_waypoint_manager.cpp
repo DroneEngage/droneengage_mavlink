@@ -76,7 +76,7 @@ void CMavlinkWayPointManager::handle_mission_ack (const mavlink_mission_ack_t& m
     // check that these responses is due to ANDRUAV request not a telemetry.
     if (m_state != WAYPOINT_STATE_IDLE)
     {   
-        m_callback_waypoint->onMissionACK (mission_ack.type, mission_ack.mission_type, mavlinksdk::CMavlinkHelper::getMissionACKResult (mission_ack.type));
+        m_callback_waypoint->OnMissionACK (mission_ack.type, mission_ack.mission_type, mavlinksdk::CMavlinkHelper::getMissionACKResult (mission_ack.type));
     }
 }
 

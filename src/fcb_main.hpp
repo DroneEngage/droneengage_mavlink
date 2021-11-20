@@ -148,13 +148,13 @@ namespace fcb
             void OnStatusText (const std::uint8_t& severity, const std::string& status) override;
             void OnModeChanges(const int& custom_mode, const int& firmware_type) override;
             void OnHomePositionUpdated(const mavlink_home_position_t& home_position)  override;
-            void onMissionACK (const int& result, const int& mission_type, const std::string& result_msg)override;
-            void OnACK (const int& result, const std::string& result_msg) override;
+            void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)override;
+            void OnACK (const int& acknowledged_cmd, const int& result, const std::string& result_msg) override;
             void OnWaypointReached(const int& seq) override;
             void OnWayPointReceived(const mavlink_mission_item_int_t& mission_item_int) override;
             void OnWayPointsLoadingCompleted ();
             void OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg) override;            
-            void OnParamChanged(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override;
+            void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override;
 
 
         public:

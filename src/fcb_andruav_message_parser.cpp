@@ -372,8 +372,11 @@ void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_mess
     std::cout << "cmd: " << remoteCommand << std::endl;
     switch (remoteCommand)
     {
+        case RemoteCommand_REQUEST_PARA_LIST:
+            uavos::fcb::CFCBFacade::getInstance().sendParameterList(andruav_message[ANDRUAV_PROTOCOL_SENDER]);
+        break;
+
         case TYPE_AndruavMessage_SET_HOME_LOCATION:
-            
             uavos::fcb::CFCBFacade::getInstance().sendHomeLocation(andruav_message[ANDRUAV_PROTOCOL_SENDER]);
         break;
 

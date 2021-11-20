@@ -66,7 +66,8 @@ namespace fcb
             void sendErrorMessage(const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const;
             void sendGPSInfo(const std::string&target_party_id) const;
             void sendNavInfo(const std::string&target_party_id) const;
-            void sendIMUInfo(const std::string&target_party_id) const;
+            void sendParameterList (const std::string&target_party_id) const;
+            void sendParameterValue (const std::string&target_party_id, const mavlink_param_value_t& param_message) const;
             void sendPowerInfo(const std::string&target_party_id) const;
             void sendHomeLocation(const std::string&target_party_id) const;
             void sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude) const;

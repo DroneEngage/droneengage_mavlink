@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <string>
+#include <limits.h>
 
 #include "./helpers/colors.h"
 #include "./helpers/utils.h"
@@ -31,7 +32,7 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
            	             ((heartbeat.system_status == MAV_STATE_CRITICAL) || (m_heartbeat.system_status == MAV_STATE_EMERGENCY)));
 
 	//Detect mode change
-	const bool is_mode_changed = (m_heartbeat.custom_mode != heartbeat.custom_mode) || !m_heart_beat_first;
+	const bool is_mode_changed = (m_heartbeat.custom_mode != heartbeat.custom_mode) || !m_heart_beat_first_recieved;
 	
 
 	// copy 
@@ -42,9 +43,9 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	// 	m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
 	// }
 
-	if (m_heart_beat_first == false) 
+	if (m_heart_beat_first_recieved == false) 
 	{  // Notify that we have something alive here.
-		m_heart_beat_first = true;
+		m_heart_beat_first_recieved = true;
 		m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
 		m_callback_vehicle->OnHeartBeat_First (heartbeat);
 	}
@@ -91,9 +92,10 @@ const bool mavlinksdk::CVehicle::isFCBConnected() const
 	return !((get_time_usec() - time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT]) > HEART_BEAT_TIMEOUT);
 }
 
+
 void mavlinksdk::CVehicle::handle_cmd_ack (const mavlink_command_ack_t& command_ack)
 {
-	m_callback_vehicle->OnACK (command_ack.result, mavlinksdk::CMavlinkHelper::getACKError (command_ack.result));
+	m_callback_vehicle->OnACK (command_ack.command, command_ack.result, mavlinksdk::CMavlinkHelper::getACKError (command_ack.result));
 }
 
 
@@ -168,25 +170,30 @@ void mavlinksdk::CVehicle::handle_param_value (const mavlink_param_value_t& para
 	memcpy((void *)&param_id[0], param_message.param_id,16);
 	std::string param_name = std::string(param_id);
 
-	Parameter_Value pv;
-	pv.param_type = param_message.param_type;
-	pv.parameter_value = param_message.param_value;
-	
-	
 	auto it = m_parameters_list.find(param_name);
 
 	if (it != m_parameters_list.end()) 
 	{
-		changed = (it->second.parameter_value == param_message.param_value);
+		changed = (memcmp(it->second.param_id,param_message.param_id,16) == 0);
+		if (changed) 
+		{
+			it->second.param_value = param_message.param_value;
+		}
 	} 
 
-	m_parameters_list.insert(std::make_pair(param_name, pv));
+	m_parameters_list.insert(std::make_pair(param_name, param_message));
 
-	m_callback_vehicle->OnParamChanged (param_name, param_message, changed);
+	if (param_message.param_index == (param_message.param_count-1)) 
+	{ 
+		m_parameters_list_available = true;
+		std::cout << "Parameter LOADED " << std::endl;
+	}
+
+	m_callback_vehicle->OnParamReceived (param_name, param_message, changed);
 
 	#ifdef DEBUG
 	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 
-		<< param_name << " : " << "count: " << std::to_string(param_message.param_index) 
+		<< param_name << " : " << "count: " << std::to_string(param_message.param_index) << " of " << std::to_string(param_message.param_count)
 		<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
 		<< _NORMAL_CONSOLE_TEXT_ << std::endl;
 	#endif

@@ -111,6 +111,7 @@
 #define RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB             502
 #define RemoteCommand_CLEAR_FENCE_DATA 	                    503 // andruav fence
 #define RemoteCommand_SET_START_MISSION_ITEM                504
+#define RemoteCommand_REQUEST_PARA_LIST                     505 // list of FCB parameters
 
 // Drone Report
 #define Drone_Report_NAV_ItemReached            1

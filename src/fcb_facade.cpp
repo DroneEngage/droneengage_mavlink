@@ -126,50 +126,25 @@ void uavos::fcb::CFCBFacade::sendGPSInfo(const std::string&target_party_id)  con
         [s]         : speed m/s
         [b]         : bearing
         [c]         : accuracy
-
-
     */
 
-
+    if (m_sendJMSG == NULL) return ;
+    
     uavos::fcb::CFCBMain&  fcbMain = uavos::fcb::CFCBMain::getInstance();
-            
-    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
+    mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
+
     const mavlink_gps_raw_int_t& gps = vehicle.getMSGGPSRaw();
     const mavlink_global_position_int_t&  gpos = vehicle.getMsgGlobalPositionInt();
-    //const ANDRUAV_VEHICLE_INFO& andruav_vehicle_info = fcbMain.getAndruavVehicleInfo();
 
-    
-    // Json message =
-    //     {
-            
-    //         {"3D", gps.fix_type}, 
-    //         {"GS", andruav_vehicle_info.gps_mode},
-    //         {"SATC", gps.satellites_visible},
-    //         {"g", gpos.alt},
-    //         {"p", "FCB"}, // source og this reading as if mode is auto you can read from multiple gps
-    //         {"la", gpos.lat / 10000000.0},
-    //         {"ln", gpos.lon / 10000000.0},  
-    //         {"a", floor (gpos.relative_alt / 1000.0f)}, 
-    //         {"c", gps.h_acc},
-    //         {"b", gps.yaw},
-    //         {"s", gps.vel / 100.0}
-    //     };
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
 
-
-    if (m_sendJMSG != NULL)
-    {
-        const int sys_id = m_mavlink_sdk.getSysId();
-        const int comp_id = m_mavlink_sdk.getCompId();
-
-        mavlink_message_t mavlink_message1,mavlink_message2;
-    	mavlink_msg_gps_raw_int_encode(sys_id, comp_id, &mavlink_message1, &gps);
+    mavlink_message_t mavlink_message1,mavlink_message2;
+    mavlink_msg_gps_raw_int_encode(sys_id, comp_id, &mavlink_message1, &gps);
         
-	    mavlink_msg_global_position_int_encode(sys_id, comp_id, &mavlink_message2, &gpos);
-        sendMavlinkData_2 (target_party_id, mavlink_message1, mavlink_message2);
+	mavlink_msg_global_position_int_encode(sys_id, comp_id, &mavlink_message2, &gpos);
+    sendMavlinkData_2 (target_party_id, mavlink_message1, mavlink_message2);
     
-        //m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_GPS, false);
-    }
- 
     return ;
 }
 
@@ -189,6 +164,8 @@ void uavos::fcb::CFCBFacade::sendNavInfo(const std::string&target_party_id)  con
         f : alt_error
     */
 
+    if (m_sendJMSG == NULL) return ;
+    
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
     const mavlink_attitude_t& attitude = vehicle.getMsgAttitude();
     const mavlink_nav_controller_output_t& nav_controller = vehicle.getMsgNavController();
@@ -205,38 +182,92 @@ void uavos::fcb::CFCBFacade::sendNavInfo(const std::string&target_party_id)  con
     // };
 
     // Send Mavlink
-    if (m_sendJMSG != NULL)
-    {
-        const int sys_id = m_mavlink_sdk.getSysId();
-        const int comp_id = m_mavlink_sdk.getCompId();
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
 
-        mavlink_message_t mavlink_message1,mavlink_message2;
-    	mavlink_msg_attitude_encode(sys_id, comp_id, &mavlink_message1, &attitude);
-        
-	    mavlink_msg_nav_controller_output_encode(sys_id, comp_id, &mavlink_message2, &nav_controller);
-        sendMavlinkData_2 (target_party_id, mavlink_message1, mavlink_message2);
-    }
-
+    mavlink_message_t mavlink_message1,mavlink_message2;
     
- 
+    mavlink_msg_attitude_encode(sys_id, comp_id, &mavlink_message1, &attitude);
+    mavlink_msg_nav_controller_output_encode(sys_id, comp_id, &mavlink_message2, &nav_controller);
+    
+    sendMavlinkData_2 (target_party_id, mavlink_message1, mavlink_message2);
+    
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendIMUInfo(const std::string&target_party_id)  const
+/**
+ * @brief Send complete list of parameters in chunks.
+ * 
+ * @param target_party_id 
+ */
+void uavos::fcb::CFCBFacade::sendParameterList (const std::string&target_party_id) const 
 {
-    Json message;
+    if (m_sendJMSG == NULL) return ;
+    
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
 
-    if (m_sendJMSG != NULL)
+    mavlink_message_t mavlink_message;
+    	
+    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
+    const std::map<std::string, mavlink_param_value_t>& parameters_list = vehicle.getParametersList();
+    
+    char buf[600];
+    unsigned total_length =0;
+
+    for (auto it = parameters_list.begin(); it != parameters_list.end(); it++)
     {
-        //m_sendJMSG (target_party_id, message, true);
+        std::cout << it->first    // string (key)
+              << ':'
+              << std::endl;
+        mavlink_param_value_t param_message = it->second;
+        mavlink_msg_param_value_encode(sys_id, comp_id, &mavlink_message, &param_message);
+        unsigned len = mavlink_msg_to_send_buffer((uint8_t*)&buf[total_length], &mavlink_message);
+        total_length += len;
+
+        std::cout << "len:" << std::to_string(len) << "total_length:" <<std::to_string(total_length) << std::endl;
+
+        if (total_length > 500)
+        {
+            m_sendBMSG (target_party_id, buf, total_length, TYPE_AndruavMessage_MAVLINK, false);
+    
+            total_length = 0;
+        }
     }
- 
+
+    if (total_length >0)
+    {
+        m_sendBMSG (target_party_id, buf, total_length, TYPE_AndruavMessage_MAVLINK, false);
+    }
+}
+
+/**
+ * @brief Send single parameter.
+ * 
+ * @param target_party_id 
+ * @param param_message 
+ */
+void uavos::fcb::CFCBFacade::sendParameterValue (const std::string&target_party_id, const mavlink_param_value_t& param_message) const 
+{
+    if (m_sendJMSG == NULL) return ;
+    
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
+
+    mavlink_message_t mavlink_message;
+    
+    mavlink_msg_param_value_encode(sys_id, comp_id, &mavlink_message, &param_message);
+
+    sendMavlinkData (target_party_id, mavlink_message);
+
     return ;
 }
 
 void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
 {
 
+    if (m_sendJMSG == NULL) return ;
+    
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
     
     int voltage = 0.0f;
@@ -277,22 +308,21 @@ void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)  c
     //     {"C", vehicle.getMsgBatteryStatus().current_consumed}
     // };
 
-    if (m_sendJMSG != NULL)
-    {
-        const int sys_id = m_mavlink_sdk.getSysId();
-        const int comp_id = m_mavlink_sdk.getCompId();
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
 
-        mavlink_message_t mavlink_message;
-        mavlink_msg_battery_status_encode(sys_id, comp_id, &mavlink_message, &battery_status);
-        sendMavlinkData(target_party_id, mavlink_message);
-    }
- 
+    mavlink_message_t mavlink_message;
+    mavlink_msg_battery_status_encode(sys_id, comp_id, &mavlink_message, &battery_status);
+    sendMavlinkData(target_party_id, mavlink_message);
+    
     return ;
 }
 
 
 void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
 {
+    
+    if (m_sendJMSG == NULL) return ;
     
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
     const mavlink_home_position_t& home = vehicle.getMsgHomePosition();
@@ -309,11 +339,8 @@ void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)
         {"A", home.altitude / 1000.0f}
     };
 
-    if (m_sendJMSG != NULL)
-    {
-        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_HomeLocation, false);
-    }
- 
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_HomeLocation, false);
+    
     return ;
 }
 
@@ -324,6 +351,8 @@ void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)
 */
 void uavos::fcb::CFCBFacade::sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude) const
 {
+    
+    if (m_sendJMSG == NULL) return ;
     
     /*
         T : latitude in xx.xxxxx
@@ -337,11 +366,8 @@ void uavos::fcb::CFCBFacade::sendFCBTargetLocation(const std::string&target_part
         {"A", altitude}
     };
 
-    if (m_sendJMSG != NULL)
-    {
-        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_DistinationLocation, false);
-    }
- 
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_DistinationLocation, false);
+    
     return ;
 }
 
@@ -359,6 +385,8 @@ std::mutex g_pages_mutex;
 void uavos::fcb::CFCBFacade::sendWayPoints(const std::string&target_party_id) const
 {
 
+    if (m_sendJMSG == NULL) return ;
+    
     std::lock_guard<std::mutex> guard(g_pages_mutex);
     
     uavos::fcb::CFCBMain&  fcbMain = uavos::fcb::CFCBMain::getInstance();
@@ -373,10 +401,7 @@ void uavos::fcb::CFCBFacade::sendWayPoints(const std::string&target_party_id) co
             {"n", 0}
         };
 
-        if (m_sendJMSG != NULL)
-        {
-            m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_WayPoints, false);
-        }
+        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_WayPoints, false);
         
         return ;
     }
@@ -409,10 +434,8 @@ void uavos::fcb::CFCBFacade::sendWayPoints(const std::string&target_party_id) co
             message["i"] = WAYPOINT_CHUNK;
         }
 
-        if (m_sendJMSG != NULL)
-        {
-            m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_WayPoints, false);
-        }
+        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_WayPoints, false);
+        
     }
 
     #undef MAX_WAYPOINT_CHUNK
@@ -486,11 +509,12 @@ void uavos::fcb::CFCBFacade::sendServoReadings(const std::string&target_party_id
 
 void uavos::fcb::CFCBFacade::sendWayPointReached (const std::string&target_party_id, const int& mission_sequence)  const
 {
+    if (m_sendJMSG == NULL) return ;
+    
     /*
         R: Report Type
         P: Parameter1
     */
-
 
     Json message =
     {
@@ -498,11 +522,8 @@ void uavos::fcb::CFCBFacade::sendWayPointReached (const std::string&target_party
         {"P", mission_sequence}
     };
 
-    if (m_sendJMSG != NULL)
-    {
-        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_DroneReport, false);
-    }
- 
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_DroneReport, false);
+    
     return ;
 }
 

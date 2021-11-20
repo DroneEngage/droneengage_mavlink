@@ -36,27 +36,20 @@ namespace mavlinksdk
 
     };
 
-    struct Parameter_Value
-    {
-        float parameter_value;
-        u_int8_t param_type;
-    };
-
-
     class CCallBack_Vehicle
     {
         public:
 
-        virtual void OnBoardRestarted ()                                                                {};
-        virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)                           {};
-        virtual void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)                         {};
-        virtual void OnArmed (const bool& armed)                                                        {};
-        virtual void OnFlying (const bool& isFlying)                                                    {};
-        virtual void OnACK (const int& result, const std::string& result_msg)                           {};
-        virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)             {};
-        virtual void OnModeChanges(const int& custom_mode, const int& firmware_type)                    {};
-        virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)                {};
-        virtual void OnParamChanged(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)    {};
+        virtual void OnBoardRestarted ()                                                                                                {};
+        virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)                                                           {};
+        virtual void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)                                                         {};
+        virtual void OnArmed (const bool& armed)                                                                                        {};
+        virtual void OnFlying (const bool& isFlying)                                                                                    {};
+        virtual void OnACK (const int& acknowledged_cmd, const int& result, const std::string& result_msg)                              {};
+        virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)                                             {};
+        virtual void OnModeChanges(const int& custom_mode, const int& firmware_type)                                                    {};
+        virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)                                                {};
+        virtual void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)    {};
     };
 
     class CVehicle
@@ -206,15 +199,21 @@ namespace mavlinksdk
                 return m_status_text;
             }
 
-            const std::map<std::string, Parameter_Value>& getParametersList() const
+            const std::map<std::string, mavlink_param_value_t>& getParametersList() const
             {
                 return m_parameters_list;
             }
 
+            const bool isParametersListAvailable() const
+            {
+                return m_parameters_list_available;
+            }
+
+
         // Class Members
         protected:
             mavlinksdk::CCallBack_Vehicle* m_callback_vehicle;
-            bool m_heart_beat_first = false;
+            bool m_heart_beat_first_recieved = false;
 
 
         // Vehicle Attributes
@@ -286,7 +285,8 @@ namespace mavlinksdk
             // Firmware Type
             mavlinksdk::FIRMWARE_TYPE m_firmware_type = FIRMWARE_TYPE_UNKNOWN;
 
-            std::map<std::string, Parameter_Value> m_parameters_list;
+            bool m_parameters_list_available = false;
+            std::map<std::string, mavlink_param_value_t> m_parameters_list;
 
     };
 }
