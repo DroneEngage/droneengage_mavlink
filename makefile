@@ -147,5 +147,7 @@ copy: clean
 clean:
 	rm -rf $(BIN); 
 	rm -rf $(BUILD);
+	cd ./mavlink_sdk ; \
+	make clean ;
 	@echo "cleaning finished"
 
