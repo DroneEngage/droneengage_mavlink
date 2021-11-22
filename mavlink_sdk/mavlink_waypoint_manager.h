@@ -7,8 +7,6 @@
 
 
 
-//class mavlinksdk::CMavlinkCommand;
-
 namespace mavlinksdk
 {
 

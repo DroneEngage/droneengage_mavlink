@@ -82,7 +82,7 @@ class CMavlinkCommand
          */
         void requestExtParametersList () const;
         void requestParametersList () const;
-
+        
         void setServo (const int& channel, const int& pwm) const;
         
         void requestHomeLocation () const;
