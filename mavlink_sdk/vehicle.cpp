@@ -174,10 +174,11 @@ void mavlinksdk::CVehicle::handle_param_value (const mavlink_param_value_t& para
 
 	if (it != m_parameters_list.end()) 
 	{
-		changed = (memcmp(it->second.param_id,param_message.param_id,16) == 0);
+		changed = (it->second.param_value != param_message.param_value);
 		if (changed) 
 		{
 			it->second.param_value = param_message.param_value;
+			//IMPORTANT: param_index is 65535 when value is re-read.
 		}
 	} 
 

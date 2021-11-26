@@ -335,7 +335,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             }
 
             case TYPE_AndruavMessage_LightTelemetry:
-            { // this is a binary message
+            {   // this is a binary message
                 // search for char '0' and then binary message is the next byte after it.
                 const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
                 int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1) );
@@ -348,7 +348,23 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
                 }
 
                  mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
-                
+            }
+            break;
+
+            case TYPE_AndruavMessage_MAVLINK:
+            {   // this is a binary message
+                // search for char '0' and then binary message is the next byte after it.
+                const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
+                int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1) );
+
+                mavlink_status_t status;
+	            mavlink_message_t mavlink_message;
+                for (int i=0; i<binary_length; ++ i)
+                {
+		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_1, binary_message[i+ 1], &mavlink_message, &status);
+                }
+
+                 mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
             }
             break;
 

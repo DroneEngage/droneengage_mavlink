@@ -683,7 +683,7 @@ void uavos::fcb::CFCBMain::OnParamReceived(const std::string& param_name, const 
 	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 
 		<< std::string(param_name) << " : " << "count: " << std::to_string(param_message.param_index) << " of " << std::to_string(param_message.param_count)
 		<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
-		<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+		<< " changed: " << std::to_string(changed) <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
 	#endif
 
     if (changed) m_fcb_facade.sendParameterValue(std::string(), param_message);
