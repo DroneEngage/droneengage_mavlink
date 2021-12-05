@@ -15,6 +15,7 @@
 
 using namespace uavos;
 
+#define MESSAGE_FILTER {1005, 1007, 1010, 1021, 1030, 1031, 1032, 1033, 1034, 1035, 1037, 1040, 1041, 1043, 1044, 1046, 1047, 1048, 1052, 2022, 6001, 6501, 6502}
 
 std::time_t time_stamp;
 
@@ -208,7 +209,7 @@ const Json createJSONID (bool reSend)
               
         ms[JSON_INTERMODULE_MODULE_ID]              = jsonConfig["module_id"];
         ms[JSON_INTERMODULE_MODULE_CLASS]           = "fcb"; // module_class
-        ms[JSON_INTERMODULE_MODULE_MESSAGES_LIST]   = jsonConfig["module_messages"];
+        ms[JSON_INTERMODULE_MODULE_MESSAGES_LIST]   = Json::array(MESSAGE_FILTER);
         ms[JSON_INTERMODULE_MODULE_FEATURES]        = module_features;
         ms[JSON_INTERMODULE_MODULE_KEY]             = jsonConfig["module_key"]; 
         ms[JSON_INTERMODULE_HARDWARE_ID]            = hardware_serial; 
