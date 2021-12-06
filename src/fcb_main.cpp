@@ -445,12 +445,15 @@ void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbe
     // request home location
     mavlinksdk::CMavlinkCommand::getInstance().requestHomeLocation();
     
+    //
+    //mavlinksdk::CMavlinkCommand::getInstance().requestDataStream();
+   
+   
     // request parameters
-    mavlinksdk::CMavlinkCommand::getInstance().requestParametersList();
+    //mavlinksdk::CMavlinkCommand::getInstance().requestParametersList();
    
-   // request parameters
-   // mavlinksdk::CMavlinkFTPManager::getInstance().requestMavFTPParamList();
-   
+    
+    
     return ;
 }
 

@@ -76,14 +76,9 @@ class CMavlinkCommand
 
         void ctrlGuidedVelocityInLocalFrame (const float vx, const float vy, const float vz, const float yaw_rate) const;
 
-        /**
-         * @brief 
-         * (MAVLink 2) Request all parameters of this component. All parameters should be emitted in response as PARAM_EXT_VALUE.
-         * 
-         */
         void requestExtParametersList () const;
         void requestParametersList () const;
-        
+        void requestDataStream() const;
         void setServo (const int& channel, const int& pwm) const;
         
         void requestHomeLocation () const;

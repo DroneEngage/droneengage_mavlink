@@ -77,18 +77,25 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 		m_callback_vehicle->OnModeChanges (m_heartbeat.custom_mode, m_firmware_type);
 	}
 	
-	if ((m_parameter_read_mode != mavlinksdk::TYPE_LOADING_PARMETER_STATUS::DONE)  
-		&& (m_parameters_last_receive_time>0) && ((now - m_parameters_last_receive_time) >  3000000l))
-	{
-		std::cout << std::to_string((now - m_parameters_last_receive_time)) << std::endl;
+	std::cout << std::to_string((now - m_parameters_last_receive_time)) << std::endl;
 	
-		#ifdef DEBUG
+	if ((m_parameter_read_mode != mavlinksdk::TYPE_LOADING_PARMETER_STATUS::DONE)  
+		 && ((now - m_parameters_last_receive_time) >  300000l))
+	{
+		if (m_parameters_last_receive_time==0)
+		{
+			mavlinksdk::CMavlinkCommand::getInstance().requestParametersList();
+		}
+		else
+		{
+		//#ifdef DEBUG
 			std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  
 			<< _LOG_CONSOLE_TEXT << "DEBUG: MISSING PARAMs m_parameters_last_index_read:" << std::to_string(m_parameters_last_index_read) 
 			<< std::endl;
-		#endif
+		//#endif
 		m_parameter_read_mode = mavlinksdk::TYPE_LOADING_PARMETER_STATUS::STALL_ONE_BY_ONE;
 		mavlinksdk::CMavlinkCommand::getInstance().readParameterByIndex(m_parameters_last_index_read+1);
+		}
 	}
 
 	
@@ -214,6 +221,7 @@ void mavlinksdk::CVehicle::handle_param_value (const mavlink_param_value_t& para
 	{ 
 		m_parameter_read_mode = mavlinksdk::TYPE_LOADING_PARMETER_STATUS::DONE;
 		std::cout << _SUCCESS_CONSOLE_TEXT_ << "Parameter LOADED " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream();
 		m_callback_vehicle->OnParamReceivedCompleted();
 	}
 

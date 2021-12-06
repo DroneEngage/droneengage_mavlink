@@ -498,6 +498,7 @@ void CMavlinkCommand::requestParametersList () const
 	return ;	
 }
 
+
 /**
  * @brief 
  * (MAVLink 2) Request all parameters of this component. All parameters should be emitted in response as PARAM_EXT_VALUE.
@@ -636,6 +637,26 @@ void CMavlinkCommand::readParameterByIndex (const uint16_t& param_index) const
 	return ;	
 }
 
+void CMavlinkCommand::requestDataStream() const
+{
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+
+	mavlink_request_data_stream_t mavlink_request_data_stream;
+	
+	mavlink_request_data_stream.target_system = mavlink_sdk.getSysId();
+	mavlink_request_data_stream.target_component = mavlink_sdk.getCompId();
+	mavlink_request_data_stream.req_stream_id = MAV_DATA_STREAM::MAV_DATA_STREAM_ALL;
+	mavlink_request_data_stream.req_message_rate = 1;
+	mavlink_request_data_stream.start_stop = 1;
+	
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_request_data_stream_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mavlink_request_data_stream);
+
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+}
 
 /**
  * @brief 
