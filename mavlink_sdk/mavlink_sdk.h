@@ -188,6 +188,11 @@ namespace mavlinksdk
                 m_mavlink_events->OnParamReceived (param_name, param_message, changed);
             };
     
+            inline void OnParamReceivedCompleted() override 
+            {
+                m_mavlink_events->OnParamReceivedCompleted ();
+            };
+    
             
 
 

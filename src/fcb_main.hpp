@@ -155,7 +155,7 @@ namespace fcb
             void OnWayPointsLoadingCompleted ();
             void OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg) override;            
             void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override;
-
+            void OnParamReceivedCompleted() override;
 
         public:
             

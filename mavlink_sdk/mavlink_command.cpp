@@ -588,7 +588,44 @@ void CMavlinkCommand::readParameter (const std::string& param_name) const
 	mavlink_param.target_system = mavlink_sdk.getSysId();
 	mavlink_param.target_component = mavlink_sdk.getCompId();
 	memcpy (mavlink_param.param_id, it->first.c_str(), 16);
-	mavlink_param.param_index = -1;
+	mavlink_param.param_index = -1; //Send -1 to use the param ID field as identifier (else the param id will be ignored)
+	
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_param_request_read_encode(mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &mavlink_param);
+
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;	
+}
+
+
+
+/**
+ * @brief 
+ * ! Not Tested
+ * @param param_name name is saved in parameters_list = mavlinksdk::CVehicle::getInstance().getParametersList()
+ */
+void CMavlinkCommand::readParameterByIndex (const uint16_t& param_index) const
+{
+	
+	//#ifdef DEBUG
+			std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  
+			<< _LOG_CONSOLE_TEXT << "DEBUG: parameter index:" << std::to_string(param_index) 
+			<< std::endl;
+    //#endif
+
+
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	const std::map<std::string, mavlink_param_value_t>& parameters_list = mavlinksdk::CVehicle::getInstance().getParametersList();
+	
+
+	mavlink_param_request_read_t mavlink_param;
+	
+	mavlink_param.target_system = mavlink_sdk.getSysId();
+	mavlink_param.target_component = mavlink_sdk.getCompId();
+	memset (mavlink_param.param_id, 0, 16);
+	mavlink_param.param_index = param_index; 
 	
 	// Encode
 	mavlink_message_t mavlink_message;

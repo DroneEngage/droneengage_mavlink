@@ -210,6 +210,11 @@ void uavos::fcb::CFCBFacade::sendParameterList (const std::string&target_party_i
     mavlink_message_t mavlink_message;
     	
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
+    if (!vehicle.isParametersListAvailable())
+    {
+        sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Still Loading Parameters."));
+        return ;
+    }
     const std::map<std::string, mavlink_param_value_t>& parameters_list = vehicle.getParametersList();
     
     char buf[600];
@@ -217,15 +222,12 @@ void uavos::fcb::CFCBFacade::sendParameterList (const std::string&target_party_i
 
     for (auto it = parameters_list.begin(); it != parameters_list.end(); it++)
     {
-        std::cout << it->first    // string (key)
-              << ':'
-              << std::endl;
         mavlink_param_value_t param_message = it->second;
         mavlink_msg_param_value_encode(sys_id, comp_id, &mavlink_message, &param_message);
         unsigned len = mavlink_msg_to_send_buffer((uint8_t*)&buf[total_length], &mavlink_message);
         total_length += len;
 
-        std::cout << "len:" << std::to_string(len) << "total_length:" <<std::to_string(total_length) << std::endl;
+        std::cout << it->first << " len:" << std::to_string(len) << " total_length:" <<std::to_string(total_length) << std::endl;
 
         if (total_length > 500)
         {

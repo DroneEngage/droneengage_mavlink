@@ -449,7 +449,7 @@ void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbe
     mavlinksdk::CMavlinkCommand::getInstance().requestParametersList();
    
    // request parameters
-    mavlinksdk::CMavlinkFTPManager::getInstance().requestMavFTPParamList();
+   // mavlinksdk::CMavlinkFTPManager::getInstance().requestMavFTPParamList();
    
     return ;
 }
@@ -687,6 +687,12 @@ void uavos::fcb::CFCBMain::OnParamReceived(const std::string& param_name, const 
 	#endif
 
     if (changed) m_fcb_facade.sendParameterValue(std::string(), param_message);
+}
+
+
+void uavos::fcb::CFCBMain::OnParamReceivedCompleted()
+{
+    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_INFO, std::string("Parameters Loaded Successfully"));
 }
 
 void uavos::fcb::CFCBMain::alertUavosOffline()

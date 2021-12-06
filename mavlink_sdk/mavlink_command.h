@@ -68,7 +68,8 @@ class CMavlinkCommand
         void sendMissionAck () const;
         void writeParameter (const std::string& param_name, const double &value) const;
         void readParameter (const std::string& param_name) const;
-        
+        void readParameterByIndex (const uint16_t& param_index) const;
+
         void releaseRCChannels() const;
         void sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], int channel_length) const;
         

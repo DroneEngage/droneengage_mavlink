@@ -6,7 +6,7 @@
 #include "./helpers/colors.h"
 #include "./helpers/utils.h"
 #include "vehicle.h"
-
+#include "mavlink_command.h"
 
 
 
@@ -42,15 +42,17 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	// {
 	// 	m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
 	// }
+	const uint64_t now = get_time_usec();
 
 	if (m_heart_beat_first_recieved == false) 
 	{  // Notify that we have something alive here.
 		m_heart_beat_first_recieved = true;
 		m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
+		//m_reading_parameters_status = mavlinksdk::TYPE_LOADING_PARAMS_STATUS::LOADING_PARAMS_NONE;
 		m_callback_vehicle->OnHeartBeat_First (heartbeat);
 	}
 	else 
-	if ((get_time_usec() - time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT]) > HEART_BEAT_TIMEOUT)
+	if ((now - time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT]) > HEART_BEAT_TIMEOUT)
 	{  // Notify when heart beat get live again.
 		m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
 		m_callback_vehicle->OnHeartBeat_Resumed (heartbeat);
@@ -75,8 +77,21 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 		m_callback_vehicle->OnModeChanges (m_heartbeat.custom_mode, m_firmware_type);
 	}
 	
+	if ((m_parameter_read_mode != mavlinksdk::TYPE_LOADING_PARMETER_STATUS::DONE)  
+		&& (m_parameters_last_receive_time>0) && ((now - m_parameters_last_receive_time) >  3000000l))
+	{
+		std::cout << std::to_string((now - m_parameters_last_receive_time)) << std::endl;
 	
- 	
+		#ifdef DEBUG
+			std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  
+			<< _LOG_CONSOLE_TEXT << "DEBUG: MISSING PARAMs m_parameters_last_index_read:" << std::to_string(m_parameters_last_index_read) 
+			<< std::endl;
+		#endif
+		m_parameter_read_mode = mavlinksdk::TYPE_LOADING_PARMETER_STATUS::STALL_ONE_BY_ONE;
+		mavlinksdk::CMavlinkCommand::getInstance().readParameterByIndex(m_parameters_last_index_read+1);
+	}
+
+	
 	return ;
 }
 
@@ -164,7 +179,7 @@ void mavlinksdk::CVehicle::handle_param_ext_value  (const mavlink_param_ext_valu
 void mavlinksdk::CVehicle::handle_param_value (const mavlink_param_value_t& param_message)
 {
 	bool changed = false;
-	bool fire_event = false;
+	
 	char param_id[17];
 	param_id[16] =0;
 	memcpy((void *)&param_id[0], param_message.param_id,16);
@@ -181,16 +196,38 @@ void mavlinksdk::CVehicle::handle_param_value (const mavlink_param_value_t& para
 			//IMPORTANT: param_index is 65535 when value is re-read.
 		}
 	} 
-
-	m_parameters_list.insert(std::make_pair(param_name, param_message));
+	
+	if (param_message.param_index < param_message.param_count)
+	{ 
+		// fresh account with index valid.
+		//#ifdef DEBUG
+		std::cout << "Fresh m_parameters_last_index_read: " << std::to_string(param_message.param_index) << std::endl;
+		//#endif 
+		
+		m_parameters_last_receive_time =  get_time_usec();
+		m_parameter_read_count = param_message.param_count;
+		m_parameters_last_index_read = param_message.param_index;
+		m_parameters_list.insert(std::make_pair(param_name, param_message));
+	}
 
 	if (param_message.param_index == (param_message.param_count-1)) 
 	{ 
-		m_parameters_list_available = true;
-		std::cout << "Parameter LOADED " << std::endl;
+		m_parameter_read_mode = mavlinksdk::TYPE_LOADING_PARMETER_STATUS::DONE;
+		std::cout << _SUCCESS_CONSOLE_TEXT_ << "Parameter LOADED " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+		m_callback_vehicle->OnParamReceivedCompleted();
 	}
 
 	m_callback_vehicle->OnParamReceived (param_name, param_message, changed);
+
+	if (m_parameter_read_mode == mavlinksdk::TYPE_LOADING_PARMETER_STATUS::STALL_ONE_BY_ONE)
+	{
+		if (m_parameters_last_index_read < m_parameter_read_count)
+		{
+			// request next parameter index
+			mavlinksdk::CMavlinkCommand::getInstance().readParameterByIndex(m_parameters_last_index_read+1);
+		}
+	}
+ 	
 
 	#ifdef DEBUG
 	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 

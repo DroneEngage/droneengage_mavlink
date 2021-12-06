@@ -31,6 +31,7 @@ namespace mavlinksdk
         virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)                                {};
     
         virtual void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)  {};
+        virtual void OnParamReceivedCompleted()                                                                         {};
     
 
         //CCallBack_WayPoint
