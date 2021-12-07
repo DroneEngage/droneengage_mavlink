@@ -8,12 +8,17 @@
 #include "mavlink_communicator.h"
 #include "vehicle.h"
 #include "mavlink_waypoint_manager.h"
+#include "mavlink_parameter_manager.h"
 #include "mavlink_events.h"
 
 
 namespace mavlinksdk
 {
-    class CMavlinkSDK : protected mavlinksdk::comm::CCallBack_Communicator, protected mavlinksdk::CCallBack_Vehicle, protected mavlinksdk::CCallBack_WayPoint
+    class CMavlinkSDK : protected mavlinksdk::comm::CCallBack_Communicator
+                        , protected mavlinksdk::CCallBack_Vehicle
+                        , protected mavlinksdk::CCallBack_WayPoint
+                        , protected mavlinksdk::CCallBack_Parameter
+
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -40,9 +45,7 @@ namespace mavlinksdk
             {
                 m_sysid  = 0;
                 m_compid = 0;
-                m_callback_vehicle  = (mavlinksdk::CCallBack_Vehicle*) this;
                 m_mavlink_events    = (mavlinksdk::CMavlinkEvents*) this;
-                m_callback_waypoint = (mavlinksdk::CCallBack_WayPoint*)this; 
             }                    // Constructor? (the {} brackets) are needed here.
 
             

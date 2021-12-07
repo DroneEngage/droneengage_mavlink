@@ -7,7 +7,8 @@
 #include "./helpers/utils.h"
 #include "vehicle.h"
 #include "mavlink_command.h"
-
+#include "mavlink_waypoint_manager.h"
+#include "mavlink_parameter_manager.h"
 
 
 mavlinksdk::CVehicle::CVehicle()
@@ -38,17 +39,13 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	// copy 
 	m_heartbeat = heartbeat;
 	
-	// if ((m_heartbeat.type != heartbeat.type) ||(m_heartbeat.autopilot != m_heartbeat.autopilot))
-	// {
-	// 	m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
-	// }
 	const uint64_t now = get_time_usec();
 
 	if (m_heart_beat_first_recieved == false) 
 	{  // Notify that we have something alive here.
 		m_heart_beat_first_recieved = true;
 		m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
-		//m_reading_parameters_status = mavlinksdk::TYPE_LOADING_PARAMS_STATUS::LOADING_PARAMS_NONE;
+		//m_reading_parameters_status = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_NONE;
 		m_callback_vehicle->OnHeartBeat_First (heartbeat);
 	}
 	else 
@@ -76,28 +73,6 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	{
 		m_callback_vehicle->OnModeChanges (m_heartbeat.custom_mode, m_firmware_type);
 	}
-	
-	std::cout << std::to_string((now - m_parameters_last_receive_time)) << std::endl;
-	
-	if ((m_parameter_read_mode != mavlinksdk::TYPE_LOADING_PARMETER_STATUS::DONE)  
-		 && ((now - m_parameters_last_receive_time) >  300000l))
-	{
-		if (m_parameters_last_receive_time==0)
-		{
-			mavlinksdk::CMavlinkCommand::getInstance().requestParametersList();
-		}
-		else
-		{
-		//#ifdef DEBUG
-			std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  
-			<< _LOG_CONSOLE_TEXT << "DEBUG: MISSING PARAMs m_parameters_last_index_read:" << std::to_string(m_parameters_last_index_read) 
-			<< std::endl;
-		//#endif
-		m_parameter_read_mode = mavlinksdk::TYPE_LOADING_PARMETER_STATUS::STALL_ONE_BY_ONE;
-		mavlinksdk::CMavlinkCommand::getInstance().readParameterByIndex(m_parameters_last_index_read+1);
-		}
-	}
-
 	
 	return ;
 }
@@ -177,79 +152,13 @@ void mavlinksdk::CVehicle::handle_param_ext_value  (const mavlink_param_ext_valu
 }
 
 
-/**
- * @brief 
- * List of all parameters as a response of PARAM_REQUEST_LIST
- * 
- * @param param_message 
- */
-void mavlinksdk::CVehicle::handle_param_value (const mavlink_param_value_t& param_message)
-{
-	bool changed = false;
-	
-	char param_id[17];
-	param_id[16] =0;
-	memcpy((void *)&param_id[0], param_message.param_id,16);
-	std::string param_name = std::string(param_id);
-
-	auto it = m_parameters_list.find(param_name);
-
-	if (it != m_parameters_list.end()) 
-	{
-		changed = (it->second.param_value != param_message.param_value);
-		if (changed) 
-		{
-			it->second.param_value = param_message.param_value;
-			//IMPORTANT: param_index is 65535 when value is re-read.
-		}
-	} 
-	
-	if (param_message.param_index < param_message.param_count)
-	{ 
-		// fresh account with index valid.
-		//#ifdef DEBUG
-		std::cout << "Fresh m_parameters_last_index_read: " << std::to_string(param_message.param_index) << std::endl;
-		//#endif 
-		
-		m_parameters_last_receive_time =  get_time_usec();
-		m_parameter_read_count = param_message.param_count;
-		m_parameters_last_index_read = param_message.param_index;
-		m_parameters_list.insert(std::make_pair(param_name, param_message));
-	}
-
-	if (param_message.param_index == (param_message.param_count-1)) 
-	{ 
-		m_parameter_read_mode = mavlinksdk::TYPE_LOADING_PARMETER_STATUS::DONE;
-		std::cout << _SUCCESS_CONSOLE_TEXT_ << "Parameter LOADED " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream();
-		m_callback_vehicle->OnParamReceivedCompleted();
-	}
-
-	m_callback_vehicle->OnParamReceived (param_name, param_message, changed);
-
-	if (m_parameter_read_mode == mavlinksdk::TYPE_LOADING_PARMETER_STATUS::STALL_ONE_BY_ONE)
-	{
-		if (m_parameters_last_index_read < m_parameter_read_count)
-		{
-			// request next parameter index
-			mavlinksdk::CMavlinkCommand::getInstance().readParameterByIndex(m_parameters_last_index_read+1);
-		}
-	}
- 	
-
-	#ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 
-		<< param_name << " : " << "count: " << std::to_string(param_message.param_index) << " of " << std::to_string(param_message.param_count)
-		<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
-		<< _NORMAL_CONSOLE_TEXT_ << std::endl;
-	#endif
-}
 
 
 void mavlinksdk::CVehicle::handle_rc_channels_raw  (const mavlink_rc_channels_t& rc_channels)
 {
 	m_rc_channels = rc_channels;
 }
+
 
 void mavlinksdk::CVehicle::handle_system_time (const mavlink_system_time_t& system_time)
 {
@@ -277,7 +186,7 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
             //         << " type " << std::to_string(heartbeat.type) << std::endl; 
 
 			handle_heart_beat (heartbeat);
-			
+			mavlinksdk::CMavlinkParameterManager::getInstance().handle_heart_beat (heartbeat);
 		}
         break;
 
@@ -410,7 +319,7 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			mavlink_param_value_t param_message;
 			mavlink_msg_param_value_decode(&mavlink_message, &param_message);
 			
-			handle_param_value (param_message);
+			mavlinksdk::CMavlinkParameterManager::getInstance().handle_param_value (param_message);
 		}
 		break;
 		
@@ -442,6 +351,54 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			handle_rc_channels_raw (rc_message);
 		}
 		break;
+
+		// MISSION PART START ======================================================================================
+        case MAVLINK_MSG_ID_MISSION_ITEM_INT:
+        {
+            mavlink_mission_item_int_t mission_item_int;
+            mavlink_msg_mission_item_int_decode (&mavlink_message, &mission_item_int);
+
+            mavlinksdk::CMavlinkWayPointManager::getInstance().handle_mission_item (mission_item_int);
+        }
+        break;
+
+
+		case MAVLINK_MSG_ID_MISSION_COUNT:
+        {
+            mavlink_mission_count_t mission_count;
+            mavlink_msg_mission_count_decode (&mavlink_message, &mission_count);
+
+            mavlinksdk::CMavlinkWayPointManager::getInstance().handle_mission_count (mission_count);
+        }
+        break;
+        
+        case MAVLINK_MSG_ID_MISSION_CURRENT:
+        {
+            mavlink_mission_current_t mission_current;
+            mavlink_msg_mission_current_decode (&mavlink_message, &mission_current);
+
+            mavlinksdk::CMavlinkWayPointManager::getInstance().handle_mission_current (mission_current);
+        }
+        break;
+
+		case MAVLINK_MSG_ID_MISSION_ACK:
+		{
+			mavlink_mission_ack_t mission_ack;
+			mavlink_msg_mission_ack_decode(&mavlink_message, &mission_ack);
+
+			mavlinksdk::CMavlinkWayPointManager::getInstance().handle_mission_ack(mission_ack);
+		}
+        break;
+
+		case MAVLINK_MSG_ID_MISSION_ITEM_REACHED:
+		{
+			mavlink_mission_item_reached_t mission_item_reached;
+			mavlink_msg_mission_item_reached_decode(&mavlink_message, &mission_item_reached);
+
+			mavlinksdk::CMavlinkWayPointManager::getInstance().handle_mission_item_reached(mission_item_reached);
+		}
+        break;
+		// MISSION PART END ======================================================================================
 
 		default:
 		{

@@ -536,7 +536,7 @@ void CMavlinkCommand::writeParameter (const std::string& param_name, const doubl
 {
 	//TODO to be implemented	
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-	const std::map<std::string, mavlink_param_value_t>& parameters_list = mavlinksdk::CVehicle::getInstance().getParametersList();
+	const std::map<std::string, mavlink_param_value_t>& parameters_list = mavlinksdk::CMavlinkParameterManager::getInstance().getParametersList();
 	
 
 	mavlink_param_set_t mavlink_param;
@@ -574,7 +574,7 @@ void CMavlinkCommand::readParameter (const std::string& param_name) const
 {
 	//TODO to be implemented	
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-	const std::map<std::string, mavlink_param_value_t>& parameters_list = mavlinksdk::CVehicle::getInstance().getParametersList();
+	const std::map<std::string, mavlink_param_value_t>& parameters_list = mavlinksdk::CMavlinkParameterManager::getInstance().getParametersList();
 	
 
 	mavlink_param_request_read_t mavlink_param;
@@ -618,7 +618,7 @@ void CMavlinkCommand::readParameterByIndex (const uint16_t& param_index) const
 
 
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-	const std::map<std::string, mavlink_param_value_t>& parameters_list = mavlinksdk::CVehicle::getInstance().getParametersList();
+	const std::map<std::string, mavlink_param_value_t>& parameters_list = mavlinksdk::CMavlinkParameterManager::getInstance().getParametersList();
 	
 
 	mavlink_param_request_read_t mavlink_param;

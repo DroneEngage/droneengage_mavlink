@@ -4,6 +4,7 @@
 
 #include <vehicle.h>
 #include <mavlink_waypoint_manager.h>
+#include <mavlink_parameter_manager.h>
 #include <mavlink_ftp_manager.h>
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
@@ -444,14 +445,6 @@ void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbe
 
     // request home location
     mavlinksdk::CMavlinkCommand::getInstance().requestHomeLocation();
-    
-    //
-    //mavlinksdk::CMavlinkCommand::getInstance().requestDataStream();
-   
-   
-    // request parameters
-    //mavlinksdk::CMavlinkCommand::getInstance().requestParametersList();
-   
     
     
     return ;

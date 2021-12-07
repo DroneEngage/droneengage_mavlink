@@ -53,24 +53,23 @@ class CMavlinkWayPointManager
             //       due to the compilers behavior to check accessibility
             //       before deleted status
 
-        private:
+    private:
 
-            CMavlinkWayPointManager() {};
+        CMavlinkWayPointManager() {};
 
-        public:
+    public:
             
-            ~CMavlinkWayPointManager ()
-            {
+        ~CMavlinkWayPointManager ()
+        {
 
-            }
+        }
 
         
-        public:
+    public:
         
     
         void set_callback_waypoint (mavlinksdk::CCallBack_WayPoint* callback_waypoint);
-        void parseMessage (const mavlink_message_t& mavlink_message);
-    
+        
 
     public:
 
@@ -78,14 +77,11 @@ class CMavlinkWayPointManager
             void clearWayPoints();
             void saveWayPoints (std::map <int, mavlink_mission_item_int_t> mavlink_mission, const MAV_MISSION_TYPE& mission_type);
 
-
-    protected:
-            
-            inline void handle_mission_ack   (const mavlink_mission_ack_t& mission_ack);
-            inline void handle_mission_count (const mavlink_mission_count_t& mission_count);
-            inline void handle_mission_current   (const mavlink_mission_current_t& mission_current);
-            inline void handle_mission_item (const mavlink_mission_item_int_t& mission_item_int);
-            inline void handle_mission_item_reached (const mavlink_mission_item_reached_t& mission_item_reached);
+            void handle_mission_ack   (const mavlink_mission_ack_t& mission_ack);
+            void handle_mission_count (const mavlink_mission_count_t& mission_count);
+            void handle_mission_current   (const mavlink_mission_current_t& mission_current);
+            void handle_mission_item (const mavlink_mission_item_int_t& mission_item_int);
+            void handle_mission_item_reached (const mavlink_mission_item_reached_t& mission_item_reached);
 
     protected:
             void writeMissionItems ();  

@@ -209,13 +209,13 @@ void uavos::fcb::CFCBFacade::sendParameterList (const std::string&target_party_i
 
     mavlink_message_t mavlink_message;
     	
-    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
-    if (!vehicle.isParametersListAvailable())
+    mavlinksdk::CMavlinkParameterManager &parameter_manager =  mavlinksdk::CMavlinkParameterManager::getInstance();
+    if (!parameter_manager.isParametersListAvailable())
     {
         sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Still Loading Parameters."));
         return ;
     }
-    const std::map<std::string, mavlink_param_value_t>& parameters_list = vehicle.getParametersList();
+    const std::map<std::string, mavlink_param_value_t>& parameters_list = parameter_manager.getParametersList();
     
     char buf[600];
     unsigned total_length =0;
@@ -232,7 +232,6 @@ void uavos::fcb::CFCBFacade::sendParameterList (const std::string&target_party_i
         if (total_length > 500)
         {
             m_sendBMSG (target_party_id, buf, total_length, TYPE_AndruavMessage_MAVLINK, false);
-    
             total_length = 0;
         }
     }

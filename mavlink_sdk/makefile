@@ -14,6 +14,7 @@ SRC = src
 BUILD = build
 
 OBJS = $(BUILD)/mavlink_sdk.o \
+	   $(BUILD)/mavlink_parameter_manager.o \
 	   $(BUILD)/mavlink_waypoint_manager.o \
 	   $(BUILD)/mavlink_communicator.o \
 	   $(BUILD)/mavlink_command.o \
@@ -26,6 +27,7 @@ OBJS = $(BUILD)/mavlink_sdk.o \
 
 SRCS = ../mavlink_sdk.cpp \
 	   ../mavlink_ftp_manager.cpp \
+	   ../mavlink_parameter_manager.cpp \
 	   ../mavlink_waypoint_manager.cpp \
 	   ../mavlink_communicator.cpp \
 	   ../mavlink_command.cpp \

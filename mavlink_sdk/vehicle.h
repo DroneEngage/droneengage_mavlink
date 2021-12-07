@@ -13,12 +13,7 @@ namespace mavlinksdk
     // 3 seconds
     #define HEART_BEAT_TIMEOUT 3000000l
     
-    typedef enum {
-	FULL_LIST_READING     = 0,
-	STALL_ONE_BY_ONE  = 1,
-	DONE   = 2
-    } TYPE_LOADING_PARMETER_STATUS;
-
+ 
     struct Time_Stamps
     {
         #define TIME_STAMP_MSG_LEN 1024
@@ -43,13 +38,7 @@ namespace mavlinksdk
     };
 
 
-    typedef enum {
-	LOADING_PARAMS_NONE       = 0,
-	LOADING_PARAMS_LOAD_ALL   = 1,
-	LOADING_PARAMS_ONE_BY_ONE = 2,
-	LOADING_PARAMS_DONE       = 3
-    } TYPE_LOADING_PARAMS_STATUS;
-
+    
 
 
 
@@ -66,8 +55,6 @@ namespace mavlinksdk
         virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)                                             {};
         virtual void OnModeChanges(const int& custom_mode, const int& firmware_type)                                                    {};
         virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)                                                {};
-        virtual void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)    {};
-        virtual void OnParamReceivedCompleted ()                                                                                        {};
     };
 
     class CVehicle
@@ -214,17 +201,6 @@ namespace mavlinksdk
                 return m_status_text;
             }
 
-            const std::map<std::string, mavlink_param_value_t>& getParametersList() const
-            {
-                return m_parameters_list;
-            }
-
-            const bool isParametersListAvailable() const
-            {
-                return (m_parameter_read_mode== mavlinksdk::TYPE_LOADING_PARMETER_STATUS::DONE);
-            }
-
-
         // Class Members
         protected:
             mavlinksdk::CCallBack_Vehicle* m_callback_vehicle;
@@ -300,16 +276,6 @@ namespace mavlinksdk
             // Firmware Type
             mavlinksdk::FIRMWARE_TYPE m_firmware_type = FIRMWARE_TYPE_UNKNOWN;
 
-            
-            std::map<std::string, mavlink_param_value_t> m_parameters_list;
-
-        private:
-            //mavlinksdk::TYPE_LOADING_PARAMS_STATUS m_reading_parameters_status = mavlinksdk::TYPE_LOADING_PARAMS_STATUS::LOADING_PARAMS_NONE ;
-            //bool m_parameters_list_available = false;
-            mavlinksdk::TYPE_LOADING_PARMETER_STATUS m_parameter_read_mode = mavlinksdk::TYPE_LOADING_PARMETER_STATUS::FULL_LIST_READING;
-            int m_parameter_read_count = 0;
-            uint16_t m_parameters_last_index_read = 0;
-            uint64_t m_parameters_last_receive_time = 0;
     };
 }
 
