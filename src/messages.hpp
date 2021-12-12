@@ -56,19 +56,26 @@
 #define TYPE_AndruavMessage_FlightControl               1010
 #define TYPE_AndruavMessage_DroneReport                 1020
 #define TYPE_AndruavMessage_HomeLocation                1022
+#define TYPE_AndruavMessage_GeoFence                    1023
+#define TYPE_AndruavMessage_ExternalGeoFence            1024
 #define TYPE_AndruavMessage_WayPoints                   1027
 #define TYPE_AndruavMessage_Arm                         1030
 #define TYPE_AndruavMessage_ChangeAltitude              1031
 #define TYPE_AndruavMessage_Land                        1032
 #define TYPE_AndruavMessage_GuidedPoint                 1033
+#define TYPE_AndruavMessage_CirclePoint                 1034
 #define TYPE_AndruavMessage_DoYAW                       1035
 #define TYPE_AndruavMessage_NAV_INFO                    1036
 #define TYPE_AndruavMessage_DistinationLocation         1037
 #define TYPE_AndruavMessage_ChangeSpeed                 1040
+#define TYPE_AndruavMessage_Ctrl_Cameras                1041
+#define TYPE_AndruavMessage_TrackingTarget              1042
+#define TYPE_AndruavMessage_TargetLost                  1044
 #define TYPE_AndruavMessage_UploadWayPoints             1046
 #define TYPE_AndruavMessage_RemoteControlSettings	    1047
 #define TYPE_AndruavMessage_SET_HOME_LOCATION           1048
 #define TYPE_AndruavMessage_RemoteControl2		        1052
+#define TYPE_AndruavMessage_FollowHim_Request           1054
 
 #define TYPE_AndruavMessage_LightTelemetry              2022
 
@@ -76,6 +83,7 @@
 #define TYPE_AndruavMessage_ServoChannel                6001
 
 // New Binary Messages 
+#define TYPE_AndruavMessage_ServoOutput                 6501
 #define TYPE_AndruavMessage_MAVLINK                     6502
 
 // Andruav Mission Types

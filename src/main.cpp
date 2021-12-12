@@ -15,7 +15,27 @@
 
 using namespace uavos;
 
-#define MESSAGE_FILTER {1005, 1007, 1010, 1021, 1030, 1031, 1032, 1033, 1034, 1035, 1037, 1040, 1041, 1043, 1044, 1046, 1047, 1048, 1052, 2022, 6001, 6501, 6502}
+#define MESSAGE_FILTER {TYPE_AndruavMessage_RemoteExecute,\
+                        TYPE_AndruavMessage_FlightControl,\
+                        TYPE_AndruavMessage_ExternalGeoFence,\
+                        TYPE_AndruavMessage_Arm,\
+                        TYPE_AndruavMessage_ChangeAltitude,\
+                        TYPE_AndruavMessage_Land,\
+                        TYPE_AndruavMessage_GuidedPoint,\
+                        TYPE_AndruavMessage_CirclePoint,\
+                        TYPE_AndruavMessage_DoYAW,\
+                        TYPE_AndruavMessage_DistinationLocation, \
+                        TYPE_AndruavMessage_ChangeSpeed, \
+                        TYPE_AndruavMessage_Ctrl_Cameras, \
+                        TYPE_AndruavMessage_TrackingTarget, \
+                        TYPE_AndruavMessage_TargetLost, \
+                        TYPE_AndruavMessage_UploadWayPoints, \
+                        TYPE_AndruavMessage_RemoteControlSettings, \
+                        TYPE_AndruavMessage_SET_HOME_LOCATION, \
+                        TYPE_AndruavMessage_RemoteControl2, \
+                        TYPE_AndruavMessage_LightTelemetry, \
+                        TYPE_AndruavMessage_ServoChannel, \
+                        TYPE_AndruavMessage_MAVLINK}
 
 std::time_t time_stamp;
 
