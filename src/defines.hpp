@@ -1,6 +1,9 @@
 #ifndef DEFINES_H_
 #define DEFINES_H_
 
+
+#include <iostream>
+
 #define CONNECTION_TYPE_SERIAL  1
 #define CONNECTION_TYPE_UDP     2
 #define CONNECTION_TYPE_TCP     3
@@ -78,6 +81,8 @@ typedef enum RC_SUB_ACTION
 
 typedef struct ANDRUAV_VEHICLE_INFO 
 {
+    std::string         party_id                           = std::string("");
+    std::string         group_id                           = std::string("");
     bool                use_fcb                             = false;
     bool                is_armed                            = false;
     bool                is_flying                           = false;

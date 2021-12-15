@@ -14,9 +14,8 @@ using namespace uavos::fcb::mission;
 void CDummy_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
     
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
+    m_original_mission = mission_item_int;
+    m_valid = true;
    
 }
 
@@ -38,6 +37,8 @@ Json CDummy_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CDummy_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission;
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;

@@ -67,6 +67,10 @@ class CDummy_Step : public CMissionItem
         Json getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
+    private:
+        bool  m_valid = false;
+        mavlink_mission_item_int_t m_original_mission;
+
 };
 
 
@@ -625,10 +629,10 @@ class CMissionItemBuilder
             case MAV_CMD_CONDITION_DELAY:
                 if (mission_item_int.param1 == 0)
                 {
-                    return new CDummy_Step();
+                    return new CDelay_State_Machine_Step();
                 }
             default:
-               return new CDelay_State_Machine_Step();
+               return new CDummy_Step();
 
         }
 

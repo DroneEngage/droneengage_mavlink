@@ -17,6 +17,7 @@ using namespace uavos;
 
 #define MESSAGE_FILTER {TYPE_AndruavMessage_RemoteExecute,\
                         TYPE_AndruavMessage_FlightControl,\
+                        TYPE_AndruavMessage_GeoFence,\
                         TYPE_AndruavMessage_ExternalGeoFence,\
                         TYPE_AndruavMessage_Arm,\
                         TYPE_AndruavMessage_ChangeAltitude,\
@@ -47,6 +48,7 @@ std::string  PartyID;
 std::string  GroupID;
 std::string  ModuleID;
 std::string  ModuleKey;
+int AndruavServerConnectionStatus = SOCKET_STATUS_FREASH;
 
 uavos::fcb::CFCBMain& cFCBMain = uavos::fcb::CFCBMain::getInstance();
 uavos::fcb::CFCBAndruavResalaParser cAndruavResalaParser = uavos::fcb::CFCBAndruavResalaParser();
@@ -76,7 +78,7 @@ Json module_features = Json::array();
 void quit_handler( int sig );
 void onReceive (const char * message, int len);
 void uninit ();
-
+const Json API_moduleRemoteExecute(const int command_type);
 
 /**
  * @brief display version info
@@ -114,6 +116,21 @@ void _displaySerial (void)
     
 }
 
+/**
+ * @brief called when connection with ANdruavServer changed.
+ * 
+ * @param status 
+ */
+void _onConnectionStatusChanged (const int status)
+{
+    if (status == SOCKET_STATUS_REGISTERED)
+    {
+        Json json_msg = API_moduleRemoteExecute(TYPE_AndruavSystem_LoadTasks);
+        const std::string msg = json_msg.dump();
+        cUDPClient.sendMSG(msg.c_str(), msg.length());
+    }
+                
+}
 
 /**
  * @brief sends binary packet
@@ -205,6 +222,25 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
 }
 
 /**
+ * @brief similar to Remote execute command but between modules.
+ * 
+ * @param command_type 
+ * @return const Json 
+ */
+const Json API_moduleRemoteExecute(const int command_type)
+{
+    Json json_msg;        
+        
+    json_msg[INTERMODULE_COMMAND_TYPE] =  CMD_TYPE_INTERMODULE;
+    json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_RemoteExecute;
+    Json ms;
+    ms["C"] = command_type;
+    json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
+
+    return json_msg;               
+}
+
+/**
  * @brief creates JSON message that identifies Module
  * @details generates JSON message that identifies module
  * 'a': module_id
@@ -215,16 +251,16 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
  * 's': hardware_serial. 
  * 't': hardware_type. 
  * 'z': resend request flag
- * @param reSend if true then server should reply with server JSONID
+ * @param reSend if true then server should reply with server json_msg
  * @return const Json 
  */
 const Json createJSONID (bool reSend)
 {
         const Json& jsonConfig = cConfigFile.GetConfigJSON();
-        Json jsonID;        
+        Json json_msg;        
         
-        jsonID[INTERMODULE_COMMAND_TYPE] =  CMD_TYPE_INTERMODULE;
-        jsonID[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_ID;
+        json_msg[INTERMODULE_COMMAND_TYPE] =  CMD_TYPE_INTERMODULE;
+        json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_ID;
         Json ms;
               
         ms[JSON_INTERMODULE_MODULE_ID]              = jsonConfig["module_id"];
@@ -237,11 +273,11 @@ const Json createJSONID (bool reSend)
         ms[JSON_INTERMODULE_RESEND]                 = reSend;
         ms[JSON_INTERMODULE_TIMESTAMP_INSTANCE]     = time_stamp;
 
-        jsonID[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
+        json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
         #ifdef DEBUG
-            std::cout << jsonID.dump(4) << std::endl;              
+            std::cout << json_msg.dump(4) << std::endl;              
         #endif
-        return jsonID;
+        return json_msg;
 }
 
 
@@ -266,7 +302,13 @@ void onReceive (const char * message, int len)
             const Json moduleID = cmd ["f"];
             PartyID = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
             GroupID = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
-
+            cFCBMain.setPartyID(PartyID, GroupID);
+            const int status = cmd ["g"].get<int>();
+            if (AndruavServerConnectionStatus != status)
+            {
+                _onConnectionStatusChanged (status);
+            }
+            AndruavServerConnectionStatus = status;
             if (!bFirstReceived)
             { 
                 // tell server you dont need to send ID again.

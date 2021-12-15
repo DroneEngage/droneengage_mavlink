@@ -131,6 +131,11 @@ namespace fcb
             void enableRemoteControl();
             void enableRemoteControlGuided();
 
+            void setPartyID (const std::string& party_id, const std::string& group_id)
+            {
+                m_andruav_vehicle_info.party_id = party_id;
+                m_andruav_vehicle_info.group_id = group_id;
+            }
             void toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level);
 
             bool isFCBConnected () const { return m_fcb_connected;}; 

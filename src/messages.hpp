@@ -44,10 +44,36 @@
 #define INTERMODULE_MODULE_KEY          "GU"
 
 
-// Andruav Protocol Message IDs
-#define TYPE_AndruavModule_ID                           9100
-#define TYPE_AndruavModule_CTRL                         9101
 
+// SOCKET STATUS
+#define SOCKET_STATUS_FREASH 			1   // socket is new
+#define SOCKET_STATUS_CONNECTING    	2	// connecting to WS
+#define SOCKET_STATUS_DISCONNECTING 	3   // disconnecting from WS
+#define SOCKET_STATUS_DISCONNECTED 		4   // disconnected  from WS
+#define SOCKET_STATUS_CONNECTED 		5   // connected to WS
+#define SOCKET_STATUS_REGISTERED 		6   // connected and executed AddMe
+#define SOCKET_STATUS_UNREGISTERED 		7   // connected but not registred
+#define SOCKET_STATUS_ERROR 		    8   // Error
+
+
+
+
+// System Messages
+#define TYPE_AndruavSystem_LoadTasks		    9001
+#define TYPE_AndruavSystem_SaveTasks		    9002
+#define TYPE_AndruavSystem_DeleteTasks	        9003
+#define TYPE_AndruavSystem_DisableTasks	        9004
+#define TYPE_AndruavSystem_Ping                 9005
+#define TYPE_AndruavSystem_LogoutCommServer     9006
+#define TYPE_AndruavSystem_ConnectedCommServer  9007
+
+// Inter Module Commands
+#define TYPE_AndruavModule_ID                   9100
+#define TYPE_AndruavModule_RemoteExecute        9101
+
+
+
+// Andruav Messages
 #define TYPE_AndruavMessage_GPS                         1002
 #define TYPE_AndruavMessage_POWER                       1003
 #define TYPE_AndruavMessage_ID 	                        1004

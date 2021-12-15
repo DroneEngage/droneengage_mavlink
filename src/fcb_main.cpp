@@ -25,6 +25,11 @@ void SchedulerThread(void * This) {
     return ;
 }
 
+/**
+ * @brief get connection type UDP or serial based on config file.
+ * 
+ * @return int 
+ */
 int uavos::fcb::CFCBMain::getConnectionType () const 
 {
     std::string connection = str_tolower(m_jsonConfig["fcbConnectionURI"]["type"].get<std::string>());
@@ -41,7 +46,12 @@ int uavos::fcb::CFCBMain::getConnectionType () const
     return CONNECTION_TYPE_UNKNOWN;
 }
 
-
+/**
+ * @brief actual connect to the board in UDP or serial.
+ * 
+ * @return true 
+ * @return false 
+ */
 bool uavos::fcb::CFCBMain::connectToFCB ()
 {
     m_connection_type = getConnectionType();
@@ -50,14 +60,14 @@ bool uavos::fcb::CFCBMain::connectToFCB ()
     {
 
         case CONNECTION_TYPE_SERIAL:
-            std::cout << _INFO_CONSOLE_TEXT << "Serial Connection detected" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
+            std::cout << _INFO_CONSOLE_TEXT << "Serial Connection Initializing" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
             m_mavlink_sdk.connectSerial((m_jsonConfig["fcbConnectionURI"])["port"].get<std::string>().c_str(),
                                      (m_jsonConfig["fcbConnectionURI"])["baudrate"].get<int>());
             return true;
         
         
         case CONNECTION_TYPE_UDP:
-            std::cout << _INFO_CONSOLE_TEXT << "UDP Connection detected" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
+            std::cout << _INFO_CONSOLE_TEXT << "UDP Connection Initializing" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
             m_mavlink_sdk.connectUDP((m_jsonConfig["fcbConnectionURI"])["ip"].get<std::string>().c_str(),
                                      (m_jsonConfig["fcbConnectionURI"])["port"].get<int>());
             return true;

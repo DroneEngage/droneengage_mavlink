@@ -9,6 +9,7 @@ using Json = nlohmann::json;
 
 #include "fcb_main.hpp"
 
+
 namespace uavos
 {
 namespace fcb
@@ -51,6 +52,7 @@ namespace fcb
             uavos::fcb::CFCBMain&  m_fcbMain = uavos::fcb::CFCBMain::getInstance();
             mavlinksdk::CMavlinkSDK& m_mavlinksdk = mavlinksdk::CMavlinkSDK::getInstance();
             uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
+            
     };
 
 }

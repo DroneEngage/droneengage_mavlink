@@ -4,7 +4,11 @@
 #include "fcb_modes.hpp"
 #include "fcb_andruav_message_parser.hpp"
 #include "./mission/mission_translator.hpp"
+#include "./geofence/fcb_geo_fence_base.hpp"
+#include "./geofence/fcb_geo_fence_manager.hpp"
 
+
+using namespace uavos::fcb;
 
 /**
  * @brief Called by external scheduler at rate of 1Hz
@@ -153,7 +157,6 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
                 mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint (latitude, longitude, altitude / 1000.0);
                 uavos::fcb::CFCBFacade::getInstance().sendFCBTargetLocation (andruav_message[ANDRUAV_PROTOCOL_SENDER], latitude, longitude, altitude);
             }   
-
             break;
 
             case TYPE_AndruavMessage_SET_HOME_LOCATION:
@@ -268,6 +271,30 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
                 
                 m_fcbMain.saveWayPointsToFCB();
                 
+            }
+            break;
+
+            case TYPE_AndruavMessage_GeoFence:
+            {
+                // send GeoFence info.
+
+            }
+            break;
+
+            case TYPE_AndruavMessage_ExternalGeoFence:
+            {
+                // I am a drone and I need to update my fence info.
+                // This could be the _SYS_ in this case it is my own fences.
+
+                //if (!validateField(message, "t", Json::value_t::number_unsigned)) return ;
+                std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> fence = uavos::fcb::geofence::CGeoFenceFactory::getInstance().getGeoFenceObject(message);
+                uavos::fcb::geofence::CGeoFenceManager::getInstance().addFence(std::move(fence));
+                uavos::fcb::geofence::CGeoFenceManager::getInstance().attachToGeoFence(m_fcbMain.getAndruavVehicleInfo().party_id, message["n"].get<std::string>());
+                uavos::fcb::geofence::GEO_FENCE_STRUCT * fence_struct = uavos::fcb::geofence::CGeoFenceManager::getInstance().getFenceByName(message["n"].get<std::string>());
+                if (fence_struct!=NULL)
+                {
+                    uavos::fcb::geofence::CGeoFenceManager::getInstance().detachFromGeoFence (m_fcbMain.getAndruavVehicleInfo().party_id, fence_struct);   
+                }
             }
             break;
 

@@ -3,7 +3,7 @@ CXXARM=/opt/cross-pi-gcc/bin/arm-linux-gnueabihf-g++
 CXXARM_ZERO=g++
 EXE=de_ardupilot
 BIN=bin
-INCLUDE= -I ../c_library_v2 -I ../mavlink_sdk
+INCLUDE= -I ../c_library_v2 -I ../mavlink_sdk 
 INCLUDE_ARM_ZERO =  -I ../c_library_v2 -I ../mavlink_sdk
 LIBS=  -lpthread -lmavlink_sdk -L ./mavlink_sdk/bin
 LIBS_ARM_ZERO = -lpthread -lmavlink_sdk -L ./mavlink_sdk/bin
@@ -21,6 +21,8 @@ OBJS = $(BUILD)/fcb_main.o \
 	   $(BUILD)/fcb_facade.o \
 	   $(BUILD)/configFile.o \
 	   $(BUILD)/udpClient.o \
+	   $(BUILD)/fcb_geo_fence_base.o \
+	   $(BUILD)/fcb_geo_fence_manager.o \
 	   $(BUILD)/missions.o \
 	   $(BUILD)/mission_translator.o \
 	   $(BUILD)/helpers.o \
@@ -35,6 +37,8 @@ SRCS = ../$(SRC)/fcb_main.cpp \
 	   ../$(SRC)/fcb_facade.cpp \
 	   ../$(SRC)/configFile.cpp \
 	   ../$(SRC)/udpClient.cpp \
+	   ../$(SRC)/geofence/fcb_geo_fence_base.cpp \
+	   ../$(SRC)/geofence/fcb_geo_fence_manager.cpp \
 	   ../$(SRC)/mission/missions.cpp \
 	   ../$(SRC)/mission/mission_translator.cpp \
 	   ../$(SRC)/helpers/helpers.cpp \

@@ -18,7 +18,7 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
     try
     {
         std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> mission_items = std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> (new std::map <int, std::unique_ptr<CMissionItem>>);
-        std::unique_ptr <uavos::fcb::mission::ANDRUAV_UNIT_MISSION> andruav_mission = std::unique_ptr<uavos::fcb::mission::ANDRUAV_UNIT_MISSION> ();
+        //std::unique_ptr <uavos::fcb::mission::ANDRUAV_UNIT_MISSION> andruav_mission = std::unique_ptr<uavos::fcb::mission::ANDRUAV_UNIT_MISSION> ();
 
         Json mission = Json::parse(mission_text);
         if (std::string(mission["fileType"]).find("Plan") != std::string::npos)
@@ -116,7 +116,7 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
 std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTranslator::translateMPFormat (const std::string& mission_text)
 {
     std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> mission_items = std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> (new std::map <int, std::unique_ptr<CMissionItem>>);
-    std::unique_ptr <uavos::fcb::mission::ANDRUAV_UNIT_MISSION> andruav_mission = std::unique_ptr<uavos::fcb::mission::ANDRUAV_UNIT_MISSION> ();
+    //std::unique_ptr <uavos::fcb::mission::ANDRUAV_UNIT_MISSION> andruav_mission = std::unique_ptr<uavos::fcb::mission::ANDRUAV_UNIT_MISSION> ();
 
     /**************
     // Mission Planner File Format

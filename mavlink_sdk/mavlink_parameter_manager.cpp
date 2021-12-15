@@ -12,12 +12,21 @@
 using namespace mavlinksdk;
 
 
+/**
+ * @brief callback class of time 
+ * 
+ * @param callback_parameter mavlinksdk::CCallBack_Parameter
+ */
 void mavlinksdk::CMavlinkParameterManager::set_callback_parameter (mavlinksdk::CCallBack_Parameter* callback_parameter)
 {
     m_callback_parameter = callback_parameter;
 }
 
 
+/**
+ * @brief initialize process of calling paramaters from FCB. 
+ * @details it sets {@link m_parameter_read_mode} to LOADING_PARAMS_LOAD_ALL_INIT
+ */
 void mavlinksdk::CMavlinkParameterManager::reloadParemeters ()
 {
     m_parameter_read_mode = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LOAD_ALL_INIT;
@@ -118,7 +127,7 @@ void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_par
  * @brief parameters are loaded.
  * @details first time a request to load all parameters is reloadParemeters() then if timeout and not all
  * parameters are received then a one-by-one call is executed untill all parameters are received. m_parameter_read_mode is used to store status.
- * 
+ * @callgraph
  * @param heartbeat mavlink message
  */
 void mavlinksdk::CMavlinkParameterManager::handle_heart_beat (const mavlink_heartbeat_t& heartbeat)
