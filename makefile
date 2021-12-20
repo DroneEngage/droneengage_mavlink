@@ -28,6 +28,7 @@ OBJS = $(BUILD)/fcb_main.o \
 	   $(BUILD)/helpers.o \
 	   $(BUILD)/util_rpi.o \
 	   $(BUILD)/getopt_cpp.o \
+	   $(BUILD)/gps.o \
 	   $(BUILD)/main.o \
 
 SRCS = ../$(SRC)/fcb_main.cpp \
@@ -44,6 +45,7 @@ SRCS = ../$(SRC)/fcb_main.cpp \
 	   ../$(SRC)/helpers/helpers.cpp \
 	   ../$(SRC)/helpers/util_rpi.cpp \
 	   ../$(SRC)/helpers/getopt_cpp.cpp \
+	   ../$(SRC)/helpers/gps.cpp \
 	   ../$(SRC)/main.cpp \
 	   
 

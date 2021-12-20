@@ -23,7 +23,7 @@ void Scheduler_1Hz ()
  * 
  * @param andruav_message message received from uavos_comm
  */
-void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * full_message, const int & full_message_length)
+void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * full_message, const int & full_message_length)
 {
     const int messageType = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
     bool is_binary = !(full_message[full_message_length-1]==125 || (full_message[full_message_length-2]==125));   // "}".charCodeAt(0)  IS TEXT / BINARY Msg  
@@ -72,7 +72,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
                 const int andruav_mode = message["F"].get<int>();
                 double langitude = 0.0f;
                 // TODO: Missing circle and guided go to here mode.
-                const int ardupilot_mode = uavos::fcb::CFCBModes::getArduPilotMode(andruav_mode, m_fcbMain.getAndruavVehicleInfo().vehicle_type);
+                const int ardupilot_mode = CFCBModes::getArduPilotMode(andruav_mode, m_fcbMain.getAndruavVehicleInfo().vehicle_type);
                 if (ardupilot_mode == E_UNDEFINED_MODE)
                 {   
                     //TODO: Send Error Message
@@ -111,7 +111,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             {
                 //TODO: could be included in change mode.
 
-                int ardupilot_mode = uavos::fcb::CFCBModes::getArduPilotMode(VEHICLE_MODE_LAND, m_fcbMain.getAndruavVehicleInfo().vehicle_type);
+                int ardupilot_mode = CFCBModes::getArduPilotMode(VEHICLE_MODE_LAND, m_fcbMain.getAndruavVehicleInfo().vehicle_type);
                 if (ardupilot_mode == E_UNDEFINED_MODE)
                 {   
                     //TODO: Send Error Message
@@ -126,7 +126,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
             {
                 if (m_fcbMain.getAndruavVehicleInfo().flying_mode != VEHICLE_MODE_GUIDED) 
                 {
-                    uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Mode is not GUIDED");
+                    CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Mode is not GUIDED");
                 }
 
                 //  a : latitude
@@ -155,7 +155,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
                 
 
                 mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint (latitude, longitude, altitude / 1000.0);
-                uavos::fcb::CFCBFacade::getInstance().sendFCBTargetLocation (andruav_message[ANDRUAV_PROTOCOL_SENDER], latitude, longitude, altitude);
+                CFCBFacade::getInstance().sendFCBTargetLocation (andruav_message[ANDRUAV_PROTOCOL_SENDER], latitude, longitude, altitude);
             }   
             break;
 
@@ -240,26 +240,26 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
                 */
                 if (!validateField(message, "a", Json::value_t::string)) 
                 {
-                    uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
+                    CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
 
                     break ;
                 }
 
                 std::string mission = message ["a"];
-                uavos::fcb::mission::CMissionTranslator cMissionTranslator;
+                mission::CMissionTranslator cMissionTranslator;
                 
-                std::unique_ptr<std::map <int, std::unique_ptr<uavos::fcb::mission::CMissionItem>>> new_mission_items = cMissionTranslator.translateMissionText(mission);
+                std::unique_ptr<std::map <int, std::unique_ptr<mission::CMissionItem>>> new_mission_items = cMissionTranslator.translateMissionText(mission);
                 if (new_mission_items == std::nullptr_t())
                 {
-                    uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
+                    CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
 
                     break ;
                 }
                 m_fcbMain.clearWayPoints();
-                uavos::fcb::mission::ANDRUAV_UNIT_MISSION& andruav_missions = m_fcbMain.getAndruavMission();                
+                mission::ANDRUAV_UNIT_MISSION& andruav_missions = m_fcbMain.getAndruavMission();                
                 
              
-                std::map<int, std::unique_ptr<uavos::fcb::mission::CMissionItem>>::iterator it;
+                std::map<int, std::unique_ptr<mission::CMissionItem>>::iterator it;
                 for (it = new_mission_items->begin(); it != new_mission_items->end(); it++)
                 {
                     int seq = it->first;
@@ -276,8 +276,8 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
 
             case TYPE_AndruavMessage_GeoFence:
             {
-                // send GeoFence info.
-
+                // receive GeoFence info from drones.
+                std::cout << "I AM HERE" << std::endl;
             }
             break;
 
@@ -287,14 +287,17 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
                 // This could be the _SYS_ in this case it is my own fences.
 
                 //if (!validateField(message, "t", Json::value_t::number_unsigned)) return ;
-                std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> fence = uavos::fcb::geofence::CGeoFenceFactory::getInstance().getGeoFenceObject(message);
-                uavos::fcb::geofence::CGeoFenceManager::getInstance().addFence(std::move(fence));
-                uavos::fcb::geofence::CGeoFenceManager::getInstance().attachToGeoFence(m_fcbMain.getAndruavVehicleInfo().party_id, message["n"].get<std::string>());
-                uavos::fcb::geofence::GEO_FENCE_STRUCT * fence_struct = uavos::fcb::geofence::CGeoFenceManager::getInstance().getFenceByName(message["n"].get<std::string>());
-                if (fence_struct!=NULL)
-                {
-                    uavos::fcb::geofence::CGeoFenceManager::getInstance().detachFromGeoFence (m_fcbMain.getAndruavVehicleInfo().party_id, fence_struct);   
-                }
+                std::unique_ptr<geofence::CGeoFenceBase> fence = geofence::CGeoFenceFactory::getInstance().getGeoFenceObject(message);
+                geofence::CGeoFenceManager::getInstance().addFence(std::move(fence));
+                geofence::CGeoFenceManager::getInstance().attachToGeoFence(m_fcbMain.getAndruavVehicleInfo().party_id, message["n"].get<std::string>());
+                // geofence::GEO_FENCE_STRUCT * fence_struct = geofence::CGeoFenceManager::getInstance().getFenceByName(message["n"].get<std::string>());
+                // std::vector<geofence::GEO_FENCE_STRUCT*> fence_struct_vect = geofence::CGeoFenceManager::getInstance().getFencesOfParty (m_fcbMain.getAndruavVehicleInfo().party_id);
+                // if (fence_struct!=NULL)
+                // {
+                //     geofence::CGeoFenceManager::getInstance().detachFromGeoFence (m_fcbMain.getAndruavVehicleInfo().party_id, fence_struct);   
+                // }
+                // fence_struct_vect = geofence::CGeoFenceManager::getInstance().getFencesOfParty (m_fcbMain.getAndruavVehicleInfo().party_id);
+                
             }
             break;
 
@@ -405,7 +408,7 @@ void uavos::fcb::CFCBAndruavResalaParser::parseMessage (Json &andruav_message, c
  * 
  * @param andruav_message 
  */
-void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_message)
+void CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_message)
 {
     const Json cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
     
@@ -416,11 +419,11 @@ void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_mess
     switch (remoteCommand)
     {
         case RemoteCommand_REQUEST_PARA_LIST:
-            uavos::fcb::CFCBFacade::getInstance().sendParameterList(andruav_message[ANDRUAV_PROTOCOL_SENDER]);
+            CFCBFacade::getInstance().sendParameterList(andruav_message[ANDRUAV_PROTOCOL_SENDER]);
         break;
 
         case TYPE_AndruavMessage_SET_HOME_LOCATION:
-            uavos::fcb::CFCBFacade::getInstance().sendHomeLocation(andruav_message[ANDRUAV_PROTOCOL_SENDER]);
+            CFCBFacade::getInstance().sendHomeLocation(andruav_message[ANDRUAV_PROTOCOL_SENDER]);
         break;
 
         case RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB:
@@ -433,7 +436,15 @@ void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_mess
         
 
         case RemoteCommand_CLEAR_FENCE_DATA:
-            //TODO: PLease Implement
+        {
+            std::string fence_name;
+            if (cmd.contains("fn")==true)
+            {
+                fence_name = cmd["fn"].get<std::string>();
+            }
+            //clears all geo fence info for this unit and other units.
+            geofence::CGeoFenceManager::getInstance().clearGeoFences(fence_name);
+        }
         break;
 
         case RemoteCommand_SET_START_MISSION_ITEM:
@@ -443,15 +454,61 @@ void uavos::fcb::CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_mess
 
 
         case RemoteCommand_TELEMETRYCTRL:
+        {
             if (!validateField(cmd, "Act", Json::value_t::number_unsigned)) return ;
-            int requestType = cmd["Act"].get<int>();
-            int streamingLevel = -1;
+            int request_type = cmd["Act"].get<int>();
+            int streaming_level = -1;
             if (validateField(cmd, "LVL", Json::value_t::number_unsigned))
             {
-                streamingLevel = cmd["LVL"].get<int>();
+                streaming_level = cmd["LVL"].get<int>();
             }
             
-            m_fcbMain.toggleMavlinkStreaming(andruav_message[ANDRUAV_PROTOCOL_SENDER], requestType, streamingLevel);
+            m_fcbMain.toggleMavlinkStreaming(andruav_message[ANDRUAV_PROTOCOL_SENDER], request_type, streaming_level);
+        }
+        break;
+
+
+        case TYPE_AndruavMessage_GeoFence:
+        {
+            // receive GeoFence info from drones.
+            std::string fence_name;
+            geofence::GEO_FENCE_STRUCT * geo_fence_struct;
+
+            if (cmd.contains("fn")==true)
+            {
+                geo_fence_struct = geofence::CGeoFenceManager::getInstance().getFenceByName (fence_name);
+                fence_name = cmd["fn"].get<std::string>();
+                
+            }
+            
+            if (geo_fence_struct != NULL) 
+            {
+                CFCBFacade::getInstance().sendGeoFenceToTarget(andruav_message[ANDRUAV_PROTOCOL_SENDER], geo_fence_struct);
+            } 
+            else
+            {
+                std::vector<geofence::GEO_FENCE_STRUCT*> geo_fence_struct = geofence::CGeoFenceManager::getInstance().getFencesOfParty (m_fcbMain.getAndruavVehicleInfo().party_id);
+                const std::size_t size = geo_fence_struct.size();
+
+                for(int i = 0; i < size; i++)
+                {
+                    CFCBFacade::getInstance().sendGeoFenceToTarget(andruav_message[ANDRUAV_PROTOCOL_SENDER], geo_fence_struct[i]);
+                }
+            }
+        }
+        break;
+
+            
+        case TYPE_AndruavMessage_GeoFenceAttachStatus:
+        {
+            std::string fence_name;
+            if (cmd.contains("fn")==true)
+            {
+                fence_name = cmd["fn"].get<std::string>();
+            }
+
+            CFCBFacade::getInstance().sendGeoFenceAttachedStatusToTarget(andruav_message[ANDRUAV_PROTOCOL_SENDER], fence_name);
+        }
         break;
     } 
 }

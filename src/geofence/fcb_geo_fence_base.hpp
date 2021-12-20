@@ -2,8 +2,12 @@
 #define FCB_GEO_FENCE_BASE_H_
 
 
+#include "../helpers/gps.hpp"
+
+
 #include "../helpers/json.hpp"
 using Json = nlohmann::json;
+
 
 
 namespace uavos
@@ -13,6 +17,7 @@ namespace fcb
 namespace geofence
 {
 
+    
     enum ENUM_GEOFENCE_TYPE
     {
         LinearFence     = 1,
@@ -29,9 +34,12 @@ namespace geofence
 
         public:
             virtual void parse (const Json& message);
-            virtual void evaluate(double lat, double lng, double alt){ };
+            virtual double isInside(double lat, double lng, double alt) const { };
 
         public:
+
+            virtual Json getMessage();
+
             inline std::string getName ()
             {
                 return m_fence_name;
@@ -47,6 +55,12 @@ namespace geofence
                 return m_hard_fence_action;
             }
 
+            inline int getType()
+            {
+                return m_geofence_type;
+            }
+
+            
 
         protected:
 
@@ -56,13 +70,13 @@ namespace geofence
             int m_hard_fence_action;
 
             /**
-            * @brief  in notmal -90,90
+            * @brief  in degrees
             * 
             */
             double m_latitude = 0;
 
             /**
-            * @brief  in notmal 180-180
+            * @brief  in degrees
             * 
             */
             double m_longitude = 0;
@@ -74,6 +88,12 @@ namespace geofence
              */
             double m_altitude = 0;
 
+            /**
+             * @brief Location in message is NOT E7 format. but the object uses E7.
+             * 
+             */
+            Json m_message;
+            
     };
 
 
@@ -87,8 +107,21 @@ namespace geofence
         public:
         
             void parse (const Json& message)override;
-            void evaluate(double lat, double lng, double alt) override;
-        
+            double isInside(double lat, double lng, double alt) const override;
+            Json getMessage() override;
+            
+            inline void getLocation (double& lat, double& lng, double& alt) const
+            {
+                lat = m_latitude;
+                lng = m_longitude;
+                alt = m_altitude;
+            }
+
+            inline int getRadius()
+            {
+                return m_radius;
+            }
+
         protected:
             /**
              * @brief in meters
@@ -109,8 +142,11 @@ namespace geofence
         public:
         
             void parse (const Json& message)override;
-            void evaluate(double lat, double lng, double alt) override;
+            double isInside(double lat, double lng, double alt) const override;
+            Json getMessage() override;
         
+        protected:
+            std::vector<POINT_3D> m_vertex;
     };
 
 
@@ -124,8 +160,16 @@ namespace geofence
         public:
         
             void parse (const Json& message)override;
-            void evaluate(double lat, double lng, double alt) override;
-        
+            double isInside(double lat, double lng, double alt) const override;
+            Json getMessage() override;
+
+        protected:
+            std::vector<POINT_3D> m_vertex;
+            /**
+             * @brief in meters
+             * 
+             */
+            int m_width;
     };
 
 

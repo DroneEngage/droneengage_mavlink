@@ -13,11 +13,30 @@ namespace fcb
 {
 namespace geofence
 {
+    /**
+     * @brief Attached unit status
+     * 
+     */
+    typedef struct 
+    {
+        std::string party_id; 
+        /**
+         * @brief <=0 then touch >0 distance to center or edge depends on the shape.
+         * initial value -INFINITY used to trigeer testing
+         */
+        double in_zone=-INFINITY; 
+        bool violation = false;
+    } GEO_FENCE_PARTY_STATUS;
 
+    /**
+     * @brief Holds geo fence object with its attached units.
+     * 
+     */
     typedef struct 
     {
         std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> geoFence;
-        std::vector<std::string> parties;
+        std::vector<std::unique_ptr<GEO_FENCE_PARTY_STATUS>> parties;
+        int local_index;
     } GEO_FENCE_STRUCT;
 
     class CGeoFenceManager
@@ -64,16 +83,19 @@ namespace geofence
 
                 void addFence (std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> geo_fence);
                 void attachToGeoFence (const std::string& party_id, const std::string& geo_fence_name);
-                void attachToGeoFence (const std::string party_id, GEO_FENCE_STRUCT *geo_fence);
+                void attachToGeoFence (const std::string party_id, GEO_FENCE_STRUCT *geo_fence_struct);
                 
-                void detachFromGeoFence (const std::string& party_id, GEO_FENCE_STRUCT *geo_fence);
-                void clearGeoFences ();
+                void detachFromGeoFence (const std::string& party_id, GEO_FENCE_STRUCT *geo_fence_struct);
+                void clearGeoFences (const std::string& geo_fence_name);
                 GEO_FENCE_STRUCT * getFenceByName (const std::string& geo_fence_name) const;
+                std::vector<GEO_FENCE_STRUCT*> getFencesOfParty (const std::string& party_id);
+                int getIndexOfPartyInGeoFence (const std::string& party_id, const GEO_FENCE_STRUCT *geo_fence_struct) const;
                 
                 
+            
             protected:
 
-            std::unique_ptr <std::map<std::string,std::unique_ptr<GEO_FENCE_STRUCT>>>  m_geo_fences;
+                std::unique_ptr <std::map<std::string,std::unique_ptr<GEO_FENCE_STRUCT>>>  m_geo_fences;
     };
 }
 }

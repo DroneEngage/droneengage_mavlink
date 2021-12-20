@@ -84,7 +84,9 @@
 #define TYPE_AndruavMessage_HomeLocation                1022
 #define TYPE_AndruavMessage_GeoFence                    1023
 #define TYPE_AndruavMessage_ExternalGeoFence            1024
+#define TYPE_AndruavMessage_GEOFenceHit                 1025
 #define TYPE_AndruavMessage_WayPoints                   1027
+#define TYPE_AndruavMessage_GeoFenceAttachStatus        1029
 #define TYPE_AndruavMessage_Arm                         1030
 #define TYPE_AndruavMessage_ChangeAltitude              1031
 #define TYPE_AndruavMessage_Land                        1032
@@ -203,3 +205,13 @@
 #define CONST_TELEMETRY_REQUEST_START		1
 #define CONST_TELEMETRY_REQUEST_END			2
 #define CONST_TELEMETRY_REQUEST_RESUME		3
+
+
+
+// Fence Soft & Hard actions
+#define CONST_FENCE_ACTION_SOFT                   0
+#define CONST_FENCE_ACTION_RTL                    2
+#define CONST_FENCE_ACTION_LAND                  12
+#define CONST_FENCE_ACTION_LOITER                10
+#define CONST_FENCE_ACTION_BRAKE                 17
+#define CONST_FENCE_ACTION_SMART_RTL             21

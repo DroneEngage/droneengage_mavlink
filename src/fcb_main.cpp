@@ -14,9 +14,13 @@
 #include "fcb_modes.hpp"
 #include "fcb_main.hpp"
 
+#include "./geofence/fcb_geo_fence_base.hpp"
+#include "./geofence/fcb_geo_fence_manager.hpp"
+
+using namespace uavos::fcb;
 
 void SchedulerThread(void * This) {
-	((uavos::fcb::CFCBMain *)This)->loopScheduler(); 
+	((CFCBMain *)This)->loopScheduler(); 
 
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Exit SchedulerThread" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -30,7 +34,7 @@ void SchedulerThread(void * This) {
  * 
  * @return int 
  */
-int uavos::fcb::CFCBMain::getConnectionType () const 
+int CFCBMain::getConnectionType () const 
 {
     std::string connection = str_tolower(m_jsonConfig["fcbConnectionURI"]["type"].get<std::string>());
 
@@ -52,7 +56,7 @@ int uavos::fcb::CFCBMain::getConnectionType () const
  * @return true 
  * @return false 
  */
-bool uavos::fcb::CFCBMain::connectToFCB ()
+bool CFCBMain::connectToFCB ()
 {
     m_connection_type = getConnectionType();
     
@@ -87,7 +91,7 @@ bool uavos::fcb::CFCBMain::connectToFCB ()
 }
 
 
-void uavos::fcb::CFCBMain::init ()
+void CFCBMain::init ()
 {
     
     m_exit_thread = false; 
@@ -115,7 +119,7 @@ void uavos::fcb::CFCBMain::init ()
 }
 
 
-void uavos::fcb::CFCBMain::uninit ()
+void CFCBMain::uninit ()
 {
     // exit thread.
     if (m_exit_thread == true) 
@@ -136,7 +140,7 @@ void uavos::fcb::CFCBMain::uninit ()
     return ;
 }
 
-void uavos::fcb::CFCBMain::initVehicleChannelLimits()
+void CFCBMain::initVehicleChannelLimits()
 {
     uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
     cConfigFile.reloadFile();
@@ -189,7 +193,7 @@ void uavos::fcb::CFCBMain::initVehicleChannelLimits()
  * 
  * 
  */
-void uavos::fcb::CFCBMain::remoteControlSignal ()
+void CFCBMain::remoteControlSignal ()
 {
     if (!m_andruav_vehicle_info.rc_command_active) return ;
     const u_int64_t now = get_time_usec();
@@ -227,7 +231,7 @@ void uavos::fcb::CFCBMain::remoteControlSignal ()
                 releaseRemoteControl();
                 
                 // if RC Timeout then switch to brake or equivelant mode.
-                const int ardupilot_mode = uavos::fcb::CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type);
+                const int ardupilot_mode = CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type);
                 mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
 
                 return ;
@@ -244,7 +248,7 @@ void uavos::fcb::CFCBMain::remoteControlSignal ()
                 releaseRemoteControl();
                 
                 // if RC Timeout then switch to brake or equivelant mode.
-                const int ardupilot_mode = uavos::fcb::CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type);
+                const int ardupilot_mode = CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type);
                 mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
                 
                 return ;
@@ -256,7 +260,11 @@ void uavos::fcb::CFCBMain::remoteControlSignal ()
     }
 }
 
-void uavos::fcb::CFCBMain::loopScheduler ()
+/**
+ * @brief A separate thread schedular for calling recurring tasks.
+ * 
+ */
+void CFCBMain::loopScheduler ()
 {
     while (!m_exit_thread)
     {
@@ -280,6 +288,9 @@ void uavos::fcb::CFCBMain::loopScheduler ()
             m_fcb_facade.sendGPSInfo(std::string());
 
             m_fcb_facade.sendNavInfo(std::string());
+ 
+            updateGeoFenceHitStatus();
+
         }
 
         if (m_counter %100 ==0)
@@ -326,7 +337,7 @@ void uavos::fcb::CFCBMain::loopScheduler ()
 }
 
 
-void uavos::fcb::CFCBMain::reloadWayPoints()
+void CFCBMain::reloadWayPoints()
 {
     m_andruav_missions.clear();
     mavlinksdk::CMavlinkCommand::getInstance().reloadWayPoints();
@@ -341,7 +352,7 @@ void uavos::fcb::CFCBMain::reloadWayPoints()
  * * But in andruav geo fence is not affected by this command.
  * 
  */
-void uavos::fcb::CFCBMain::clearWayPoints()
+void CFCBMain::clearWayPoints()
 {
     m_andruav_missions.clear();
     //m_fcb_facade.sendWayPoints(std::string());
@@ -354,7 +365,7 @@ void uavos::fcb::CFCBMain::clearWayPoints()
  * @brief uploads mavlink mission items to FCB.
  * 
  */
-void uavos::fcb::CFCBMain::saveWayPointsToFCB()
+void CFCBMain::saveWayPointsToFCB()
 {
     //m_andruav_missions.clear();
     //m_fcb_facade.sendWayPoints(std::string());
@@ -379,7 +390,7 @@ void uavos::fcb::CFCBMain::saveWayPointsToFCB()
     
 }
 
-void uavos::fcb::CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_message)
+void CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_message)
 {
     //std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnMessageReceived" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     //m_traffic_optimizer.shouldForwardThisMessage (mavlink_message);
@@ -392,11 +403,11 @@ void uavos::fcb::CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_m
     // if streaming active check each message to forward.
     if (m_mavlink_optimizer.shouldForwardThisMessage (mavlink_message))
     {
-        std::vector<std::unique_ptr<uavos::fcb::ANDRUAV_UNIT_STRUCT>> ::iterator it;
+        std::vector<std::unique_ptr<ANDRUAV_UNIT_STRUCT>> ::iterator it;
         
         for(it=m_TelemetryUnits.begin(); it!=m_TelemetryUnits.end(); it++)
         {
-            uavos::fcb::ANDRUAV_UNIT_STRUCT *unit_ptr = it->get();
+            ANDRUAV_UNIT_STRUCT *unit_ptr = it->get();
         
             if (unit_ptr->is_online == true)
             {
@@ -412,7 +423,7 @@ void uavos::fcb::CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_m
 }
 
 
-void uavos::fcb::CFCBMain::OnConnected (const bool& connected)
+void CFCBMain::OnConnected (const bool& connected)
 {
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnConnected" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     if (m_andruav_vehicle_info.use_fcb != connected)
@@ -429,7 +440,7 @@ void uavos::fcb::CFCBMain::OnConnected (const bool& connected)
  * @brief called locally used for ticking.
  * 
  */
-void uavos::fcb::CFCBMain::OnHeartBeat ()
+void CFCBMain::OnHeartBeat ()
 {
     if (m_andruav_vehicle_info.is_flying)
     {
@@ -444,10 +455,10 @@ void uavos::fcb::CFCBMain::OnHeartBeat ()
  * 
  * @param heartbeat 
  */
-void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)
+void CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)
 {
     
-    m_andruav_vehicle_info.vehicle_type = uavos::fcb::CFCBModes::getAndruavVehicleType (heartbeat.type, heartbeat.autopilot);
+    m_andruav_vehicle_info.vehicle_type = CFCBModes::getAndruavVehicleType (heartbeat.type, heartbeat.autopilot);
 
     m_andruav_vehicle_info.gps_mode =  GPS_MODE_FCB;
 
@@ -461,9 +472,9 @@ void uavos::fcb::CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbe
 }
 
 
-void uavos::fcb::CFCBMain::OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)
+void CFCBMain::OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)
 {
-    m_andruav_vehicle_info.vehicle_type = uavos::fcb::CFCBModes::getAndruavVehicleType (heartbeat.type, heartbeat.autopilot);
+    m_andruav_vehicle_info.vehicle_type = CFCBModes::getAndruavVehicleType (heartbeat.type, heartbeat.autopilot);
 
     m_fcb_facade.sendID(std::string());
     
@@ -471,7 +482,7 @@ void uavos::fcb::CFCBMain::OnHeartBeat_Resumed (const mavlink_heartbeat_t& heart
     return ;
 }
 
-void uavos::fcb::CFCBMain::OnBoardRestarted ()
+void CFCBMain::OnBoardRestarted ()
 {
     std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Flight Controller Restarted" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
@@ -481,7 +492,7 @@ void uavos::fcb::CFCBMain::OnBoardRestarted ()
 }
 
             
-void uavos::fcb::CFCBMain::OnArmed (const bool& armed)
+void CFCBMain::OnArmed (const bool& armed)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnArmed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
@@ -493,7 +504,7 @@ void uavos::fcb::CFCBMain::OnArmed (const bool& armed)
 }
 
 
-void uavos::fcb::CFCBMain::OnFlying (const bool& is_flying)
+void CFCBMain::OnFlying (const bool& is_flying)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnFlying" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
@@ -522,7 +533,7 @@ void uavos::fcb::CFCBMain::OnFlying (const bool& is_flying)
 }
 
 
-void uavos::fcb::CFCBMain::OnStatusText (const std::uint8_t& severity, const std::string& status)
+void CFCBMain::OnStatusText (const std::uint8_t& severity, const std::string& status)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText " << _NORMAL_CONSOLE_TEXT_ << status << std::endl;
     
@@ -532,7 +543,7 @@ void uavos::fcb::CFCBMain::OnStatusText (const std::uint8_t& severity, const std
     
 }
 
-void uavos::fcb::CFCBMain::OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)
+void CFCBMain::OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)
 {
     int sevirity;
 
@@ -573,7 +584,7 @@ void uavos::fcb::CFCBMain::OnMissionACK (const int& result, const int& mission_t
 }
 
 
-void uavos::fcb::CFCBMain::OnWaypointReached(const int& seq) 
+void CFCBMain::OnWaypointReached(const int& seq) 
 {
     m_andruav_vehicle_info.current_waypoint = seq;
     m_fcb_facade.sendWayPointReached (std::string(), seq);
@@ -581,19 +592,19 @@ void uavos::fcb::CFCBMain::OnWaypointReached(const int& seq)
     return ;
 }
 
-void uavos::fcb::CFCBMain::OnWayPointReceived(const mavlink_mission_item_int_t& mission_item_int)
+void CFCBMain::OnWayPointReceived(const mavlink_mission_item_int_t& mission_item_int)
 {
    if (mission_item_int.mission_type == MAV_MISSION_TYPE_MISSION)
    {
-       uavos::fcb::mission::CMissionItem *mission_item  = uavos::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mission_item_int);
+       mission::CMissionItem *mission_item  = mission::CMissionItemBuilder::getClassByMavlinkCMD(mission_item_int);
        mission_item->decodeMavlink(mission_item_int);
-       m_andruav_missions.mission_items.insert(std::make_pair( mission_item_int.seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(mission_item)));
+       m_andruav_missions.mission_items.insert(std::make_pair( mission_item_int.seq, std::unique_ptr<mission::CMissionItem>(mission_item)));
    }
 
     return ;
 }
 
-void uavos::fcb::CFCBMain::OnWayPointsLoadingCompleted ()
+void CFCBMain::OnWayPointsLoadingCompleted ()
 {
     // ?Please check if we need to notify GCS.
     // notify that mission has been updated
@@ -610,7 +621,7 @@ void uavos::fcb::CFCBMain::OnWayPointsLoadingCompleted ()
  * @param mission_type 
  * @param result_msg 
  */
-void uavos::fcb::CFCBMain::OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)
+void CFCBMain::OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)
 {
     if (result == MAV_MISSION_RESULT::MAV_MISSION_ACCEPTED)
     {
@@ -624,7 +635,7 @@ void uavos::fcb::CFCBMain::OnMissionSaveFinished (const int& result, const int& 
     }
 }
             
-void uavos::fcb::CFCBMain::OnACK (const int& acknowledged_cmd, const int& result, const std::string& result_msg)
+void CFCBMain::OnACK (const int& acknowledged_cmd, const int& result, const std::string& result_msg)
 {
     int sevirity;
 
@@ -657,10 +668,10 @@ void uavos::fcb::CFCBMain::OnACK (const int& acknowledged_cmd, const int& result
 }
 
  
-void uavos::fcb::CFCBMain::OnModeChanges(const int& custom_mode, const int& firmware_type)
+void CFCBMain::OnModeChanges(const int& custom_mode, const int& firmware_type)
 {
     
-    m_andruav_vehicle_info.flying_mode = uavos::fcb::CFCBModes::getAndruavMode (custom_mode, m_andruav_vehicle_info.vehicle_type);
+    m_andruav_vehicle_info.flying_mode = CFCBModes::getAndruavMode (custom_mode, m_andruav_vehicle_info.vehicle_type);
     adjustRemoteJoystickByMode(m_andruav_vehicle_info.rc_sub_action);
     m_fcb_facade.sendID(std::string());
 
@@ -668,7 +679,7 @@ void uavos::fcb::CFCBMain::OnModeChanges(const int& custom_mode, const int& firm
 }   
 
 
-void uavos::fcb::CFCBMain::OnHomePositionUpdated(const mavlink_home_position_t& home_position)
+void CFCBMain::OnHomePositionUpdated(const mavlink_home_position_t& home_position)
 {
     m_fcb_facade.sendHomeLocation(std::string());
 
@@ -683,7 +694,7 @@ void uavos::fcb::CFCBMain::OnHomePositionUpdated(const mavlink_home_position_t& 
  * @param param_message parameter mavlink message
  * @param changed true if changed & false if new
  */
-void uavos::fcb::CFCBMain::OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)
+void CFCBMain::OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)
 {
     #ifdef DEBUG
 	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 
@@ -696,12 +707,12 @@ void uavos::fcb::CFCBMain::OnParamReceived(const std::string& param_name, const 
 }
 
 
-void uavos::fcb::CFCBMain::OnParamReceivedCompleted()
+void CFCBMain::OnParamReceivedCompleted()
 {
     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_INFO, std::string("Parameters Loaded Successfully"));
 }
 
-void uavos::fcb::CFCBMain::alertUavosOffline()
+void CFCBMain::alertUavosOffline()
 {
 
 
@@ -717,7 +728,7 @@ void uavos::fcb::CFCBMain::alertUavosOffline()
  * @param ignode_dead_band 
  * @return int16_t 
  */
-void uavos::fcb::CFCBMain::calculateChannels(const int16_t scaled_channels[18], const bool ignode_dead_band, int16_t *output)
+void CFCBMain::calculateChannels(const int16_t scaled_channels[18], const bool ignode_dead_band, int16_t *output)
 {
     
     for (int i=0; i<18;++i)
@@ -766,7 +777,7 @@ void uavos::fcb::CFCBMain::calculateChannels(const int16_t scaled_channels[18], 
 }
 
 
-void uavos::fcb::CFCBMain::releaseRemoteControl()
+void CFCBMain::releaseRemoteControl()
 {
     if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_RELEASED) return ;
 
@@ -786,7 +797,7 @@ void uavos::fcb::CFCBMain::releaseRemoteControl()
  * @brief Set first 4 FOUR channels to 1500 and release others.
  * 
  */
-void uavos::fcb::CFCBMain::centerRemoteControl()
+void CFCBMain::centerRemoteControl()
 {
     if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS) return ;
     
@@ -804,7 +815,7 @@ void uavos::fcb::CFCBMain::centerRemoteControl()
  * Other channels are released.
  * 
  */
-void uavos::fcb::CFCBMain::freezeRemoteControl()
+void CFCBMain::freezeRemoteControl()
 {
     
     if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS) return ;
@@ -842,7 +853,7 @@ void uavos::fcb::CFCBMain::freezeRemoteControl()
  * @brief Override channels. Overridden channels are determined dynamically.
  * 
  */
-void uavos::fcb::CFCBMain::enableRemoteControl()
+void CFCBMain::enableRemoteControl()
 {
     m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
     m_andruav_vehicle_info.rc_command_active = false;  // remote control data will enable it                   
@@ -852,7 +863,7 @@ void uavos::fcb::CFCBMain::enableRemoteControl()
 }
 
 
-void uavos::fcb::CFCBMain::enableRemoteControlGuided()
+void CFCBMain::enableRemoteControlGuided()
 {
 
     m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
@@ -870,7 +881,7 @@ void uavos::fcb::CFCBMain::enableRemoteControlGuided()
 }
 
 
-void uavos::fcb::CFCBMain::adjustRemoteJoystickByMode (RC_SUB_ACTION rc_sub_action)
+void CFCBMain::adjustRemoteJoystickByMode (RC_SUB_ACTION rc_sub_action)
 {
     switch (rc_sub_action)
     {
@@ -920,7 +931,7 @@ void uavos::fcb::CFCBMain::adjustRemoteJoystickByMode (RC_SUB_ACTION rc_sub_acti
  * 
  * @param rc_channels values from [-500,500] ... -1 meanse release channel.
  */
-void uavos::fcb::CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
+void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
 {
     
     switch (m_andruav_vehicle_info.rc_sub_action)
@@ -991,7 +1002,7 @@ void uavos::fcb::CFCBMain::updateRemoteControlChannels(const int16_t rc_channels
  * @param request_type @link CONST_TELEMETRY_REQUEST_START @endlink @link CONST_TELEMETRY_REQUEST_END @endlink @link CONST_TELEMETRY_REQUEST_RESUME @endlink 
  * @param streaming_level from 0 means no optimization to 3 max optimization.
  */
-void uavos::fcb::CFCBMain::toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level)
+void CFCBMain::toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level)
 {
         printf("toggleMavlinkStreaming %s %d %d\r\n", target_party_id.c_str(), request_type, streaming_level);
 
@@ -1004,12 +1015,12 @@ void uavos::fcb::CFCBMain::toggleMavlinkStreaming (const std::string& target_par
         
         if (!target_party_id.empty())
         {
-            std::vector<std::unique_ptr<uavos::fcb::ANDRUAV_UNIT_STRUCT>> ::iterator it;
+            std::vector<std::unique_ptr<ANDRUAV_UNIT_STRUCT>> ::iterator it;
             
             bool found = false;
             for(it=m_TelemetryUnits.begin(); it!=m_TelemetryUnits.end(); it++)
             {
-                uavos::fcb::ANDRUAV_UNIT_STRUCT *unit = it->get();
+                ANDRUAV_UNIT_STRUCT *unit = it->get();
                 
                 std::cout << "compare to " << unit->party_id << " to " << target_party_id << std::endl;
                 
@@ -1036,18 +1047,83 @@ void uavos::fcb::CFCBMain::toggleMavlinkStreaming (const std::string& target_par
             if (!found && (request_type != CONST_TELEMETRY_REQUEST_END))
             {
                 std::cout << "Adding to m_TelemetryUnits " << target_party_id << std::endl;
-                uavos::fcb::ANDRUAV_UNIT_STRUCT * unit_ptr= new uavos::fcb::ANDRUAV_UNIT_STRUCT;
+                ANDRUAV_UNIT_STRUCT * unit_ptr= new ANDRUAV_UNIT_STRUCT;
                 unit_ptr->party_id = target_party_id;
                 unit_ptr->is_online = true;
                 
-                m_TelemetryUnits.push_back(std::unique_ptr<uavos::fcb::ANDRUAV_UNIT_STRUCT> (unit_ptr));
+                m_TelemetryUnits.push_back(std::unique_ptr<ANDRUAV_UNIT_STRUCT> (unit_ptr));
             }
         }
 
+       return ;
+}
+
+
+void CFCBMain::updateGeoFenceHitStatus()
+{
+    /* 
+	    bit 0: out of green zone
+		bit 1: in bad zone
+		bit 2: in good zone
+	*/
+	int total_violation = 0b000;
+
+    std::vector<geofence::GEO_FENCE_STRUCT*> geo_fence_struct_list = geofence::CGeoFenceManager::getInstance().getFencesOfParty(getAndruavVehicleInfo().party_id);
         
+    const std::size_t size = geo_fence_struct_list.size();
 
-        return ;
+    mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
 
-        return ;
+    const mavlink_global_position_int_t&  gpos = vehicle.getMsgGlobalPositionInt();
+
+    // test each fence and check if inside or not.
+    for(int i = 0; i < size; i++)
+    {
+        uavos::fcb::geofence::GEO_FENCE_STRUCT * g = geo_fence_struct_list[i];
+        uavos::fcb::geofence::CGeoFenceBase * geo_fence = g->geoFence.get();
+        const int local_index = geo_fence_struct_list[i]->local_index;
+        double in_zone_new = geo_fence->isInside(gpos.lat, gpos.lon, gpos.alt);
+        double in_zone = g->parties[local_index].get()->in_zone;
+        
+        if (signum(in_zone_new) != signum(in_zone))
+        {
+            // change status
+            //TODO: Alert & Act
+            std::cout << "in_zone_new" << std::to_string(in_zone_new) << std::endl;
+            g->parties[local_index].get()->in_zone = in_zone_new;
+            if ((in_zone_new<=0) && geo_fence->shouldKeepOutside()) 
+            {
+                // violate should be OUTSIDE
+                total_violation = total_violation | 0b010; //bad 
+
+                std::string error_str = "violate fence " + std::string(geo_fence->getName());
+                m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_GEO_FENCE_ERROR, NOTIFICATION_TYPE_ERROR, error_str);
+                
+            }
+            else if ((in_zone_new>0) && !geo_fence->shouldKeepOutside()) 
+            {
+                // multiple allowed fences may exist so a viuolation for one is not a violation.
+                // a safe green fence but I am not inside it.
+                // unless this is the only one.
+                total_violation = total_violation | 0b001; // not in greed zone  
+
+            }
+            else if  ((in_zone_new<=0) && !geo_fence->shouldKeepOutside()) 
+            {
+                // green fence and I am in.
+                total_violation = total_violation | 0b100; // good
+            
+                std::string error_str = "safe fence " + std::string(geo_fence->getName());
+                m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_GEO_FENCE_ERROR, NOTIFICATION_TYPE_NOTICE, error_str);
+            }
+
+            m_fcb_facade.sendGeoFenceHit(std::string(""), 
+                                        geo_fence->getName(),
+                                        in_zone_new, 
+                                        in_zone_new<=0,
+                                        geo_fence->shouldKeepOutside());
+        }
+
+    }
 }
 

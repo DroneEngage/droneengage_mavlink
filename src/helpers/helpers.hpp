@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <vector>
 #include <sstream>
+#include <math.h>
 
 uint64_t get_time_usec();
 
@@ -21,4 +22,22 @@ std::vector<std::string> split_string_by_newline(const std::string& str);
 std::string removeComments(std::string prgm);
 
 extern std::string get_linux_machine_id ();
+
+
+template <typename T> inline constexpr
+int signum(T x, std::false_type is_signed) {
+    return T(0) < x;
+}
+
+template <typename T> inline constexpr
+int signum(T x, std::true_type is_signed) {
+    return (T(0) < x) - (x < T(0));
+}
+
+template <typename T> inline constexpr
+int signum(T x) {
+    return signum(x, std::is_signed<T>());
+}
+
+
 #endif

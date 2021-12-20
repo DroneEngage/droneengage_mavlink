@@ -8,6 +8,9 @@
 #include "global.hpp"
 #include "defines.hpp"
 
+#include "./geofence/fcb_geo_fence_base.hpp"
+#include "./geofence/fcb_geo_fence_manager.hpp"
+
 
 
 namespace uavos
@@ -77,7 +80,10 @@ namespace fcb
             void sendMavlinkData_2(const std::string&target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2)  const;
             void sendServoReadings(const std::string&target_party_id) const;
             void sendWayPointReached (const std::string&target_party_id, const int& mission_sequence) const;
-            
+            void sendGeoFenceAttachedStatusToTarget(const std::string&target_party_id, const std::string&fence_name) const;
+            void sendGeoFenceToTarget(const std::string&target_party_id, const geofence::GEO_FENCE_STRUCT * geo_fenct_struct) const;
+            void sendGeoFenceHit(const std::string&target_party_id, const std::string fence_name, const double distance, const bool in_zone, const bool should_keep_outside) const;
+
             void setSendJMSG (SEND_JMSG_CALLBACK sendJMSG)
             {
                 m_sendJMSG = sendJMSG;

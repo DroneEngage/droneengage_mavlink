@@ -5,12 +5,16 @@
 #include "./helpers/json.hpp"
 using Json = nlohmann::json;
 #include "messages.hpp"
-#include "fcb_main.hpp"
 #include "fcb_facade.hpp"
+#include "fcb_main.hpp"
 
 
 
-void uavos::fcb::CFCBFacade::sendID(const std::string&target_party_id)  const
+using namespace uavos::fcb;
+
+
+           
+void CFCBFacade::sendID(const std::string&target_party_id)  const
 {
     /*
          VT : vehicle type
@@ -28,7 +32,7 @@ void uavos::fcb::CFCBFacade::sendID(const std::string&target_party_id)  const
           B : is GCSBlocked
 
     */
-    uavos::fcb::CFCBMain&  fcbMain = uavos::fcb::CFCBMain::getInstance();
+    CFCBMain&  fcbMain = CFCBMain::getInstance();
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
         
     const ANDRUAV_VEHICLE_INFO& andruav_vehicle_info = fcbMain.getAndruavVehicleInfo();
@@ -62,7 +66,7 @@ void uavos::fcb::CFCBFacade::sendID(const std::string&target_party_id)  const
 }
 
 
-void uavos::fcb::CFCBFacade::requestID(const std::string&target_party_id)  const
+void CFCBFacade::requestID(const std::string&target_party_id)  const
 {
     Json message = 
         {
@@ -78,7 +82,7 @@ void uavos::fcb::CFCBFacade::requestID(const std::string&target_party_id)  const
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendErrorMessage (const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description)  const
+void CFCBFacade::sendErrorMessage (const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description)  const
 {
     /*
         EN : error number  "not currently processed".
@@ -104,13 +108,13 @@ void uavos::fcb::CFCBFacade::sendErrorMessage (const std::string&target_party_id
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendTelemetryPanic(const std::string& target_party_id)  const
+void CFCBFacade::sendTelemetryPanic(const std::string& target_party_id)  const
 {
 
 }
 
 
-void uavos::fcb::CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
+void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
 {
     /*
         3D          : int 3D fix
@@ -130,7 +134,7 @@ void uavos::fcb::CFCBFacade::sendGPSInfo(const std::string&target_party_id)  con
 
     if (m_sendJMSG == NULL) return ;
     
-    uavos::fcb::CFCBMain&  fcbMain = uavos::fcb::CFCBMain::getInstance();
+    CFCBMain&  fcbMain = CFCBMain::getInstance();
     mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
 
     const mavlink_gps_raw_int_t& gps = vehicle.getMSGGPSRaw();
@@ -153,7 +157,7 @@ void uavos::fcb::CFCBFacade::sendGPSInfo(const std::string&target_party_id)  con
  * 
  * @param target_party_id 
  */
-void uavos::fcb::CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
+void CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
 {
     /*
         a : nav_roll
@@ -200,7 +204,7 @@ void uavos::fcb::CFCBFacade::sendNavInfo(const std::string&target_party_id)  con
  * 
  * @param target_party_id 
  */
-void uavos::fcb::CFCBFacade::sendParameterList (const std::string&target_party_id) const 
+void CFCBFacade::sendParameterList (const std::string&target_party_id) const 
 {
     if (m_sendJMSG == NULL) return ;
     
@@ -248,7 +252,7 @@ void uavos::fcb::CFCBFacade::sendParameterList (const std::string&target_party_i
  * @param target_party_id 
  * @param param_message 
  */
-void uavos::fcb::CFCBFacade::sendParameterValue (const std::string&target_party_id, const mavlink_param_value_t& param_message) const 
+void CFCBFacade::sendParameterValue (const std::string&target_party_id, const mavlink_param_value_t& param_message) const 
 {
     if (m_sendJMSG == NULL) return ;
     
@@ -264,7 +268,7 @@ void uavos::fcb::CFCBFacade::sendParameterValue (const std::string&target_party_
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
+void CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
 {
 
     if (m_sendJMSG == NULL) return ;
@@ -320,7 +324,7 @@ void uavos::fcb::CFCBFacade::sendPowerInfo(const std::string&target_party_id)  c
 }
 
 
-void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
+void CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
 {
     
     if (m_sendJMSG == NULL) return ;
@@ -350,7 +354,7 @@ void uavos::fcb::CFCBFacade::sendHomeLocation(const std::string&target_party_id)
 * @details This function sends destination points after confirmed from FCB.
 * GCS sends these points to uavos and then oavos sends it to FCB then uavos should send it back to gcs as a confirmation.
 */
-void uavos::fcb::CFCBFacade::sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude) const
+void CFCBFacade::sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude) const
 {
     
     if (m_sendJMSG == NULL) return ;
@@ -383,15 +387,15 @@ std::mutex g_pages_mutex;
 * "n" represents number of waypoint in the chunk.
 * waypoints are numbered zero-based in each chunk.
 */
-void uavos::fcb::CFCBFacade::sendWayPoints(const std::string&target_party_id) const
+void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
 {
 
     if (m_sendJMSG == NULL) return ;
     
     std::lock_guard<std::mutex> guard(g_pages_mutex);
     
-    uavos::fcb::CFCBMain&  fcbMain = uavos::fcb::CFCBMain::getInstance();
-    const uavos::fcb::mission::ANDRUAV_UNIT_MISSION& andruav_missions = fcbMain.getAndruavMission(); 
+    CFCBMain&  fcbMain = CFCBMain::getInstance();
+    const mission::ANDRUAV_UNIT_MISSION& andruav_missions = fcbMain.getAndruavMission(); 
     const std::size_t length = andruav_missions.mission_items.size();
     
 
@@ -416,7 +420,7 @@ void uavos::fcb::CFCBFacade::sendWayPoints(const std::string&target_party_id) co
         for (int j =0; (j<MAX_WAYPOINT_CHUNK) && (j+i < length); ++j)
         {
             auto it = andruav_missions.mission_items.find(i+j);
-            uavos::fcb::mission::CMissionItem *mi= it->second.get();
+            mission::CMissionItem *mi= it->second.get();
             
             Json message_item = mi->getAndruavMission();
             message[std::to_string(lastsentIndex)] = message_item;
@@ -444,7 +448,7 @@ void uavos::fcb::CFCBFacade::sendWayPoints(const std::string&target_party_id) co
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
+void CFCBFacade::sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
 {
     char buf[300];
     // Translate message to buffer
@@ -460,7 +464,7 @@ void uavos::fcb::CFCBFacade::sendTelemetryData(const std::string&target_party_id
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
+void CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
 {
     char buf[300];
     // Translate message to buffer
@@ -477,7 +481,7 @@ void uavos::fcb::CFCBFacade::sendMavlinkData(const std::string&target_party_id, 
 }
 
 
-void uavos::fcb::CFCBFacade::sendMavlinkData_2(const std::string&target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2)  const
+void CFCBFacade::sendMavlinkData_2(const std::string&target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2)  const
 {
     char buf[600];
     // Translate message to buffer
@@ -495,7 +499,7 @@ void uavos::fcb::CFCBFacade::sendMavlinkData_2(const std::string&target_party_id
     return ;
 }
 
-void uavos::fcb::CFCBFacade::sendServoReadings(const std::string&target_party_id)  const
+void CFCBFacade::sendServoReadings(const std::string&target_party_id)  const
 {
     Json message;
 
@@ -508,7 +512,7 @@ void uavos::fcb::CFCBFacade::sendServoReadings(const std::string&target_party_id
 }
 
 
-void uavos::fcb::CFCBFacade::sendWayPointReached (const std::string&target_party_id, const int& mission_sequence)  const
+void CFCBFacade::sendWayPointReached (const std::string&target_party_id, const int& mission_sequence)  const
 {
     if (m_sendJMSG == NULL) return ;
     
@@ -528,6 +532,90 @@ void uavos::fcb::CFCBFacade::sendWayPointReached (const std::string&target_party
     return ;
 }
 
+/**
+ * @brief 
+ * 
+ * @param target_party_id 
+ * @param fence_name null means all fences of party
+ */
+void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_party_id, const std::string&fence_name) const
+{
+    if (m_sendJMSG == NULL) return ;
+    
+    
+    if (fence_name.empty()==true)
+    {   //walk through all fences.
+        std::vector<geofence::GEO_FENCE_STRUCT*> geo_fence_struct_list = geofence::CGeoFenceManager::getInstance().getFencesOfParty(uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id);
+        
+        const std::size_t size = geo_fence_struct_list.size();
+
+        for(int i = 0; i < size; i++)
+        {
+            Json message =
+                {
+                    {"n", geo_fence_struct_list[i]->geoFence.get()->getName()},
+                    {"a", true}
+                };
+                
+                m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFenceAttachStatus, false);
+        }
+    }
+    else
+    {
+        Json message =
+                {
+                    {"n", fence_name}
+                };
+                
+        geofence::GEO_FENCE_STRUCT * geo_fence_struct = geofence::CGeoFenceManager::getInstance().getFenceByName(fence_name);
+        message["a"] = ((geo_fence_struct != NULL) && (geofence::CGeoFenceManager::getInstance().getIndexOfPartyInGeoFence(uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct)>=0));
+        
+        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFenceAttachStatus, false);
+    }
+
+        
+    
+    return ;
+}
 
 
+/**
+ * @brief Sends fence shape, dimension, actions to a target.
+ * 
+ * @param target_party_id 
+ * @param geo_fenct_struct 
+ */
+void CFCBFacade::sendGeoFenceToTarget(const std::string&target_party_id, const geofence::GEO_FENCE_STRUCT * geo_fenct_struct) const
+{
+    uavos::fcb::geofence::CGeoFenceBase* geo_fence_base = geo_fenct_struct->geoFence.get();
 
+    Json message = geo_fence_base->getMessage();
+    
+
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFence, false);
+    
+}
+
+
+/**
+ * @brief Send hit status
+ * 
+ * @param target_party_id 
+ * @param fence_name 
+ * @param distance 
+ * @param in_zone 
+ * @param should_keep_outside 
+ */
+void CFCBFacade::sendGeoFenceHit(const std::string&target_party_id, const std::string fence_name, const double distance, const bool in_zone, const bool should_keep_outside) const
+{
+    Json message =
+            {
+                {"n", fence_name},
+                {"z", in_zone},
+                {"d", distance},
+                {"o", should_keep_outside}
+            };
+                
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_GEOFenceHit, false);
+        
+}
