@@ -468,6 +468,13 @@ void CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_message)
         break;
 
 
+        case TYPE_AndruavSystem_LoadTasks:
+        {
+            CFCBFacade::getInstance().callModule_reloadSavedTasks(TYPE_AndruavSystem_LoadTasks);
+        
+        }
+        break;
+
         case TYPE_AndruavMessage_GeoFence:
         {
             // receive GeoFence info from drones.

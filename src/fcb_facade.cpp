@@ -619,3 +619,18 @@ void CFCBFacade::sendGeoFenceHit(const std::string&target_party_id, const std::s
     m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_GEOFenceHit, false);
         
 }
+
+
+/**
+ * @brief send inter-module-command to communication module to load tasks.
+ * @details it is up to communication module to handle this command. 
+ * this is NOT LoadTasksCommand that is sent to server. It is a request to communication 
+ * and it deceides how and when it executes it.
+ * 
+ * @param inter_module_command 
+ */
+void CFCBFacade::callModule_reloadSavedTasks(const int& inter_module_command)
+{
+    m_sendMREMSG(inter_module_command);
+}
+

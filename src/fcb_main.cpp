@@ -712,6 +712,25 @@ void CFCBMain::OnParamReceivedCompleted()
     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_INFO, std::string("Parameters Loaded Successfully"));
 }
 
+
+/**
+ * @brief called when websocket connection changed state
+ * @details called when connection between communication_pro and andruav server changes. 
+ * 
+ * @param status 
+ */
+void CFCBMain::OnConnectionStatusChangedWithAndruavServer (const int status)
+{
+    if (status == SOCKET_STATUS_REGISTERED)
+    {
+        m_fcb_facade.callModule_reloadSavedTasks(TYPE_AndruavSystem_LoadTasks);
+        // Json json_msg = sendMREMSG(TYPE_AndruavSystem_LoadTasks);
+        // const std::string msg = json_msg.dump();
+        // cUDPClient.sendMSG(msg.c_str(), msg.length());
+    }
+}
+
+
 void CFCBMain::alertUavosOffline()
 {
 
@@ -1059,6 +1078,46 @@ void CFCBMain::toggleMavlinkStreaming (const std::string& target_party_id, const
 }
 
 
+void CFCBMain::takeActionOnFenceViolation(uavos::fcb::geofence::CGeoFenceBase * geo_fence)
+{
+    const int fence_action = geo_fence->hardFenceAction();
+    switch (fence_action)
+    {
+        case CONST_FENCE_ACTION_SOFT:
+        {
+            return ;
+        }
+        break;
+
+        case CONST_FENCE_ACTION_RTL:
+        case CONST_FENCE_ACTION_LAND:
+        case CONST_FENCE_ACTION_LOITER:
+        case CONST_FENCE_ACTION_BRAKE:
+        case CONST_FENCE_ACTION_SMART_RTL:
+        {
+            const int ardupilot_mode = CFCBModes::getArduPilotMode(fence_action, getAndruavVehicleInfo().vehicle_type);
+            if (ardupilot_mode == E_UNDEFINED_MODE)
+            {   
+                //TODO: Send Error Message
+                return ;
+            }
+
+            mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
+            
+            return ;
+        }
+        break;
+
+    }
+}
+            
+/**
+ * @brief review status of each attached geo fence
+ * 
+ * @details each attached geo fence is called isInside() and based on result global fence status is calculated.
+ * also status is sent to other parties using update hit status. Actions is taken when hard fences are violated.
+ * 
+ */
 void CFCBMain::updateGeoFenceHitStatus()
 {
     /* 
@@ -1082,10 +1141,10 @@ void CFCBMain::updateGeoFenceHitStatus()
         uavos::fcb::geofence::GEO_FENCE_STRUCT * g = geo_fence_struct_list[i];
         uavos::fcb::geofence::CGeoFenceBase * geo_fence = g->geoFence.get();
         const int local_index = geo_fence_struct_list[i]->local_index;
-        double in_zone_new = geo_fence->isInside(gpos.lat, gpos.lon, gpos.alt);
+        double in_zone_new = geo_fence->isInside(gpos.lat * 0.0000001, gpos.lon * 0.0000001, gpos.alt);
         double in_zone = g->parties[local_index].get()->in_zone;
         
-        if (signum(in_zone_new) != signum(in_zone))
+        if ((in_zone == -INFINITY) || (signum(in_zone_new) != signum(in_zone)))
         {
             // change status
             //TODO: Alert & Act
@@ -1098,7 +1157,11 @@ void CFCBMain::updateGeoFenceHitStatus()
 
                 std::string error_str = "violate fence " + std::string(geo_fence->getName());
                 m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_GEO_FENCE_ERROR, NOTIFICATION_TYPE_ERROR, error_str);
-                
+
+                // Note that action is taken once when state changes.
+                // This is important to allow user to reverse action or take other actions.
+                // For example if you break you need a mechanize to land or take drone out ...etc.
+                takeActionOnFenceViolation(geo_fence);
             }
             else if ((in_zone_new>0) && !geo_fence->shouldKeepOutside()) 
             {
@@ -1116,7 +1179,8 @@ void CFCBMain::updateGeoFenceHitStatus()
                 std::string error_str = "safe fence " + std::string(geo_fence->getName());
                 m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_GEO_FENCE_ERROR, NOTIFICATION_TYPE_NOTICE, error_str);
             }
-
+            
+            
             m_fcb_facade.sendGeoFenceHit(std::string(""), 
                                         geo_fence->getName(),
                                         in_zone_new, 

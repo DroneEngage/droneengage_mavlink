@@ -134,9 +134,9 @@ void mavlinksdk::CMavlinkParameterManager::handle_heart_beat (const mavlink_hear
 {
     const uint64_t now = get_time_usec();
 
-    #ifdef DEBUG
-		std::cout << "Timeout readings: " << std::to_string((now - m_parameters_last_receive_time)) << std::endl;
-	#endif 
+    // #ifdef DEBUG
+	// 	std::cout << "Timeout readings: " << std::to_string((now - m_parameters_last_receive_time)) << std::endl;
+	// #endif 
 	// Initialize request all poarameters
 	if (m_parameter_read_mode == mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LIST_EMPTY)
 	{

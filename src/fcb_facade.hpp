@@ -83,6 +83,10 @@ namespace fcb
             void sendGeoFenceAttachedStatusToTarget(const std::string&target_party_id, const std::string&fence_name) const;
             void sendGeoFenceToTarget(const std::string&target_party_id, const geofence::GEO_FENCE_STRUCT * geo_fenct_struct) const;
             void sendGeoFenceHit(const std::string&target_party_id, const std::string fence_name, const double distance, const bool in_zone, const bool should_keep_outside) const;
+            
+            // Inter Module Remote Execute Commands
+            void callModule_reloadSavedTasks (const int& inter_module_command);
+
 
             void setSendJMSG (SEND_JMSG_CALLBACK sendJMSG)
             {
@@ -94,11 +98,17 @@ namespace fcb
                 m_sendBMSG = sendBMSG;
             };
 
+            void setSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG)
+            {
+                m_sendMREMSG = sendMREMSG;
+            };
+
         private:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
             
-            SEND_JMSG_CALLBACK m_sendJMSG = NULL;
-            SEND_BMSG_CALLBACK m_sendBMSG = NULL;
+            SEND_JMSG_CALLBACK      m_sendJMSG = NULL;
+            SEND_BMSG_CALLBACK      m_sendBMSG = NULL;
+            SEND_MREMSG_CALLBACK    m_sendMREMSG = NULL;
     };
 }
 }

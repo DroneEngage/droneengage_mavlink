@@ -95,9 +95,19 @@ namespace fcb
              * 
              * @param sendBMSG of type @link SEND_BMSG_CALLBACK @endlink 
              */
-            void registerSendBMSG (SEND_BMSG_CALLBACK sendJMSG)
+            void registerSendBMSG (SEND_BMSG_CALLBACK sendBMSG)
             {
-                m_fcb_facade.setSendBMSG(sendJMSG);
+                m_fcb_facade.setSendBMSG(sendBMSG);
+            };            
+
+            /**
+             * @details register call back to send InterModule remote execute message.
+             * 
+             * @param sendMREMSG of type @link SEND_MREMSG_CALLBACK @endlink 
+             */
+            void registerSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG)
+            {
+                m_fcb_facade.setSendMREMSG(sendMREMSG);
             };            
 
             /* cannot connect to uavos comm*/
@@ -162,6 +172,8 @@ namespace fcb
             void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override;
             void OnParamReceivedCompleted() override;
 
+            // called from main
+            void OnConnectionStatusChangedWithAndruavServer (const int status);
         public:
             
         private: 
@@ -171,12 +183,13 @@ namespace fcb
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
             uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
             uavos::fcb::CMavlinkTrafficOptimizer& m_mavlink_optimizer = uavos::fcb::CMavlinkTrafficOptimizer::getInstance();
-            void updateGeoFenceHitStatus();
-
+            
         private:
             int getConnectionType () const; 
             bool connectToFCB ();
             
+            void updateGeoFenceHitStatus();
+            void takeActionOnFenceViolation(uavos::fcb::geofence::CGeoFenceBase * geo_fence);
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
             
         private:

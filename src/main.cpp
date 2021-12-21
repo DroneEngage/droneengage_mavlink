@@ -78,7 +78,7 @@ Json module_features = Json::array();
 void quit_handler( int sig );
 void onReceive (const char * message, int len);
 void uninit ();
-const Json API_moduleRemoteExecute(const int command_type);
+
 
 /**
  * @brief display version info
@@ -123,12 +123,14 @@ void _displaySerial (void)
  */
 void _onConnectionStatusChanged (const int status)
 {
-    if (status == SOCKET_STATUS_REGISTERED)
-    {
-        Json json_msg = API_moduleRemoteExecute(TYPE_AndruavSystem_LoadTasks);
-        const std::string msg = json_msg.dump();
-        cUDPClient.sendMSG(msg.c_str(), msg.length());
-    }
+    // if (status == SOCKET_STATUS_REGISTERED)
+    // {
+    //     Json json_msg = sendMREMSG(callModule_reloadSavedTasks);
+    //     const std::string msg = json_msg.dump();
+    //     cUDPClient.sendMSG(msg.c_str(), msg.length());
+    // }
+
+    cFCBMain.OnConnectionStatusChangedWithAndruavServer(status);
                 
 }
 
@@ -222,12 +224,12 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
 }
 
 /**
- * @brief similar to Remote execute command but between modules.
- * 
- * @param command_type 
- * @return const Json 
- */
-const Json API_moduleRemoteExecute(const int command_type)
+* @brief similar to Remote execute command but between modules.
+* 
+* @param command_type 
+* @return const Json 
+*/
+void sendMREMSG(const int& command_type)
 {
     Json json_msg;        
         
@@ -236,8 +238,8 @@ const Json API_moduleRemoteExecute(const int command_type)
     Json ms;
     ms["C"] = command_type;
     json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
-
-    return json_msg;               
+    const std::string msg = json_msg.dump();
+    cUDPClient.sendMSG(msg.c_str(), msg.length());              
 }
 
 /**
@@ -416,6 +418,7 @@ void init (int argc, char *argv[])
 
     cFCBMain.registerSendJMSG(sendJMSG);
     cFCBMain.registerSendBMSG(sendBMSG);
+    cFCBMain.registerSendMREMSG(sendMREMSG);
     cFCBMain.init();
     
 }
