@@ -160,6 +160,12 @@ void mavlinksdk::CVehicle::handle_rc_channels_raw  (const mavlink_rc_channels_t&
 }
 
 
+void mavlinksdk::CVehicle::handle_servo_output_raw  (const mavlink_servo_output_raw_t& servo_output_raw)
+{
+	m_servo_output_raw = servo_output_raw;
+}
+
+
 void mavlinksdk::CVehicle::handle_system_time (const mavlink_system_time_t& system_time)
 {
 	if ((system_time.time_boot_ms < m_system_time.time_boot_ms) && (m_system_time.time_boot_ms > 0))
@@ -355,6 +361,18 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			handle_rc_channels_raw (rc_message);
 		}
 		break;
+
+		case MAVLINK_MSG_ID_SERVO_OUTPUT_RAW:
+		{
+			mavlink_servo_output_raw_t servo_message;
+			mavlink_msg_servo_output_raw_decode(&mavlink_message, &servo_message);
+			
+			handle_servo_output_raw (servo_message);
+		}
+		break;
+
+
+		
 
 		// MISSION PART START ======================================================================================
         case MAVLINK_MSG_ID_MISSION_ITEM_INT:

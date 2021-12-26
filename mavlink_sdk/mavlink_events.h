@@ -29,7 +29,8 @@ namespace mavlinksdk
         * */
         virtual void OnModeChanges(const int& custom_mode, const int& firmware_type)                                    {};
         virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)                                {};
-    
+        virtual void OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw)                               {};
+ 
         virtual void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)  {};
         virtual void OnParamReceivedCompleted()                                                                         {};
     

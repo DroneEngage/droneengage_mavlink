@@ -687,6 +687,14 @@ void CFCBMain::OnHomePositionUpdated(const mavlink_home_position_t& home_positio
 }
 
 
+void CFCBMain::OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw)
+{
+    //m_fcb_facade.sendHomeLocation(std::string());
+
+    return ;
+}
+
+
 /**
  * @brief Called when parameter is recieved for first time or its value has changed.
  * @details Forward parameters only when changed = true. As parameters are sent in chunks to save bandwidth.

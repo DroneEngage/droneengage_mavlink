@@ -55,6 +55,7 @@ namespace mavlinksdk
         virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)                                             {};
         virtual void OnModeChanges(const int& custom_mode, const int& firmware_type)                                                    {};
         virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)                                                {};
+        virtual void OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw)                                               {};
     };
 
     class CVehicle
@@ -105,6 +106,7 @@ namespace mavlinksdk
             void handle_param_ext_value  (const mavlink_param_ext_value_t& param_message);
             void handle_param_value      (const mavlink_param_value_t& param_message);
             void handle_rc_channels_raw  (const mavlink_rc_channels_t& rc_channels);
+            void handle_servo_output_raw (const mavlink_servo_output_raw_t& servo_output_raw);
             void handle_system_time      (const mavlink_system_time_t& system_time);
             
         // Vechile Methods
@@ -259,6 +261,9 @@ namespace mavlinksdk
             // RCChannels
             mavlink_rc_channels_t   m_rc_channels;
 
+            //Servo Output Raw
+            mavlink_servo_output_raw_t   m_servo_output_raw;
+            
             // System Time
             mavlink_system_time_t  m_system_time;
 
