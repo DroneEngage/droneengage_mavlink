@@ -31,7 +31,7 @@ class CMissionItem
 
 
     public:
-        virtual void decodeMavlink (const mavlink_mission_item_int_t& mavlink_mission_item) =0;
+        virtual void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int);
         virtual Json getAndruavMission   ()=0;
         virtual mavlink_mission_item_int_t getArdupilotMission ()=0;
 
@@ -41,6 +41,8 @@ class CMissionItem
         int m_frame = MAV_FRAME_GLOBAL_RELATIVE_ALT;
         bool m_auto_continue;
         bool m_current = false;
+        bool  m_valid = false;
+        mavlink_mission_item_int_t m_original_mission;
         
 
 };
@@ -67,10 +69,7 @@ class CDummy_Step : public CMissionItem
         Json getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
-    private:
-        bool  m_valid = false;
-        mavlink_mission_item_int_t m_original_mission;
-
+    
 };
 
 

@@ -154,13 +154,14 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
         for (int i=1; i < length; ++i)
         {
             std::vector<std::string> task = split_string_by_delimeter (v[i],'\t');
+            if (task.size()<11) continue ; // extra line
             #ifdef DEBUG
                 std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  
                 << _LOG_CONSOLE_TEXT << "Line " << task.size() << _NORMAL_CONSOLE_TEXT_ << std::endl;
             #endif
 
             mavlink_mission_item_int_t mavlink_mission_item;
-            mavlink_mission_item.seq = i-1; // message zero is home
+            mavlink_mission_item.seq = stoi(task[0]); //i-1; // message zero is home
             mavlink_mission_item.frame = stoi(task[2]);
             mavlink_mission_item.autocontinue = stoi(task[11]);
             mavlink_mission_item.current = stoi(task[1]);
@@ -172,6 +173,7 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
             mavlink_mission_item.x = std::stod(task[8]) * 10000000;
             mavlink_mission_item.y = std::stod(task[9]) * 10000000;
             mavlink_mission_item.z = std::stod(task[10]);
+            mavlink_mission_item.mission_type = MAV_MISSION_TYPE_MISSION;
 
             uavos::fcb::mission::CMissionItem *mission_item = uavos::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mavlink_mission_item);
             if (mission_item != nullptr)

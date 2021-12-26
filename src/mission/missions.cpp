@@ -9,14 +9,25 @@
 using namespace uavos::fcb::mission;
 
 
+
+void CMissionItem::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
+{
+    m_original_mission = mission_item_int;
+    m_original_mission.mission_type = MAV_MISSION_TYPE_MISSION;
+
+    m_sequence = mission_item_int.seq;
+    m_auto_continue = mission_item_int.autocontinue;
+    m_mission_command = mission_item_int.command;
+    m_frame = mission_item_int.frame;
+    m_valid = true;
+}
+
+
 //***********************************Delay_Step
 
 void CDummy_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
-    
-    m_original_mission = mission_item_int;
-    m_valid = true;
-   
+    CMissionItem::decodeMavlink (mission_item_int);
 }
 
 Json CDummy_Step::getAndruavMission()
@@ -56,11 +67,8 @@ mavlink_mission_item_int_t CDummy_Step::getArdupilotMission()
 //***********************************Delay_Step
 void CDelay_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
+    CMissionItem::decodeMavlink (mission_item_int);
     
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
-
     m_delay = mission_item_int.param1; // Delay (-1 to enable time-of-day fields) in sec
     m_delay_hours = mission_item_int.param2;
     m_delay_minutes = mission_item_int.param3;
@@ -95,6 +103,8 @@ Json CDelay_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CDelay_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission = {0};
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
@@ -116,10 +126,7 @@ mavlink_mission_item_int_t CDelay_Step::getArdupilotMission()
 //***********************************Delay State Machine Step
 void CDelay_State_Machine_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
-    
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
+    CMissionItem::decodeMavlink (mission_item_int);
    
 }
 
@@ -142,6 +149,8 @@ Json CDelay_State_Machine_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CDelay_State_Machine_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission = {0};
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
@@ -159,11 +168,8 @@ mavlink_mission_item_int_t CDelay_State_Machine_Step::getArdupilotMission()
 //*********************************** Guided Enabled Step
 void CGuided_Enabled_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
+    CMissionItem::decodeMavlink (mission_item_int);
     
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
-   
     m_enabled = mission_item_int.param1==1?true:false;
 
 }
@@ -187,6 +193,8 @@ Json CGuided_Enabled_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CGuided_Enabled_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission = {0};
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
@@ -204,12 +212,9 @@ mavlink_mission_item_int_t CGuided_Enabled_Step::getArdupilotMission()
 //*********************************** Change Altitude Step
 void CChange_Altitude_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
+    CMissionItem::decodeMavlink (mission_item_int);
     
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
-   
-    m_ascend_descent_rate = mission_item_int.param1;
+   m_ascend_descent_rate = mission_item_int.param1;
     
 }
 
@@ -232,6 +237,8 @@ Json CChange_Altitude_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CChange_Altitude_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission = {0};
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
@@ -249,11 +256,8 @@ mavlink_mission_item_int_t CChange_Altitude_Step::getArdupilotMission()
 //*********************************** Continue And Change Altitude Step
 void CContinue_And_Change_Altitude_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
+    CMissionItem::decodeMavlink (mission_item_int);
     
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
-   
     m_ascend_descent_command = mission_item_int.param1;
     m_desired_altitude = mission_item_int.z;
     
@@ -279,6 +283,8 @@ Json CContinue_And_Change_Altitude_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CContinue_And_Change_Altitude_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission = {0};
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
@@ -298,11 +304,8 @@ mavlink_mission_item_int_t CContinue_And_Change_Altitude_Step::getArdupilotMissi
 
 void CChange_Speed_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
+    CMissionItem::decodeMavlink (mission_item_int);
     
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
-
     m_speed_type = mission_item_int.param1;
     m_speed = mission_item_int.param2;
     m_throttle = mission_item_int.param3;
@@ -337,6 +340,8 @@ Json CChange_Speed_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CChange_Speed_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission = {0};
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
@@ -360,11 +365,8 @@ mavlink_mission_item_int_t CChange_Speed_Step::getArdupilotMission()
 
 void CChange_Heading_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
+    CMissionItem::decodeMavlink (mission_item_int);
     
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
-
     m_angle = mission_item_int.param1;
     m_angular_speed = mission_item_int.param2;
     m_direction = mission_item_int.param3;
@@ -394,6 +396,8 @@ Json CChange_Heading_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CChange_Heading_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission = {0};
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
@@ -417,10 +421,8 @@ mavlink_mission_item_int_t CChange_Heading_Step::getArdupilotMission()
 
 void CLoiter_Turns_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
-   
+    CMissionItem::decodeMavlink (mission_item_int);
+    
     m_num_of_turn = mission_item_int.param1;
     m_heading_required = (mission_item_int.param2 ==1)?true:false;
     m_radius = mission_item_int.param3;
@@ -456,6 +458,8 @@ Json CLoiter_Turns_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CLoiter_Turns_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission = {0};
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
@@ -483,11 +487,7 @@ mavlink_mission_item_int_t CLoiter_Turns_Step::getArdupilotMission()
 
 void CRTL_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
-    
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
-   
+    CMissionItem::decodeMavlink (mission_item_int);
 }
 
 Json CRTL_Step::getAndruavMission()
@@ -507,6 +507,8 @@ Json CRTL_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CRTL_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission = {0};
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
@@ -526,10 +528,7 @@ mavlink_mission_item_int_t CRTL_Step::getArdupilotMission()
 
 void CTakeOff_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
-    
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
+    CMissionItem::decodeMavlink (mission_item_int);
     
     m_minimum_pitch = mission_item_int.param1;
     m_desired_yaw = mission_item_int.param4;
@@ -561,6 +560,8 @@ Json CTakeOff_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CTakeOff_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission = {0};
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
@@ -589,9 +590,7 @@ mavlink_mission_item_int_t CTakeOff_Step::getArdupilotMission()
 void CLand_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
     
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
+    CMissionItem::decodeMavlink (mission_item_int);
     
     m_abort_altitude = mission_item_int.param1;
     m_land_mode = mission_item_int.param2;
@@ -620,6 +619,8 @@ Json CLand_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CLand_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission = {0};
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
@@ -646,10 +647,7 @@ mavlink_mission_item_int_t CLand_Step::getArdupilotMission()
 
 void CWayPoint_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
 {
-    
-    m_sequence = mission_item_int.seq;
-    m_auto_continue = mission_item_int.autocontinue;
-    m_frame = mission_item_int.frame;
+    CMissionItem::decodeMavlink (mission_item_int);
     
     m_time_to_stay     = mission_item_int.param1;
     m_accepted_radius  = mission_item_int.param2;
@@ -689,6 +687,8 @@ Json CWayPoint_Step::getAndruavMission()
 
 mavlink_mission_item_int_t CWayPoint_Step::getArdupilotMission()
 {
+    if (m_valid == true) return m_original_mission;
+    
     mavlink_mission_item_int_t mavlink_mission = {0};
 
     mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;

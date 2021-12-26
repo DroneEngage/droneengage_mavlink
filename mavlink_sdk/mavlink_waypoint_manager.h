@@ -80,8 +80,10 @@ class CMavlinkWayPointManager
             void handle_mission_ack   (const mavlink_mission_ack_t& mission_ack);
             void handle_mission_count (const mavlink_mission_count_t& mission_count);
             void handle_mission_current   (const mavlink_mission_current_t& mission_current);
-            void handle_mission_item (const mavlink_mission_item_int_t& mission_item_int);
+            void handle_mission_item (const mavlink_message_t& mavlink_message); //const mavlink_mission_item_int_t& mission_item_int);
             void handle_mission_item_reached (const mavlink_mission_item_reached_t& mission_item_reached);
+            void handle_mission_item_request (const mavlink_mission_request_int_t& mission_request_int);
+            void handle_mission_item_request (const mavlink_mission_request_t& mission_request);
 
     protected:
             void writeMissionItems ();  

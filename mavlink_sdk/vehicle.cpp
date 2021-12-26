@@ -174,6 +174,10 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 {
 
 	const u_int32_t msgid = mavlink_message.msgid;
+	// #ifdef DEBUG
+    // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "parseMessage:" << std::to_string(msgid) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    // #endif
+   
 	switch (mavlink_message.msgid)
 	{
         case MAVLINK_MSG_ID_HEARTBEAT:
@@ -186,7 +190,7 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
             //         << " type " << std::to_string(heartbeat.type) << std::endl; 
 
 			handle_heart_beat (heartbeat);
-			mavlinksdk::CMavlinkParameterManager::getInstance().handle_heart_beat (heartbeat);
+			//mavlinksdk::CMavlinkParameterManager::getInstance().handle_heart_beat (heartbeat);
 		}
         break;
 
@@ -355,10 +359,10 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		// MISSION PART START ======================================================================================
         case MAVLINK_MSG_ID_MISSION_ITEM_INT:
         {
-            mavlink_mission_item_int_t mission_item_int;
-            mavlink_msg_mission_item_int_decode (&mavlink_message, &mission_item_int);
+            // mavlink_mission_item_int_t mission_item_int;
+            // mavlink_msg_mission_item_int_decode (&mavlink_message, &mission_item_int);
 
-            mavlinksdk::CMavlinkWayPointManager::getInstance().handle_mission_item (mission_item_int);
+            mavlinksdk::CMavlinkWayPointManager::getInstance().handle_mission_item (mavlink_message);
         }
         break;
 
@@ -398,6 +402,26 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			mavlinksdk::CMavlinkWayPointManager::getInstance().handle_mission_item_reached(mission_item_reached);
 		}
         break;
+		
+		case MAVLINK_MSG_ID_MISSION_REQUEST:
+        {
+            mavlink_mission_request_t mission_request;
+            mavlink_msg_mission_request_decode (&mavlink_message, &mission_request);
+
+            mavlinksdk::CMavlinkWayPointManager::getInstance().handle_mission_item_request (mission_request);
+        }
+        break;
+		
+		case MAVLINK_MSG_ID_MISSION_REQUEST_INT:
+        {
+            mavlink_mission_request_int_t mission_request_int;
+            mavlink_msg_mission_request_int_decode (&mavlink_message, &mission_request_int);
+
+            mavlinksdk::CMavlinkWayPointManager::getInstance().handle_mission_item_request (mission_request_int);
+        }
+        break;
+
+
 		// MISSION PART END ======================================================================================
 
 		default:

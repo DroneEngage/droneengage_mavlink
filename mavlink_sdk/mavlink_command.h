@@ -65,7 +65,8 @@ class CMavlinkCommand
         void setMissionCount (const int& mission_count, MAV_MISSION_TYPE mission_type) const;
         void writeMission (std::map <int, mavlink_mission_item_int_t> mavlink_mission) const;
         void writeMissionItem (mavlink_mission_item_int_t mavlink_mission) const;
-        void sendMissionAck () const;
+        void writeMissionItem (mavlink_mission_item_t mavlink_mission) const;
+        void sendMissionAck (const  uint8_t target_system, const uint8_t target_component, const uint8_t result) const;
         void writeParameter (const std::string& param_name, const double &value) const;
         void readParameter (const std::string& param_name) const;
         void readParameterByIndex (const uint16_t& param_index) const;
