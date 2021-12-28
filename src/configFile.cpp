@@ -46,7 +46,7 @@ void CConfigFile::ReadFile (const char * fileURL)
     
     stream.open (fileURL , std::ifstream::in);
     if (!stream) {
-        std::cout << _ERROR_CONSOLE_TEXT_ << " FAILED " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _ERROR_CONSOLE_TEXT_ << " FAILED to read config file " << _NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(1); // terminate with error
     }
     
@@ -54,9 +54,7 @@ void CConfigFile::ReadFile (const char * fileURL)
     m_fileContents.str("");
     m_fileContents <<  stream.rdbuf();
     
-    #ifdef DEBUG
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << " succeeded "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
+   
     
     return ;
 }
