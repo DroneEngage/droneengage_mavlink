@@ -124,11 +124,6 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_GuidedPoint:
             {
-                if (m_fcbMain.getAndruavVehicleInfo().flying_mode != VEHICLE_MODE_GUIDED) 
-                {
-                    CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Mode is not GUIDED");
-                }
-
                 //  a : latitude
                 //  g : longitude
                 // [l]: altitude
@@ -329,6 +324,14 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
             }
             break;
 
+            case TYPE_AndruavMessage_Sync_EventFire:
+            {
+                if (!validateField(message, "a",Json::value_t::number_unsigned)) return ;
+                
+                m_fcbMain.insertIncommingEvent(message["a"].get<int>());
+            }
+            break;
+
             case TYPE_AndruavMessage_RemoteControl2:
             {
                 // value: [0,1000] IMPORTANT: -999 means channel release
@@ -517,5 +520,6 @@ void CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_message)
             CFCBFacade::getInstance().sendGeoFenceAttachedStatusToTarget(andruav_message[ANDRUAV_PROTOCOL_SENDER], fence_name);
         }
         break;
+
     } 
 }

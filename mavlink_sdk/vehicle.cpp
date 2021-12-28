@@ -163,6 +163,7 @@ void mavlinksdk::CVehicle::handle_rc_channels_raw  (const mavlink_rc_channels_t&
 void mavlinksdk::CVehicle::handle_servo_output_raw  (const mavlink_servo_output_raw_t& servo_output_raw)
 {
 	m_servo_output_raw = servo_output_raw;
+	m_callback_vehicle->OnServoOutputRaw(servo_output_raw);
 }
 
 
@@ -196,7 +197,7 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
             //         << " type " << std::to_string(heartbeat.type) << std::endl; 
 
 			handle_heart_beat (heartbeat);
-			//mavlinksdk::CMavlinkParameterManager::getInstance().handle_heart_beat (heartbeat);
+			mavlinksdk::CMavlinkParameterManager::getInstance().handle_heart_beat (heartbeat);
 		}
         break;
 

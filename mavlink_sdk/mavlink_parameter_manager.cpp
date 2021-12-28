@@ -186,7 +186,7 @@ void mavlinksdk::CMavlinkParameterManager::handle_heart_beat (const mavlink_hear
 
 uint16_t mavlinksdk::CMavlinkParameterManager::getFirstMissingParameterByIndex()
 {
-	bool bFound = false;
+	bool bFound;
 	uint16_t index = 0;
 	for (int i=0; i< m_parameter_read_count; ++i)
 	{

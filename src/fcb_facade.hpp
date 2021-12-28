@@ -83,7 +83,7 @@ namespace fcb
             void sendGeoFenceAttachedStatusToTarget(const std::string&target_party_id, const std::string&fence_name) const;
             void sendGeoFenceToTarget(const std::string&target_party_id, const geofence::GEO_FENCE_STRUCT * geo_fenct_struct) const;
             void sendGeoFenceHit(const std::string&target_party_id, const std::string fence_name, const double distance, const bool in_zone, const bool should_keep_outside) const;
-            
+            void sendSyncEvent(const std::string&target_party_id, const int event_id );
             // Inter Module Remote Execute Commands
             void callModule_reloadSavedTasks (const int& inter_module_command);
 

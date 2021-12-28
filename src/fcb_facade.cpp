@@ -622,6 +622,23 @@ void CFCBFacade::sendGeoFenceHit(const std::string&target_party_id, const std::s
 
 
 /**
+ * @brief sends SYNC Event
+ * 
+ * @param target_party_id 
+ * @param event_id 
+ */
+void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int event_id )
+{
+    Json message =
+            {
+                {"a", event_id}
+            };
+                
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, false);
+   
+}
+
+/**
  * @brief send inter-module-command to communication module to load tasks.
  * @details it is up to communication module to handle this command. 
  * this is NOT LoadTasksCommand that is sent to server. It is a request to communication 
@@ -633,4 +650,3 @@ void CFCBFacade::callModule_reloadSavedTasks(const int& inter_module_command)
 {
     m_sendMREMSG(inter_module_command);
 }
-

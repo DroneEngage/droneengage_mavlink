@@ -102,7 +102,7 @@ void CFCBMain::init ()
     initVehicleChannelLimits();
     m_mavlink_optimizer.init (m_jsonConfig["Message_Timeouts"]);
     m_mavlink_optimizer.setOptimizationLevel(m_jsonConfig["Default_Optimization_Level"].get<int>());
-
+    
     if (connectToFCB() == true)
     {
         m_mavlink_sdk.start(this);
@@ -486,7 +486,7 @@ void CFCBMain::OnBoardRestarted ()
 {
     std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Flight Controller Restarted" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
-    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "FCB boad has been restarted");
+    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, "FCB boad has been restarted");
 
     return ;
 }
@@ -625,7 +625,7 @@ void CFCBMain::OnMissionSaveFinished (const int& result, const int& mission_type
 {
     if (result == MAV_MISSION_RESULT::MAV_MISSION_ACCEPTED)
     {
-        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_INFO, "mission saved successfully");
+        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_INFO, "mission saved successfully");
         //reloadWayPoints();
     }
     else
@@ -661,8 +661,11 @@ void CFCBMain::OnACK (const int& acknowledged_cmd, const int& result, const std:
         break;
     }
 
-
-    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, sevirity, result_msg);
+    if (result !=MAV_CMD_ACK_OK)
+    {
+        // dont annoy the user if everything is OK.
+        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, sevirity, result_msg);
+    }
 
     return ;
 }
@@ -689,7 +692,81 @@ void CFCBMain::OnHomePositionUpdated(const mavlink_home_position_t& home_positio
 
 void CFCBMain::OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw)
 {
-    //m_fcb_facade.sendHomeLocation(std::string());
+    
+    m_event_time_divider = m_event_time_divider + 1;
+    m_event_time_divider = m_event_time_divider % EVENT_TIME_DIVIDER;
+    int event_value;
+    if (m_event_time_divider == 0)
+    { // no need to get here with every event.
+        switch (m_event_fire_channel)
+        {
+            case 11:
+                event_value = servo_output_raw.servo11_raw;
+                break;
+            case 12:
+                event_value = servo_output_raw.servo12_raw;
+                break;
+            case 13:
+                event_value = servo_output_raw.servo13_raw;
+                break;
+            case 14:
+                event_value = servo_output_raw.servo14_raw;
+                break;
+            case 15:
+                event_value = servo_output_raw.servo15_raw;
+                break;
+            case 16:
+                event_value = servo_output_raw.servo16_raw;
+                break;
+            default:
+                event_value = 0;
+                break;
+        }
+
+        if(std::find(m_event_fired_by_me.begin(), m_event_fired_by_me.end(), event_value) == m_event_fired_by_me.end()) 
+        {
+            m_event_fired_by_me.push_back(event_value);
+            m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Trigger Event:") + std::to_string(event_value));
+            m_fcb_facade.sendSyncEvent(std::string(""), event_value);
+            
+            std::cout << _INFO_CONSOLE_TEXT << "Event Triggered: " << std::to_string(event_value) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            
+        }
+    }
+    
+
+
+    switch (m_event_wait_channel)
+    {
+        case 11:
+            event_value = servo_output_raw.servo11_raw;
+            break;
+        case 12:
+            event_value = servo_output_raw.servo12_raw;
+            break;
+        case 13:
+            event_value = servo_output_raw.servo13_raw;
+            break;
+        case 14:
+            event_value = servo_output_raw.servo14_raw;
+            break;
+        case 15:
+            event_value = servo_output_raw.servo15_raw;
+            break;
+        case 16:
+            event_value = servo_output_raw.servo16_raw;
+            break;
+        default:
+            event_value = 0;
+            break;
+    }
+    if (m_event_waiting_for  != event_value) 
+    {
+        m_event_waiting_for = event_value;
+        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Wait Event:") + std::to_string(m_event_waiting_for));
+
+        processIncommingEvent ();
+    }
 
     return ;
 }
@@ -1019,6 +1096,41 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
         break;
     }
 
+}
+
+
+void CFCBMain::insertIncommingEvent(const int16_t event_id)
+{
+    if(std::find(m_event_received_from_others.begin(), m_event_received_from_others.end(), event_id) == m_event_received_from_others.end()) 
+    {
+        m_event_received_from_others.push_back(event_id);
+
+        std::cout << _INFO_CONSOLE_TEXT << "Event Received (new): " << std::to_string(event_id) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    }
+
+    processIncommingEvent();
+}
+
+
+void CFCBMain::processIncommingEvent()
+{
+
+    
+    std::vector<int>::iterator it = std::find(m_event_received_from_others.begin(), m_event_received_from_others.end(), m_event_waiting_for);
+
+    if( it != m_event_received_from_others.end()) 
+    { // event is found 
+        if (getAndruavVehicleInfo().flying_mode == VEHICLE_MODE_AUTO) 
+        {
+            // +3 because setServo & Delay does not appear in Mission Item Reached
+            //TODO: replace with break mode unless delay is used for timeout.
+            const int next_seq = m_andruav_vehicle_info.current_waypoint+3; 
+            if (m_andruav_missions.mission_items.size()<next_seq+1)
+                mavlinksdk::CMavlinkCommand::getInstance().setCurrentMission(next_seq);
+        }
+
+        m_event_received_from_others.erase(it);
+    }
 }
 
 

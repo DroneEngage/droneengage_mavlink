@@ -33,12 +33,15 @@
   // DONT EDIT
   "groupID": "1",
 
-
+  
   
   // Default optimization level. This number controls the rate at which mavlink is sent in telemetry mode.
   // Adjust it to reduce bandwidth 0 - max bandwidth 3 - min bandwidth
   "Default_Optimization_Level" : 2, 
   
+  "event_fire_channel": 16,
+  "event_wait_channel": 15,
+
   "Message_Timeouts":
   { 
         "1": [0,250,500,1000],

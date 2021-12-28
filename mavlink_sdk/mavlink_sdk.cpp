@@ -18,7 +18,7 @@ void CMavlinkSDK::start(mavlinksdk::CMavlinkEvents * mavlink_events)
     this->m_port.get()->start();
 
     mavlinksdk::CVehicle::getInstance().set_callback_vehicle (this);
-    mavlinksdk::CMavlinkWayPointManager::getInstance().set_callback_waypoint (this);
+    mavlinksdk::CMavlinkWayPointManager::getInstance().setCallbackWaypoint (this);
     mavlinksdk::CMavlinkParameterManager::getInstance().set_callback_parameter (this);
     this->m_communicator = std::unique_ptr<mavlinksdk::comm::CMavlinkCommunicator> ( new mavlinksdk::comm::CMavlinkCommunicator(this->m_port, this));
     this->m_communicator.get()->start();

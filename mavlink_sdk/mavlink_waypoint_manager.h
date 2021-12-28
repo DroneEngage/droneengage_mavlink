@@ -68,8 +68,8 @@ class CMavlinkWayPointManager
     public:
         
     
-        void set_callback_waypoint (mavlinksdk::CCallBack_WayPoint* callback_waypoint);
-        
+        void setCallbackWaypoint (mavlinksdk::CCallBack_WayPoint* callback_waypoint);
+        inline int getCurrentStep () const { return m_mission_current;}
 
     public:
 

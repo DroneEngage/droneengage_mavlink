@@ -36,6 +36,7 @@ using namespace uavos;
                         TYPE_AndruavMessage_RemoteControl2, \
                         TYPE_AndruavMessage_LightTelemetry, \
                         TYPE_AndruavMessage_ServoChannel, \
+                        TYPE_AndruavMessage_Sync_EventFire, \
                         TYPE_AndruavMessage_MAVLINK}
 
 std::time_t time_stamp;
@@ -305,6 +306,7 @@ void onReceive (const char * message, int len)
             PartyID = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
             GroupID = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
             cFCBMain.setPartyID(PartyID, GroupID);
+            
             const int status = cmd ["g"].get<int>();
             if (AndruavServerConnectionStatus != status)
             {
@@ -419,6 +421,12 @@ void init (int argc, char *argv[])
     cFCBMain.registerSendJMSG(sendJMSG);
     cFCBMain.registerSendBMSG(sendBMSG);
     cFCBMain.registerSendMREMSG(sendMREMSG);
+
+    if (jsonConfig.contains("event_fire_channel") && jsonConfig.contains("event_wait_channel"))
+    {
+        cFCBMain.setEventChannel(jsonConfig["event_fire_channel"].get<int>(), jsonConfig["event_wait_channel"].get<int>());
+    }
+    
     cFCBMain.init();
     
 }

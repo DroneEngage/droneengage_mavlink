@@ -2,6 +2,7 @@
 #define FCB_MAIN_H_
 #include <thread>         // std::thread
 #include <memory>
+#include <vector>
 #include <common/mavlink.h>
 #include <mavlink_sdk.h>
 #include <mavlink_command.h>
@@ -15,6 +16,8 @@ using Json = nlohmann::json;
 #include "./mission/missions.hpp"
 #include "fcb_facade.hpp"
 #include "fcb_traffic_optimizer.hpp"
+
+#define EVENT_TIME_DIVIDER      5
 namespace uavos
 {
 namespace fcb
@@ -59,7 +62,8 @@ namespace fcb
 
             CFCBMain()
             {
-
+                m_event_wait_channel = -1; // no event
+                m_event_fired_by_me.clear(); // nothing fired
             }
 
         public:
@@ -140,11 +144,30 @@ namespace fcb
             void freezeRemoteControl();
             void enableRemoteControl();
             void enableRemoteControlGuided();
-
+            void processIncommingEvent();
+            void insertIncommingEvent(const int16_t event_id);
+            /**
+             * @brief Set the PartyID & GroupID
+             * 
+             * @param party_id 
+             * @param group_id 
+             */
             void setPartyID (const std::string& party_id, const std::string& group_id)
             {
                 m_andruav_vehicle_info.party_id = party_id;
                 m_andruav_vehicle_info.group_id = group_id;
+            }
+
+            /**
+             * @brief Set the Event Channels used for Fire & Wait Events
+             * 
+             * @param event_fire_channel 
+             * @param event_wait_channel 
+             */
+            void setEventChannel (const int event_fire_channel, const int event_wait_channel)
+            {
+                m_event_fire_channel = event_fire_channel; 
+                m_event_wait_channel = event_wait_channel;
             }
             void toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level);
 
@@ -196,6 +219,16 @@ namespace fcb
         private:
             Json m_jsonConfig;
             int m_connection_type;
+            /**
+             * @brief servo channel used for sending events
+             * 
+             */
+            int m_event_fire_channel;
+            int m_event_wait_channel;
+            int m_event_time_divider=0; // wait
+            std::vector<int>  m_event_fired_by_me;
+            std::vector<int>  m_event_received_from_others;
+            int m_event_waiting_for;
             ANDRUAV_VEHICLE_INFO m_andruav_vehicle_info;
             uavos::fcb::mission::ANDRUAV_UNIT_MISSION m_andruav_missions;      
 
@@ -205,6 +238,7 @@ namespace fcb
              */
             std::vector<std::unique_ptr<uavos::fcb::ANDRUAV_UNIT_STRUCT>> m_TelemetryUnits;
             
+
             bool m_exit_thread = true;
             std::thread m_scheduler_thread;
             u_int64_t m_last_start_flying =0 ;

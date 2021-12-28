@@ -62,11 +62,11 @@ namespace mavlinksdk
 
         // Reading Status
         public:
-            inline const int& getSysId () 
+            inline const int& getSysId () const
             {
                 return m_sysid;
             }
-            inline const int& getCompId ()
+            inline const int& getCompId () const
             {
                 return m_compid;
             }
@@ -184,6 +184,11 @@ namespace mavlinksdk
             inline void OnHomePositionUpdated(const mavlink_home_position_t& home_position)  override
             {
                 m_mavlink_events->OnHomePositionUpdated (home_position);
+            };
+
+            inline void OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw)  override
+            {
+                m_mavlink_events->OnServoOutputRaw (servo_output_raw);
             };
 
             inline void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override 

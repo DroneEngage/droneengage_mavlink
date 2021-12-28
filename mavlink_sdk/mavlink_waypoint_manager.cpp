@@ -11,7 +11,7 @@
 using namespace mavlinksdk;
 
 
-void CMavlinkWayPointManager::set_callback_waypoint (mavlinksdk::CCallBack_WayPoint* callback_waypoint)
+void CMavlinkWayPointManager::setCallbackWaypoint (mavlinksdk::CCallBack_WayPoint* callback_waypoint)
 {
 	m_callback_waypoint = callback_waypoint;
 }
@@ -47,7 +47,7 @@ void CMavlinkWayPointManager::saveWayPoints (std::map <int, mavlink_mission_item
     const int waypoint_count = mavlink_mission.size();
     m_mission_write_count = waypoint_count;
     mavlinksdk::CMavlinkCommand::getInstance().setMissionCount (waypoint_count, mission_type);
-    m_state = WAYPOINT_STATE_WRITING_WP;
+    //m_state = WAYPOINT_STATE_WRITING_WP;
     //writeMissionItems();
     m_state = WAYPOINT_STATE_WRITING_ACK;
 
@@ -64,7 +64,7 @@ void CMavlinkWayPointManager::handle_mission_ack (const mavlink_mission_ack_t& m
     switch (m_state)
     {
         case WAYPOINT_STATE_WRITING_WP_COUNT:
-            m_state = WAYPOINT_STATE_WRITING_WP;
+            m_state = WAYPOINT_STATE_WRITING_ACK;
         break;
 
         case WAYPOINT_STATE_WRITING_ACK:

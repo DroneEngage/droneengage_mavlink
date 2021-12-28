@@ -104,6 +104,7 @@
 #define TYPE_AndruavMessage_SET_HOME_LOCATION           1048
 #define TYPE_AndruavMessage_RemoteControl2		        1052
 #define TYPE_AndruavMessage_FollowHim_Request           1054
+#define TYPE_AndruavMessage_Sync_EventFire              1061
 
 #define TYPE_AndruavMessage_LightTelemetry              2022
 
@@ -151,12 +152,6 @@
 
 // Drone Report
 #define Drone_Report_NAV_ItemReached            1
-
-// Error Info Types
-#define NOTIFICATION_TYPE_TELEMETRY             33
-#define NOTIFICATION_TYPE_PROTOCOL              44
-#define NOTIFICATION_TYPE_LO7ETTA7AKOM          77
-#define NOTIFICATION_TYPE_GEO_FENCE             88
 
 // Error Numbers
 #define ERROR_TYPE_LO7ETTA7AKOM                 5

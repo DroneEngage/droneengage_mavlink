@@ -111,14 +111,14 @@ namespace comm
 			UDPPort(const char * target_ip_, int udp_port_);
 			virtual ~UDPPort();
 
-			int read_message(mavlink_message_t &message);
-			int write_message(const mavlink_message_t &message);
+			int read_message(mavlink_message_t &message) override;
+			int write_message(const mavlink_message_t &message) override;
 
-			bool is_running(){
+			bool is_running() override{
 				return is_open;
 			}
-			void start();
-			void stop();
+			void start() override;
+			void stop() override;
 
 		private:
 
