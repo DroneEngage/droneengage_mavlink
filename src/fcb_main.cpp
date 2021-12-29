@@ -1125,7 +1125,7 @@ void CFCBMain::processIncommingEvent()
             // +3 because setServo & Delay does not appear in Mission Item Reached
             //TODO: replace with break mode unless delay is used for timeout.
             const int next_seq = m_andruav_vehicle_info.current_waypoint+3; 
-            if (m_andruav_missions.mission_items.size()<next_seq+1)
+            if (m_andruav_missions.mission_items.size()>=next_seq+1)
                 mavlinksdk::CMavlinkCommand::getInstance().setCurrentMission(next_seq);
         }
 

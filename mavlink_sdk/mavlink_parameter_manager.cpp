@@ -169,9 +169,11 @@ void mavlinksdk::CMavlinkParameterManager::handle_heart_beat (const mavlink_hear
 		else
 		{
 			#ifdef DEBUG
+			#ifdef DEBUG_PARAM
 				std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  
 				<< _LOG_CONSOLE_TEXT << "DEBUG: MISSING PARAMs m_parameters_last_index_read:" << std::to_string(m_parameters_last_index_read) 
 				<< std::endl;
+			#endif
 			#endif
 			m_parameter_read_mode = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_ONE_BY_ONE;
 			
