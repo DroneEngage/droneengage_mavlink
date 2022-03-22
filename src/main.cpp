@@ -10,6 +10,11 @@
 #include "messages.hpp"
 #include "configFile.hpp"
 #include "udpClient.hpp"
+#include "fcb_swarm_manager.hpp"
+#include "./mission/missions.hpp"
+#include "fcb_facade.hpp"
+#include "fcb_traffic_optimizer.hpp"
+#include "uavos_module.hpp"
 #include "fcb_main.hpp"
 #include "fcb_andruav_message_parser.hpp"
 
@@ -37,6 +42,8 @@ using namespace uavos;
                         TYPE_AndruavMessage_LightTelemetry, \
                         TYPE_AndruavMessage_ServoChannel, \
                         TYPE_AndruavMessage_Sync_EventFire, \
+                        TYPE_AndruavMessage_MAKE_SWARM,  \
+                        TYPE_AndruavMessage_FollowHim_Request,  \
                         TYPE_AndruavMessage_MAVLINK}
 
 std::time_t time_stamp;
@@ -377,34 +384,10 @@ void initArguments (int argc, char *argv[])
     }
 }
 
-
-/**
- * initialize components
- **/
-void init (int argc, char *argv[]) 
+void initUDPClient(int argc, char *argv[])
 {
-    //initialize serial
-    initSerial();
-
-    initArguments (argc, argv);
-    
-    signal(SIGINT,quit_handler);
-	
-    // Reading Configuration
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING PLUGIN ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
-    std::cout << std::asctime(std::localtime(&time_stamp)) << time_stamp << " seconds since the Epoch" << std::endl;
-
-    
-    // Define module features
-    module_features.push_back("T");
-    module_features.push_back("R");
-        
-
-    cConfigFile.initConfigFile (configName.c_str());
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
     
-
     // UDP Server
     cUDPClient.init(jsonConfig["s2s_udp_target_ip"].get<std::string>().c_str(),
             std::stoi(jsonConfig["s2s_udp_target_port"].get<std::string>().c_str()),
@@ -422,6 +405,39 @@ void init (int argc, char *argv[])
     cFCBMain.registerSendBMSG(sendBMSG);
     cFCBMain.registerSendMREMSG(sendMREMSG);
 
+}
+
+
+/**
+ * initialize components
+ **/
+void init (int argc, char *argv[]) 
+{
+    //initialize serial
+    initSerial();
+
+    initArguments (argc, argv);
+    
+    signal(SIGINT,quit_handler);
+	
+    // Reading Configuration
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING PLUGIN ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    _version();
+
+    std::cout << std::asctime(std::localtime(&time_stamp)) << time_stamp << " seconds since the Epoch" << std::endl;
+
+    
+    // Define module features
+    module_features.push_back("T");
+    module_features.push_back("R");
+        
+
+    cConfigFile.initConfigFile (configName.c_str());
+    
+    initUDPClient (argc,argv);
+
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    
     if (jsonConfig.contains("event_fire_channel") && jsonConfig.contains("event_wait_channel"))
     {
         cFCBMain.setEventChannel(jsonConfig["event_fire_channel"].get<int>(), jsonConfig["event_wait_channel"].get<int>());

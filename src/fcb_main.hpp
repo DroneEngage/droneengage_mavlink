@@ -8,14 +8,13 @@
 #include <mavlink_command.h>
 #include <mavlink_events.h>
 
+#include "uavos_module.hpp"
 #include "./helpers/json.hpp"
 using Json = nlohmann::json;
 
 
 #include "defines.hpp"
-#include "./mission/missions.hpp"
-#include "fcb_facade.hpp"
-#include "fcb_traffic_optimizer.hpp"
+
 
 #define EVENT_TIME_DIVIDER      5
 namespace uavos
@@ -31,13 +30,14 @@ namespace fcb
 
     } ANDRUAV_UNIT_STRUCT;
 
+    
     /**
      * @brief This class is the heart of FCB module. 
      * It handles logic and vehicle states that is related to Andruav.
      * It also communicates with physical FCB using mavlinksdk library.
      * 
      */
-    class CFCBMain: public mavlinksdk::CMavlinkEvents
+    class CFCBMain: public uavos::CMODULE,  mavlinksdk::CMavlinkEvents
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -89,7 +89,7 @@ namespace fcb
              * 
              * @param sendJMSG of type @link SEND_JMSG_CALLBACK @endlink 
              */
-            void registerSendJMSG (SEND_JMSG_CALLBACK sendJMSG)
+            void registerSendJMSG (SEND_JMSG_CALLBACK sendJMSG) override
             {
                 m_fcb_facade.setSendJMSG(sendJMSG);
             };            
@@ -99,7 +99,7 @@ namespace fcb
              * 
              * @param sendBMSG of type @link SEND_BMSG_CALLBACK @endlink 
              */
-            void registerSendBMSG (SEND_BMSG_CALLBACK sendBMSG)
+            void registerSendBMSG (SEND_BMSG_CALLBACK sendBMSG) override
             {
                 m_fcb_facade.setSendBMSG(sendBMSG);
             };            
@@ -109,7 +109,7 @@ namespace fcb
              * 
              * @param sendMREMSG of type @link SEND_MREMSG_CALLBACK @endlink 
              */
-            void registerSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG)
+            void registerSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG) override
             {
                 m_fcb_facade.setSendMREMSG(sendMREMSG);
             };            
@@ -152,7 +152,7 @@ namespace fcb
              * @param party_id 
              * @param group_id 
              */
-            void setPartyID (const std::string& party_id, const std::string& group_id)
+            void setPartyID (const std::string& party_id, const std::string& group_id) override
             {
                 m_andruav_vehicle_info.party_id = party_id;
                 m_andruav_vehicle_info.group_id = group_id;
@@ -197,7 +197,7 @@ namespace fcb
             void OnParamReceivedCompleted() override;
 
             // called from main
-            void OnConnectionStatusChangedWithAndruavServer (const int status);
+            void OnConnectionStatusChangedWithAndruavServer (const int status) override;
         public:
             
         private: 
