@@ -56,13 +56,13 @@ class CUDPClient
         void InternalReceiverEntry();
         void InternelSenderIDEntry();
 
-        struct sockaddr_in  *m_ModuleAddress = NULL, *m_CommunicatorModuleAddress = NULL; 
+        struct sockaddr_in  *m_ModuleAddress = nullptr, *m_CommunicatorModuleAddress = nullptr; 
         int m_SocketFD = -1; 
         std::thread m_threadSenderID, m_threadCreateUDPSocket;
         pthread_t m_thread;
 
         std::string m_JsonID;
-        void (*m_OnReceive)(const char *, int len) = NULL;
+        void (*m_OnReceive)(const char *, int len) = nullptr;
 
     protected:
         bool m_starrted = false;

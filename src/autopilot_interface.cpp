@@ -734,8 +734,8 @@ stop()
 	m_time_to_exit = true;
 
 	// wait for exit
-	pthread_join(read_tid ,NULL);
-	pthread_join(write_tid,NULL);
+	pthread_join(read_tid ,nullptr);
+	pthread_join(write_tid,nullptr);
 
 	// now the read and write threads are closed
 	printf("\n");
