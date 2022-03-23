@@ -7,7 +7,7 @@
 
 #include "global.hpp"
 #include "defines.hpp"
-
+#include "uavos_module.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 
@@ -83,7 +83,9 @@ namespace fcb
             void sendGeoFenceAttachedStatusToTarget(const std::string&target_party_id, const std::string&fence_name) const;
             void sendGeoFenceToTarget(const std::string&target_party_id, const geofence::GEO_FENCE_STRUCT * geo_fenct_struct) const;
             void sendGeoFenceHit(const std::string&target_party_id, const std::string fence_name, const double distance, const bool in_zone, const bool should_keep_outside) const;
-            void sendSyncEvent(const std::string&target_party_id, const int event_id );
+            void sendSyncEvent(const std::string&target_party_id, const int event_id ) const;
+            void requestToFollowLeader(const std::string&target_party_id, const int slave_index) const;
+            void requestUnFollowLeader(const std::string&target_party_id) const;
             // Inter Module Remote Execute Commands
             void callModule_reloadSavedTasks (const int& inter_module_command);
 

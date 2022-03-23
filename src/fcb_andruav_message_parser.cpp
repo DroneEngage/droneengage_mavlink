@@ -2,11 +2,11 @@
 #include "defines.hpp"
 #include "messages.hpp"
 #include "fcb_modes.hpp"
+#include "fcb_swarm_manager.hpp"
 #include "fcb_andruav_message_parser.hpp"
 #include "./mission/mission_translator.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
-
 
 using namespace uavos::fcb;
 
@@ -401,6 +401,105 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
             }
             break;
 
+            case TYPE_AndruavMessage_MAKE_SWARM:
+            {
+                // a: formationID
+                // b: partyID
+                // if (b:partyID) is not me then treat it as an announcement.
+
+                if (!validateField(message, "a",Json::value_t::number_unsigned)) return ;
+                if (!validateField(message, "b",Json::value_t::string)) return ;
+
+                if (m_fcbMain.getAndruavVehicleInfo().party_id.compare( message["b"].get<std::string>())!=0)
+                {
+                    // this is an announcement.
+                    // other drone should handle this message.
+                    return ;
+                }
+                const int formation = message["a"].get<int>();
+
+                m_fcb_swarm_manager.makeSwarm((ANDRUAV_SWARM_FORMATION)formation);
+            }
+            break;
+
+            case TYPE_AndruavMessage_FollowHim_Request:
+            {
+                // a: slave index    
+                // b: leader partyID - if null the unfollow
+                // c: slave partyID
+                // if (c:partyID) is not me then treat it as an announcement.
+                
+                if (!validateField(message, "a",Json::value_t::number_integer)) return ;
+                if (!validateField(message, "c",Json::value_t::string)) return ;
+
+                if (m_fcbMain.getAndruavVehicleInfo().party_id.compare(message["c"].get<std::string>())!=0)
+                {
+                    // this is an announcement.
+                    // other drone should handle this message.
+                    return ;
+                }
+
+                if (!validateField(message, "b",Json::value_t::string)) 
+                {
+                    // unfollow
+                    m_fcb_swarm_manager.unFollow();
+                }
+                else
+                {
+                    const int slave_index = message["a"].get<int>();
+                    const std::string leader_party_id = message["b"].get<std::string>();
+                    m_fcb_swarm_manager.makeSlave(leader_party_id, slave_index);
+                }
+
+            }
+            break;
+
+            case TYPE_AndruavMessage_UpdateSwarm:
+            {
+                /*
+                    a: action [SWARM_UPDATED, SWARM_DELETE]
+                    b: slave index [mandatory with SWARM_UPDATED]
+                    c: leader id - if this is not me then consider it a notification.
+                    d: slave party id 
+                */
+
+                if (!validateField(message, "a",Json::value_t::number_integer)) return ;
+                if (!validateField(message, "c",Json::value_t::string)) return ;
+                if (!validateField(message, "d",Json::value_t::string)) return ;
+
+
+                if (m_fcbMain.getAndruavVehicleInfo().party_id.compare(message["c"].get<std::string>())!=0)
+                {
+                    // this is an announcement.
+                    // other drone should handle this message.
+                    return ;
+                }
+
+                const int action = message["a"].get<int>();
+                const std::string slave_party_id = message["d"].get<std::string>();
+                    
+                if (action == SWARM_UPDATED)
+                {   
+                    // add or modify swarm member
+                    if (!validateField(message, "b",Json::value_t::number_integer)) return ;
+                
+                    const int slave_index = message["b"].get<int>();
+                    m_fcb_swarm_manager.addSlave(slave_party_id, slave_index);
+
+                   return ;     
+                }
+
+                if (action == SWARM_DELETE)
+                {
+                    // remove a swarm member
+                    // TODO:NOT IMPLEMENTED.
+                    //m_fcb_swarm_manager.removeSlave(slave_party_id);
+
+                    return ;     
+                }
+            }
+            break;
+
         }
     }
 }
@@ -491,7 +590,7 @@ void CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_message)
                 
             }
             
-            if (geo_fence_struct != NULL) 
+            if (geo_fence_struct != nullptr) 
             {
                 CFCBFacade::getInstance().sendGeoFenceToTarget(andruav_message[ANDRUAV_PROTOCOL_SENDER], geo_fence_struct);
             } 

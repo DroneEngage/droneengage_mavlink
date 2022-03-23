@@ -5,6 +5,10 @@
 #include "./helpers/json.hpp"
 using Json = nlohmann::json;
 #include "messages.hpp"
+
+#include "./mission/missions.hpp"
+#include "fcb_traffic_optimizer.hpp"
+#include "fcb_swarm_manager.hpp"
 #include "fcb_facade.hpp"
 #include "fcb_main.hpp"
 
@@ -30,9 +34,13 @@ void CFCBFacade::sendID(const std::string&target_party_id)  const
          [b]: is in cv tracking mode.             // optional 
           C : manual TX blocked mode subAction    
           B : is GCSBlocked
+          o : leader formation -if I am a leader.
+          q : partyID I follow. -if I am following someone.
 
     */
     CFCBMain&  fcbMain = CFCBMain::getInstance();
+    CSwarmManager& fcb_swarm_manager = CSwarmManager::getInstance();
+
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
         
     const ANDRUAV_VEHICLE_INFO& andruav_vehicle_info = fcbMain.getAndruavVehicleInfo();
@@ -51,7 +59,10 @@ void CFCBFacade::sendID(const std::string&target_party_id)  const
             {"a", andruav_vehicle_info.flying_total_duration},
             {"b", andruav_vehicle_info.is_tracking_mode},
             {"C", andruav_vehicle_info.rc_sub_action},
-            {"B", andruav_vehicle_info.is_gcs_blocked}
+            {"B", andruav_vehicle_info.is_gcs_blocked},
+
+            {"o", (int)fcb_swarm_manager.getFormation()},
+            {"q", fcb_swarm_manager.getLeader()}
         };
         
 
@@ -231,7 +242,7 @@ void CFCBFacade::sendParameterList (const std::string&target_party_id) const
         unsigned len = mavlink_msg_to_send_buffer((uint8_t*)&buf[total_length], &mavlink_message);
         total_length += len;
 
-        std::cout << it->first << " len:" << std::to_string(len) << " total_length:" <<std::to_string(total_length) << std::endl;
+        std::cout << it->first << " len:" << std::to_string(len) << " value:" <<std::to_string(param_message.param_value) << std::endl;
 
         if (total_length > 500)
         {
@@ -568,7 +579,7 @@ void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_par
                 };
                 
         geofence::GEO_FENCE_STRUCT * geo_fence_struct = geofence::CGeoFenceManager::getInstance().getFenceByName(fence_name);
-        message["a"] = ((geo_fence_struct != NULL) && (geofence::CGeoFenceManager::getInstance().getIndexOfPartyInGeoFence(uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct)>=0));
+        message["a"] = ((geo_fence_struct != nullptr) && (geofence::CGeoFenceManager::getInstance().getIndexOfPartyInGeoFence(uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct)>=0));
         
         m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFenceAttachStatus, false);
     }
@@ -627,7 +638,7 @@ void CFCBFacade::sendGeoFenceHit(const std::string&target_party_id, const std::s
  * @param target_party_id 
  * @param event_id 
  */
-void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int event_id )
+void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int event_id ) const
 {
     Json message =
             {
@@ -636,6 +647,54 @@ void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int even
                 
     m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, false);
    
+}
+
+
+void CFCBFacade::requestToFollowLeader(const std::string&target_party_id, const int slave_index) const
+{
+    /*
+        a: action
+        b: slave index
+        c: leader id
+        d: slave party id 
+    */
+    Json message =
+            {
+                {"a", SWARM_UPDATED},
+                {"b", slave_index},
+                {"c", target_party_id},
+                {"d", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
+            };
+                
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_UpdateSwarm, false);
+
+}
+
+
+/**
+ * @brief sends a message to my leader informing it that I am no longer following it.
+ * @details this message is sent from a drone folower to a leader drone. It can also be sent from a third party.
+ * It is up to the leader to approve or reject the request.
+ * 
+ * @param target_party_id 
+ */
+void CFCBFacade::requestUnFollowLeader(const std::string&target_party_id) const
+{
+    /*
+        a: action
+        b: slave index
+        c: leader id
+        d: slave party id 
+    */
+    Json message =
+            {
+                {"a", SWARM_DELETE},
+                {"c", target_party_id},
+                {"d", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
+            };
+                
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_UpdateSwarm, false);
+
 }
 
 /**

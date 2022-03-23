@@ -64,6 +64,9 @@ namespace fcb
             {
                 m_event_wait_channel = -1; // no event
                 m_event_fired_by_me.clear(); // nothing fired
+
+                m_module_features.push_back("T");
+                m_module_features.push_back("R");
             }
 
         public:
@@ -79,8 +82,8 @@ namespace fcb
 
         public:
 
-            void init ();
-            void uninit ();
+            void init () override;
+            void uninit () override;
 
             void loopScheduler();
 

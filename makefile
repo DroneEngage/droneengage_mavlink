@@ -14,7 +14,8 @@ CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g
 SRC = src
 BUILD = build
 
-OBJS = $(BUILD)/fcb_main.o \
+OBJS = $(BUILD)/uavos_module.o \
+	   $(BUILD)/fcb_main.o \
 	   $(BUILD)/fcb_modes.o \
 	   $(BUILD)/fcb_andruav_message_parser.o \
 	   $(BUILD)/fcb_traffic_optimizer.o \
@@ -23,6 +24,7 @@ OBJS = $(BUILD)/fcb_main.o \
 	   $(BUILD)/udpClient.o \
 	   $(BUILD)/fcb_geo_fence_base.o \
 	   $(BUILD)/fcb_geo_fence_manager.o \
+	   $(BUILD)/fcb_swarm_manager.o \
 	   $(BUILD)/missions.o \
 	   $(BUILD)/mission_translator.o \
 	   $(BUILD)/helpers.o \
@@ -31,7 +33,8 @@ OBJS = $(BUILD)/fcb_main.o \
 	   $(BUILD)/gps.o \
 	   $(BUILD)/main.o \
 
-SRCS = ../$(SRC)/fcb_main.cpp \
+SRCS = ../$(SRC)/uavos_module.cpp \
+	   ../$(SRC)/fcb_main.cpp \
 	   ../$(SRC)/fcb_modes.cpp \
 	   ../$(SRC)/fcb_andruav_message_parser.cpp \
 	   ../$(SRC)/fcb_traffic_optimizer.cpp \
@@ -40,6 +43,7 @@ SRCS = ../$(SRC)/fcb_main.cpp \
 	   ../$(SRC)/udpClient.cpp \
 	   ../$(SRC)/geofence/fcb_geo_fence_base.cpp \
 	   ../$(SRC)/geofence/fcb_geo_fence_manager.cpp \
+	   ../$(SRC)/fcb_swarm_manager.cpp \
 	   ../$(SRC)/mission/missions.cpp \
 	   ../$(SRC)/mission/mission_translator.cpp \
 	   ../$(SRC)/helpers/helpers.cpp \
@@ -122,7 +126,7 @@ uavos_ardupilot.debug: copy
 uavos_ardupilot.arm.release: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXXARM)   $(CXXFLAGS_RELEASE) -O2-c   $(SRCS)  $(INCLUDE)  ; 
+	$(CXXARM)   $(CXXFLAGS_RELEASE) -O2 -c   $(SRCS)  $(INCLUDE)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 

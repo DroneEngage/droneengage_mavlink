@@ -77,11 +77,7 @@ static std::string hardware_serial;
  */
 static std::string configName = "config.module.json";
 
-/**
- * @brief module features i.e. can transmit, can recieve, needs stream ...etc.
- * in this case we use T & R only.
- */
-Json module_features = Json::array();
+
         
 void quit_handler( int sig );
 void onReceive (const char * message, int len);
@@ -276,7 +272,7 @@ const Json createJSONID (bool reSend)
         ms[JSON_INTERMODULE_MODULE_ID]              = jsonConfig["module_id"];
         ms[JSON_INTERMODULE_MODULE_CLASS]           = "fcb"; // module_class
         ms[JSON_INTERMODULE_MODULE_MESSAGES_LIST]   = Json::array(MESSAGE_FILTER);
-        ms[JSON_INTERMODULE_MODULE_FEATURES]        = module_features;
+        ms[JSON_INTERMODULE_MODULE_FEATURES]        = cFCBMain.getModuleFeatures();
         ms[JSON_INTERMODULE_MODULE_KEY]             = jsonConfig["module_key"]; 
         ms[JSON_INTERMODULE_HARDWARE_ID]            = hardware_serial; 
         ms[JSON_INTERMODULE_HARDWARE_TYPE]          = HARDWARE_TYPE_CPU; 
@@ -427,11 +423,6 @@ void init (int argc, char *argv[])
     std::cout << std::asctime(std::localtime(&time_stamp)) << time_stamp << " seconds since the Epoch" << std::endl;
 
     
-    // Define module features
-    module_features.push_back("T");
-    module_features.push_back("R");
-        
-
     cConfigFile.initConfigFile (configName.c_str());
     
     initUDPClient (argc,argv);

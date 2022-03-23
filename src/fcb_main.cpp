@@ -12,6 +12,10 @@
 #include "configFile.hpp"
 #include "messages.hpp"
 #include "fcb_modes.hpp"
+#include "./mission/missions.hpp"
+#include "fcb_facade.hpp"
+#include "fcb_traffic_optimizer.hpp"
+
 #include "fcb_main.hpp"
 
 #include "./geofence/fcb_geo_fence_base.hpp"
@@ -96,6 +100,8 @@ void CFCBMain::init ()
     
     m_exit_thread = false; 
 
+    // Define module features
+    
     uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
     m_jsonConfig = cConfigFile.GetConfigJSON();
     

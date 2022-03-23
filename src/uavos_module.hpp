@@ -17,6 +17,12 @@ namespace uavos
     class CMODULE 
     {
         public:
+
+            virtual void init () {};
+            virtual void uninit () {};
+            
+
+
             /**
              * @brief Set the PartyID & GroupID
              * 
@@ -50,6 +56,19 @@ namespace uavos
             
             // called from main
             virtual void OnConnectionStatusChangedWithAndruavServer (const int status){};
+
+            virtual  inline const Json getModuleFeatures() const
+            {
+                return m_module_features;
+            }
+        
+        protected:
+
+            /**
+            * @brief module features i.e. can transmit, can recieve, needs stream ...etc.
+            * in this case we use T & R only.
+            */
+            Json m_module_features = Json::array();
     };
 
 };

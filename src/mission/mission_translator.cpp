@@ -1,5 +1,7 @@
 #include <vector>
 
+#include <all/mavlink.h>
+
 #include "../helpers/colors.hpp"
 #include "../helpers/json.hpp"
 using Json = nlohmann::json;

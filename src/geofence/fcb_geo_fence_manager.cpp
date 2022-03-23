@@ -1,6 +1,8 @@
-#include "../geofence/fcb_geo_fence_manager.hpp"
-#include "../fcb_facade.hpp"
 #include "../messages.hpp"
+#include "../geofence/fcb_geo_fence_manager.hpp"
+#include "../fcb_traffic_optimizer.hpp"
+#include "../mission/missions.hpp"
+#include "../fcb_facade.hpp"
 #include "../fcb_main.hpp"
 
 
@@ -18,7 +20,7 @@ void CGeoFenceManager::attachToGeoFence (const std::string& party_id, const std:
 {
     GEO_FENCE_STRUCT * geo_fence_struct = getFenceByName(geo_fence_name);
     
-    if (geo_fence_struct == NULL) return ;
+    if (geo_fence_struct == nullptr) return ;
 
     attachToGeoFence(party_id, geo_fence_struct);
 }
@@ -57,7 +59,7 @@ void CGeoFenceManager::detachFromGeoFence (const std::string& party_id, GEO_FENC
 {
     const std::size_t size = geo_fence_struct->parties.size();
 
-    for(int i = 0; i < size; i++){
+    for(std::size_t i = 0; i < size; i++){
 
         if(geo_fence_struct->parties[i].get()->party_id.find(party_id)!=std::string::npos)
         {
@@ -77,7 +79,7 @@ void CGeoFenceManager::detachFromGeoFence (const std::string& party_id, GEO_FENC
  */
 GEO_FENCE_STRUCT * CGeoFenceManager::getFenceByName (const std::string& geo_fence_name) const
 {
-    if (geo_fence_name.empty()) return NULL;
+    if (geo_fence_name.empty()) return nullptr;
 
     std::map<std::string,std::unique_ptr<uavos::fcb::geofence::GEO_FENCE_STRUCT>>::iterator it;
                 
@@ -89,7 +91,7 @@ GEO_FENCE_STRUCT * CGeoFenceManager::getFenceByName (const std::string& geo_fenc
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 

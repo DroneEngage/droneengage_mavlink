@@ -103,8 +103,38 @@
 #define TYPE_AndruavMessage_RemoteControlSettings	    1047
 #define TYPE_AndruavMessage_SET_HOME_LOCATION           1048
 #define TYPE_AndruavMessage_RemoteControl2		        1052
-#define TYPE_AndruavMessage_FollowHim_Request           1054
 #define TYPE_AndruavMessage_Sync_EventFire              1061
+/**
+ * @brief This message is sent to Leader Drone to add a slave drone in a swarm and in an index.
+ * given index may contradict with other indices. It is upto Leader Drone to handle this conflict.
+ */
+#define TYPE_AndruavMessage_UpdateSwarm                 1058
+/**
+ * @brief This command is sent to instruct a drone to be a leader with a swarm-formation.
+ * A Formation FORMATION_SERB_NO_SWARM means there is no swarm mode anymore. 
+ */
+#define TYPE_AndruavMessage_MAKE_SWARM                   1056
+/**
+ * @brief This message is sent from Leader drone to a slave. It guides it to the destination point that it wants it to go to.
+ * @details
+ * There is nothing called a SLAVE Drone
+ * All Drones Obey AndruavResala_FollowMe_Guided EVEN if they are Leaders.<br>
+ * If a Drone wants to IGNORE these messages that is OK for whatever reason.<br>
+ * If a Drone wants to Stop others from sending such messages it can send ANdruavResala_UpdateSwarm with remove action.
+ */
+#define TYPE_AndruavMessage_FollowMe_Guided             1055
+/**
+ * @brief tell a drone that another drone is in its team -a slave-.
+ * @details 
+ * This message can be sent from GCS or another Drone either a leader or not.
+ * This message requests from the receiver "Drone" to send @ref TYPE_AndruavMessage_UpdateSwarm
+ * to a third drone that is a LEADER requesting to join its swarm.
+ * The receiver can refuse to send @ref TYPE_AndruavMessage_UpdateSwarm
+ * and the third drone can also refuse the request to be followed by the receiver.
+ * 
+ * @note receiver should not assume it is a follower. It only should forward this request to the leader.
+ */
+#define TYPE_AndruavMessage_FollowHim_Request           1054
 
 #define TYPE_AndruavMessage_LightTelemetry              2022
 
@@ -210,3 +240,8 @@
 #define CONST_FENCE_ACTION_LOITER                10
 #define CONST_FENCE_ACTION_BRAKE                 17
 #define CONST_FENCE_ACTION_SMART_RTL             21
+
+
+// TYPE_AndruavMessage_UpdateSwarm actions
+#define SWARM_UPDATED                              1
+#define SWARM_DELETE                               2
