@@ -1,5 +1,5 @@
 #include <mavlink_sdk.h>
-#include "../messages.hpp"
+#include "../uavos_common/messages.hpp"
 
 
 #include "../helpers/colors.hpp"

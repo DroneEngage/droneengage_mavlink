@@ -33,14 +33,14 @@ OBJS = $(BUILD)/uavos_module.o \
 	   $(BUILD)/gps.o \
 	   $(BUILD)/main.o \
 
-SRCS = ../$(SRC)/uavos_module.cpp \
+SRCS = ../$(SRC)/uavos_common/uavos_module.cpp \
 	   ../$(SRC)/fcb_main.cpp \
 	   ../$(SRC)/fcb_modes.cpp \
 	   ../$(SRC)/fcb_andruav_message_parser.cpp \
 	   ../$(SRC)/fcb_traffic_optimizer.cpp \
 	   ../$(SRC)/fcb_facade.cpp \
-	   ../$(SRC)/configFile.cpp \
-	   ../$(SRC)/udpClient.cpp \
+	   ../$(SRC)/uavos_common/configFile.cpp \
+	   ../$(SRC)/uavos_common/udpClient.cpp \
 	   ../$(SRC)/geofence/fcb_geo_fence_base.cpp \
 	   ../$(SRC)/geofence/fcb_geo_fence_manager.cpp \
 	   ../$(SRC)/fcb_swarm_manager.cpp \

@@ -8,7 +8,7 @@
 #include <mavlink_command.h>
 #include <mavlink_events.h>
 
-#include "uavos_module.hpp"
+#include "./uavos_common/uavos_module.hpp"
 #include "./helpers/json.hpp"
 using Json = nlohmann::json;
 
@@ -67,6 +67,8 @@ namespace fcb
 
                 m_module_features.push_back("T");
                 m_module_features.push_back("R");
+
+                m_module_class="fcb";
             }
 
         public:

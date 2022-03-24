@@ -7,14 +7,14 @@
 #include "./helpers/helpers.hpp"
 #include "./helpers/util_rpi.hpp"
 #include "./helpers/getopt_cpp.hpp"
-#include "messages.hpp"
-#include "configFile.hpp"
-#include "udpClient.hpp"
+#include "./uavos_common/messages.hpp"
+#include "./uavos_common/configFile.hpp"
+#include "./uavos_common/udpClient.hpp"
 #include "fcb_swarm_manager.hpp"
 #include "./mission/missions.hpp"
 #include "fcb_facade.hpp"
 #include "fcb_traffic_optimizer.hpp"
-#include "uavos_module.hpp"
+#include "./uavos_common/uavos_module.hpp"
 #include "fcb_main.hpp"
 #include "fcb_andruav_message_parser.hpp"
 
@@ -34,6 +34,7 @@ using namespace uavos;
                         TYPE_AndruavMessage_ChangeSpeed, \
                         TYPE_AndruavMessage_Ctrl_Cameras, \
                         TYPE_AndruavMessage_TrackingTarget, \
+                        TYPE_AndruavMessage_TrackingTargetLocation, \
                         TYPE_AndruavMessage_TargetLost, \
                         TYPE_AndruavMessage_UploadWayPoints, \
                         TYPE_AndruavMessage_RemoteControlSettings, \
@@ -270,7 +271,7 @@ const Json createJSONID (bool reSend)
         Json ms;
               
         ms[JSON_INTERMODULE_MODULE_ID]              = jsonConfig["module_id"];
-        ms[JSON_INTERMODULE_MODULE_CLASS]           = "fcb"; // module_class
+        ms[JSON_INTERMODULE_MODULE_CLASS]           = cFCBMain.getModuleClass();
         ms[JSON_INTERMODULE_MODULE_MESSAGES_LIST]   = Json::array(MESSAGE_FILTER);
         ms[JSON_INTERMODULE_MODULE_FEATURES]        = cFCBMain.getModuleFeatures();
         ms[JSON_INTERMODULE_MODULE_KEY]             = jsonConfig["module_key"]; 
@@ -409,6 +410,8 @@ void initUDPClient(int argc, char *argv[])
  **/
 void init (int argc, char *argv[]) 
 {
+    time_stamp = std::time(nullptr);
+    
     //initialize serial
     initSerial();
 

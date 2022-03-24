@@ -3,7 +3,7 @@
 #define CCONFIGFILE_H
 
 #include <sstream>
-#include "./helpers/json.hpp"
+#include "../helpers/json.hpp"
 using Json = nlohmann::json;
 
 namespace uavos

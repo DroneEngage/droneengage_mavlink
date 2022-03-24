@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "./helpers/json.hpp"
+#include "../helpers/json.hpp"
 using Json = nlohmann::json;
 
 
@@ -61,6 +61,11 @@ namespace uavos
             {
                 return m_module_features;
             }
+
+            virtual inline const std::string getModuleClass() const
+            {
+                return m_module_class;
+            }
         
         protected:
 
@@ -69,6 +74,7 @@ namespace uavos
             * in this case we use T & R only.
             */
             Json m_module_features = Json::array();
+            std::string m_module_class;
     };
 
 };

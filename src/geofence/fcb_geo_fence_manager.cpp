@@ -1,4 +1,4 @@
-#include "../messages.hpp"
+#include "../uavos_common/messages.hpp"
 #include "../geofence/fcb_geo_fence_manager.hpp"
 #include "../fcb_traffic_optimizer.hpp"
 #include "../mission/missions.hpp"

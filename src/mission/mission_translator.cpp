@@ -6,7 +6,7 @@
 #include "../helpers/json.hpp"
 using Json = nlohmann::json;
 
-#include "../messages.hpp"
+#include "../uavos_common/messages.hpp"
 
 #include <common/mavlink.h>
 #include "mission_translator.hpp"

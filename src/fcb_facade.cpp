@@ -4,7 +4,7 @@
 #include <mutex>
 #include "./helpers/json.hpp"
 using Json = nlohmann::json;
-#include "messages.hpp"
+#include "./uavos_common/messages.hpp"
 
 #include "./mission/missions.hpp"
 #include "fcb_traffic_optimizer.hpp"

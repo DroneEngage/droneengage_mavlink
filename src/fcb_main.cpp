@@ -9,8 +9,8 @@
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
 
-#include "configFile.hpp"
-#include "messages.hpp"
+#include "./uavos_common/configFile.hpp"
+#include "./uavos_common/messages.hpp"
 #include "fcb_modes.hpp"
 #include "./mission/missions.hpp"
 #include "fcb_facade.hpp"

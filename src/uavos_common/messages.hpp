@@ -98,6 +98,7 @@
 #define TYPE_AndruavMessage_ChangeSpeed                 1040
 #define TYPE_AndruavMessage_Ctrl_Cameras                1041
 #define TYPE_AndruavMessage_TrackingTarget              1042
+#define TYPE_AndruavMessage_TrackingTargetLocation      1043
 #define TYPE_AndruavMessage_TargetLost                  1044
 #define TYPE_AndruavMessage_UploadWayPoints             1046
 #define TYPE_AndruavMessage_RemoteControlSettings	    1047

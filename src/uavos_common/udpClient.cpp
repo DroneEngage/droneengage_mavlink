@@ -5,8 +5,8 @@
 #include <netinet/in.h> 
 #include <unistd.h>
 
-#include "./helpers/colors.h"
-#include "./helpers/json.hpp"
+#include "../helpers/colors.hpp"
+#include "../helpers/json.hpp"
 using Json = nlohmann::json;
 
 #include "udpClient.hpp"

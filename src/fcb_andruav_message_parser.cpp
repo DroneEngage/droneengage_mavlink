@@ -1,6 +1,6 @@
 #include <iostream>
 #include "defines.hpp"
-#include "messages.hpp"
+#include "./uavos_common/messages.hpp"
 #include "fcb_modes.hpp"
 #include "fcb_swarm_manager.hpp"
 #include "fcb_andruav_message_parser.hpp"

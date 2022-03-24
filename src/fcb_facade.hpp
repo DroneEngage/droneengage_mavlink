@@ -7,7 +7,7 @@
 
 #include "global.hpp"
 #include "defines.hpp"
-#include "uavos_module.hpp"
+#include "./uavos_common/uavos_module.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 
