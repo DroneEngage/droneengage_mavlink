@@ -10,13 +10,7 @@
 
 using namespace uavos::fcb;
 
-/**
- * @brief Called by external scheduler at rate of 1Hz
- * */
-void Scheduler_1Hz ()
-{
 
-}
 
 /**
  * @brief Parse messages receuved from uavos_comm"
