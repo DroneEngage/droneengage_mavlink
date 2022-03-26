@@ -8,7 +8,7 @@ INCLUDE_ARM_ZERO =  -I ../c_library_v2 -I ../mavlink_sdk
 LIBS=  -lpthread -lmavlink_sdk -L ./mavlink_sdk/bin
 LIBS_ARM_ZERO = -lpthread -lmavlink_sdk -L ./mavlink_sdk/bin
 
-CXXFLAGS =  -std=c++11 -Wno-return-type -Wno-address-of-packed-member 
+CXXFLAGS =  -std=c++17 -Wno-return-type -Wno-address-of-packed-member 
 CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE -s
 CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g  
 SRC = src
