@@ -161,7 +161,7 @@ void CGeoFenceManager::clearGeoFences (const std::string& geo_fence_name)
         {
             GEO_FENCE_STRUCT* geo_fence_struct = it->second.get();
             geo_fence_struct->geoFence.release();
-            geo_fence_struct->parties.empty();
+            geo_fence_struct->parties.clear();
             geo_fence_struct->local_index = -1;
         }
     }
