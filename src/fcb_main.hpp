@@ -84,8 +84,8 @@ namespace fcb
 
         public:
 
-            void init () override;
-            void uninit () override;
+            bool init () override;
+            bool uninit () override;
 
             void loopScheduler();
 

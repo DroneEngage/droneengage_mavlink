@@ -18,8 +18,8 @@ namespace uavos
     {
         public:
 
-            virtual void init () {};
-            virtual void uninit () {};
+            virtual bool init () {};
+            virtual bool uninit () {};
             
 
 

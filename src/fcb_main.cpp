@@ -95,7 +95,7 @@ bool CFCBMain::connectToFCB ()
 }
 
 
-void CFCBMain::init ()
+bool CFCBMain::init ()
 {
     
     m_exit_thread = false; 
@@ -121,17 +121,17 @@ void CFCBMain::init ()
 
     
     
-    return ;
+    return true;
 }
 
 
-void CFCBMain::uninit ()
+bool CFCBMain::uninit ()
 {
     // exit thread.
     if (m_exit_thread == true) 
     {
         std::cout << "m_exit_thread == true" << std::endl;
-        return ;
+        return true;
     }
 
     m_exit_thread = true;
@@ -143,7 +143,7 @@ void CFCBMain::uninit ()
     #endif
 
     
-    return ;
+    return true;
 }
 
 void CFCBMain::initVehicleChannelLimits()
