@@ -237,19 +237,19 @@ std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> CGeoFenceFactory::getGeoFen
     switch (m_geofence_type)
     {
         case ENUM_GEOFENCE_TYPE::LinearFence:
-            cGeoFenceBase = std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> (new uavos::fcb::geofence::CGeoFenceLine());
+            cGeoFenceBase = std::make_unique<uavos::fcb::geofence::CGeoFenceBase> ( uavos::fcb::geofence::CGeoFenceLine());
         break;
 
         case ENUM_GEOFENCE_TYPE::PolygonFence:
-            cGeoFenceBase = std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> (new uavos::fcb::geofence::CGeoFencePolygon());
+            cGeoFenceBase = std::make_unique<uavos::fcb::geofence::CGeoFenceBase> ( uavos::fcb::geofence::CGeoFencePolygon());
         break;
 
         case ENUM_GEOFENCE_TYPE::CylindersFence:
-            cGeoFenceBase = std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> (new uavos::fcb::geofence::CGeoFenceCylinder());
+            cGeoFenceBase = std::make_unique<uavos::fcb::geofence::CGeoFenceBase> ( uavos::fcb::geofence::CGeoFenceCylinder());
         break;
 
         default:
-            cGeoFenceBase = std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> (new uavos::fcb::geofence::CGeoFenceBase());
+            cGeoFenceBase = std::make_unique<uavos::fcb::geofence::CGeoFenceBase> ( uavos::fcb::geofence::CGeoFenceBase());
         break;
 
     }
