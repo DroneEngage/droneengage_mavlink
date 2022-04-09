@@ -450,7 +450,7 @@ void CFCBMain::OnHeartBeat ()
 {
     if (m_andruav_vehicle_info.is_flying)
     {
-        m_andruav_vehicle_info.flying_last_start_time = ( get_time_usec() - m_last_start_flying ) / 1000000l;
+        m_andruav_vehicle_info.flying_last_start_time = ( get_time_usec() - m_last_start_flying ) ;
     }
 
     return ;
@@ -525,8 +525,8 @@ void CFCBMain::OnFlying (const bool& is_flying)
         else
         {
             // add duration to total
+            // m_andruav_vehicle_info.flying_last_start_time is updated in onheartbeat
             m_andruav_vehicle_info.flying_total_duration +=  m_andruav_vehicle_info.flying_last_start_time;
-            m_andruav_vehicle_info.flying_last_start_time = 0;
             m_last_start_flying = 0;
         }
 

@@ -90,8 +90,8 @@ typedef struct ANDRUAV_VEHICLE_INFO
     bool                is_gcs_blocked                      = false;
     int16_t             flying_mode;
     int16_t             gps_mode                            ;
-    u_int64_t           flying_total_duration               = 0;
-    u_int64_t           flying_last_start_time              = 0;
+    u_int64_t           flying_total_duration               = 0; // total flight duration
+    u_int64_t           flying_last_start_time              = 0; // duration of the current or latest flight
     int16_t             vehicle_type                        = 0;
 
     int16_t             current_waypoint                    = 0;         
