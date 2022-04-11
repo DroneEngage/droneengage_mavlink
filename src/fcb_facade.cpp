@@ -600,6 +600,8 @@ void CFCBFacade::sendGeoFenceToTarget(const std::string&target_party_id, const g
 {
     uavos::fcb::geofence::CGeoFenceBase* geo_fence_base = geo_fenct_struct->geoFence.get();
 
+    if (geo_fence_base == nullptr) return ;
+    
     Json message = geo_fence_base->getMessage();
     
 

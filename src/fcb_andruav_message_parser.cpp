@@ -575,21 +575,23 @@ void CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_message)
         {
             // receive GeoFence info from drones.
             std::string fence_name;
-            geofence::GEO_FENCE_STRUCT * geo_fence_struct;
+            geofence::GEO_FENCE_STRUCT * geo_fence_struct = nullptr;
 
+            // capture a fence of a specific name.
             if (cmd.contains("fn")==true)
             {
-                geo_fence_struct = geofence::CGeoFenceManager::getInstance().getFenceByName (fence_name);
                 fence_name = cmd["fn"].get<std::string>();
-                
+                geo_fence_struct = geofence::CGeoFenceManager::getInstance().getFenceByName (fence_name);
             }
             
+            // if fence name exists, send back info.
             if (geo_fence_struct != nullptr) 
             {
                 CFCBFacade::getInstance().sendGeoFenceToTarget(andruav_message[ANDRUAV_PROTOCOL_SENDER], geo_fence_struct);
             } 
             else
             {
+                // send all fences data. as cmd["fn"] is null or ""
                 std::vector<geofence::GEO_FENCE_STRUCT*> geo_fence_struct = geofence::CGeoFenceManager::getInstance().getFencesOfParty (m_fcbMain.getAndruavVehicleInfo().party_id);
                 const std::size_t size = geo_fence_struct.size();
 
