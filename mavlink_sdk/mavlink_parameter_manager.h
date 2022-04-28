@@ -68,8 +68,6 @@ namespace mavlinksdk
 
         public:
 
-            const mavlink_param_value_t getParameterByName(const std::string pram_name) const;
-
             const std::map<std::string, mavlink_param_value_t>& getParametersList() const
             {
                 return m_parameters_list;
@@ -90,12 +88,6 @@ namespace mavlinksdk
 
             std::map<std::string, mavlink_param_value_t> m_parameters_list;
             std::vector<uint16_t> m_parameters_id;
-            
-            /**
-             * @brief Status of the state machine
-             * @details This variable is filled by values from mavlinksdk::ENUM_LOADING_PARAMS_STATUS
-             * 
-             */
             mavlinksdk::ENUM_LOADING_PARAMS_STATUS m_parameter_read_mode = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LIST_EMPTY;
             int m_parameter_read_count = 0;
             uint16_t m_parameters_last_index_read = 0;

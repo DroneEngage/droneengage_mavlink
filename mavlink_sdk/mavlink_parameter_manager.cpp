@@ -37,9 +37,9 @@ void mavlinksdk::CMavlinkParameterManager::reloadParemeters ()
 
 
 /**
- * @brief List of all parameters as a response of PARAM_REQUEST_LIST
+ * @brief 
+ * List of all parameters as a response of PARAM_REQUEST_LIST
  * 
- * @callgraph
  * @param param_message 
  */
 void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_param_value_t& param_message)
@@ -93,16 +93,13 @@ void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_par
 		}
 	}
 
-	// if last parameter has been received then this is the last parameter
+	// if last parameter has been received the this is the last parameter
 	if (param_message.param_index == (param_message.param_count-1)) 
 	{ 
 		m_parameter_read_mode = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LIST_LOADED;
 		std::cout << _SUCCESS_CONSOLE_TEXT_ << "Parameter LOADED " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream();
 		m_callback_parameter->OnParamReceivedCompleted();
-		/// TEST
-		const mavlink_param_value_t  m = getParameterByName("RCMAP_PITCH");
-		std::cout << std::to_string(m.param_value) << std::endl;
 	}
 
 	m_callback_parameter->OnParamReceived (param_name, param_message, changed);
@@ -215,25 +212,3 @@ uint16_t mavlinksdk::CMavlinkParameterManager::getFirstMissingParameterByIndex()
 	
 	return m_parameter_read_count;
 }
-
-
-
-/**
- * @brief returns parameter by name. This is a helper function can be used by other modules.
- * 
- * @param pram_name 
- */
-const mavlink_param_value_t mavlinksdk::CMavlinkParameterManager::getParameterByName(const std::string pram_name) const 
-{
-	const std::map<std::string, mavlink_param_value_t>& parameters_list = getParametersList();
-
-	auto it = parameters_list.find(param_name);
-
-	if (it == parameters_list.end())
-	{
-		return ; // not found
-	} 
-
-	return it->second;
-}
-            
