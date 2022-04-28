@@ -184,7 +184,9 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 	// #ifdef DEBUG
     // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "parseMessage:" << std::to_string(msgid) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     // #endif
-   
+	
+	if (mavlink_message.sysid == 255) return ;
+
 	switch (mavlink_message.msgid)
 	{
         case MAVLINK_MSG_ID_HEARTBEAT:
