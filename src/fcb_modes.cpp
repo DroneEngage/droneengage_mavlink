@@ -129,21 +129,20 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotPlaneMode (c
             return VEHICLE_MODE_GUIDED;
         case PLANE_MODE_INITIALIZING:
             return VEHICLE_MODE_INITALIZING;
-        case PLANE_MODE_QSTABILIZE:
-            return VEHICLE_MODE_STABILIZE;
-        case PLANE_MODE_QHOVER:
-            //TODO: Add VTOL Modes Handling please
-            return VEHICLE_MODE_UNKNOWN;
-        case PLANE_MODE_QLOITER:
-            return VEHICLE_MODE_LOITER;
-        case PLANE_MODE_QLAND:
-            return VEHICLE_MODE_LAND;
-        case PLANE_MODE_QRTL:
-            return VEHICLE_MODE_RTL;
         case PLANE_MODE_QAUTOTUNE:
             return VEHICLE_MODE_UNKNOWN;
         case PLANE_MODE_QACRO:
             return VEHICLE_MODE_MANUAL;
+        case PLANE_MODE_QRTL:
+            return VEHICLE_MODE_QRTL;
+        case PLANE_MODE_QLAND:
+            return VEHICLE_MODE_QLAND;
+        case PLANE_MODE_QSTABILIZE:
+            return VEHICLE_MODE_QSTABILIZE;
+        case PLANE_MODE_QLOITER:
+            return VEHICLE_MODE_QLOITER;
+        case PLANE_MODE_QHOVER:
+            return VEHICLE_MODE_QHOVER;
     };
 
     return VEHICLE_MODE_UNKNOWN;
