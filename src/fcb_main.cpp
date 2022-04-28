@@ -40,7 +40,7 @@ void SchedulerThread(void * This) {
  */
 int CFCBMain::getConnectionType () const 
 {
-    std::string connection = str_tolower(m_jsonConfig["fcbConnectionURI"]["type"].get<std::string>());
+    std::string connection = str_tolower(m_jsonConfig["fcb_connection_uri"]["type"].get<std::string>());
 
     std::size_t found = connection.find("serial");
     if (found!=std::string::npos) return CONNECTION_TYPE_SERIAL;
@@ -69,15 +69,15 @@ bool CFCBMain::connectToFCB ()
 
         case CONNECTION_TYPE_SERIAL:
             std::cout << _INFO_CONSOLE_TEXT << "Serial Connection Initializing" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
-            m_mavlink_sdk.connectSerial((m_jsonConfig["fcbConnectionURI"])["port"].get<std::string>().c_str(),
-                                     (m_jsonConfig["fcbConnectionURI"])["baudrate"].get<int>());
+            m_mavlink_sdk.connectSerial((m_jsonConfig["fcb_connection_uri"])["port"].get<std::string>().c_str(),
+                                     (m_jsonConfig["fcb_connection_uri"])["baudrate"].get<int>());
             return true;
         
         
         case CONNECTION_TYPE_UDP:
             std::cout << _INFO_CONSOLE_TEXT << "UDP Connection Initializing" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
-            m_mavlink_sdk.connectUDP((m_jsonConfig["fcbConnectionURI"])["ip"].get<std::string>().c_str(),
-                                     (m_jsonConfig["fcbConnectionURI"])["port"].get<int>());
+            m_mavlink_sdk.connectUDP((m_jsonConfig["fcb_connection_uri"])["ip"].get<std::string>().c_str(),
+                                     (m_jsonConfig["fcb_connection_uri"])["port"].get<int>());
             return true;
         
         
@@ -106,8 +106,8 @@ bool CFCBMain::init ()
     m_jsonConfig = cConfigFile.GetConfigJSON();
     
     initVehicleChannelLimits();
-    m_mavlink_optimizer.init (m_jsonConfig["Message_Timeouts"]);
-    m_mavlink_optimizer.setOptimizationLevel(m_jsonConfig["Default_Optimization_Level"].get<int>());
+    m_mavlink_optimizer.init (m_jsonConfig["message_timeouts"]);
+    m_mavlink_optimizer.setOptimizationLevel(m_jsonConfig["default_optimization_level"].get<int>());
     
     if (connectToFCB() == true)
     {
@@ -152,41 +152,41 @@ void CFCBMain::initVehicleChannelLimits()
     cConfigFile.reloadFile();
     m_jsonConfig = cConfigFile.GetConfigJSON();
     
-    if (!m_jsonConfig.contains("RC_Channels")
-        || !m_jsonConfig["RC_Channels"].contains("RC_channelEnabled")
-        || !m_jsonConfig["RC_Channels"].contains("RC_channelReverse")
-        || !m_jsonConfig["RC_Channels"].contains("RC_channelLimitsMax")
-        || !m_jsonConfig["RC_Channels"].contains("RC_channelLimitsMin"))
+    if (!m_jsonConfig.contains("rc_channels")
+        || !m_jsonConfig["rc_channels"].contains("rc_channel_enabled")
+        || !m_jsonConfig["rc_channels"].contains("rc_channel_reverse")
+        || !m_jsonConfig["rc_channels"].contains("rc_channel_limits_max")
+        || !m_jsonConfig["rc_channels"].contains("rc_channel_limits_min"))
     {
-        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "RC Channels RC_channelEnabled, RC_channelReverse, RC_channelLimitsMax or RC_channelLimitsMin not found" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "RC Channels rc_channel_enabled, rc_channel_reverse, rc_channel_limits_max or rc_channel_limits_min not found" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         raise(SIGABRT);
     }
     
     int index =0;
     Json values;
     
-    values = m_jsonConfig["RC_Channels"]["RC_channelEnabled"];
+    values = m_jsonConfig["rc_channels"]["rc_channel_enabled"];
     for (auto it = values.begin(); it != values.end(); ++it){
             m_andruav_vehicle_info.rc_channels_enabled[index] = *it==1?true:false;
             index++;
     }
 
     index =0;
-    values = m_jsonConfig["RC_Channels"]["RC_channelReverse"];
+    values = m_jsonConfig["rc_channels"]["rc_channel_reverse"];
     for (auto it = values.begin(); it != values.end(); ++it){
             m_andruav_vehicle_info.rc_channels_reverse[index] = *it==1?true:false;
             index++;
     }
 
     index =0;
-    values = m_jsonConfig["RC_Channels"]["RC_channelLimitsMax"];
+    values = m_jsonConfig["rc_channels"]["rc_channel_limits_max"];
     for (auto it = values.begin(); it != values.end(); ++it){
             m_andruav_vehicle_info.rc_channels_max[index] = *it;
             index++;
     }
 
     index =0;
-    values = m_jsonConfig["RC_Channels"]["RC_channelLimitsMin"];
+    values = m_jsonConfig["rc_channels"]["rc_channel_limits_min"];
     for (auto it = values.begin(); it != values.end(); ++it){
             m_andruav_vehicle_info.rc_channels_min[index] = *it;
             index++;

@@ -13,14 +13,14 @@
   
   // How to connect to Ardupilot board
   // Using udp connection
-  "fcbConnectionURI": 
+  "fcb_connection_uri": 
   {"type": "udp",
     "ip": "0.0.0.0",
     "port":14551
   },
    
   // Using serial interface
-  // "fcbConnectionURI":
+  // "fcb_connection_uri":
   // {
   //   "type": "serial",
   //   "port": "/home/mhefny/ttyUSB23",
@@ -37,12 +37,14 @@
   
   // Default optimization level. This number controls the rate at which mavlink is sent in telemetry mode.
   // Adjust it to reduce bandwidth 0 - max bandwidth 3 - min bandwidth
-  "Default_Optimization_Level" : 2, 
-  
+  "default_optimization_level" : 2, 
+  // This companion computer is remote and not mounted on the vehicle.
+  "Vehicle_Is_Remote": true,
+
   "event_fire_channel": 16,
   "event_wait_channel": 15,
 
-  "Message_Timeouts":
+  "message_timeouts":
   { 
         "1": [0,250,500,1000],
         "2": [0,250,500,1000],     // SYSTEM_TIME
@@ -72,12 +74,12 @@
   
   // Used for Gamepad control via Drone-Engage Web Client
   // Determine channels enabled, reverse, max & min PWM range
-  "RC_Channels":
+  "rc_channels":
   {
-  "RC_channelEnabled": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  "RC_channelReverse": [-1, 1, 1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  "RC_channelLimitsMax": [1850,2000,1750,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000],
-  "RC_channelLimitsMin": [1150,1000,1300,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
+    "rc_channel_enabled": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "rc_channel_reverse": [-1, 1, 1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "rc_channel_limits_max": [1850,2000,1750,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000,2000],
+    "rc_channel_limits_min": [1150,1000,1300,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000]
   }
 }
 
