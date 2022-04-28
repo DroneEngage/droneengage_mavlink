@@ -504,6 +504,7 @@ void CMavlinkCommand::writeMissionItem (mavlink_mission_item_t mavlink_mission) 
  * Request all parameters of this component. After this request, all parameters are emitted.
  * The parameter microservice is documented at https://mavlink.io/en/services/parameter.html
  * 
+ * @callgraph
  */
 void CMavlinkCommand::requestParametersList () const
 {
@@ -555,8 +556,10 @@ void CMavlinkCommand::requestExtParametersList () const
  * @brief 
  *  Write parameter by name.
  * !NOT TESTED
+ * @callgraph
  * @param param_name 
  * @param value 
+ *  
  */
 void CMavlinkCommand::writeParameter (const std::string& param_name, const double &value)  const
 {
