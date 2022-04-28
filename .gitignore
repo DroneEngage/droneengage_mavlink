@@ -33,3 +33,8 @@ mav.tlog.raw
 eeprom.bin
 /terrain
 
+*.BIN
+*.sh
+*.parm
+LASTLOG.TXT
+
