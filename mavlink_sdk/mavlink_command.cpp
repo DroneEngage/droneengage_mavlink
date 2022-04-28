@@ -66,16 +66,24 @@ void CMavlinkCommand::doArmDisarm (const bool& arm, const bool& force)  const
 {
 
     float forceArm = 0;
-    if (force == true)
-    {
-        forceArm = 21196;
-    }
+    
 
     float flagArm = 0.0f;
     if (arm == true)
     {
         flagArm = 1.0f;
+		if (force == true)
+		{
+			forceArm = 2989;
+		}
     }
+	else
+	{
+		if (force == true)
+		{
+			forceArm = 21196;
+		}
+	}
 
 	sendLongCommand (MAV_CMD_COMPONENT_ARM_DISARM, true,
 		(float) flagArm, 
