@@ -24,7 +24,7 @@ mavlink_control
 /build/
 /Debug/
 
-*.txt
+M*.txt
 doxygen_doc/
 
 mav.parm

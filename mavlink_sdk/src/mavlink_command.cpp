@@ -160,8 +160,6 @@ void CMavlinkCommand::cmdTerminateFlight () const
 
 void CMavlinkCommand::changeAltitude (const float& altitude) const
 {
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-	
 	const mavlink_global_position_int_t& mavlink_global_position_int = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt();
 	
 	gotoGuidedPoint(mavlink_global_position_int.lat / 10000000.0f, mavlink_global_position_int.lon / 10000000.0f, altitude );
@@ -639,15 +637,15 @@ void CMavlinkCommand::readParameter (const std::string& param_name) const
 void CMavlinkCommand::readParameterByIndex (const uint16_t& param_index) const
 {
 	
-	//#ifdef DEBUG
+	#ifdef DEBUG
 			std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  
 			<< _LOG_CONSOLE_TEXT << "DEBUG: parameter index:" << std::to_string(param_index) 
 			<< std::endl;
-    //#endif
+    #endif
 
 
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-	const std::map<std::string, mavlink_param_value_t>& parameters_list = mavlinksdk::CMavlinkParameterManager::getInstance().getParametersList();
+	//const std::map<std::string, mavlink_param_value_t>& parameters_list = mavlinksdk::CMavlinkParameterManager::getInstance().getParametersList();
 	
 
 	mavlink_param_request_read_t mavlink_param;

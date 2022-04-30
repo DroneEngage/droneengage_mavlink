@@ -49,7 +49,7 @@ top (int argc, char **argv)
 		mavlink.connectSerial(uart_name, baudrate);
 	}
 
-	mavlink.start();
+	//mavlink.start();
 
 	/*
 	 * Instantiate an autopilot interface object
