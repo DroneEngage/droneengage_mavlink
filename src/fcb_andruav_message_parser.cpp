@@ -56,7 +56,7 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_FlightControl:
             {
-                // F  : andruve unit mode
+                // F  : andruav unit mode
                 // [g]: longitude
                 // [a]: latitude
                 // [r]: radius 
@@ -64,7 +64,7 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
                 if (!validateField(message, "F", Json::value_t::number_unsigned)) return ;
                 
                 const int andruav_mode = message["F"].get<int>();
-                double langitude = 0.0f;
+                //double langitude = 0.0f;
                 // TODO: Missing circle and guided go to here mode.
                 const int ardupilot_mode = CFCBModes::getArduPilotMode(andruav_mode, m_fcbMain.getAndruavVehicleInfo().vehicle_type);
                 if (ardupilot_mode == E_UNDEFINED_MODE)
@@ -215,7 +215,7 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
                 
                 const int speed_type = is_ground_speed?1:0;
 
-                mavlinksdk::CMavlinkCommand::getInstance().setNavigationSpeed(1, speed, throttle, is_relative);
+                mavlinksdk::CMavlinkCommand::getInstance().setNavigationSpeed(speed_type, speed, throttle, is_relative);
             }
             break;
 
@@ -364,6 +364,11 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
             case TYPE_AndruavMessage_LightTelemetry:
             {   // this is a binary message
                 // search for char '0' and then binary message is the next byte after it.
+                if (!is_binary)
+                {
+                    // corrupted message.
+                    break;
+                }
                 const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
                 int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1) );
 
@@ -372,6 +377,10 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
                 for (int i=0; i<binary_length; ++ i)
                 {
 		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_1, binary_message[i+ 1], &mavlink_message, &status);
+                    if (msgReceived==0)
+                    {
+                        //TODO: you can add logging or warning
+                    }
                 }
 
                  mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
@@ -389,6 +398,10 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
                 for (int i=0; i<binary_length; ++ i)
                 {
 		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_1, binary_message[i+ 1], &mavlink_message, &status);
+                    if (msgReceived==0)
+                    {
+                        //TODO: you can add logging or warning
+                    }
                 }
 
                  mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);

@@ -145,7 +145,6 @@ void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
 
     if (m_sendJMSG == NULL) return ;
     
-    CFCBMain&  fcbMain = CFCBMain::getInstance();
     mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
 
     const mavlink_gps_raw_int_t& gps = vehicle.getMSGGPSRaw();
@@ -286,43 +285,7 @@ void CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
     
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
     
-    int voltage = 0.0f;
     const mavlink_battery_status_t& battery_status = vehicle.getMsgBatteryStatus();
-    // for (int i=0; i<10 ; ++i)
-    // {
-    //     if ( battery_status.voltages[i] != 65535)
-    //         voltage += battery_status.voltages[i];
-    // }
-
-    // Json message =
-    // {
-    //     /*
-    //         BL : Device battery level
-    //          V : Device voltage
-    //         BT : Device battery temprature
-    //         [H]: Device battery health - string
-    //        [PS]: Plug Status - string e.g. charging, unplugged
-    //        [FV]: FCB_Battery voltage (mV x1000 )
-    //        [FI]: FCB_Battry  current charge (mAmp x100). Battery current, -1: autopilot does not measure the current
-    //        [FR]: FCB_Battery remaining Remaining battery energy. Values: [0-100], -1: autopilot does not estimate the remaining battery.
-            
-    //         Extra Parameters:
-    //         [T]: Battery temprature in mC-deg x1000
-    //         [C]: Battery Current Consumed in mAmp
-    //         : Battery Type MAV_BATTERY_TYPE
-    //     */
-
-        
-    //     {"BL", 0.0},
-    //     {"V", 0.0},
-    //     {"BT", 0.0},
-    //     {"HBL", 0.0},
-    //     {"FV", voltage},
-    //     {"FI", vehicle.getMsgBatteryStatus().current_battery * 10 },
-    //     {"FR", vehicle.getMsgBatteryStatus().battery_remaining},
-    //     {"T", vehicle.getMsgBatteryStatus().temperature},
-    //     {"C", vehicle.getMsgBatteryStatus().current_consumed}
-    // };
 
     const int sys_id = m_mavlink_sdk.getSysId();
     const int comp_id = m_mavlink_sdk.getCompId();
@@ -424,7 +387,7 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
 
     #define MAX_WAYPOINT_CHUNK  2
 
-    for (int i=0, j=0; i< length; i+=MAX_WAYPOINT_CHUNK)
+    for (int i=0; i< length; i+=MAX_WAYPOINT_CHUNK)
     {
         Json message;
         int lastsentIndex = 0;
@@ -437,7 +400,6 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
             message[std::to_string(lastsentIndex)] = message_item;
             
             lastsentIndex++;   
-            
         }
 
         message ["n"] = lastsentIndex;
