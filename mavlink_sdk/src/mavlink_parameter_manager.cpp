@@ -217,7 +217,7 @@ uint16_t mavlinksdk::CMavlinkParameterManager::getFirstMissingParameterByIndex()
  * @brief returns parameter by name. This is a helper function can be used by other modules.
  * 
  * @param pram_name 
- * 
+ * @callgraph
  * @return const mavlink_param_value_t if mavlink_param_value_t.param_index=-1 then parameter is not found.
  */
 const mavlink_param_value_t mavlinksdk::CMavlinkParameterManager::getParameterByName(const std::string param_name) const 

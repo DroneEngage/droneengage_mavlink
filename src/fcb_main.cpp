@@ -801,6 +801,8 @@ void CFCBMain::OnParamReceived(const std::string& param_name, const mavlink_para
 void CFCBMain::OnParamReceivedCompleted()
 {
     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_INFO, std::string("Parameters Loaded Successfully"));
+
+    update_rcmap_info();
 }
 
 
@@ -1317,3 +1319,37 @@ void CFCBMain::updateGeoFenceHitStatus()
     }
 }
 
+
+/**
+ * @brief updates RCMAP_CHANNELS_STRUCT with valid values.
+ * @details should be called after parmaters are all uploaded and available.
+ * 
+ * @callgraph
+ */
+void CFCBMain::update_rcmap_info()
+{
+    mavlinksdk::CMavlinkParameterManager &parameter_manager =  mavlinksdk::CMavlinkParameterManager::getInstance();
+    if (!parameter_manager.isParametersListAvailable())
+    {
+        return ;
+    }
+
+    
+    mavlink_param_value_t rcmap = parameter_manager.getParameterByName("RCMAP_PITCH");
+    
+    m_rcmap_channels_info.valid = false;
+    m_rcmap_channels_info.rcmap_pitch = (std::byte) rcmap.param_value;
+
+    rcmap = parameter_manager.getParameterByName("RCMAP_ROLL");
+    m_rcmap_channels_info.rcmap_roll = (std::byte) rcmap.param_value;
+
+    rcmap = parameter_manager.getParameterByName("RCMAP_THROTTLE");
+    m_rcmap_channels_info.rcmap_throttle = (std::byte) rcmap.param_value;
+
+    rcmap = parameter_manager.getParameterByName("RCMAP_YAW");
+    m_rcmap_channels_info.rcmap_yaw = (std::byte) rcmap.param_value;
+    
+    m_rcmap_channels_info.valid = true;
+
+
+}

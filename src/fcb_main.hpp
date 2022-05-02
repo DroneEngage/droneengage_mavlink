@@ -30,7 +30,15 @@ namespace fcb
 
     } ANDRUAV_UNIT_STRUCT;
 
-    
+    typedef struct
+    {
+        std::byte rcmap_pitch;
+        std::byte rcmap_roll;
+        std::byte rcmap_throttle;
+        std::byte rcmap_yaw;
+        bool valid = false;
+    } RCMAP_CHANNELS_STRUCT;
+
     /**
      * @brief This class is the heart of FCB module. 
      * It handles logic and vehicle states that is related to Andruav.
@@ -220,6 +228,7 @@ namespace fcb
             void updateGeoFenceHitStatus();
             void takeActionOnFenceViolation(uavos::fcb::geofence::CGeoFenceBase * geo_fence);
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
+            void update_rcmap_info();
             
         private:
             Json m_jsonConfig;
@@ -231,11 +240,14 @@ namespace fcb
             int m_event_fire_channel;
             int m_event_wait_channel;
             int m_event_time_divider=0; // wait
+
             std::vector<int>  m_event_fired_by_me;
             std::vector<int>  m_event_received_from_others;
             int m_event_waiting_for;
             ANDRUAV_VEHICLE_INFO m_andruav_vehicle_info;
             uavos::fcb::mission::ANDRUAV_UNIT_MISSION m_andruav_missions;      
+
+            RCMAP_CHANNELS_STRUCT m_rcmap_channels_info;
 
             /**
              * @brief Andruav units subscribed in telemetry streaming.
