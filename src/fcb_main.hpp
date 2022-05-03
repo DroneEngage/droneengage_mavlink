@@ -30,14 +30,7 @@ namespace fcb
 
     } ANDRUAV_UNIT_STRUCT;
 
-    typedef struct
-    {
-        std::byte rcmap_pitch;
-        std::byte rcmap_roll;
-        std::byte rcmap_throttle;
-        std::byte rcmap_yaw;
-        bool valid = false;
-    } RCMAP_CHANNELS_STRUCT;
+    
 
     /**
      * @brief This class is the heart of FCB module. 
@@ -185,7 +178,11 @@ namespace fcb
             void toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level);
 
             bool isFCBConnected () const { return m_fcb_connected;}; 
-
+            
+            const RCMAP_CHANNELS_MAP_INFO_STRUCT getRCChannelsMapInfo() const
+            {
+                return m_rcmap_channels_info;
+            }
         // Events implementation of mavlinksdk::CMavlinkEvents
         public:
             void OnMessageReceived (const mavlink_message_t& mavlink_message) override;           
@@ -247,7 +244,7 @@ namespace fcb
             ANDRUAV_VEHICLE_INFO m_andruav_vehicle_info;
             uavos::fcb::mission::ANDRUAV_UNIT_MISSION m_andruav_missions;      
 
-            RCMAP_CHANNELS_STRUCT m_rcmap_channels_info;
+            RCMAP_CHANNELS_MAP_INFO_STRUCT m_rcmap_channels_info;
 
             /**
              * @brief Andruav units subscribed in telemetry streaming.

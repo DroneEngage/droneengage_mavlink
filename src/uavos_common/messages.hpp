@@ -43,7 +43,10 @@
 #define INTERMODULE_COMMAND_TYPE        "ty"
 #define INTERMODULE_MODULE_KEY          "GU"
 
-
+// Reserved Target Values
+#define ANDRUAV_PROTOCOL_SENDER_ALL_GCS "_GCS_"
+#define ANDRUAV_PROTOCOL_SENDER_ALL_AGENTS "_AGN_"
+#define ANDRUAV_PROTOCOL_SENDER_ALL "_GD_"
 
 // SOCKET STATUS
 #define SOCKET_STATUS_FREASH 			1   // socket is new

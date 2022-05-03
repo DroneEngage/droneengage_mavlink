@@ -114,4 +114,22 @@ typedef struct ANDRUAV_VEHICLE_INFO
 }   ANDRUAV_VEHICLE_INFO;
 
 
+typedef struct
+{
+    uint16_t rcmap_pitch;
+    uint16_t rcmap_roll;
+    uint16_t rcmap_throttle;
+    uint16_t rcmap_yaw;
+    /**
+     * @brief if true then rc_map is valid and can be used for mapping.
+     * 
+     */
+    bool is_valid = false;
+    /**
+     * @brief if true the user requires using rc_map
+     * 
+     */
+    bool use_smart_rc = false;
+} RCMAP_CHANNELS_MAP_INFO_STRUCT;
+
 #endif

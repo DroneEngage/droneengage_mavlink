@@ -152,6 +152,8 @@ void CFCBMain::initVehicleChannelLimits()
     cConfigFile.reloadFile();
     m_jsonConfig = cConfigFile.GetConfigJSON();
     
+    
+    
     if (!m_jsonConfig.contains("rc_channels")
         || !m_jsonConfig["rc_channels"].contains("rc_channel_enabled")
         || !m_jsonConfig["rc_channels"].contains("rc_channel_reverse")
@@ -162,35 +164,90 @@ void CFCBMain::initVehicleChannelLimits()
         raise(SIGABRT);
     }
     
+    
+    // Apply RC Channels settings - non smart rc section.
     int index =0;
+    const Json rc_channels = m_jsonConfig["rc_channels"];
     Json values;
     
-    values = m_jsonConfig["rc_channels"]["rc_channel_enabled"];
+    values = rc_channels["rc_channel_enabled"];
     for (auto it = values.begin(); it != values.end(); ++it){
             m_andruav_vehicle_info.rc_channels_enabled[index] = *it==1?true:false;
             index++;
     }
 
     index =0;
-    values = m_jsonConfig["rc_channels"]["rc_channel_reverse"];
+    values = rc_channels["rc_channel_reverse"];
     for (auto it = values.begin(); it != values.end(); ++it){
             m_andruav_vehicle_info.rc_channels_reverse[index] = *it==1?true:false;
             index++;
     }
 
     index =0;
-    values = m_jsonConfig["rc_channels"]["rc_channel_limits_max"];
+    values = rc_channels["rc_channel_limits_max"];
     for (auto it = values.begin(); it != values.end(); ++it){
             m_andruav_vehicle_info.rc_channels_max[index] = *it;
             index++;
     }
 
     index =0;
-    values = m_jsonConfig["rc_channels"]["rc_channel_limits_min"];
+    values = rc_channels["rc_channel_limits_min"];
     for (auto it = values.begin(); it != values.end(); ++it){
             m_andruav_vehicle_info.rc_channels_min[index] = *it;
             index++;
     }
+
+
+    if (rc_channels.contains("rc_smart_channels"))
+    {
+        if (rc_channels["rc_smart_channels"].contains("active"))
+        {
+            m_rcmap_channels_info.use_smart_rc = rc_channels["rc_smart_channels"]["active"].get<bool>();
+        }
+        else
+        {
+            m_rcmap_channels_info.use_smart_rc = true;
+        }
+
+        if ((m_rcmap_channels_info.use_smart_rc == true) && (m_rcmap_channels_info.is_valid))
+        {
+            // readjust rcmapped channels
+            if (rc_channels["rc_smart_channels"].contains("rc_channel_limits_max"))
+            {
+                values = rc_channels["rc_smart_channels"]["rc_channel_limits_max"];
+                auto it = values.begin();
+                m_andruav_vehicle_info.rc_channels_max[m_rcmap_channels_info.rcmap_roll]        = *it++;
+                m_andruav_vehicle_info.rc_channels_max[m_rcmap_channels_info.rcmap_pitch]       = *it++;
+                m_andruav_vehicle_info.rc_channels_max[m_rcmap_channels_info.rcmap_throttle]    = *it++;
+                m_andruav_vehicle_info.rc_channels_max[m_rcmap_channels_info.rcmap_yaw]         = *it;
+            }
+            
+            
+            if (rc_channels["rc_smart_channels"].contains("rc_channel_limits_min"))
+            {
+                values = rc_channels["rc_smart_channels"]["rc_channel_limits_min"];
+                auto it = values.begin();
+                m_andruav_vehicle_info.rc_channels_min[m_rcmap_channels_info.rcmap_roll]        = *it++;
+                m_andruav_vehicle_info.rc_channels_min[m_rcmap_channels_info.rcmap_pitch]       = *it++;
+                m_andruav_vehicle_info.rc_channels_min[m_rcmap_channels_info.rcmap_throttle]    = *it++;
+                m_andruav_vehicle_info.rc_channels_min[m_rcmap_channels_info.rcmap_yaw]         = *it;
+            }
+            
+            
+            if (rc_channels["rc_smart_channels"].contains("rc_channel_enabled"))
+            {
+                values = rc_channels["rc_smart_channels"]["rc_channel_enabled"];
+                auto it = values.begin();
+                m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_roll]     = *it++==1?true:false;
+                m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_pitch]    = *it++==1?true:false;
+                m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_throttle] = *it++==1?true:false;
+                m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_yaw]      = *it==1?true:false;
+            }
+        }
+    }
+
+    
+
 }
 
 
@@ -230,16 +287,20 @@ void CFCBMain::remoteControlSignal ()
         
         case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS:
         {
+            // if no RC message has been received since a while change to BreakMode.
+            // unless you are in LANDED mode.
             if (now - m_andruav_vehicle_info.rc_command_last_update_time > RCCHANNEL_OVERRIDES_TIMEOUT)
             {
-                m_andruav_vehicle_info.rc_command_active = false;
-                
-                releaseRemoteControl();
-                
-                // if RC Timeout then switch to brake or equivelant mode.
-                const int ardupilot_mode = CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type);
-                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
-
+                if (m_andruav_vehicle_info.flying_mode != VEHICLE_MODE_LAND)
+                {
+                    m_andruav_vehicle_info.rc_command_active = false;
+                    
+                    releaseRemoteControl();
+                    
+                    // if RC Timeout then switch to brake or equivelant mode.
+                    const int ardupilot_mode = CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type);
+                    mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
+                }
                 return ;
             }
             mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,18);
@@ -835,9 +896,9 @@ void CFCBMain::alertUavosOffline()
 
 /**
  * @brief This function get PWM signal from Andruav [-500,500] value and afetr applying reverse, deadband & limites.
- * 
  * @param scaled_channels 
  * @param ignode_dead_band 
+ * @callgraph
  * @return int16_t 
  */
 void CFCBMain::calculateChannels(const int16_t scaled_channels[18], const bool ignode_dead_band, int16_t *output)
@@ -906,15 +967,31 @@ void CFCBMain::releaseRemoteControl()
 
 
 /**
- * @brief Set first 4 FOUR channels to 1500 and release others.
+ * @brief Set first 4 FOUR channels or user smart Channels based on RCMAP to 1500 and release others.
  * 
  */
 void CFCBMain::centerRemoteControl()
 {
     if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS) return ;
     
+    if ((m_rcmap_channels_info.use_smart_rc) && (!m_rcmap_channels_info.is_valid))
+    {
+        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, std::string("Error: RCMAP Channels not Ready."));
+        return ;
+    }
+    
     memset(m_andruav_vehicle_info.rc_channels, 0, 18 * sizeof(int16_t));
-    memset(m_andruav_vehicle_info.rc_channels, 1500, 4 * sizeof(int16_t));
+    if ((m_rcmap_channels_info.use_smart_rc) && (m_rcmap_channels_info.is_valid))
+    {
+        m_andruav_vehicle_info.rc_channels[m_rcmap_channels_info.rcmap_pitch]       = 1500;
+        m_andruav_vehicle_info.rc_channels[m_rcmap_channels_info.rcmap_roll]        = 1500;
+        m_andruav_vehicle_info.rc_channels[m_rcmap_channels_info.rcmap_throttle]    = 1500;
+        m_andruav_vehicle_info.rc_channels[m_rcmap_channels_info.rcmap_yaw]         = 1500;
+    }
+    else
+    {
+        memset(m_andruav_vehicle_info.rc_channels, 1500, 4 * sizeof(int16_t));
+    }
     
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS;
     m_andruav_vehicle_info.rc_command_active = true;
@@ -932,6 +1009,11 @@ void CFCBMain::freezeRemoteControl()
     
     if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS) return ;
     
+    if ((m_rcmap_channels_info.use_smart_rc) && (!m_rcmap_channels_info.is_valid))
+    {
+        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, std::string("Error: RCMAP Channels not Ready."));
+        return ;
+    }
     
     const mavlink_rc_channels_t& mavlink_rc_channels = mavlinksdk::CVehicle::getInstance().getRCChannels();
 
@@ -967,6 +1049,12 @@ void CFCBMain::freezeRemoteControl()
  */
 void CFCBMain::enableRemoteControl()
 {
+    if ((m_rcmap_channels_info.use_smart_rc) && (!m_rcmap_channels_info.is_valid))
+    {
+        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, std::string("Error: RCMAP Channels not Ready."));
+        return ;
+    }
+    
     m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
     m_andruav_vehicle_info.rc_command_active = false;  // remote control data will enable it                   
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS;
@@ -978,6 +1066,12 @@ void CFCBMain::enableRemoteControl()
 void CFCBMain::enableRemoteControlGuided()
 {
 
+    if ((m_rcmap_channels_info.use_smart_rc) && (!m_rcmap_channels_info.is_valid))
+    {
+        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, std::string("Error: RCMAP Channels not Ready."));
+        return ;
+    }
+    
     m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
     m_andruav_vehicle_info.rc_command_active = false;  // remote control data will enable it       
     
@@ -1075,9 +1169,25 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
 
             calculateChannels(rc_channels, true, rc_chammels_pwm);
             
-            for (int i=0; i<18; ++i)
+            if (m_rcmap_channels_info.use_smart_rc == true)
             {
-                m_andruav_vehicle_info.rc_channels[i] = rc_chammels_pwm[i];
+                for (int i=0; i<18; ++i)
+                {
+                    m_andruav_vehicle_info.rc_channels[i] = 0; 
+                }
+
+                m_andruav_vehicle_info.rc_channels[m_rcmap_channels_info.rcmap_pitch] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_pitch]; 
+                m_andruav_vehicle_info.rc_channels[m_rcmap_channels_info.rcmap_roll] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_roll]; 
+                m_andruav_vehicle_info.rc_channels[m_rcmap_channels_info.rcmap_throttle] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle]; 
+                m_andruav_vehicle_info.rc_channels[m_rcmap_channels_info.rcmap_yaw] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw]; 
+            }
+            else
+            {
+                // just copy channels.
+                for (int i=0; i<18; ++i)
+                {
+                    m_andruav_vehicle_info.rc_channels[i] = rc_chammels_pwm[i];
+                }
             }
 
             mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,18);
@@ -1088,17 +1198,34 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
         case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED:
         {
             m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
-
+            m_andruav_vehicle_info.rc_command_active = true;
+    
             int16_t rc_chammels_pwm[18] = {0};
 
             calculateChannels(rc_channels, true, rc_chammels_pwm);
-            
-            mavlinksdk::CMavlinkCommand::getInstance().ctrlGuidedVelocityInLocalFrame (
+            if ((m_rcmap_channels_info.use_smart_rc) && (m_rcmap_channels_info.is_valid))
+            {
+                mavlinksdk::CMavlinkCommand::getInstance().ctrlGuidedVelocityInLocalFrame (
+                !m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_pitch]?0:
+                (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_pitch]) / 100.0f,
+                !m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_roll]?0:
+                (rc_chammels_pwm[m_rcmap_channels_info.rcmap_roll] -1500) / 100.0f,
+                !m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_throttle]?0:
+                (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle]) / 100.0f,
+                !m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_yaw]?0:
+                (rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw] - 1500) / 100.0f
+                );
+            }
+            else
+            {
+                mavlinksdk::CMavlinkCommand::getInstance().ctrlGuidedVelocityInLocalFrame (
                 (1500 - rc_chammels_pwm[1]) / 100.0f,
                 (rc_chammels_pwm[0] - 1500) / 100.0f,
                 (1500 - rc_chammels_pwm[2]) / 100.0f,
-                (rc_chammels_pwm[3]-1500)   / 100.0f
-            );
+                (1500 - rc_chammels_pwm[3]) / 100.0f
+                );
+            }
+            
     
         }
         break;
@@ -1321,7 +1448,7 @@ void CFCBMain::updateGeoFenceHitStatus()
 
 
 /**
- * @brief updates RCMAP_CHANNELS_STRUCT with valid values.
+ * @brief updates RCMAP_CHANNELS_MAP_INFO_STRUCT with valid values.
  * @details should be called after parmaters are all uploaded and available.
  * 
  * @callgraph
@@ -1337,19 +1464,19 @@ void CFCBMain::update_rcmap_info()
     
     mavlink_param_value_t rcmap = parameter_manager.getParameterByName("RCMAP_PITCH");
     
-    m_rcmap_channels_info.valid = false;
-    m_rcmap_channels_info.rcmap_pitch = (std::byte) rcmap.param_value;
+    m_rcmap_channels_info.is_valid = false;
+    m_rcmap_channels_info.rcmap_pitch = (uint16_t) rcmap.param_value - 1;
 
     rcmap = parameter_manager.getParameterByName("RCMAP_ROLL");
-    m_rcmap_channels_info.rcmap_roll = (std::byte) rcmap.param_value;
+    m_rcmap_channels_info.rcmap_roll = (uint16_t) rcmap.param_value - 1;
 
     rcmap = parameter_manager.getParameterByName("RCMAP_THROTTLE");
-    m_rcmap_channels_info.rcmap_throttle = (std::byte) rcmap.param_value;
+    m_rcmap_channels_info.rcmap_throttle = (uint16_t) rcmap.param_value - 1;
 
     rcmap = parameter_manager.getParameterByName("RCMAP_YAW");
-    m_rcmap_channels_info.rcmap_yaw = (std::byte) rcmap.param_value;
+    m_rcmap_channels_info.rcmap_yaw = (uint16_t) rcmap.param_value - 1;
     
-    m_rcmap_channels_info.valid = true;
+    m_rcmap_channels_info.is_valid = true;
 
 
 }

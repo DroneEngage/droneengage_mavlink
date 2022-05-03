@@ -315,6 +315,9 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
                 
                 int rc_sub_action = message["b"].get<int>();
                 m_fcbMain.adjustRemoteJoystickByMode((RC_SUB_ACTION)rc_sub_action);
+
+                // update status
+                CFCBFacade::getInstance().sendID(std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
             }
             break;
 
@@ -342,20 +345,29 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
                 if (!validateField(message, "A",Json::value_t::number_unsigned)) return ;
                 if (!validateField(message, "E",Json::value_t::number_unsigned)) return ;
                 
-                int16_t rc_channels[18] = {0};
-                rc_channels[3] = message["R"].get<int>();
-                rc_channels[2] = message["T"].get<int>();
-                rc_channels[0] = message["A"].get<int>();
-                rc_channels[1] = message["E"].get<int>();
-                rc_channels[4] = validateField(message, "w",Json::value_t::number_integer)?message["w"].get<int>():-999;
-                rc_channels[5] = validateField(message, "x",Json::value_t::number_integer)?message["x"].get<int>():-999;
-                rc_channels[6] = validateField(message, "y",Json::value_t::number_integer)?message["y"].get<int>():-999;
-                rc_channels[7] = validateField(message, "z",Json::value_t::number_integer)?message["z"].get<int>():-999;
-
-                for (int i=8;i<18;++i)
+                int16_t rc_channels[18] = {-999};
+                const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map = m_fcbMain.getRCChannelsMapInfo();
+                if ((rc_map.use_smart_rc) && (rc_map.is_valid))
                 {
-                    rc_channels[i] = -999;
+                    rc_channels[rc_map.rcmap_yaw]       = 1000 - message["R"].get<int>(); // to be aligned with default settings of Ardu
+                    rc_channels[rc_map.rcmap_throttle]  = 1000 - message["T"].get<int>();
+                    rc_channels[rc_map.rcmap_roll]      = 1000 - message["A"].get<int>(); // to be aligned with default settings of Ardu
+                    rc_channels[rc_map.rcmap_pitch]     = 1000 - message["E"].get<int>();
+                
                 }
+                else
+                {
+                    rc_channels[3] = 1000 - message["R"].get<int>(); // to be aligned with default settings of Ardu
+                    rc_channels[2] = 1000 - message["T"].get<int>();
+                    rc_channels[0] = 1000 - message["A"].get<int>(); // to be aligned with default settings of Ardu
+                    rc_channels[1] = 1000 - message["E"].get<int>();
+                    rc_channels[4] = validateField(message, "w",Json::value_t::number_integer)?message["w"].get<int>():-999;
+                    rc_channels[5] = validateField(message, "x",Json::value_t::number_integer)?message["x"].get<int>():-999;
+                    rc_channels[6] = validateField(message, "y",Json::value_t::number_integer)?message["y"].get<int>():-999;
+                    rc_channels[7] = validateField(message, "z",Json::value_t::number_integer)?message["z"].get<int>():-999;
+                }
+                
+                
 
                 m_fcbMain.updateRemoteControlChannels(rc_channels);
 
