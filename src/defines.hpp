@@ -18,8 +18,8 @@
 #define DEGREES_TO_RADIANS PI / 180.0f
 #define RADIANS_TO_DEGREES 180.0f / PI
 
-
-#define RCCHANNEL_OVERRIDES_TIMEOUT 3000000
+// 3 seconds timeout
+#define RCCHANNEL_OVERRIDES_TIMEOUT 3000000 
 
 typedef enum ANDRUAV_UNIT_TYPE
 {
@@ -103,6 +103,10 @@ typedef struct ANDRUAV_VEHICLE_INFO
 
     bool                is_rcChannelBlock                   = false; //TODO not implemented
     RC_SUB_ACTION       rc_sub_action                       = RC_SUB_ACTION::RC_SUB_ACTION_RELEASED;
+    /**
+     * @brief if true then channl override is active
+     * 
+     */
     bool                rc_command_active                   = false;      
     u_int64_t           rc_command_last_update_time         = 0l;    
     int16_t             rc_channels[18]                     = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};

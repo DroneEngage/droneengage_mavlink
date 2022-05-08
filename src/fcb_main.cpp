@@ -949,7 +949,10 @@ void CFCBMain::calculateChannels(const int16_t scaled_channels[18], const bool i
     }
 }
 
-
+/**
+ * @brief disable rcchennel override and sends zero to all 18 channels of ardupilot.
+ * @callgraph
+ */
 void CFCBMain::releaseRemoteControl()
 {
     if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_RELEASED) return ;
@@ -1133,7 +1136,7 @@ void CFCBMain::adjustRemoteJoystickByMode (RC_SUB_ACTION rc_sub_action)
 }
 
 /**
- * @brief 
+ * @brief called by external gcs to apply channel values.
  * 
  * @param rc_channels values from [-500,500] ... -1 meanse release channel.
  */
