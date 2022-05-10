@@ -342,12 +342,12 @@ void CFCBMain::loopScheduler ()
 
         if (m_counter%10 ==0)
         {   // each 100 msec
-            remoteControlSignal();
+            
         }
 
         if (m_counter%30 ==0)
         {   // each 300 msec
-            
+            remoteControlSignal();
         }
 
         if (m_counter%50 == 0)
@@ -1061,6 +1061,7 @@ void CFCBMain::enableRemoteControl()
     m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
     m_andruav_vehicle_info.rc_command_active = false;  // remote control data will enable it                   
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS;
+    memset(m_andruav_vehicle_info.rc_channels, 0, 18 * sizeof(int16_t)); //zero values. RC channels will be sent later
     
     m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Joystick Mode"));
 }
@@ -1117,13 +1118,11 @@ void CFCBMain::adjustRemoteJoystickByMode (RC_SUB_ACTION rc_sub_action)
         {
             if (m_andruav_vehicle_info.flying_mode == VEHICLE_MODE_GUIDED)
             {
-                //if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS)
-                    enableRemoteControlGuided();
+                enableRemoteControlGuided();
             }
             else
             {
-                //if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED)
-                    enableRemoteControl();
+                enableRemoteControl();
             }
 
         }
@@ -1174,11 +1173,8 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
             
             if (m_rcmap_channels_info.use_smart_rc == true)
             {
-                for (int i=0; i<18; ++i)
-                {
-                    m_andruav_vehicle_info.rc_channels[i] = 0; 
-                }
-
+                
+                //memset(m_andruav_vehicle_info.rc_channels, 0, 18 * sizeof(int16_t));
                 m_andruav_vehicle_info.rc_channels[m_rcmap_channels_info.rcmap_pitch] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_pitch]; 
                 m_andruav_vehicle_info.rc_channels[m_rcmap_channels_info.rcmap_roll] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_roll]; 
                 m_andruav_vehicle_info.rc_channels[m_rcmap_channels_info.rcmap_throttle] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle]; 
