@@ -105,7 +105,7 @@ bool CFCBMain::init ()
     uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
     m_jsonConfig = cConfigFile.GetConfigJSON();
     
-    initVehicleChannelLimits();
+    initVehicleChannelLimits(true);
     m_mavlink_optimizer.init (m_jsonConfig["message_timeouts"]);
     m_mavlink_optimizer.setOptimizationLevel(m_jsonConfig["default_optimization_level"].get<int>());
     
@@ -146,13 +146,27 @@ bool CFCBMain::uninit ()
     return true;
 }
 
-void CFCBMain::initVehicleChannelLimits()
+void CFCBMain::initVehicleChannelLimits(const bool display)
 {
     uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
     cConfigFile.reloadFile();
     m_jsonConfig = cConfigFile.GetConfigJSON();
     
-    
+    if (m_jsonConfig.contains("rc_block_channel"))
+    {
+        m_andruav_vehicle_info.rc_block_channel = m_jsonConfig["rc_block_channel"].get<int>();
+
+        if (display)
+        {
+            std::cout << _LOG_CONSOLE_TEXT << "RC Blocking is enabled at channel: " << _INFO_CONSOLE_TEXT << std::to_string(m_andruav_vehicle_info.rc_block_channel) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        }
+        
+        
+    }
+    else
+    {
+        m_andruav_vehicle_info.rc_block_channel = -1;
+    }
     
     if (!m_jsonConfig.contains("rc_channels")
         || !m_jsonConfig["rc_channels"].contains("rc_channel_enabled")
@@ -160,8 +174,21 @@ void CFCBMain::initVehicleChannelLimits()
         || !m_jsonConfig["rc_channels"].contains("rc_channel_limits_max")
         || !m_jsonConfig["rc_channels"].contains("rc_channel_limits_min"))
     {
-        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "RC Channels rc_channel_enabled, rc_channel_reverse, rc_channel_limits_max or rc_channel_limits_min not found" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        raise(SIGABRT);
+       if (display)
+        {
+            std::cout << _INFO_CONSOLE_BOLD_TEXT << "RC Channels are not defined." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << _INFO_CONSOLE_TEXT << "..... Assuming default values." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << _INFO_CONSOLE_TEXT << "..... Please define values for safety." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        }
+        
+        m_rcmap_channels_info.use_smart_rc = true;
+        memset (m_andruav_vehicle_info.rc_channels_enabled, true,18*sizeof(bool));
+        memset (m_andruav_vehicle_info.rc_channels_reverse, false,18*sizeof(bool));
+        memset (m_andruav_vehicle_info.rc_channels_min, (int16_t)1000,18*sizeof(int16_t));
+        memset (m_andruav_vehicle_info.rc_channels_max, (int16_t)2000,18*sizeof(int16_t));
+        
+
+        return ;
     }
     
     
@@ -363,41 +390,41 @@ void CFCBMain::loopScheduler ()
         if (m_counter %100 ==0)
         {
             // each second
-         
+            checkBlockedStatus();
+        } 
             // .................
 
-            if (this->m_counter_sec % 2 ==0)
-            {// 2 sec
+        if (this->m_counter_sec % 200 ==0)
+        {   // 2 sec
 
-                // update ranges dynamically.
-                initVehicleChannelLimits();
-            }
+            // update ranges dynamically.
+            initVehicleChannelLimits(false);
+        }
 
-            if (m_counter_sec % 5 ==0)
-            {// 5 sec
-                m_fcb_facade.sendPowerInfo(std::string());
-                bool fcb_connected = mavlinksdk::CVehicle::getInstance().isFCBConnected();
+        if (m_counter_sec % 500 ==0)
+        {   // 5 sec
+            m_fcb_facade.sendPowerInfo(std::string());
+            bool fcb_connected = mavlinksdk::CVehicle::getInstance().isFCBConnected();
 
-                if (fcb_connected != m_fcb_connected)
-                {
-                   m_fcb_connected = fcb_connected;
-                   m_fcb_facade.sendID(std::string());
-                }
-    
-            }
-
-            if (m_counter_sec % 10 ==0)
-            {// 10 sec
+            if (fcb_connected != m_fcb_connected)
+            {
+                m_fcb_connected = fcb_connected;
                 m_fcb_facade.sendID(std::string());
             }
-
-            if (m_counter_sec % 15 ==0)
-            {// 15 sec
-            
-            }
-
-            m_counter_sec++;
         }
+
+        if (m_counter_sec % 1000 ==0)
+        {   // 10 sec
+            m_fcb_facade.sendID(std::string());
+        }
+
+        if (m_counter_sec % 1500 ==0)
+        {   // 15 sec
+            
+        }
+
+        m_counter_sec++;
+        
     }
 
     return ;
@@ -1476,6 +1503,38 @@ void CFCBMain::update_rcmap_info()
     m_rcmap_channels_info.rcmap_yaw = (uint16_t) rcmap.param_value - 1;
     
     m_rcmap_channels_info.is_valid = true;
+}
 
+void CFCBMain::checkBlockedStatus()
+{
+    // check if blocking channel is defined.
+    if (m_andruav_vehicle_info.rc_block_channel == -1) return ;
+    
+    const mavlink_rc_channels_t& mavlink_rc_channels = mavlinksdk::CVehicle::getInstance().getRCChannels();
+
+    uint16_t *channel = (uint16_t *)&mavlink_rc_channels;    
+    
+    // move channel pointer to defined channel
+    channel += (1+ m_andruav_vehicle_info.rc_block_channel) ;
+
+    const bool is_gcs_blocked = (*channel > 1800);
+    
+    if (m_andruav_vehicle_info.is_gcs_blocked != is_gcs_blocked)
+    {
+        m_andruav_vehicle_info.is_gcs_blocked = is_gcs_blocked;
+
+        std::string msg = "GCS is in Control.";
+        if (is_gcs_blocked) 
+        {
+            releaseRemoteControl();
+            //TODO: release from swarm.
+            msg = "GCS is Blocked.";
+        }
+
+        m_fcb_facade.sendID(std::string());
+        
+        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, msg);
+
+    }
 
 }

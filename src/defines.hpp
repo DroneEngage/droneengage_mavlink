@@ -114,7 +114,7 @@ typedef struct ANDRUAV_VEHICLE_INFO
     int16_t             rc_channels_max[18]                 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     bool                rc_channels_enabled[18];
     bool                rc_channels_reverse[18];
-
+    short               rc_block_channel                    =-1; // disabled
 }   ANDRUAV_VEHICLE_INFO;
 
 

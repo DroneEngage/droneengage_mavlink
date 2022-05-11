@@ -38,6 +38,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_Arm:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 // A  : bool arm/disarm
                 // [D]: bool force 
                 if (!validateField(message, "A", Json::value_t::boolean)) return ;
@@ -56,6 +58,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_FlightControl:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 // F  : andruav unit mode
                 // [g]: longitude
                 // [a]: latitude
@@ -79,9 +83,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_ChangeAltitude:
             {
-                #ifdef DEBUG
-                    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: TYPE_AndruavMessage_ChangeAltitude " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                #endif
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 // a : altitude 
                 if ((!validateField(message, "a", Json::value_t::number_float)) 
                 && (!validateField(message, "a", Json::value_t::number_unsigned)))
@@ -103,6 +106,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_Land:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 //TODO: could be included in change mode.
 
                 int ardupilot_mode = CFCBModes::getArduPilotMode(VEHICLE_MODE_LAND, m_fcbMain.getAndruavVehicleInfo().vehicle_type);
@@ -118,6 +123,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_GuidedPoint:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 //  a : latitude
                 //  g : longitude
                 // [l]: altitude
@@ -150,6 +157,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_SET_HOME_LOCATION:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 // T: latitude
                 // O: longitude
                 // A: altitude
@@ -171,6 +180,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_DoYAW:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 // A : target_angle
                 // R : turn_rate
                 // C : is_clock_wise
@@ -195,6 +206,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_ChangeSpeed:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 // a : speed
                 // b : is_ground_speed
                 // c : throttle
@@ -221,6 +234,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_UploadWayPoints:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 //TODO: you should allow multiple messages to allow large file to be received.
                 // !UDP packet has maximum size.
                 
@@ -292,6 +307,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_ServoChannel:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 // n : servo_channel
                 // v : servo_value
 
@@ -309,6 +326,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_RemoteControlSettings:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 // b: remote control setting
                 
                 if (!validateField(message, "b",Json::value_t::number_unsigned)) return ;
@@ -331,6 +350,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_RemoteControl2:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 // value: [0,1000] IMPORTANT: -999 means channel release
                 // 'R': Rudder
                 // 'T': Throttle
@@ -374,7 +395,11 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
             }
 
             case TYPE_AndruavMessage_LightTelemetry:
-            {   // this is a binary message
+            {   
+                
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
+                // this is a binary message
                 // search for char '0' and then binary message is the next byte after it.
                 if (!is_binary)
                 {
@@ -400,7 +425,11 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
             break;
 
             case TYPE_AndruavMessage_MAVLINK:
-            {   // this is a binary message
+            {   
+                
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
+                // this is a binary message
                 // search for char '0' and then binary message is the next byte after it.
                 const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
                 int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1) );
@@ -422,6 +451,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_MAKE_SWARM:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 // a: formationID
                 // b: partyID
                 // if (b:partyID) is not me then treat it as an announcement.
@@ -443,6 +474,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_FollowHim_Request:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 // a: slave index    
                 // b: leader partyID - if null the unfollow
                 // c: slave partyID
@@ -475,6 +508,8 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
             case TYPE_AndruavMessage_UpdateSwarm:
             {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
                 /*
                     a: action [SWARM_UPDATED, SWARM_DELETE]
                     b: slave index [mandatory with SWARM_UPDATED]

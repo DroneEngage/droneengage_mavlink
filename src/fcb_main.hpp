@@ -211,7 +211,7 @@ namespace fcb
         public:
             
         private: 
-            void initVehicleChannelLimits();
+            void initVehicleChannelLimits(const bool display);
      
         private:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
@@ -226,7 +226,8 @@ namespace fcb
             void takeActionOnFenceViolation(uavos::fcb::geofence::CGeoFenceBase * geo_fence);
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
             void update_rcmap_info();
-            
+            void checkBlockedStatus();
+
         private:
             Json m_jsonConfig;
             int m_connection_type;
