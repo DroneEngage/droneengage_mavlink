@@ -1239,7 +1239,7 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
                 !m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_throttle]?0:
                 (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle]) / 100.0f,
                 !m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_yaw]?0:
-                (rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw] - 1500) / 100.0f
+                (rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw] - 1500) / 1000.0f
                 );
             }
             else
