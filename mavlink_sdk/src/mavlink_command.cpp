@@ -9,6 +9,20 @@
 using namespace mavlinksdk;
 
 
+/**
+ * @brief sens long command up to seven params.
+ * @see https://mavlink.io/en/services/command.html
+ * 
+ * @param command 
+ * @param confirmation 
+ * @param param1 
+ * @param param2 
+ * @param param3 
+ * @param param4 
+ * @param param5 
+ * @param param6 
+ * @param param7 
+ */
 void CMavlinkCommand::sendLongCommand (const uint16_t& command,
 				const bool& confirmation,
                 const float& param1,
@@ -60,9 +74,12 @@ void CMavlinkCommand::sendNative(const mavlink_message_t mavlink_message) const
 }
 
 /**
- * https://mavlink.io/en/messages/common.html#MAV_CMD_COMPONENT_ARM_DISARM
+ * @brief Arm & Disarm with/out force.
+ * @see https://mavlink.io/en/messages/common.html#MAV_CMD_COMPONENT_ARM_DISARM
+ * @param arm 
+ * @param force 
  */
-void CMavlinkCommand::doArmDisarm (const bool& arm, const bool& force)  const
+ void CMavlinkCommand::doArmDisarm (const bool& arm, const bool& force)  const
 {
 
     float forceArm = 0;
@@ -119,7 +136,7 @@ void CMavlinkCommand::doSetMode (const int& mode)  const
 void CMavlinkCommand::setHome (const float& yaw, const float& latitude, const float& longitude, const float& altitude)  const
 {
     sendLongCommand (MAV_CMD_DO_SET_HOME, false,
-		0,  // use specified location
+		0,  // use specified location . if 1 then use current location.
 		0,  // unused
 		0,  // unused
 		yaw,
@@ -149,7 +166,11 @@ void CMavlinkCommand::resetROI () const
     setROI(0,0,0);
 }
 
-
+/**
+ * @brief Flight termination immediately and irreversably terminates the current flight.
+ * @see https://mavlink.io/en/messages/common.html#MAV_CMD_DO_FLIGHTTERMINATION
+ * 
+ */
 void CMavlinkCommand::cmdTerminateFlight () const
 {
     sendLongCommand (MAV_CMD_DO_FLIGHTTERMINATION, false,
@@ -158,11 +179,28 @@ void CMavlinkCommand::cmdTerminateFlight () const
 	return ;
 }
 
+
+/**
+ * @brief change altitude by calling Guided mode with target point and new altitude.
+ * @details altitude will increase or decrease along the way to the target. 
+ * If you want instant change then you need to change the altitude in the current point then move to target.
+ * @param altitude 
+ */
 void CMavlinkCommand::changeAltitude (const float& altitude) const
 {
-	const mavlink_global_position_int_t& mavlink_global_position_int = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt();
+
+	switch (mavlinksdk::CVehicle::getInstance().getFirmwareType())
+	{
+		default:
+			const mavlink_position_target_global_int_t& mavlink_global_position_int = mavlinksdk::CVehicle::getInstance().getMsgTargetPositionGlobalInt();
 	
-	gotoGuidedPoint(mavlink_global_position_int.lat / 10000000.0f, mavlink_global_position_int.lon / 10000000.0f, altitude );
+			gotoGuidedPoint(mavlink_global_position_int.lat_int / 10000000.0f, mavlink_global_position_int.lon_int / 10000000.0f, altitude );
+
+
+		break;
+	}
+	
+	
 }
 
 /**
@@ -203,7 +241,7 @@ void CMavlinkCommand::gotoGuidedPoint (const double& latitude, const double& lon
 // 					POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_VY_IGNORE |
 // 					POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_VZ_IGNORE ;
 					
-//     msg.coordinate_frame = MAV_FRAME::MAV_FRAME_GLOBAL_RELATIVE_ALT_INT;
+//  msg.coordinate_frame = MAV_FRAME::MAV_FRAME_GLOBAL_RELATIVE_ALT_INT;
 // 	msg.lat_int 		 = (float) latitude;
 // 	msg.lon_int 		 = (float) longitude;
 // 	msg.alt 			 = (float) altitude;
@@ -220,7 +258,7 @@ void CMavlinkCommand::gotoGuidedPoint (const double& latitude, const double& lon
 	mavlink_mission_item_t msg = {0};
 	msg.target_system    = mavlink_sdk.getSysId();
 	msg.target_component = mavlink_sdk.getCompId();
-	msg.seq = 110;
+	//msg.seq = 110;
     msg.current = 2; // TODO use guided mode enum
     msg.frame = MAV_FRAME::MAV_FRAME_GLOBAL_RELATIVE_ALT;
     msg.command = MAV_CMD::MAV_CMD_NAV_WAYPOINT; //

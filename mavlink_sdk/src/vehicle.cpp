@@ -45,7 +45,6 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	{  // Notify that we have something alive here.
 		m_heart_beat_first_recieved = true;
 		m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
-		//m_reading_parameters_status = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_NONE;
 		m_callback_vehicle->OnHeartBeat_First (heartbeat);
 	}
 	else 
