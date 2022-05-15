@@ -87,9 +87,9 @@
     { 
       "active": true, // if active not specified then it is assumed active by default.
       
-      // ROLL - PITCH _ THR _ YAW regardless of actual settings on ardupilot 
-      "rc_channel_enabled": [1, 1, 1, 1], // optioan
-      "rc_channel_limits_max": [1991,1992,1750,2000], // optional if not exist then global rc_channel_limits_max are used
+      // ROLL - PITCH - THR - YAW regardless of actual settings on ardupilot 
+      "rc_channel_enabled": [1, 1, 1, 1], // optional
+      "rc_channel_limits_max": [2000,2000,1750,2000], // optional if not exist then global rc_channel_limits_max are used
       "rc_channel_limits_min": [1000,1000,1300,1000]  // optional if not exist then global rc_channel_limits_min are used
     },
     "rc_channel_enabled": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],

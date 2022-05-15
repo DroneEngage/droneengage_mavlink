@@ -20,6 +20,7 @@
 
 // 3 seconds timeout
 #define RCCHANNEL_OVERRIDES_TIMEOUT 3000000 
+#define BLOCKING_CHANNEL_HIGH_ACTIVE_PWM 1800
 
 typedef enum ANDRUAV_UNIT_TYPE
 {

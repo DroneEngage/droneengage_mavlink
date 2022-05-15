@@ -238,7 +238,7 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
 
         if ((m_rcmap_channels_info.use_smart_rc == true) && (m_rcmap_channels_info.is_valid))
         {
-            // readjust rcmapped channels
+            // re-adjust rcmapped channels
             if (rc_channels["rc_smart_channels"].contains("rc_channel_limits_max"))
             {
                 values = rc_channels["rc_smart_channels"]["rc_channel_limits_max"];
@@ -960,15 +960,14 @@ void CFCBMain::calculateChannels(const int16_t scaled_channels[18], const bool i
         }
 
         // Limit Min Max
-        const int min_value = 1500 - m_andruav_vehicle_info.rc_channels_min[i];
-        const int max_value = m_andruav_vehicle_info.rc_channels_max[i] - 1500;
-
         if (scaled_channel <=0)
         {
+            const int min_value = 1500 - m_andruav_vehicle_info.rc_channels_min[i];
             output[i] = int (min_value / 500.0f * scaled_channel);
         }
         else
         {
+            const int max_value = m_andruav_vehicle_info.rc_channels_max[i] - 1500;
             output[i] = int (max_value / 500.0f * scaled_channel);
         }
 
@@ -1246,13 +1245,11 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
             {
                 mavlinksdk::CMavlinkCommand::getInstance().ctrlGuidedVelocityInLocalFrame (
                 (1500 - rc_chammels_pwm[1]) / 100.0f,
-                (rc_chammels_pwm[0] - 1500) / 100.0f,
+                (1500 - rc_chammels_pwm[0]) / 100.0f,
                 (1500 - rc_chammels_pwm[2]) / 100.0f,
                 (1500 - rc_chammels_pwm[3]) / 100.0f
                 );
             }
-            
-    
         }
         break;
     }
@@ -1517,7 +1514,7 @@ void CFCBMain::checkBlockedStatus()
     // move channel pointer to defined channel
     channel += (1+ m_andruav_vehicle_info.rc_block_channel) ;
 
-    const bool is_gcs_blocked = (*channel > 1800);
+    const bool is_gcs_blocked = (*channel > BLOCKING_CHANNEL_HIGH_ACTIVE_PWM);
     
     if (m_andruav_vehicle_info.is_gcs_blocked != is_gcs_blocked)
     {
