@@ -194,7 +194,7 @@ namespace fcb
             void OnArmed (const bool& armed) override;
             void OnFlying (const bool& isFlying) override;
             void OnStatusText (const std::uint8_t& severity, const std::string& status) override;
-            void OnModeChanges(const int& custom_mode, const int& firmware_type) override;
+            void OnModeChanges(const uint32_t& custom_mode, const int& firmware_type, const MAV_AUTOPILOT& autopilot) override;
             void OnHomePositionUpdated(const mavlink_home_position_t& home_position)  override;
             void OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw)  override;
             void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)override;

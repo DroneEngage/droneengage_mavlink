@@ -27,7 +27,7 @@ namespace mavlinksdk
         /*
         * vehicle_mode = mavlinksdk::CMavlinkHelper::getMode (m_heartbeat.custom_mode, m_firmware_type)
         * */
-        virtual void OnModeChanges(const int& custom_mode, const int& firmware_type)                                    {};
+        virtual void OnModeChanges(const uint32_t& custom_mode, const int& firmware_type, const MAV_AUTOPILOT& autopilot)    {};
         virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)                                {};
         virtual void OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw)                               {};
  

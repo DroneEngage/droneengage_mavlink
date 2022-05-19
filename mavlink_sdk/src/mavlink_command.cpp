@@ -114,13 +114,13 @@ void CMavlinkCommand::sendNative(const mavlink_message_t mavlink_message) const
  * 
  * @param mode depends on vehicle and firmware_type.
  */
-void CMavlinkCommand::doSetMode (const int& mode)  const
+void CMavlinkCommand::doSetMode (const int& mode, const int& custom_mode, const int& custom_sub_mode)  const
 {
     
 	sendLongCommand (MAV_CMD_DO_SET_MODE, true,
-		(float) 1.0f, 
 		(float) mode,
-		(float) 0.0f);
+		(float) custom_mode,
+		(float) custom_sub_mode);
 
 	return ;
 }
@@ -189,17 +189,9 @@ void CMavlinkCommand::cmdTerminateFlight () const
 void CMavlinkCommand::changeAltitude (const float& altitude) const
 {
 
-	switch (mavlinksdk::CVehicle::getInstance().getFirmwareType())
-	{
-		default:
-			const mavlink_position_target_global_int_t& mavlink_global_position_int = mavlinksdk::CVehicle::getInstance().getMsgTargetPositionGlobalInt();
+	const mavlink_position_target_global_int_t& mavlink_global_position_int = mavlinksdk::CVehicle::getInstance().getMsgTargetPositionGlobalInt();
 	
-			gotoGuidedPoint(mavlink_global_position_int.lat_int / 10000000.0f, mavlink_global_position_int.lon_int / 10000000.0f, altitude );
-
-
-		break;
-	}
-	
+	gotoGuidedPoint(mavlink_global_position_int.lat_int / 10000000.0f, mavlink_global_position_int.lon_int / 10000000.0f, altitude );
 	
 }
 

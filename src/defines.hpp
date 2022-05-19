@@ -3,6 +3,7 @@
 
 
 #include <iostream>
+#include <common/mavlink.h>
 
 #define CONNECTION_TYPE_SERIAL  1
 #define CONNECTION_TYPE_UDP     2
@@ -30,7 +31,7 @@ typedef enum ANDRUAV_UNIT_TYPE
         VEHICLE_TYPE_PLANE      = 3,
         VEHICLE_TYPE_ROVER      = 4,
         VEHICLE_TYPE_HELI       = 5,        
-        VEHICLE_TYPE_SUBMARINE  =12,
+        VEHICLE_TYPE_SUBMARINE  = 12,
         // no used here ... only for refence
         VEHICLE_TYPE_GIMBAL     = 15,
         VEHICLE_TYPE_GCS = 999
@@ -39,32 +40,49 @@ typedef enum ANDRUAV_UNIT_TYPE
 
 typedef enum ANDRUAV_UNIT_MODE 
 {
-    VEHICLE_MODE_RTL                = 2,
-    VEHICLE_MODE_FOLLOW_ME          = 3,
-    VEHICLE_MODE_AUTO               = 5,
-    VEHICLE_MODE_STABILIZE          = 6,
-    VEHICLE_MODE_ALT_HOLD           = 7,
-    VEHICLE_MODE_MANUAL             = 8,
-    VEHICLE_MODE_GUIDED             = 9,
-    VEHICLE_MODE_LOITER             = 10,
-    VEHICLE_MODE_POS_HOLD           = 11,
-    VEHICLE_MODE_LAND               = 12,
-    VEHICLE_MODE_CIRCLE             = 13,
-    VEHICLE_MODE_FBWA               = 14,
-    VEHICLE_MODE_CRUISE             = 15,
-    VEHICLE_MODE_FBWB               = 16,
-    VEHICLE_MODE_BRAKE              = 17,
-    VEHICLE_MODE_SMART_RTL          = 21,
-    VEHICLE_MODE_TAKEOFF            = 22,
-    VEHICLE_MODE_QHOVER        		= 23,
-    VEHICLE_MODE_QLOITER       		= 24,
-    VEHICLE_MODE_QSTABILIZE    		= 25,
-    VEHICLE_MODE_QLAND         		= 26,
-    VEHICLE_MODE_QRTL          		= 27,
-    VEHICLE_MODE_INITALIZING        = 99,
-    VEHICLE_MODE_SURFACE            = 101,
-    VEHICLE_MODE_MOTOR_DETECT       = 102,
-    VEHICLE_MODE_UNKNOWN            = 999,
+    VEHICLE_MODE_RTL                        = 2,
+    VEHICLE_MODE_FOLLOW_ME                  = 3,
+    VEHICLE_MODE_AUTO                       = 5,
+    VEHICLE_MODE_STABILIZE                  = 6,
+    VEHICLE_MODE_ALT_HOLD                   = 7,
+    VEHICLE_MODE_MANUAL                     = 8,
+    VEHICLE_MODE_GUIDED                     = 9,
+    VEHICLE_MODE_LOITER                     = 10,
+    VEHICLE_MODE_POS_HOLD                   = 11,
+    VEHICLE_MODE_LAND                       = 12,
+    VEHICLE_MODE_CIRCLE                     = 13,
+    VEHICLE_MODE_FBWA                       = 14,
+    VEHICLE_MODE_CRUISE                     = 15,
+    VEHICLE_MODE_FBWB                       = 16,
+    VEHICLE_MODE_BRAKE                      = 17,
+    VEHICLE_MODE_SMART_RTL                  = 21,
+    VEHICLE_MODE_TAKEOFF                    = 22,
+    VEHICLE_MODE_QHOVER        		        = 23,
+    VEHICLE_MODE_QLOITER       		        = 24,
+    VEHICLE_MODE_QSTABILIZE    		        = 25,
+    VEHICLE_MODE_QLAND         		        = 26,
+    VEHICLE_MODE_QRTL          		        = 27,
+    VEHICLE_MODE_INITALIZING                = 99,
+    VEHICLE_MODE_SURFACE                    = 101,
+    VEHICLE_MODE_MOTOR_DETECT               = 102,
+    // PX4 Modes
+    VEHICLE_MODE_PX4_MANUAL                 = 200,
+    VEHICLE_MODE_PX4_ALT_HOLD               = 201,
+    VEHICLE_MODE_PX4_AUTO_TAKEOFF           = 202,
+    VEHICLE_MODE_PX4_AUTO_MISSION           = 203,
+    VEHICLE_MODE_PX4_AUTO_HOLD              = 204,
+    VEHICLE_MODE_PX4_AUTO_RTL               = 205,
+    VEHICLE_MODE_PX4_AUTO_LAND              = 206,
+    VEHICLE_MODE_PX4_AUTO_FOLLOW_TARGET     = 207,
+    VEHICLE_MODE_PX4_AUTO_PRECLAND          = 208,
+    VEHICLE_MODE_PX4_AUTO_VTOL_TAKEOFF      = 209,
+    VEHICLE_MODE_PX4_ACRO                   = 210,
+    VEHICLE_MODE_PX4_STABILIZE              = 211,
+    VEHICLE_MODE_PX4_OFF_BORAD              = 212,
+    VEHICLE_MODE_PX4_RATTITUDE              = 213,
+    VEHICLE_MODE_PX4_POSCTL_POSCTL          = 214,
+    VEHICLE_MODE_PX4_POSCTL_ORBIT           = 215,
+    VEHICLE_MODE_UNKNOWN                    = 999,
     
     
 } ANDRUAV_UNIT_MODE ;
@@ -99,7 +117,8 @@ typedef struct ANDRUAV_VEHICLE_INFO
     u_int64_t           flying_total_duration               = 0; // total flight duration
     u_int64_t           flying_last_start_time              = 0; // duration of the current or latest flight
     int16_t             vehicle_type                        = 0;
-
+    // Firmware Type [QuadCopter, Plane, Rover ..etc.]
+    uint8_t             autopilot                           = MAV_AUTOPILOT::MAV_AUTOPILOT_GENERIC;
     int16_t             current_waypoint                    = 0;         
 
     bool                is_rcChannelBlock                   = false; //TODO not implemented
@@ -116,6 +135,8 @@ typedef struct ANDRUAV_VEHICLE_INFO
     bool                rc_channels_enabled[18];
     bool                rc_channels_reverse[18];
     short               rc_block_channel                    =-1; // disabled
+
+    
 }   ANDRUAV_VEHICLE_INFO;
 
 

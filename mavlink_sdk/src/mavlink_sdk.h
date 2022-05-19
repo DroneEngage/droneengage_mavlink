@@ -176,9 +176,9 @@ namespace mavlinksdk
                 m_mavlink_events->OnStatusText (severity, status);
             };
             
-            inline void OnModeChanges(const int& custom_mode, const int& firmware_type)  override
+            inline void OnModeChanges(const uint32_t& custom_mode, const int& firmware_type, const MAV_AUTOPILOT& autopilot)  override
             {
-                m_mavlink_events->OnModeChanges (custom_mode, firmware_type);
+                m_mavlink_events->OnModeChanges (custom_mode, firmware_type, autopilot);
             };
 
             inline void OnHomePositionUpdated(const mavlink_home_position_t& home_position)  override

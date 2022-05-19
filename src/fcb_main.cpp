@@ -325,8 +325,17 @@ void CFCBMain::remoteControlSignal ()
                     releaseRemoteControl();
                     
                     // if RC Timeout then switch to brake or equivelant mode.
-                    const int ardupilot_mode = CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type);
-                    mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
+                    uint32_t ardupilot_mode, ardupilot_custom_mode;
+                    //TODO: VEHICLE_MODE_BRAKE mode should be generalized to work on different autopilot types.
+                    CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type, ardupilot_mode , ardupilot_custom_mode);
+                    if (ardupilot_mode == E_UNDEFINED_MODE)
+                    {   
+                        //TODO: Send Error Message
+                        return ;
+                    }
+
+                    mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode);
+
                 }
                 return ;
             }
@@ -342,9 +351,16 @@ void CFCBMain::remoteControlSignal ()
                 releaseRemoteControl();
                 
                 // if RC Timeout then switch to brake or equivelant mode.
-                const int ardupilot_mode = CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type);
-                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
-                
+                uint32_t ardupilot_mode, ardupilot_custom_mode;
+                //TODO: VEHICLE_MODE_BRAKE mode should be generalized to work on different autopilot types.
+                CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type, ardupilot_mode , ardupilot_custom_mode);
+                if (ardupilot_mode == E_UNDEFINED_MODE)
+                {   
+                    //TODO: Send Error Message
+                    return ;
+                }
+
+                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode);
                 return ;
             }
 
@@ -551,8 +567,8 @@ void CFCBMain::OnHeartBeat ()
  */
 void CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)
 {
-    
-    m_andruav_vehicle_info.vehicle_type = CFCBModes::getAndruavVehicleType (heartbeat.type, heartbeat.autopilot);
+    m_andruav_vehicle_info.vehicle_type = CFCBModes::getAndruavVehicleType (heartbeat.type);
+    m_andruav_vehicle_info.autopilot = heartbeat.autopilot;
 
     m_andruav_vehicle_info.gps_mode =  GPS_MODE_FCB;
 
@@ -561,17 +577,16 @@ void CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)
     // request home location
     mavlinksdk::CMavlinkCommand::getInstance().requestHomeLocation();
     
-    
     return ;
 }
 
 
 void CFCBMain::OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)
 {
-    m_andruav_vehicle_info.vehicle_type = CFCBModes::getAndruavVehicleType (heartbeat.type, heartbeat.autopilot);
-
-    m_fcb_facade.sendID(std::string());
+    m_andruav_vehicle_info.vehicle_type = CFCBModes::getAndruavVehicleType (heartbeat.type);
+    m_andruav_vehicle_info.autopilot = heartbeat.autopilot;
     
+    m_fcb_facade.sendID(std::string());
     
     return ;
 }
@@ -765,10 +780,10 @@ void CFCBMain::OnACK (const int& acknowledged_cmd, const int& result, const std:
 }
 
  
-void CFCBMain::OnModeChanges(const int& custom_mode, const int& firmware_type)
+void CFCBMain::OnModeChanges(const uint32_t& custom_mode, const int& firmware_type, const MAV_AUTOPILOT& autopilot)
 {
     
-    m_andruav_vehicle_info.flying_mode = CFCBModes::getAndruavMode (custom_mode, m_andruav_vehicle_info.vehicle_type);
+    m_andruav_vehicle_info.flying_mode = CFCBModes::getAndruavMode (custom_mode, firmware_type, autopilot);
     adjustRemoteJoystickByMode(m_andruav_vehicle_info.rc_sub_action);
     m_fcb_facade.sendID(std::string());
 
@@ -1373,15 +1388,16 @@ void CFCBMain::takeActionOnFenceViolation(uavos::fcb::geofence::CGeoFenceBase * 
         case CONST_FENCE_ACTION_BRAKE:
         case CONST_FENCE_ACTION_SMART_RTL:
         {
-            const int ardupilot_mode = CFCBModes::getArduPilotMode(fence_action, getAndruavVehicleInfo().vehicle_type);
+            uint32_t ardupilot_mode, ardupilot_custom_mode;
+            //TODO: fence_action mode should be generalized to work on different autopilot types.
+            CFCBModes::getArduPilotMode(fence_action, m_andruav_vehicle_info.vehicle_type, ardupilot_mode , ardupilot_custom_mode);
             if (ardupilot_mode == E_UNDEFINED_MODE)
             {   
                 //TODO: Send Error Message
                 return ;
             }
 
-            mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode);
-            
+            mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode);
             return ;
         }
         break;

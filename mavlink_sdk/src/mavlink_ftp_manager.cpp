@@ -2,7 +2,6 @@
 
 
 #include "./helpers/colors.h"
-#include "mavlink_helper.h"
 #include "mavlink_command.h"
 #include "mavlink_sdk.h"
 #include "mavlink_ftp_manager.h"

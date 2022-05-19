@@ -53,7 +53,7 @@ namespace mavlinksdk
         virtual void OnFlying (const bool& isFlying)                                                                                    {};
         virtual void OnACK (const int& acknowledged_cmd, const int& result, const std::string& result_msg)                              {};
         virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)                                             {};
-        virtual void OnModeChanges(const int& custom_mode, const int& firmware_type)                                                    {};
+        virtual void OnModeChanges(const uint32_t& custom_mode, const int& firmware_type, const MAV_AUTOPILOT& autopilot)               {};
         virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)                                                {};
         virtual void OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw)                                               {};
     };
@@ -112,11 +112,6 @@ namespace mavlinksdk
         // Vechile Methods
         public:
             const bool isFCBConnected() const;
-
-            const mavlinksdk::FIRMWARE_TYPE getFirmwareType()
-            {
-                return m_firmware_type;
-            }
 
             const bool isArmed()
             {
@@ -278,8 +273,7 @@ namespace mavlinksdk
             bool m_armed     = false;
             // Flying or Diving => Armed Ready to take-off. It is not necessary physically flying
             bool m_is_flying = false;
-            // Firmware Type
-            mavlinksdk::FIRMWARE_TYPE m_firmware_type = FIRMWARE_TYPE_UNKNOWN;
+            
 
     };
 }

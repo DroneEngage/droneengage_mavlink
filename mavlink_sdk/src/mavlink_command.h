@@ -45,7 +45,7 @@ class CMavlinkCommand
 
     public:
         
-        void doSetMode   (const int& mode)  const;
+        void doSetMode   (const int& mode, const int& custom_mode=0, const int& custom_sub_mode=0)  const;
         void doArmDisarm (const bool& arm, const bool& force)  const;
             
         void setHome (const float& yaw, const float& latitude, const float& longitude, const float& altitude) const;

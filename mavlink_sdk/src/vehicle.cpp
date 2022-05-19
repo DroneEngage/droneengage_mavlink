@@ -44,13 +44,11 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	if (m_heart_beat_first_recieved == false) 
 	{  // Notify that we have something alive here.
 		m_heart_beat_first_recieved = true;
-		m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
 		m_callback_vehicle->OnHeartBeat_First (heartbeat);
 	}
 	else 
 	if ((now - time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT]) > HEART_BEAT_TIMEOUT)
 	{  // Notify when heart beat get live again.
-		m_firmware_type = mavlinksdk::CMavlinkHelper::getFirmewareType (heartbeat.type, heartbeat.autopilot);
 		m_callback_vehicle->OnHeartBeat_Resumed (heartbeat);
 	}
 
@@ -70,7 +68,7 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	
 	if (is_mode_changed)
 	{
-		m_callback_vehicle->OnModeChanges (m_heartbeat.custom_mode, m_firmware_type);
+		m_callback_vehicle->OnModeChanges (m_heartbeat.custom_mode, m_heartbeat.type, (MAV_AUTOPILOT)m_heartbeat.autopilot);
 	}
 	
 	return ;
