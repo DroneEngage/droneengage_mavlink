@@ -48,7 +48,8 @@ void CFCBFacade::sendID(const std::string&target_party_id)  const
     Json message =
         {
             {"VT", andruav_vehicle_info.vehicle_type},     
-            {"FM", andruav_vehicle_info.flying_mode},
+            {"FM", andruav_vehicle_info.flying_mode},     
+            {"AP", andruav_vehicle_info.autopilot},
             {"GM", andruav_vehicle_info.gps_mode},
             {"FI", andruav_vehicle_info.use_fcb},
             {"AR", vehicle.isArmed()},
