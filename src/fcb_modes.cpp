@@ -396,62 +396,75 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotSubMode(cons
 /**
  * Converts Andruav Modes to ArduPilot mode.
  * */
-void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const int &andruav_unit_type, uint32_t &mode, uint32_t &custom_mode)
+void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const int &andruav_unit_type, uint32_t &mode, uint32_t &custom_mode, uint32_t &custom_sub_mode)
 {
+    mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+    custom_sub_mode = 0;
+                   
     switch (andruav_unit_mode)
     {
         // PX4-Related Modes
         case VEHICLE_MODE_PX4_MANUAL:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_MANUAL;
             return;
         case VEHICLE_MODE_PX4_ALT_HOLD:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_ALTCTL;
             return;
         case VEHICLE_MODE_PX4_AUTO_TAKEOFF:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_AUTO;
+            custom_sub_mode = PX4_CUSTOM_SUB_MODE_AUTO_TAKEOFF;
             return;
         case VEHICLE_MODE_PX4_AUTO_MISSION:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_AUTO;
+            custom_sub_mode = PX4_CUSTOM_SUB_MODE_AUTO_MISSION;
             return;
         case VEHICLE_MODE_PX4_AUTO_HOLD:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_AUTO;
+            custom_sub_mode = PX4_CUSTOM_SUB_MODE_AUTO_LOITER;
             return;
         case VEHICLE_MODE_PX4_AUTO_RTL:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_AUTO;
+            custom_sub_mode = PX4_CUSTOM_SUB_MODE_AUTO_RTL;
             return;
         case VEHICLE_MODE_PX4_AUTO_LAND:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_AUTO;
+            custom_sub_mode = PX4_CUSTOM_SUB_MODE_AUTO_LAND;
             return;
         case VEHICLE_MODE_PX4_AUTO_FOLLOW_TARGET:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_AUTO;
+            custom_sub_mode = PX4_CUSTOM_SUB_MODE_AUTO_FOLLOW_TARGET;
             return;
         case VEHICLE_MODE_PX4_AUTO_PRECLAND:
-            break;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_AUTO;
+            custom_sub_mode = PX4_CUSTOM_SUB_MODE_AUTO_PRECLAND;
+            return;
         case VEHICLE_MODE_PX4_AUTO_VTOL_TAKEOFF:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_AUTO;
+            custom_sub_mode = PX4_CUSTOM_SUB_MODE_AUTO_TAKEOFF;
             return;
         case VEHICLE_MODE_PX4_ACRO:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_ACRO;
             return;
         case VEHICLE_MODE_PX4_STABILIZE:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_STABILIZED;
             return;
         case VEHICLE_MODE_PX4_OFF_BORAD:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_OFFBOARD;
             return;
         case VEHICLE_MODE_PX4_RATTITUDE:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_RATTITUDE_LEGACY;
             return;
         case VEHICLE_MODE_PX4_POSCTL_POSCTL:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_POSCTL;
+            custom_sub_mode = PX4_CUSTOM_SUB_MODE_POSCTL_POSCTL;
             return;
         case VEHICLE_MODE_PX4_POSCTL_ORBIT:
-            custom_mode = E_UNDEFINED_MODE;
+            custom_mode = PX4_CUSTOM_MAIN_MODE_POSCTL;
+            custom_sub_mode = PX4_CUSTOM_SUB_MODE_POSCTL_POSCTL;
             return;
 
         // Ardupilot-Related Modes
         case VEHICLE_MODE_RTL:
-            mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
             case VEHICLE_TYPE_HELI:

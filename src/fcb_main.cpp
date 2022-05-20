@@ -325,16 +325,16 @@ void CFCBMain::remoteControlSignal ()
                     releaseRemoteControl();
                     
                     // if RC Timeout then switch to brake or equivelant mode.
-                    uint32_t ardupilot_mode, ardupilot_custom_mode;
+                    uint32_t ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode;
                     //TODO: VEHICLE_MODE_BRAKE mode should be generalized to work on different autopilot types.
-                    CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type, ardupilot_mode , ardupilot_custom_mode);
+                    CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type, ardupilot_mode , ardupilot_custom_mode, ardupilot_custom_sub_mode);
                     if (ardupilot_mode == E_UNDEFINED_MODE)
                     {   
                         //TODO: Send Error Message
                         return ;
                     }
 
-                    mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode);
+                    mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
 
                 }
                 return ;
@@ -351,16 +351,16 @@ void CFCBMain::remoteControlSignal ()
                 releaseRemoteControl();
                 
                 // if RC Timeout then switch to brake or equivelant mode.
-                uint32_t ardupilot_mode, ardupilot_custom_mode;
+                uint32_t ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode;
                 //TODO: VEHICLE_MODE_BRAKE mode should be generalized to work on different autopilot types.
-                CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type, ardupilot_mode , ardupilot_custom_mode);
+                CFCBModes::getArduPilotMode(VEHICLE_MODE_BRAKE, m_andruav_vehicle_info.vehicle_type, ardupilot_mode , ardupilot_custom_mode, ardupilot_custom_sub_mode);
                 if (ardupilot_mode == E_UNDEFINED_MODE)
                 {   
                     //TODO: Send Error Message
                     return ;
                 }
 
-                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode);
+                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
                 return ;
             }
 
@@ -1388,16 +1388,16 @@ void CFCBMain::takeActionOnFenceViolation(uavos::fcb::geofence::CGeoFenceBase * 
         case CONST_FENCE_ACTION_BRAKE:
         case CONST_FENCE_ACTION_SMART_RTL:
         {
-            uint32_t ardupilot_mode, ardupilot_custom_mode;
+            uint32_t ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode;
             //TODO: fence_action mode should be generalized to work on different autopilot types.
-            CFCBModes::getArduPilotMode(fence_action, m_andruav_vehicle_info.vehicle_type, ardupilot_mode , ardupilot_custom_mode);
+            CFCBModes::getArduPilotMode(fence_action, m_andruav_vehicle_info.vehicle_type, ardupilot_mode , ardupilot_custom_mode, ardupilot_custom_sub_mode);
             if (ardupilot_mode == E_UNDEFINED_MODE)
             {   
                 //TODO: Send Error Message
                 return ;
             }
 
-            mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode);
+            mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
             return ;
         }
         break;
@@ -1500,22 +1500,35 @@ void CFCBMain::update_rcmap_info()
         return ;
     }
 
-    
-    mavlink_param_value_t rcmap = parameter_manager.getParameterByName("RCMAP_PITCH");
-    
-    m_rcmap_channels_info.is_valid = false;
-    m_rcmap_channels_info.rcmap_pitch = (uint16_t) rcmap.param_value - 1;
+    switch(m_andruav_vehicle_info.autopilot)
+    {
+        case MAV_AUTOPILOT::MAV_AUTOPILOT_ARDUPILOTMEGA: 
+        case MAV_AUTOPILOT::MAV_AUTOPILOT_GENERIC:
+        {
+            mavlink_param_value_t rcmap = parameter_manager.getParameterByName("RCMAP_PITCH");
+        
+            m_rcmap_channels_info.is_valid = false;
+            m_rcmap_channels_info.rcmap_pitch = (uint16_t) rcmap.param_value - 1;
 
-    rcmap = parameter_manager.getParameterByName("RCMAP_ROLL");
-    m_rcmap_channels_info.rcmap_roll = (uint16_t) rcmap.param_value - 1;
+            rcmap = parameter_manager.getParameterByName("RCMAP_ROLL");
+            m_rcmap_channels_info.rcmap_roll = (uint16_t) rcmap.param_value - 1;
 
-    rcmap = parameter_manager.getParameterByName("RCMAP_THROTTLE");
-    m_rcmap_channels_info.rcmap_throttle = (uint16_t) rcmap.param_value - 1;
+            rcmap = parameter_manager.getParameterByName("RCMAP_THROTTLE");
+            m_rcmap_channels_info.rcmap_throttle = (uint16_t) rcmap.param_value - 1;
 
-    rcmap = parameter_manager.getParameterByName("RCMAP_YAW");
-    m_rcmap_channels_info.rcmap_yaw = (uint16_t) rcmap.param_value - 1;
+            rcmap = parameter_manager.getParameterByName("RCMAP_YAW");
+            m_rcmap_channels_info.rcmap_yaw = (uint16_t) rcmap.param_value - 1;
+            
+            m_rcmap_channels_info.is_valid = true;
+        }
+        break;
+
+        case MAV_AUTOPILOT::MAV_AUTOPILOT_PX4: 
+        default:
+        break;
+    };
     
-    m_rcmap_channels_info.is_valid = true;
+    
 }
 
 void CFCBMain::checkBlockedStatus()

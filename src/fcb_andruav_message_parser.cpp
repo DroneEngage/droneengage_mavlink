@@ -70,15 +70,15 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
                 const int andruav_mode = message["F"].get<int>();
                 //double langitude = 0.0f;
                 // TODO: Missing circle and guided go to here mode.
-                uint32_t ardupilot_mode, ardupilot_custom_mode;
-                CFCBModes::getArduPilotMode(andruav_mode, m_fcbMain.getAndruavVehicleInfo().vehicle_type, ardupilot_mode , ardupilot_custom_mode);
+                uint32_t ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode;
+                CFCBModes::getArduPilotMode(andruav_mode, m_fcbMain.getAndruavVehicleInfo().vehicle_type, ardupilot_mode , ardupilot_custom_mode, ardupilot_custom_sub_mode);
                 if (ardupilot_mode == E_UNDEFINED_MODE)
                 {   
                     //TODO: Send Error Message
                     return ;
                 }
 
-                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode);
+                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
             }
             break;
 
@@ -111,15 +111,15 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
 
                 //TODO: could be included in change mode.
 
-                uint32_t ardupilot_mode, ardupilot_custom_mode;
-                CFCBModes::getArduPilotMode(VEHICLE_MODE_LAND, m_fcbMain.getAndruavVehicleInfo().vehicle_type, ardupilot_mode , ardupilot_custom_mode);
+                uint32_t ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode;
+                CFCBModes::getArduPilotMode(VEHICLE_MODE_LAND, m_fcbMain.getAndruavVehicleInfo().vehicle_type, ardupilot_mode , ardupilot_custom_mode, ardupilot_custom_sub_mode);
                 if (ardupilot_mode == E_UNDEFINED_MODE)
                 {   
                     //TODO: Send Error Message
                     return ;
                 }
                 
-                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode);
+                mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
             }
             break;
 

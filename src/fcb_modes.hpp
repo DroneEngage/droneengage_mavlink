@@ -30,7 +30,7 @@ namespace fcb
             static ANDRUAV_UNIT_TYPE getAndruavVehicleType (const int mav_type);
             static ANDRUAV_UNIT_MODE getAndruavMode (const uint32_t mode, const int andruav_vehicle_type, const MAV_AUTOPILOT autopilot_type);
 
-            static void getArduPilotMode (const int& andruav_unit_mode, const int& andruav_unit_type, uint32_t& mode,  uint32_t& custom_mode);
+            static void getArduPilotMode (const int& andruav_unit_mode, const int& andruav_unit_type, uint32_t& mode,  uint32_t& custom_mode, uint32_t &custom_sub_mode);
             static void getPX4Mode (const int& andruav_unit_mode, const int& andruav_unit_type, uint32_t& mode,  uint32_t& custom_mode); 
         private:
             

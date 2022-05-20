@@ -1,5 +1,5 @@
-#ifndef PX4_MODES_H_
-#define PX4_MODES_H_
+#ifndef PX4_CUSTOM_MODE_H_
+#define PX4_CUSTOM_MODE_H_
 
 //@see https://github.com/PX4/PX4-Autopilot/blob/6de5d24e0056df71f2416586d83766a340039899/src/modules/commander/px4_custom_mode.h
 
