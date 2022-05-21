@@ -17,7 +17,7 @@ using namespace uavos::fcb;
  * 
  * @param andruav_message message received from uavos_comm
  */
-void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * full_message, const int & full_message_length)
+void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char * full_message, const int & full_message_length)
 {
     const int messageType = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
     bool is_binary = !(full_message[full_message_length-1]==125 || (full_message[full_message_length-2]==125));   // "}".charCodeAt(0)  IS TEXT / BINARY Msg  
@@ -566,7 +566,7 @@ void CFCBAndruavResalaParser::parseMessage (Json &andruav_message, const char * 
  * 
  * @param andruav_message 
  */
-void CFCBAndruavResalaParser::parseRemoteExecute (Json &andruav_message)
+void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
 {
     const Json cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
     

@@ -3,7 +3,6 @@
 
 #include "defines.hpp"
 #include <common/mavlink.h>
-#include "fcb_flightmode_mapper.h"
 
 namespace uavos
 {
