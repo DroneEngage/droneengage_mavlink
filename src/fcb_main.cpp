@@ -1505,9 +1505,9 @@ void CFCBMain::update_rcmap_info()
         case MAV_AUTOPILOT::MAV_AUTOPILOT_ARDUPILOTMEGA: 
         case MAV_AUTOPILOT::MAV_AUTOPILOT_GENERIC:
         {
-            mavlink_param_value_t rcmap = parameter_manager.getParameterByName("RCMAP_PITCH");
-        
             m_rcmap_channels_info.is_valid = false;
+            
+            mavlink_param_value_t rcmap = parameter_manager.getParameterByName("RCMAP_PITCH");
             m_rcmap_channels_info.rcmap_pitch = (uint16_t) rcmap.param_value - 1;
 
             rcmap = parameter_manager.getParameterByName("RCMAP_ROLL");
@@ -1524,6 +1524,23 @@ void CFCBMain::update_rcmap_info()
         break;
 
         case MAV_AUTOPILOT::MAV_AUTOPILOT_PX4: 
+        {
+            m_rcmap_channels_info.is_valid = false;
+            
+            mavlink_param_value_t rcmap = parameter_manager.getParameterByName("RC_MAP_PITCH");
+            m_rcmap_channels_info.rcmap_pitch = (uint16_t) rcmap.param_value==0?2:(uint16_t) rcmap.param_value - 1;
+
+            rcmap = parameter_manager.getParameterByName("RC_MAP_ROLL");
+            m_rcmap_channels_info.rcmap_roll = (uint16_t) rcmap.param_value==0?0:(uint16_t) rcmap.param_value - 1;
+
+            rcmap = parameter_manager.getParameterByName("RC_MAP_THROTTLE");
+            m_rcmap_channels_info.rcmap_throttle = (uint16_t) rcmap.param_value==0?1:(uint16_t) rcmap.param_value - 1;
+
+            rcmap = parameter_manager.getParameterByName("RC_MAP_YAW");
+            m_rcmap_channels_info.rcmap_yaw = (uint16_t) rcmap.param_value==0?3:(uint16_t) rcmap.param_value - 1;
+            
+            m_rcmap_channels_info.is_valid = true;
+        }
         default:
         break;
     };
