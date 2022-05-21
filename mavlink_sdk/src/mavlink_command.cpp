@@ -3,8 +3,7 @@
 #include "mavlink_command.h"
 #include "mavlink_sdk.h"
 #include "mavlink_waypoint_manager.h"
-
-
+#include "vehicle.h"
 
 using namespace mavlinksdk;
 
@@ -58,6 +57,44 @@ void CMavlinkCommand::sendLongCommand (const uint16_t& command,
 
 	return ;
 }
+
+
+void CMavlinkCommand::sendIntCommand (const uint16_t& command,
+				const uint8_t& frame,
+                const float& param1,
+                const float& param2,
+                const float& param3,
+                const float& param4,
+                const int32_t& x,
+                const int32_t& y,
+                const float& z) const
+{
+	
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mavlink_command_int_t msg = { 0 };
+	msg.target_system    = mavlink_sdk.getSysId();
+	msg.target_component = mavlink_sdk.getCompId();
+	msg.command          = command;
+	msg.frame     		 = frame;
+	
+    msg.param1           = param1;
+    msg.param2           = param2;
+    msg.param3           = param3;
+	msg.param4           = param4;
+	msg.x           	 = x;
+	msg.y           	 = y;
+	msg.z           	 = z;
+
+	// Encode
+	mavlink_message_t mavlink_message;
+	mavlink_msg_command_int_encode(250,190, &mavlink_message, &msg);
+
+    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	return ;
+}
+
 
 
 /**
@@ -193,6 +230,16 @@ void CMavlinkCommand::changeAltitude (const float& altitude) const
 	
 	gotoGuidedPoint(mavlink_global_position_int.lat_int / 10000000.0f, mavlink_global_position_int.lon_int / 10000000.0f, altitude );
 	
+
+	// sendLongCommand (MAV_CMD_NAV_TAKEOFF, true,
+	// 	-1,  // unused
+	// 	0,  // unused
+	// 	0,  // unused
+	// 	NAN,  // unused
+	// 	NAN,  // unused
+	// 	NAN,  // unused
+	// 	altitude);
+
 }
 
 /**
@@ -202,73 +249,38 @@ void CMavlinkCommand::changeAltitude (const float& altitude) const
  */
 void CMavlinkCommand::takeOff (const float& altitude) const
 {
-    sendLongCommand (MAV_CMD_NAV_TAKEOFF, false,
-		0,  // unused
-		0,  // unused
-		0,  // unused
-		0,  // unused
-		0,  // unused
-		0,  // unused
-		altitude);
+    
+	switch(mavlinksdk::CVehicle::getInstance().getMsgHeartBeat().autopilot)
+	{
+		case MAV_AUTOPILOT::MAV_AUTOPILOT_PX4: 
+			return takeOff_px4(altitude);
+	}
 
-	return ;
+	
+	return takeOff_default(altitude);
+
 }
+
 
 /**
  * @brief 
  * 
  * @param latitude  in xx.xxxxx format
  * @param longitude in xx.xxxxx format
- * @param altitude  in meters [relative altitude]
+ * @param relative_altitude  in meters [relative altitude]
  */
-void CMavlinkCommand::gotoGuidedPoint (const double& latitude, const double& longitude, const double& altitude) const
+void CMavlinkCommand::gotoGuidedPoint (const double& latitude, const double& longitude, const double& relative_altitude) const
 {
 	
-	
-// 	mavlink_position_target_global_int_t msg = { 0 };
-// 	msg.type_mask = POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_AX_IGNORE |
-// 					POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_AY_IGNORE |
-// 					POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_AZ_IGNORE |
-// 					POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_VX_IGNORE |
-// 					POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_VY_IGNORE |
-// 					POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_VZ_IGNORE ;
-					
-//  msg.coordinate_frame = MAV_FRAME::MAV_FRAME_GLOBAL_RELATIVE_ALT_INT;
-// 	msg.lat_int 		 = (float) latitude;
-// 	msg.lon_int 		 = (float) longitude;
-// 	msg.alt 			 = (float) altitude;
-	
-//     // Encode
-// 	mavlink_message_t mavlink_message;
-	
-// 	mavlink_msg_position_target_global_int_encode(250,190, &mavlink_message, &msg);
+	switch(mavlinksdk::CVehicle::getInstance().getMsgHeartBeat().autopilot)
+	{
+		case MAV_AUTOPILOT::MAV_AUTOPILOT_PX4: 
+			return gotoGuidedPoint_px4(latitude,longitude,relative_altitude);
+	}
 
-//    mavlink_sdk.sendMavlinkMessage(mavlink_message);
-
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
-	mavlink_mission_item_t msg = {0};
-	msg.target_system    = mavlink_sdk.getSysId();
-	msg.target_component = mavlink_sdk.getCompId();
-	//msg.seq = 110;
-    msg.current = 2; // TODO use guided mode enum
-    msg.frame = MAV_FRAME::MAV_FRAME_GLOBAL_RELATIVE_ALT;
-    msg.command = MAV_CMD::MAV_CMD_NAV_WAYPOINT; //
-    msg.param1 = 0; // TODO use correct parameter
-    msg.param2 = 0; // TODO use correct parameter
-    msg.param3 = 0; // TODO use correct parameter
-    msg.param4 = 0; // TODO use correct parameter
-    msg.x = (float) latitude;
-    msg.y = (float) longitude;
-    msg.z = (float) altitude;
-    msg.autocontinue = 1; // TODO use correct parameter
+	return gotoGuidedPoint_default(latitude,longitude,relative_altitude);
 
-	mavlink_message_t mavlink_message;
-	
- 	mavlink_msg_mission_item_encode (mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &msg);
-
-	mavlink_sdk.sendMavlinkMessage(mavlink_message);
-    
 }
 
 
@@ -893,4 +905,104 @@ void CMavlinkCommand::ctrlGuidedVelocityInLocalFrame (const float vx, const floa
 
 	return ;
 }
-        
+
+
+void CMavlinkCommand::gotoGuidedPoint_default (const double& latitude, const double& longitude, const double& relative_altitude) const
+{
+	// 	mavlink_position_target_global_int_t msg = { 0 };
+	// 	msg.type_mask = POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_AX_IGNORE |
+	// 					POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_AY_IGNORE |
+	// 					POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_AZ_IGNORE |
+	// 					POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_VX_IGNORE |
+	// 					POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_VY_IGNORE |
+	// 					POSITION_TARGET_TYPEMASK::POSITION_TARGET_TYPEMASK_VZ_IGNORE ;
+						
+	//  msg.coordinate_frame = MAV_FRAME::MAV_FRAME_GLOBAL_RELATIVE_ALT_INT;
+	// 	msg.lat_int 		 = (float) latitude;
+	// 	msg.lon_int 		 = (float) longitude;
+	// 	msg.alt 			 = (float) altitude;
+		
+	//     // Encode
+	// 	mavlink_message_t mavlink_message;
+		
+	// 	mavlink_msg_position_target_global_int_encode(250,190, &mavlink_message, &msg);
+
+	//    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
+	mavlink_mission_item_t msg = {0};
+	msg.target_system    = mavlink_sdk.getSysId();
+	msg.target_component = mavlink_sdk.getCompId();
+    msg.current = 2; // TODO use guided mode enum
+    msg.frame = MAV_FRAME::MAV_FRAME_GLOBAL_RELATIVE_ALT;
+    msg.command = MAV_CMD::MAV_CMD_NAV_WAYPOINT; //
+    msg.param1 = 0; // TODO use correct parameter
+    msg.param2 = 0; // TODO use correct parameter
+    msg.param3 = 0; // TODO use correct parameter
+    msg.param4 = 0; // TODO use correct parameter
+    msg.x = (float) latitude;
+    msg.y = (float) longitude;
+    msg.z = (float) relative_altitude;
+    msg.autocontinue = 1; // TODO use correct parameter
+
+	mavlink_message_t mavlink_message;
+	
+ 	mavlink_msg_mission_item_encode (mavlink_sdk.getSysId(), mavlink_sdk.getCompId(), &mavlink_message, &msg);
+
+	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+}
+
+
+/**
+ * @brief 
+ * 
+ * @param latitude 
+ * @param longitude 
+ * @param relative_altitude relative altitude
+ */
+void CMavlinkCommand::gotoGuidedPoint_px4 (const double& latitude, const double& longitude, const double& relative_altitude) const
+{
+	const mavlink_global_position_int_t& mavlink_global_position_int = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt();
+	std::cout << "mavlink_global_position_int.alt:" << std::to_string((mavlink_global_position_int.alt - mavlink_global_position_int.relative_alt) / 1000) << "  alt:" << std::to_string(relative_altitude);
+	sendIntCommand (MAV_CMD_DO_REPOSITION, MAV_FRAME_GLOBAL,
+		-1.0f,  	// Ground speed, less than 0 (-1) for default
+ 		MAV_DO_REPOSITION_FLAGS_CHANGE_MODE,  		// Loiter radius for planes. Positive values only, direction is controlled by Yaw value. A value of zero or NaN is ignored.
+		0.0f,		// Loiter radius for planes. Positive values only, direction is controlled by Yaw value. A value of zero or NaN is ignored.
+        NAN,  		// Yaw heading. NaN to use the current system yaw heading mode (e.g. yaw towards next waypoint, yaw to home, etc.). For planes indicates loiter direction (0: clockwise, 1: counter clockwise)
+		(int)(latitude*1e7),  	// Latitude
+		(int)(longitude*1e7),  // Longitude
+		relative_altitude + (mavlink_global_position_int.alt - mavlink_global_position_int.relative_alt) / 1000	// absolure altitude
+		);
+
+	return ;
+}
+
+
+void CMavlinkCommand::takeOff_default (const float& altitude) const
+{
+	sendLongCommand (MAV_CMD_NAV_TAKEOFF, true,
+		0,  // unused
+		0,  // unused
+		0,  // unused
+		0,  // unused
+		0,  // unused
+		0,  // unused
+		altitude);
+
+	return ;
+}
+
+void CMavlinkCommand::takeOff_px4 (const float& altitude) const
+{
+	sendLongCommand (MAV_CMD_NAV_TAKEOFF, true,
+	   -1,  // unused
+		0,  // unused
+		0,  // unused
+		NAN,  // unused
+		NAN,  // unused
+		NAN,  // unused
+		altitude);
+
+	return ;
+}

@@ -29,9 +29,7 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	const bool is_armed  = (heartbeat.base_mode & MAV_MODE_FLAG_SAFETY_ARMED) != 0;
 
 	
-	const bool is_flying = is_armed && ((heartbeat.system_status == MAV_STATE_ACTIVE) || 
-           	             ((heartbeat.system_status == MAV_STATE_CRITICAL) || (m_heartbeat.system_status == MAV_STATE_EMERGENCY)));
-
+	
 	//Detect mode change
 	const bool is_mode_changed = (m_heartbeat.custom_mode != heartbeat.custom_mode) || !m_heart_beat_first_recieved;
 	
@@ -59,11 +57,17 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 		m_callback_vehicle->OnArmed(m_armed);
 	}
 
-	// Detect change in flying status
-	if (m_is_flying != is_flying)
+	if (heartbeat.autopilot != MAV_AUTOPILOT::MAV_AUTOPILOT_PX4)
 	{
-		m_is_flying = is_flying;
-		m_callback_vehicle->OnFlying(m_is_flying);
+		const bool is_flying = is_armed && ((heartbeat.system_status == MAV_STATE_ACTIVE) || 
+            	             ((heartbeat.system_status == MAV_STATE_CRITICAL) || (m_heartbeat.system_status == MAV_STATE_EMERGENCY)));
+			
+		// Detect change in flying status
+		if (m_is_flying != is_flying)
+		{
+			m_is_flying = is_flying;
+			m_callback_vehicle->OnFlying(m_is_flying);
+		}
 	}
 	
 	if (is_mode_changed)
@@ -74,6 +78,43 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	return ;
 }
 
+
+void mavlinksdk::CVehicle::handle_extended_system_state (const mavlink_extended_sys_state_t& extended_system_state)
+{
+	if (m_heartbeat.autopilot != MAV_AUTOPILOT::MAV_AUTOPILOT_PX4) return ;
+
+	switch (extended_system_state.landed_state) {
+		case MAV_LANDED_STATE_ON_GROUND:
+			if (m_is_flying)
+			{
+				m_is_flying = false;
+				m_callback_vehicle->OnFlying(m_is_flying);
+			}
+        	m_is_landing = false;
+        break;
+		case MAV_LANDED_STATE_TAKEOFF:
+		case MAV_LANDED_STATE_IN_AIR:
+			if (!m_is_flying)
+			{
+				m_is_flying = true;
+				m_callback_vehicle->OnFlying(m_is_flying);
+			}
+        	m_is_landing = false;
+			break;
+		case MAV_LANDED_STATE_LANDING:
+			if (!m_is_flying)
+			{
+				m_is_flying = true;
+				m_callback_vehicle->OnFlying(m_is_flying);
+			}
+        	m_is_landing = true;
+			break;
+		default:
+        break;
+    }
+
+	return ;
+}
 
 /**
  * @brief Drone is disconnected if no heartbeat has been recieved for @link HEART_BEAT_TIMEOUT @endlink
@@ -199,6 +240,16 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			mavlinksdk::CMavlinkParameterManager::getInstance().handle_heart_beat (heartbeat);
 		}
         break;
+
+		case MAVLINK_MSG_ID_EXTENDED_SYS_STATE:
+		{
+			mavlink_extended_sys_state_t extended_system_state;
+			mavlink_msg_extended_sys_state_decode(&mavlink_message, &(extended_system_state));
+
+			handle_extended_system_state(extended_system_state);
+
+		}
+		break;
 
 		case MAVLINK_MSG_ID_SYSTEM_TIME:
 		{

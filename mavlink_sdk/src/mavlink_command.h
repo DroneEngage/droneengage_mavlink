@@ -54,7 +54,7 @@ class CMavlinkCommand
         void cmdTerminateFlight () const;
         void changeAltitude (const float& altitude) const;
         void takeOff (const float& altitude) const;
-        void gotoGuidedPoint (const double& latitude, const double& longitude, const double& altitude) const;
+        void gotoGuidedPoint (const double& latitude, const double& longitude, const double& relative_altitude) const;
         void setYawCondition (const double& target_angle, const double& turn_rate, const bool& is_clock_wise, const bool& is_relative) const;
         void setNavigationSpeed ( const int& speed_type, const double& speed, const double& throttle, const bool& is_relative) const;
         void reloadWayPoints () const;
@@ -87,6 +87,22 @@ class CMavlinkCommand
         void sendNative(const mavlink_message_t mavlink_message) const;
 
     protected:
+        void gotoGuidedPoint_default (const double& latitude, const double& longitude, const double& relative_altitude) const;
+        void gotoGuidedPoint_px4 (const double& latitude, const double& longitude, const double& relative_altitude) const;
+        void takeOff_default  (const float& altitude) const;
+        void takeOff_px4  (const float& altitude) const;
+
+        
+        void sendIntCommand (const uint16_t& command,
+				const uint8_t& frame,
+                const float& param1,
+                const float& param2,
+                const float& param3,
+                const float& param4,
+                const int32_t& x,
+                const int32_t& y,
+                const float& z) const;
+
         void sendLongCommand (const uint16_t& command,
                 const bool& confirmation = false,
                 const float& param1 = 0.0f,

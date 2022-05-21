@@ -99,15 +99,16 @@ namespace mavlinksdk
 
         protected:
 
-            void handle_heart_beat       (const mavlink_heartbeat_t& heartbeat);
-            void handle_cmd_ack          (const mavlink_command_ack_t& command_ack);
-            void handle_status_text      (const mavlink_statustext_t& status_text);
-            void handle_home_position    (const mavlink_home_position_t& home_position);
-            void handle_param_ext_value  (const mavlink_param_ext_value_t& param_message);
-            void handle_param_value      (const mavlink_param_value_t& param_message);
-            void handle_rc_channels_raw  (const mavlink_rc_channels_t& rc_channels);
-            void handle_servo_output_raw (const mavlink_servo_output_raw_t& servo_output_raw);
-            void handle_system_time      (const mavlink_system_time_t& system_time);
+            void handle_heart_beat              (const mavlink_heartbeat_t& heartbeat);
+            void handle_extended_system_state   (const mavlink_extended_sys_state_t& extended_system_state);
+            void handle_cmd_ack                 (const mavlink_command_ack_t& command_ack);
+            void handle_status_text             (const mavlink_statustext_t& status_text);
+            void handle_home_position           (const mavlink_home_position_t& home_position);
+            void handle_param_ext_value         (const mavlink_param_ext_value_t& param_message);
+            void handle_param_value             (const mavlink_param_value_t& param_message);
+            void handle_rc_channels_raw         (const mavlink_rc_channels_t& rc_channels);
+            void handle_servo_output_raw        (const mavlink_servo_output_raw_t& servo_output_raw);
+            void handle_system_time             (const mavlink_system_time_t& system_time);
             
         // Vechile Methods
         public:
@@ -273,6 +274,9 @@ namespace mavlinksdk
             bool m_armed     = false;
             // Flying or Diving => Armed Ready to take-off. It is not necessary physically flying
             bool m_is_flying = false;
+
+            // Valid only with PX4
+            bool m_is_landing = false;
             
 
     };

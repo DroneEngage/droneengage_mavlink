@@ -236,8 +236,11 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromPX4CopterMode(const u
 
             case PX4_CUSTOM_SUB_MODE_AUTO_PRECLAND:
                 return VEHICLE_MODE_PX4_AUTO_LAND;
-
-            case VEHICLE_MODE_PX4_AUTO_VTOL_TAKEOFF:
+                       
+            case PX4_CUSTOM_SUB_MODE_AUTO_VTOL_TAKEOFF:
+                return VEHICLE_MODE_PX4_AUTO_VTOL_TAKEOFF;
+                       
+            case PX4_CUSTOM_SUB_MODE_AUTO_TAKEOFF:
                 return VEHICLE_MODE_PX4_AUTO_TAKEOFF;
             };
             return VEHICLE_MODE_UNKNOWN;
@@ -410,10 +413,6 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
         case VEHICLE_MODE_PX4_ALT_HOLD:
             custom_mode = PX4_CUSTOM_MAIN_MODE_ALTCTL;
             return;
-        case VEHICLE_MODE_PX4_AUTO_TAKEOFF:
-            custom_mode = PX4_CUSTOM_MAIN_MODE_AUTO;
-            custom_sub_mode = PX4_CUSTOM_SUB_MODE_AUTO_TAKEOFF;
-            return;
         case VEHICLE_MODE_PX4_AUTO_MISSION:
             custom_mode = PX4_CUSTOM_MAIN_MODE_AUTO;
             custom_sub_mode = PX4_CUSTOM_SUB_MODE_AUTO_MISSION;
@@ -439,6 +438,10 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             custom_sub_mode = PX4_CUSTOM_SUB_MODE_AUTO_PRECLAND;
             return;
         case VEHICLE_MODE_PX4_AUTO_VTOL_TAKEOFF:
+            custom_mode = PX4_CUSTOM_MAIN_MODE_AUTO;
+            custom_sub_mode = VEHICLE_MODE_PX4_AUTO_VTOL_TAKEOFF;
+            return;
+        case VEHICLE_MODE_PX4_AUTO_TAKEOFF:
             custom_mode = PX4_CUSTOM_MAIN_MODE_AUTO;
             custom_sub_mode = PX4_CUSTOM_SUB_MODE_AUTO_TAKEOFF;
             return;
