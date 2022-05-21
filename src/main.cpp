@@ -60,7 +60,7 @@ std::string  ModuleKey;
 int AndruavServerConnectionStatus = SOCKET_STATUS_FREASH;
 
 uavos::fcb::CFCBMain& cFCBMain = uavos::fcb::CFCBMain::getInstance();
-uavos::fcb::CFCBAndruavResalaParser cAndruavResalaParser = uavos::fcb::CFCBAndruavResalaParser();
+uavos::fcb::CFCBAndruavMessageParser cAndruavResalaParser = uavos::fcb::CFCBAndruavMessageParser();
 
 uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
 
