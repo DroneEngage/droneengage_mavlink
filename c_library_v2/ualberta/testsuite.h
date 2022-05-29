@@ -1,6 +1,6 @@
 /** @file
  *    @brief MAVLink comm protocol testsuite generated from ualberta.xml
- *    @see https://mavlink.io/en/
+ *    @see http://qgroundcontrol.org/mavlink/
  */
 #pragma once
 #ifndef UALBERTA_TESTSUITE_H
@@ -83,11 +83,6 @@ static void mavlink_test_nav_filter_bias(uint8_t system_id, uint8_t component_id
     mavlink_msg_nav_filter_bias_send(MAVLINK_COMM_1 , packet1.usec , packet1.accel_0 , packet1.accel_1 , packet1.accel_2 , packet1.gyro_0 , packet1.gyro_1 , packet1.gyro_2 );
     mavlink_msg_nav_filter_bias_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
-    MAVLINK_ASSERT(mavlink_get_message_info_by_name("NAV_FILTER_BIAS") != NULL);
-    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_NAV_FILTER_BIAS) != NULL);
-#endif
 }
 
 static void mavlink_test_radio_calibration(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -147,11 +142,6 @@ static void mavlink_test_radio_calibration(uint8_t system_id, uint8_t component_
     mavlink_msg_radio_calibration_send(MAVLINK_COMM_1 , packet1.aileron , packet1.elevator , packet1.rudder , packet1.gyro , packet1.pitch , packet1.throttle );
     mavlink_msg_radio_calibration_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
-    MAVLINK_ASSERT(mavlink_get_message_info_by_name("RADIO_CALIBRATION") != NULL);
-    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_RADIO_CALIBRATION) != NULL);
-#endif
 }
 
 static void mavlink_test_ualberta_sys_status(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -208,11 +198,6 @@ static void mavlink_test_ualberta_sys_status(uint8_t system_id, uint8_t componen
     mavlink_msg_ualberta_sys_status_send(MAVLINK_COMM_1 , packet1.mode , packet1.nav_mode , packet1.pilot );
     mavlink_msg_ualberta_sys_status_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
-    MAVLINK_ASSERT(mavlink_get_message_info_by_name("UALBERTA_SYS_STATUS") != NULL);
-    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_UALBERTA_SYS_STATUS) != NULL);
-#endif
 }
 
 static void mavlink_test_ualberta(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)

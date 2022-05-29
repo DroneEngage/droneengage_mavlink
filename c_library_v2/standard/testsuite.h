@@ -1,6 +1,6 @@
 /** @file
  *    @brief MAVLink comm protocol testsuite generated from standard.xml
- *    @see https://mavlink.io/en/
+ *    @see http://qgroundcontrol.org/mavlink/
  */
 #pragma once
 #ifndef STANDARD_TESTSUITE_H

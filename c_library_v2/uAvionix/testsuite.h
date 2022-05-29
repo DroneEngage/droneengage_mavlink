@@ -1,6 +1,6 @@
 /** @file
  *    @brief MAVLink comm protocol testsuite generated from uAvionix.xml
- *    @see https://mavlink.io/en/
+ *    @see http://qgroundcontrol.org/mavlink/
  */
 #pragma once
 #ifndef UAVIONIX_TESTSUITE_H
@@ -84,11 +84,6 @@ static void mavlink_test_uavionix_adsb_out_cfg(uint8_t system_id, uint8_t compon
     mavlink_msg_uavionix_adsb_out_cfg_send(MAVLINK_COMM_1 , packet1.ICAO , packet1.callsign , packet1.emitterType , packet1.aircraftSize , packet1.gpsOffsetLat , packet1.gpsOffsetLon , packet1.stallSpeed , packet1.rfSelect );
     mavlink_msg_uavionix_adsb_out_cfg_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
-    MAVLINK_ASSERT(mavlink_get_message_info_by_name("UAVIONIX_ADSB_OUT_CFG") != NULL);
-    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG) != NULL);
-#endif
 }
 
 static void mavlink_test_uavionix_adsb_out_dynamic(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -158,11 +153,6 @@ static void mavlink_test_uavionix_adsb_out_dynamic(uint8_t system_id, uint8_t co
     mavlink_msg_uavionix_adsb_out_dynamic_send(MAVLINK_COMM_1 , packet1.utcTime , packet1.gpsLat , packet1.gpsLon , packet1.gpsAlt , packet1.gpsFix , packet1.numSats , packet1.baroAltMSL , packet1.accuracyHor , packet1.accuracyVert , packet1.accuracyVel , packet1.velVert , packet1.velNS , packet1.VelEW , packet1.emergencyStatus , packet1.state , packet1.squawk );
     mavlink_msg_uavionix_adsb_out_dynamic_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
-    MAVLINK_ASSERT(mavlink_get_message_info_by_name("UAVIONIX_ADSB_OUT_DYNAMIC") != NULL);
-    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_DYNAMIC) != NULL);
-#endif
 }
 
 static void mavlink_test_uavionix_adsb_transceiver_health_report(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -217,11 +207,6 @@ static void mavlink_test_uavionix_adsb_transceiver_health_report(uint8_t system_
     mavlink_msg_uavionix_adsb_transceiver_health_report_send(MAVLINK_COMM_1 , packet1.rfHealth );
     mavlink_msg_uavionix_adsb_transceiver_health_report_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
-    MAVLINK_ASSERT(mavlink_get_message_info_by_name("UAVIONIX_ADSB_TRANSCEIVER_HEALTH_REPORT") != NULL);
-    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_UAVIONIX_ADSB_TRANSCEIVER_HEALTH_REPORT) != NULL);
-#endif
 }
 
 static void mavlink_test_uavionix_adsb_out_cfg_registration(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -276,11 +261,6 @@ static void mavlink_test_uavionix_adsb_out_cfg_registration(uint8_t system_id, u
     mavlink_msg_uavionix_adsb_out_cfg_registration_send(MAVLINK_COMM_1 , packet1.registration );
     mavlink_msg_uavionix_adsb_out_cfg_registration_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
-    MAVLINK_ASSERT(mavlink_get_message_info_by_name("UAVIONIX_ADSB_OUT_CFG_REGISTRATION") != NULL);
-    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_REGISTRATION) != NULL);
-#endif
 }
 
 static void mavlink_test_uavionix_adsb_out_cfg_flightid(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -335,11 +315,6 @@ static void mavlink_test_uavionix_adsb_out_cfg_flightid(uint8_t system_id, uint8
     mavlink_msg_uavionix_adsb_out_cfg_flightid_send(MAVLINK_COMM_1 , packet1.flight_id );
     mavlink_msg_uavionix_adsb_out_cfg_flightid_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
-    MAVLINK_ASSERT(mavlink_get_message_info_by_name("UAVIONIX_ADSB_OUT_CFG_FLIGHTID") != NULL);
-    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_FLIGHTID) != NULL);
-#endif
 }
 
 static void mavlink_test_uavionix_adsb_get(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -394,11 +369,6 @@ static void mavlink_test_uavionix_adsb_get(uint8_t system_id, uint8_t component_
     mavlink_msg_uavionix_adsb_get_send(MAVLINK_COMM_1 , packet1.ReqMessageId );
     mavlink_msg_uavionix_adsb_get_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
-    MAVLINK_ASSERT(mavlink_get_message_info_by_name("UAVIONIX_ADSB_GET") != NULL);
-    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_UAVIONIX_ADSB_GET) != NULL);
-#endif
 }
 
 static void mavlink_test_uavionix_adsb_out_control(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -458,11 +428,6 @@ static void mavlink_test_uavionix_adsb_out_control(uint8_t system_id, uint8_t co
     mavlink_msg_uavionix_adsb_out_control_send(MAVLINK_COMM_1 , packet1.state , packet1.baroAltMSL , packet1.squawk , packet1.emergencyStatus , packet1.flight_id , packet1.x_bit );
     mavlink_msg_uavionix_adsb_out_control_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
-    MAVLINK_ASSERT(mavlink_get_message_info_by_name("UAVIONIX_ADSB_OUT_CONTROL") != NULL);
-    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CONTROL) != NULL);
-#endif
 }
 
 static void mavlink_test_uavionix_adsb_out_status(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -522,11 +487,6 @@ static void mavlink_test_uavionix_adsb_out_status(uint8_t system_id, uint8_t com
     mavlink_msg_uavionix_adsb_out_status_send(MAVLINK_COMM_1 , packet1.state , packet1.squawk , packet1.NIC_NACp , packet1.boardTemp , packet1.fault , packet1.flight_id );
     mavlink_msg_uavionix_adsb_out_status_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
-
-#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
-    MAVLINK_ASSERT(mavlink_get_message_info_by_name("UAVIONIX_ADSB_OUT_STATUS") != NULL);
-    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_STATUS) != NULL);
-#endif
 }
 
 static void mavlink_test_uAvionix(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)

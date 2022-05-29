@@ -1,14 +1,14 @@
 { 
   // A name and GUID for this module as multiple modules sometimes can be added.
-  "module_id": "FCB_CTRL2", 
+  "module_id": "FCB_CTRL1", 
   "module_key": "E289FEE7-F4AD-44EF-A257-C9A361316BE7", 
   
   // IP & Port Communication Module is listening to.
   "s2s_udp_target_ip": "127.0.0.1",
-  "s2s_udp_target_port": "60200", 
+  "s2s_udp_target_port": "60100", 
   // IP & Port of this module
   "s2s_udp_listening_ip": "127.0.0.1", 
-  "s2s_udp_listening_port": "60203", 
+  "s2s_udp_listening_port": "60103", 
   
   
   // How to connect to Ardupilot board
@@ -16,7 +16,7 @@
   "fcb_connection_uri": 
   {"type": "udp",
     "ip": "0.0.0.0",
-    "port":14445
+    "port":17552
   },
    
   // Using serial interface
