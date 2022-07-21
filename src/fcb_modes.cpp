@@ -145,21 +145,20 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotPlaneMode(co
     {
     case PLANE_MODE_MANUAL:
         return VEHICLE_MODE_MANUAL;
-    case PLANE_MODE_CIRCLE:
-        return VEHICLE_MODE_CIRCLE;
+    case PLANE_MODE_ACRO:
+        return VEHICLE_MODE_ACRO;
     case PLANE_MODE_STABILIZE:
         return VEHICLE_MODE_STABILIZE;
     case PLANE_MODE_TRAINING:
         return VEHICLE_MODE_UNKNOWN;
-    case PLANE_MODE_ACRO:
-        // TODO: fix me add Acro
-        return VEHICLE_MODE_MANUAL;
     case PLANE_MODE_FLY_BY_WIRE_A:
         return VEHICLE_MODE_FBWA;
     case PLANE_MODE_FLY_BY_WIRE_B:
         return VEHICLE_MODE_FBWB;
     case PLANE_MODE_CRUISE:
         return VEHICLE_MODE_CRUISE;
+    case PLANE_MODE_CIRCLE:
+        return VEHICLE_MODE_CIRCLE;
     case PLANE_MODE_AUTOTUNE:
         return VEHICLE_MODE_UNKNOWN;
     case PLANE_MODE_AUTO:
@@ -179,6 +178,7 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotPlaneMode(co
     case PLANE_MODE_QAUTOTUNE:
         return VEHICLE_MODE_UNKNOWN;
     case PLANE_MODE_QACRO:
+        // fix this
         return VEHICLE_MODE_MANUAL;
     case PLANE_MODE_QRTL:
         return VEHICLE_MODE_QRTL;
@@ -266,7 +266,7 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotCopterMode(c
         case COPTER_MODE_STABILIZE:
             return VEHICLE_MODE_STABILIZE;
         case COPTER_MODE_ACRO:
-            return VEHICLE_MODE_MANUAL;
+            return VEHICLE_MODE_ACRO;
         case COPTER_MODE_ALT_HOLD:
             return VEHICLE_MODE_ALT_HOLD;
         case COPTER_MODE_AUTO:
@@ -334,8 +334,7 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotRoverMode(co
                 The turn rate varies linearly from zero to ACRO_TURN_RATE as the RC input varies from neutral to full deflection. Once the input returns to neutral,
                 the vehicle will attempt to hold heading, compensating for external influences, ie. “heading hold”.
             */
-            // TODO: please reintroduce ACRO again
-            return VEHICLE_MODE_MANUAL;
+            return VEHICLE_MODE_ACRO;
         case ROVER_MODE_STEERING:
             return VEHICLE_MODE_STABILIZE;
         case ROVER_MODE_HOLD:
@@ -372,25 +371,25 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotSubMode(cons
     
     switch (mode)
     {
+        
+        case SUB_MODE_MANUAL:
+            return VEHICLE_MODE_MANUAL;
+        case SUB_MODE_ACRO:
+            return VEHICLE_MODE_ACRO;
         case SUB_MODE_STABILIZE:
             return VEHICLE_MODE_STABILIZE;
-        case SUB_MODE_ACRO:
-            return VEHICLE_MODE_MANUAL;
         case SUB_MODE_ALT_HOLD:
             return VEHICLE_MODE_ALT_HOLD;
-        case SUB_MODE_AUTO:
-            return VEHICLE_MODE_AUTO;
         case SUB_MODE_GUIDED:
             return VEHICLE_MODE_GUIDED;
+        case SUB_MODE_AUTO:
+            return VEHICLE_MODE_AUTO;
         case SUB_MODE_CIRCLE:
             return VEHICLE_MODE_CIRCLE;
         case SUB_MODE_SURFACE:
             return VEHICLE_MODE_SURFACE;
         case SUB_MODE_POSHOLD:
             return VEHICLE_MODE_POS_HOLD;
-        case SUB_MODE_MANUAL:
-            // TODO: MANUAL & ACRO for SUB .... Why is that ? isnt manual is acro and vice versa???? please check
-            return VEHICLE_MODE_MANUAL;
     };
 
     return VEHICLE_MODE_UNKNOWN;
@@ -470,27 +469,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
         case VEHICLE_MODE_RTL:
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_RTL;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_RTL;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_RTL;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_RTL;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = ROVER_MODE_RTL;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = ROVER_MODE_RTL;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             };
 
             break;
@@ -499,27 +498,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_FOLLOW;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_FOLLOW;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = ROVER_MODE_FOLLOW;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = ROVER_MODE_FOLLOW;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -528,27 +527,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_AUTO;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_AUTO;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_AUTO;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_AUTO;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = ROVER_MODE_AUTO;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = ROVER_MODE_AUTO;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = SUB_MODE_AUTO;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = SUB_MODE_AUTO;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -557,27 +556,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_STABILIZE;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_STABILIZE;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_STABILIZE;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_STABILIZE;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = ROVER_MODE_STEERING;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = ROVER_MODE_STEERING;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = SUB_MODE_STABILIZE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = SUB_MODE_STABILIZE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -586,27 +585,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_ALT_HOLD;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_ALT_HOLD;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = SUB_MODE_ALT_HOLD;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = SUB_MODE_ALT_HOLD;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -615,28 +614,57 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_ACRO;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_MANUAL;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_MANUAL;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = ROVER_MODE_MANUAL;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = ROVER_MODE_MANUAL;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = SUB_MODE_MANUAL;
-                return;
-                break;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = SUB_MODE_MANUAL;
+                    return;
+                    break;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
+            }
+            break;
+
+        case VEHICLE_MODE_ACRO:
+            mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_ACRO;
+                    return;
+
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_ACRO;
+                    return;
+
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = ROVER_MODE_ACRO;
+                    return;
+
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = SUB_MODE_ACRO;
+                    return;
+                    break;
+
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -645,27 +673,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_GUIDED;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_GUIDED;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_GUIDED;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_GUIDED;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = ROVER_MODE_GUIDED;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = ROVER_MODE_GUIDED;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = SUB_MODE_GUIDED;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = SUB_MODE_GUIDED;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -674,27 +702,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_LOITER;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_LOITER;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_LOITER;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_LOITER;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = ROVER_MODE_LOITER;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = ROVER_MODE_LOITER;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -703,27 +731,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_POSHOLD;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_POSHOLD;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = SUB_MODE_POSHOLD;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = SUB_MODE_POSHOLD;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -732,27 +760,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_LAND;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_LAND;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_QLAND;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_QLAND;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = VEHICLE_MODE_SURFACE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = VEHICLE_MODE_SURFACE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -761,27 +789,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_CIRCLE;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_CIRCLE;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_CIRCLE;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_CIRCLE;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = SUB_MODE_CIRCLE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = SUB_MODE_CIRCLE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -790,27 +818,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_FLY_BY_WIRE_A;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_FLY_BY_WIRE_A;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -819,27 +847,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_CRUISE;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_CRUISE;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -848,27 +876,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_FLY_BY_WIRE_B;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_FLY_BY_WIRE_B;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -877,27 +905,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_BRAKE;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_BRAKE;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_LOITER;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_LOITER;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = ROVER_MODE_HOLD;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = ROVER_MODE_HOLD;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = SUB_MODE_POSHOLD;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = SUB_MODE_POSHOLD;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -906,27 +934,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_SMART_RTL;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_SMART_RTL;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = ROVER_MODE_SMART_RTL;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = ROVER_MODE_SMART_RTL;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -935,27 +963,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_TAKEOFF;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_TAKEOFF;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -964,27 +992,27 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = SUB_MODE_SURFACE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = SUB_MODE_SURFACE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
@@ -993,44 +1021,134 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-                custom_mode = COPTER_MODE_SYSTEMID;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_SYSTEMID;
+                    return;
 
-            case VEHICLE_TYPE_PLANE:
-                custom_mode = PLANE_MODE_INITIALIZING;
-                return;
+                case VEHICLE_TYPE_PLANE:
+                    custom_mode = PLANE_MODE_INITIALIZING;
+                    return;
 
-            case VEHICLE_TYPE_ROVER:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_ROVER:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            case VEHICLE_TYPE_SUBMARINE:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_SUBMARINE:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
 
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;
 
+        case VEHICLE_MODE_QRTL:
+            mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_QRTL;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_SUBMARINE:
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
+            }
+
+            break;
+            
+        case VEHICLE_MODE_QLAND:
+            mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_QLAND;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_SUBMARINE:
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
+            }
+
+            break;
+            
+        case VEHICLE_MODE_QSTABILIZE:
+            mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_QSTABILIZE;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_SUBMARINE:
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
+            }
+
+            break;
+            
+        case VEHICLE_MODE_QLOITER:
+            mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_QLOITER;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_SUBMARINE:
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
+            }
+
+            break;
+            
+        case VEHICLE_MODE_QHOVER:
+            mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_PLANE:
+                    return PLANE_MODE_QHOVER;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_SUBMARINE:
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
+            }
+
+            break;
+            
         case VEHICLE_MODE_UNKNOWN:
             mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             switch (andruav_unit_type)
             {
-            case VEHICLE_TYPE_HELI:
-            case VEHICLE_TYPE_TRI:
-            case VEHICLE_TYPE_QUAD:
-            case VEHICLE_TYPE_PLANE:
-            case VEHICLE_TYPE_ROVER:
-            case VEHICLE_TYPE_SUBMARINE:
-            default:
-                custom_mode = E_UNDEFINED_MODE;
-                return;
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                case VEHICLE_TYPE_PLANE:
+                case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_SUBMARINE:
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
             }
 
             break;

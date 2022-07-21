@@ -62,6 +62,7 @@ typedef enum ANDRUAV_UNIT_MODE
     VEHICLE_MODE_QSTABILIZE    		        = 25,
     VEHICLE_MODE_QLAND         		        = 26,
     VEHICLE_MODE_QRTL          		        = 27,
+    VEHICLE_MODE_ACRO          		        = 28,
     VEHICLE_MODE_INITALIZING                = 99,
     VEHICLE_MODE_SURFACE                    = 101,
     VEHICLE_MODE_MOTOR_DETECT               = 102,
