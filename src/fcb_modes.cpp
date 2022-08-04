@@ -1051,7 +1051,8 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             switch (andruav_unit_type)
             {
                 case VEHICLE_TYPE_PLANE:
-                    return PLANE_MODE_QRTL;
+                    custom_mode = PLANE_MODE_QRTL;
+                    return ;
                 case VEHICLE_TYPE_HELI:
                 case VEHICLE_TYPE_TRI:
                 case VEHICLE_TYPE_QUAD:
@@ -1069,7 +1070,8 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             switch (andruav_unit_type)
             {
                 case VEHICLE_TYPE_PLANE:
-                    return PLANE_MODE_QLAND;
+                    custom_mode = PLANE_MODE_QLAND;
+                    return ;
                 case VEHICLE_TYPE_HELI:
                 case VEHICLE_TYPE_TRI:
                 case VEHICLE_TYPE_QUAD:
@@ -1087,7 +1089,8 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             switch (andruav_unit_type)
             {
                 case VEHICLE_TYPE_PLANE:
-                    return PLANE_MODE_QSTABILIZE;
+                    custom_mode = PLANE_MODE_QSTABILIZE;
+                    return ;
                 case VEHICLE_TYPE_HELI:
                 case VEHICLE_TYPE_TRI:
                 case VEHICLE_TYPE_QUAD:
@@ -1105,7 +1108,8 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             switch (andruav_unit_type)
             {
                 case VEHICLE_TYPE_PLANE:
-                    return PLANE_MODE_QLOITER;
+                    custom_mode = PLANE_MODE_QLOITER;
+                    return ;
                 case VEHICLE_TYPE_HELI:
                 case VEHICLE_TYPE_TRI:
                 case VEHICLE_TYPE_QUAD:
@@ -1123,7 +1127,8 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
             switch (andruav_unit_type)
             {
                 case VEHICLE_TYPE_PLANE:
-                    return PLANE_MODE_QHOVER;
+                    custom_mode = PLANE_MODE_QHOVER;
+                    return ;
                 case VEHICLE_TYPE_HELI:
                 case VEHICLE_TYPE_TRI:
                 case VEHICLE_TYPE_QUAD:
