@@ -246,13 +246,6 @@ void mavlinksdk::comm::UDPPort::start()
 		sock = -1;
 		throw EXIT_FAILURE;
 	}
-	/*if (fcntl(sock, F_SETFL, O_NONBLOCK | O_ASYNC) < 0)
-	{
-		fprintf(stderr, "error setting nonblocking: %s\n", strerror(errno));
-		close(sock);
-		sock = -1;
-		throw EXIT_FAILURE;
-	}*/
 
 	// --------------------------------------------------------------------------
 	//   CONNECTED!
