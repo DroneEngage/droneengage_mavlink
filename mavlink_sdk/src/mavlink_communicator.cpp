@@ -20,13 +20,10 @@ void mavlinksdk::comm::CMavlinkCommunicator::start ()
 {
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Communicator Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
  
-    int result;
 
-    result = pthread_create( &m_read_tid, NULL, &mavlinksdk::comm::startReadThread, this );
-	if ( result ) throw result;
+	m_threadRead = std::thread {[&](){ readThread(); }};
 
-    result = pthread_create( &m_read_tid, NULL, &mavlinksdk::comm::startWriteThread, this );
-	if ( result ) throw result;
+	m_threadWrite = std::thread {[&](){ writeThread(); }};
     
 }
 
@@ -41,8 +38,9 @@ void mavlinksdk::comm::CMavlinkCommunicator::stop ()
 	m_time_to_exit = true;
 
 	// wait for exit
-	pthread_join(m_read_tid ,NULL);
-	pthread_join(m_read_tid ,NULL);
+	
+	m_threadRead.join();
+	m_threadWrite.join();
 
 	// now the read and write threads are closed
 	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Communicator has Stopped" << _NORMAL_CONSOLE_TEXT_ << std::endl;    

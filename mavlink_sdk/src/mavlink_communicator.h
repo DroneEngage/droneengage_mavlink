@@ -2,7 +2,8 @@
 #define MAVLINK_COMMUNICATOR_H_
 
 #include <memory>
-#include <pthread.h>
+#include <thread>         // std::thread
+#include <mutex>          // std::mutex, std::unique_lock
 #include "generic_port.h"
 
 namespace mavlinksdk
@@ -62,6 +63,9 @@ namespace comm
 
         protected:
             void read_messages ();
+            std::thread m_threadRead;
+            std::thread m_threadWrite;
+        
     };
 
 }
