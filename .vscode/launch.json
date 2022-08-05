@@ -33,7 +33,7 @@
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
+                    "text": "-enable-pretty-printing -gdb-set disassembly-flavor intel",
                     "ignoreFailures": true
                 }
             ]
