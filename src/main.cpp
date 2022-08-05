@@ -47,7 +47,8 @@ using namespace uavos;
                         TYPE_AndruavMessage_FollowHim_Request,  \
                         TYPE_AndruavMessage_MAVLINK}
 
-std::time_t time_stamp;
+// This is a timestamp used as instance unique number. if changed then communicator module knows module has restarted.
+std::time_t instance_time_stamp;
 
 bool exit_me = false;
 
@@ -205,6 +206,13 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
         
         Json fullMessage;
 
+        /*////////
+        // Route messages:
+        //  Internally: i.e. UAVOS Communication module will handle it and will resend it to other modules
+        //                  or modulated then forwarded to Cmmunication Server.
+        //  Group: i.e. to all members of groups.
+        //  Individual: i.e. to a given member or a certain type of members i.e. all vehicles or all GCS.
+        /////////*/
         std::string msgRoutingType = CMD_COMM_GROUP;
         if (internal_message == true)
         {
@@ -218,7 +226,6 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
                 msgRoutingType = CMD_COMM_INDIVIDUAL;
                 fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]     = targetPartyID;
             }
-        
         }
         
         fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(msgRoutingType);
@@ -278,7 +285,7 @@ const Json createJSONID (bool reSend)
         ms[JSON_INTERMODULE_HARDWARE_ID]            = hardware_serial; 
         ms[JSON_INTERMODULE_HARDWARE_TYPE]          = HARDWARE_TYPE_CPU; 
         ms[JSON_INTERMODULE_RESEND]                 = reSend;
-        ms[JSON_INTERMODULE_TIMESTAMP_INSTANCE]     = time_stamp;
+        ms[JSON_INTERMODULE_TIMESTAMP_INSTANCE]     = instance_time_stamp;
 
         json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
         #ifdef DEBUG
@@ -410,7 +417,7 @@ void initUDPClient(int argc, char *argv[])
  **/
 void init (int argc, char *argv[]) 
 {
-    time_stamp = std::time(nullptr);
+    instance_time_stamp = std::time(nullptr);
     
     //initialize serial
     initSerial();
@@ -423,7 +430,7 @@ void init (int argc, char *argv[])
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING PLUGIN ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     _version();
 
-    std::cout << std::asctime(std::localtime(&time_stamp)) << time_stamp << " seconds since the Epoch" << std::endl;
+    std::cout << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << " seconds since the Epoch" << std::endl;
 
     
     cConfigFile.initConfigFile (configName.c_str());
@@ -486,7 +493,7 @@ void quit_handler( int sig )
 
 int main (int argc, char *argv[])
 {
-    time_stamp = std::time(nullptr);
+    instance_time_stamp = std::time(nullptr);
      
     init (argc, argv);
 

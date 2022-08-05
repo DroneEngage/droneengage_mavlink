@@ -303,22 +303,21 @@ int mavlinksdk::comm::UDPPort::_read_port(uint8_t &cp)
 		struct sockaddr_in addr;
 		len = sizeof(struct sockaddr_in);
 		result = recvfrom(sock, &buff, BUFF_LEN, 0, (struct sockaddr *)&addr, &len);
-		//if(tx_port < 0){
-			//always read port as ardupilot app may restart and get another port.
-			if(strcmp(inet_ntoa(addr.sin_addr), target_ip) == 0){
-				tx_port = ntohs(addr.sin_port);
-				//printf("Got first packet, sending to %s:%i\n", target_ip, rx_port);
-			}else{
-				target_ip = inet_ntoa(addr.sin_addr);
-				printf("ERROR: Got packet from %s:%i but listening on %s\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port), target_ip);
-			}
-		//}
+
+		//always read port as ardupilot app may restart and get another port.
+		if(strcmp(inet_ntoa(addr.sin_addr), target_ip) == 0){
+			tx_port = ntohs(addr.sin_port);
+			//printf("Got first packet, sending to %s:%i\n", target_ip, rx_port);
+		}else{
+			target_ip = inet_ntoa(addr.sin_addr);
+			printf("ERROR: Got packet from %s:%i but listening on %s\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port), target_ip);
+		}
+
 		if(result > 0){
 			buff_len=result;
 			buff_ptr=0;
 			cp=buff[buff_ptr];
 			buff_ptr++;
-			//printf("recvfrom: %i %i\n", result, cp);
 		}
 	}
 
