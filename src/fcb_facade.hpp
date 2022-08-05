@@ -88,7 +88,7 @@ namespace fcb
             void requestUnFollowLeader(const std::string&target_party_id) const;
             // Inter Module Remote Execute Commands
             void callModule_reloadSavedTasks (const int& inter_module_command);
-
+            void internalCommand_takeImage ();
 
             void setSendJMSG (SEND_JMSG_CALLBACK sendJMSG)
             {

@@ -23,15 +23,15 @@
 
 using namespace uavos::fcb;
 
-void SchedulerThread(void * This) {
-	((CFCBMain *)This)->loopScheduler(); 
+// void SchedulerThread(void * This) {
+// 	((CFCBMain *)This)->loopScheduler(); 
 
-    #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Exit SchedulerThread" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
+//     #ifdef DEBUG
+//         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Exit SchedulerThread" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+//     #endif
 
-    return ;
-}
+//     return ;
+// }
 
 /**
  * @brief get connection type UDP or serial based on config file.
@@ -117,7 +117,7 @@ bool CFCBMain::init ()
     m_andruav_missions.clear();
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_RELEASED;
     
-    m_scheduler_thread = std::thread(SchedulerThread, (void *) this);
+    m_scheduler_thread = std::thread{[&](){ loopScheduler(); }};
 
     
     
@@ -407,6 +407,8 @@ void CFCBMain::loopScheduler ()
         {
             // each second
             checkBlockedStatus();
+
+            heartbeatCamera();
         } 
             // .................
 
@@ -505,10 +507,21 @@ void CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_message)
     //std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnMessageReceived" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     //m_traffic_optimizer.shouldForwardThisMessage (mavlink_message);
     
-    if (mavlink_message.msgid == MAVLINK_MSG_ID_HEARTBEAT)
+    switch (mavlink_message.msgid) 
     {
-        OnHeartBeat();
+        case MAVLINK_MSG_ID_HEARTBEAT:
+            OnHeartBeat();
+            break;
+
+        case MAVLINK_MSG_ID_COMMAND_LONG:
+            mavlink_command_long_t command_long;
+			mavlink_msg_command_long_decode(&mavlink_message, &(command_long));
+	
+            OnCommandLong(command_long);
+            break;
     }
+
+
 
     // if streaming active check each message to forward.
     if (m_mavlink_optimizer.shouldForwardThisMessage (mavlink_message))
@@ -558,6 +571,20 @@ void CFCBMain::OnHeartBeat ()
     }
 
     return ;
+}
+
+
+void CFCBMain::OnCommandLong (const mavlink_command_long_t& command_long)
+{
+    switch (command_long.command)
+    {
+    case MAV_CMD_DO_DIGICAM_CONTROL:
+        m_fcb_facade.internalCommand_takeImage();
+        break;
+    
+    default:
+        break;
+    }
 }
 
 /**
@@ -1580,4 +1607,9 @@ void CFCBMain::checkBlockedStatus()
 
     }
 
+}
+
+void CFCBMain::heartbeatCamera ()
+{
+    mavlinksdk::CMavlinkCommand::getInstance().sendHeartBeatOfComponent(MAV_COMP_ID_CAMERA);
 }

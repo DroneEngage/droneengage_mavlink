@@ -247,7 +247,6 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			mavlink_msg_extended_sys_state_decode(&mavlink_message, &(extended_system_state));
 
 			handle_extended_system_state(extended_system_state);
-
 		}
 		break;
 

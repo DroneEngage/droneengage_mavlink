@@ -674,3 +674,24 @@ void CFCBFacade::callModule_reloadSavedTasks(const int& inter_module_command)
 {
     m_sendMREMSG(inter_module_command);
 }
+
+
+void CFCBFacade::internalCommand_takeImage()
+{
+    /*
+        a: channelName  []
+        b: numberOfImages
+        c: timeBetweenShots
+        d: distanceBetweenShots
+    */
+    Json message =
+            {
+                {"a", ""},  //first available camera
+                {"b", 1},
+                {"c", 0},
+                {"d",0}
+            };
+            
+    m_sendJMSG (std::string(), message, TYPE_AndruavMessage_Ctrl_Cameras, true);
+    std::cout << "TYPE_AndruavMessage_Ctrl_Cameras" << std::endl;
+}

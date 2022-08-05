@@ -110,13 +110,28 @@ void CMavlinkCommand::sendNative(const mavlink_message_t mavlink_message) const
 	return ;
 }
 
+
+
+void CMavlinkCommand::sendHeartBeatOfComponent(const uint8_t component_id) const
+{
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	mavlinksdk::CVehicle& vehicle = mavlinksdk::CVehicle::getInstance();
+	const mavlink_heartbeat_t mavlink_heartbeat= vehicle.getMsgHeartBeat();
+	
+	mavlink_message_t mavlink_message;
+	mavlink_msg_heartbeat_encode(mavlink_sdk.getSysId(),component_id, &mavlink_message, &mavlink_heartbeat);
+
+	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	return ;
+}
+
 /**
  * @brief Arm & Disarm with/out force.
  * @see https://mavlink.io/en/messages/common.html#MAV_CMD_COMPONENT_ARM_DISARM
  * @param arm 
  * @param force 
  */
- void CMavlinkCommand::doArmDisarm (const bool& arm, const bool& force)  const
+void CMavlinkCommand::doArmDisarm (const bool& arm, const bool& force)  const
 {
 
     float forceArm = 0;
@@ -1006,3 +1021,4 @@ void CMavlinkCommand::takeOff_px4 (const float& altitude) const
 
 	return ;
 }
+

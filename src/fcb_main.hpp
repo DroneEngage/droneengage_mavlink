@@ -183,11 +183,15 @@ namespace fcb
             {
                 return m_rcmap_channels_info;
             }
+
+        public:
+            void OnHeartBeat ();
+            void OnCommandLong (const mavlink_command_long_t& command_long);
+            
         // Events implementation of mavlinksdk::CMavlinkEvents
         public:
             void OnMessageReceived (const mavlink_message_t& mavlink_message) override;           
             void OnConnected (const bool& connected) override;
-            void OnHeartBeat ();
             void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat) override;
             void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat) override ;
             void OnBoardRestarted () override;
@@ -227,6 +231,7 @@ namespace fcb
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
             void update_rcmap_info();
             void checkBlockedStatus();
+            void heartbeatCamera ();
 
         private:
             Json m_jsonConfig;

@@ -45,6 +45,7 @@ class CMavlinkCommand
 
     public:
         
+        void sendHeartBeatOfComponent(const uint8_t component_id) const;
         void doSetMode   (const int& mode, const int& custom_mode=0, const int& custom_sub_mode=0)  const;
         void doArmDisarm (const bool& arm, const bool& force)  const;
             
@@ -85,7 +86,6 @@ class CMavlinkCommand
         void requestHomeLocation () const;
 
         void sendNative(const mavlink_message_t mavlink_message) const;
-
     protected:
         void gotoGuidedPoint_default (const double& latitude, const double& longitude, const double& relative_altitude) const;
         void gotoGuidedPoint_px4 (const double& latitude, const double& longitude, const double& relative_altitude) const;
