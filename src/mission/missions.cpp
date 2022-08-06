@@ -300,6 +300,74 @@ mavlink_mission_item_int_t CContinue_And_Change_Altitude_Step::getArdupilotMissi
     return mavlink_mission;
 }
 
+//***********************************CCameraTrigger_Step
+
+void CCameraTrigger_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
+{
+    CMissionItem::decodeMavlink (mission_item_int);
+}
+
+Json CCameraTrigger_Step::getAndruavMission()
+{
+    Json message =
+    {   // ignore other parameters
+        {"t", TYPE_CMissionAction_CameraTrigger},
+        {"s", this->m_sequence},
+    };
+
+    return message;
+}
+
+mavlink_mission_item_int_t CCameraTrigger_Step::getArdupilotMission()
+{
+    if (m_valid == true) return m_original_mission;
+    
+    mavlink_mission_item_int_t mavlink_mission = {0};
+
+    mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
+    mavlink_mission.seq = m_sequence;
+    mavlink_mission.command = MAV_CMD_DO_SET_CAM_TRIGG_DIST;
+    mavlink_mission.current = m_current?1:0;
+    mavlink_mission.autocontinue = m_auto_continue?1:0;
+    mavlink_mission.frame = m_frame;
+
+    return mavlink_mission;
+}
+
+//***********************************CCameraControl_Step
+
+void CCameraControl_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)
+{
+    CMissionItem::decodeMavlink (mission_item_int);
+}
+
+Json CCameraControl_Step::getAndruavMission()
+{
+    Json message =
+    {   // ignore other parameters
+        {"t", TYPE_CMissionAction_CameraControl},
+        {"s", this->m_sequence},
+    };
+
+    return message;
+}
+
+mavlink_mission_item_int_t CCameraControl_Step::getArdupilotMission()
+{
+    if (m_valid == true) return m_original_mission;
+    
+    mavlink_mission_item_int_t mavlink_mission = {0};
+
+    mavlink_mission.mission_type = MAV_MISSION_TYPE_MISSION;
+    mavlink_mission.seq = m_sequence;
+    mavlink_mission.command = MAV_CMD_DO_DIGICAM_CONTROL;
+    mavlink_mission.current = m_current?1:0;
+    mavlink_mission.autocontinue = m_auto_continue?1:0;
+    mavlink_mission.frame = m_frame;
+
+    return mavlink_mission;
+}
+
 //***********************************CChange_Speed_Step
 
 void CChange_Speed_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_int)

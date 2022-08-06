@@ -179,6 +179,57 @@ class CGuided_Enabled_Step : public CMissionItem
 };
 
 
+class CCameraControl_Step: public CMissionItem
+{
+    public:
+        CCameraControl_Step ()
+        {
+            m_mission_command = TYPE_CMissionAction_CameraControl;
+        };
+        
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
+
+
+    public:
+        Json getAndruavMission   () override;
+        mavlink_mission_item_int_t getArdupilotMission () override;
+
+    public:
+       
+       /**
+        * @brief Descent / Ascend rate. m/s
+        * 
+        */
+       double m_ascend_descent_rate=0 ;
+};
+
+
+class CCameraTrigger_Step: public CMissionItem
+{
+    public:
+        CCameraTrigger_Step ()
+        {
+            m_mission_command = TYPE_CMissionAction_CameraTrigger;
+        };
+        
+
+        void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
+
+
+    public:
+        Json getAndruavMission   () override;
+        mavlink_mission_item_int_t getArdupilotMission () override;
+
+    public:
+       
+       /**
+        * @brief Descent / Ascend rate. m/s
+        * 
+        */
+       double m_ascend_descent_rate=0 ;
+};
+
 
 class CChange_Altitude_Step : public CMissionItem
 {
@@ -630,6 +681,13 @@ class CMissionItemBuilder
                 {
                     return new CDelay_State_Machine_Step();
                 }
+                return new CDummy_Step();
+            case MAV_CMD_DO_SET_CAM_TRIGG_DIST:
+                return new CCameraTrigger_Step();
+
+            case MAV_CMD_DO_DIGICAM_CONTROL:
+                return new CCameraControl_Step();
+            
             default:
                return new CDummy_Step();
 
