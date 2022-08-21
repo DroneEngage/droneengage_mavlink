@@ -225,6 +225,9 @@ namespace mavlinksdk
             // Radio Status
             mavlink_radio_status_t m_radio_status;
 
+            // High Latency
+            mavlink_high_latency2_t m_high_latency2;
+
             // Local Position
             mavlink_local_position_ned_t m_local_position_ned;
 

@@ -280,6 +280,10 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
         }
         break;
 
+		case MAVLINK_MSG_ID_HIGH_LATENCY2:
+			mavlink_msg_high_latency2_decode(&mavlink_message, &(m_high_latency2));
+		break;
+
 		case MAVLINK_MSG_ID_LOCAL_POSITION_NED:
 		{
             mavlink_msg_local_position_ned_decode(&mavlink_message, &(m_local_position_ned));
