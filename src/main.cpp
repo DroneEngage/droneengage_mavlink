@@ -171,23 +171,28 @@ void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bm
         
     }
         
-        fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(msgRoutingType);
-        fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
-        std::string json_msg = fullMessage.dump();
+    fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(msgRoutingType);
+    fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
+    std::string json_msg = fullMessage.dump();
         
-        // prepare an array for the whole message
-        char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
-        std::unique_ptr<char []> msg = std::unique_ptr<char []> (msg_ptr);
-        // copy json part
-        strcpy(msg_ptr,json_msg.c_str());
-        // add zero '0' delimeter
-        msg_ptr[json_msg.length()] = 0;
-        // copy binary message
+    // prepare an array for the whole message
+    char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
+    std::unique_ptr<char []> msg = std::unique_ptr<char []> (msg_ptr);
+    // copy json part
+    strcpy(msg_ptr,json_msg.c_str());
+    // add zero '0' delimeter
+    msg_ptr[json_msg.length()] = 0;
+    // copy binary message
+    if (bmsg_length != 0)
+    {
+        // empty binary contents of a binary can exist if binary contents is optional
+        // or will be filled by communicator module.
         memcpy(&msg[json_msg.length()+1], bmsg, bmsg_length);
+    }
 
-        cUDPClient.sendMSG(msg_ptr, json_msg.length()+1+bmsg_length);
+    cUDPClient.sendMSG(msg_ptr, json_msg.length()+1+bmsg_length);
         
-        msg.release();
+    msg.release();
 }
 
 
@@ -231,7 +236,7 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
         fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(msgRoutingType);
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = jmsg;
-        const std::string msg = fullMessage.dump();
+        const std::string& msg = fullMessage.dump();
         cUDPClient.sendMSG(msg.c_str(), msg.length());
 }
 

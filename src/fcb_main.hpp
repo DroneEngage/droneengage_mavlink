@@ -97,7 +97,7 @@ namespace fcb
              */
             void registerSendJMSG (SEND_JMSG_CALLBACK sendJMSG) override
             {
-                m_fcb_facade.setSendJMSG(sendJMSG);
+                m_fcb_facade.RegisterSendJMSG(sendJMSG);
             };            
 
             /**
@@ -107,7 +107,7 @@ namespace fcb
              */
             void registerSendBMSG (SEND_BMSG_CALLBACK sendBMSG) override
             {
-                m_fcb_facade.setSendBMSG(sendBMSG);
+                m_fcb_facade.RegisterSendBMSG(sendBMSG);
             };            
 
             /**
@@ -117,7 +117,7 @@ namespace fcb
              */
             void registerSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG) override
             {
-                m_fcb_facade.setSendMREMSG(sendMREMSG);
+                m_fcb_facade.RegisterSendMREMSG(sendMREMSG);
             };            
 
             /* cannot connect to uavos comm*/
@@ -263,7 +263,6 @@ namespace fcb
             std::thread m_scheduler_thread;
             u_int64_t m_last_start_flying =0 ;
             u_int64_t m_counter =0;
-            u_int64_t m_counter_sec =0;
 
 
             bool m_fcb_connected = false;

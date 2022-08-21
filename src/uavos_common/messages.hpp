@@ -36,7 +36,6 @@
 // Andruav Protocol Fields
 #define ANDRUAV_PROTOCOL_GROUP_ID       "gr"
 #define ANDRUAV_PROTOCOL_SENDER         "sd"
-#define ANDRUAV_PROTOCOL_COMM_TYPE      "cm"
 #define ANDRUAV_PROTOCOL_TARGET_ID      "tg"
 #define ANDRUAV_PROTOCOL_MESSAGE_TYPE   "mt"
 #define ANDRUAV_PROTOCOL_MESSAGE_CMD    "ms"
@@ -73,6 +72,7 @@
 // Inter Module Commands
 #define TYPE_AndruavModule_ID                   9100
 #define TYPE_AndruavModule_RemoteExecute        9101
+#define TYPE_AndruavModule_Location_Info        9102
 
 
 
@@ -140,10 +140,12 @@
  */
 #define TYPE_AndruavMessage_FollowHim_Request           1054
 
+// Binary Messages 
 #define TYPE_AndruavMessage_LightTelemetry              2022
 
 // New JSON Messages 
 #define TYPE_AndruavMessage_ServoChannel                6001
+
 
 // New Binary Messages 
 #define TYPE_AndruavMessage_ServoOutput                 6501

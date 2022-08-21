@@ -163,6 +163,35 @@ void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
     return ;
 }
 
+
+void CFCBFacade::sendLocationInfo () const 
+{
+    /*
+        la          : latitude   [degE7]
+        ln          : longitude  [degE7]
+        a           : absolute altitude
+        r           : relative altitude
+    */
+    if (m_sendJMSG == NULL) return ;
+    
+    mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
+    const mavlink_global_position_int_t&  gpos = vehicle.getMsgGlobalPositionInt();
+
+    Json message=
+    {
+        {"la", gpos.lat},           // latitude   [degE7]
+        {"ln", gpos.lon},           // longitude  [degE7]
+        {"a", gpos.alt},            // absolute altitude in mm
+        {"r", gpos.relative_alt}    // relative altitude in mm
+        // {"gs", groundspeed}, // ground speed
+        // {"ws", windspeed}   
+    };
+
+    m_sendJMSG ("", message, TYPE_AndruavModule_Location_Info, true);
+    
+    
+}
+
 /**
  * @brief sends mavlink @link mavlink_attitude_t @endlink @link mavlink_nav_controller_output_t @endlink
  * 

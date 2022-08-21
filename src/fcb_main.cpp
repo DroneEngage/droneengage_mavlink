@@ -382,7 +382,7 @@ void CFCBMain::loopScheduler ()
         wait_time_nsec (0,10000000);
 
         m_counter++;
-
+        
         if (m_counter%10 ==0)
         {   // each 100 msec
             
@@ -391,6 +391,7 @@ void CFCBMain::loopScheduler ()
         if (m_counter%30 ==0)
         {   // each 300 msec
             remoteControlSignal();
+            m_fcb_facade.sendLocationInfo();
         }
 
         if (m_counter%50 == 0)
@@ -398,7 +399,6 @@ void CFCBMain::loopScheduler ()
             m_fcb_facade.sendGPSInfo(std::string());
 
             m_fcb_facade.sendNavInfo(std::string());
- 
             updateGeoFenceHitStatus();
 
         }
@@ -412,14 +412,14 @@ void CFCBMain::loopScheduler ()
         } 
             // .................
 
-        if (this->m_counter_sec % 200 ==0)
+        if (m_counter % 200 ==0)
         {   // 2 sec
 
             // update ranges dynamically.
             initVehicleChannelLimits(false);
         }
 
-        if (m_counter_sec % 500 ==0)
+        if (m_counter % 500 ==0)
         {   // 5 sec
             m_fcb_facade.sendPowerInfo(std::string());
             bool fcb_connected = mavlinksdk::CVehicle::getInstance().isFCBConnected();
@@ -431,17 +431,17 @@ void CFCBMain::loopScheduler ()
             }
         }
 
-        if (m_counter_sec % 1000 ==0)
+        if (m_counter % 1000 ==0)
         {   // 10 sec
             m_fcb_facade.sendID(std::string());
         }
 
-        if (m_counter_sec % 1500 ==0)
+        if (m_counter % 1500 ==0)
         {   // 15 sec
             
         }
 
-        m_counter_sec++;
+
         
     }
 

@@ -69,6 +69,7 @@ namespace fcb
             void sendErrorMessage(const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const;
             void sendGPSInfo(const std::string&target_party_id) const;
             void sendNavInfo(const std::string&target_party_id) const;
+            void sendLocationInfo() const; 
             void sendParameterList (const std::string&target_party_id) const;
             void sendParameterValue (const std::string&target_party_id, const mavlink_param_value_t& param_message) const;
             void sendPowerInfo(const std::string&target_party_id) const;
@@ -90,17 +91,17 @@ namespace fcb
             void callModule_reloadSavedTasks (const int& inter_module_command);
             void internalCommand_takeImage ();
 
-            void setSendJMSG (SEND_JMSG_CALLBACK sendJMSG)
+            void RegisterSendJMSG (SEND_JMSG_CALLBACK sendJMSG)
             {
                 m_sendJMSG = sendJMSG;
             };
             
-            void setSendBMSG (SEND_BMSG_CALLBACK sendBMSG)
+            void RegisterSendBMSG (SEND_BMSG_CALLBACK sendBMSG)
             {
                 m_sendBMSG = sendBMSG;
             };
 
-            void setSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG)
+            void RegisterSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG)
             {
                 m_sendMREMSG = sendMREMSG;
             };
