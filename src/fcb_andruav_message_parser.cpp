@@ -428,7 +428,8 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
 
             case TYPE_AndruavMessage_MAVLINK:
             {   
-                
+                //GCS uses this command to send mavlink command such as parameters.
+                // This command can be replaced by TYPE_AndruavMessage_LightTelemetry
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
                 // this is a binary message
