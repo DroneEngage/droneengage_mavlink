@@ -108,13 +108,13 @@ void uavos::comm::CUDPClient::start()
 
 void uavos::comm::CUDPClient::startReceiver ()
 {
-    m_threadCreateUDPSocket = std::thread (this->InternalReceiverThreadEntryFunc, (void *) this);
+    m_threadCreateUDPSocket = std::thread {[&](){ InternalReceiverEntry(); }};
 }
 
 
 void uavos::comm::CUDPClient::startSenderID ()
 {
-    m_threadSenderID = std::thread (this->InternalSenderIDThreadEntryFunc, (void *) this);
+    m_threadSenderID = std::thread {[&](){ InternelSenderIDEntry(); }};
 }
 
 
@@ -239,21 +239,6 @@ void uavos::comm::CUDPClient::InternelSenderIDEntry()
 	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-}
-
-
-/**
- * Starts ID Sender function 
- **/
-void * uavos::comm::CUDPClient::InternalSenderIDThreadEntryFunc(void * This) {
-	((CUDPClient *)This)->InternelSenderIDEntry(); 
-    return NULL;
-}
-
-
-void * uavos::comm::CUDPClient::InternalReceiverThreadEntryFunc(void * This) {
-	((CUDPClient *)This)->InternalReceiverEntry(); 
-    return NULL;
 }
 
 

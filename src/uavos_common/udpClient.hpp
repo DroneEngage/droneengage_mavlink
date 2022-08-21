@@ -35,6 +35,7 @@ class CUDPClient
     public:
         
         ~CUDPClient ();
+        
         void init(const char * targetIP, int broadcatsPort, const char * host, int listenningPort);
         void start();
         void stop();
@@ -43,13 +44,7 @@ class CUDPClient
         void sendMSG(const char * msg, const int length);
 
     protected:
-        // This static function only needed once
-        // it sends ID to communicator. 
-        // you need to create UDP with communicator first.
-        static void * InternalSenderIDThreadEntryFunc(void * func);
-        static void * InternalReceiverThreadEntryFunc(void * func);
-
-        
+                
         void startReceiver();
         void startSenderID();
 
