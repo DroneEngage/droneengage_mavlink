@@ -39,7 +39,7 @@
 #define ANDRUAV_PROTOCOL_TARGET_ID      "tg"
 #define ANDRUAV_PROTOCOL_MESSAGE_TYPE   "mt"
 #define ANDRUAV_PROTOCOL_MESSAGE_CMD    "ms"
-#define INTERMODULE_COMMAND_TYPE        "ty"
+#define INTERMODULE_ROUTING_TYPE        "ty"
 #define INTERMODULE_MODULE_KEY          "GU"
 
 // Reserved Target Values

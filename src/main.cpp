@@ -166,12 +166,12 @@ void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bm
         {
                     
             msgRoutingType = CMD_COMM_INDIVIDUAL;
-            fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]     = targetPartyID;
         }
         
     }
         
-    fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(msgRoutingType);
+    fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = targetPartyID; // targetID can exist even if routing is intermodule
+    fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(msgRoutingType);
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
     std::string json_msg = fullMessage.dump();
         
@@ -229,11 +229,11 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
             if (targetPartyID.length() != 0 )
             {
                 msgRoutingType = CMD_COMM_INDIVIDUAL;
-                fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]     = targetPartyID;
             }
         }
         
-        fullMessage[INTERMODULE_COMMAND_TYPE]           = std::string(msgRoutingType);
+        fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = targetPartyID; // targetID can exist even if routing is intermodule
+        fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(msgRoutingType);
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = jmsg;
         const std::string& msg = fullMessage.dump();
@@ -250,7 +250,7 @@ void sendMREMSG(const int& command_type)
 {
     Json json_msg;        
         
-    json_msg[INTERMODULE_COMMAND_TYPE] =  CMD_TYPE_INTERMODULE;
+    json_msg[INTERMODULE_ROUTING_TYPE] =  CMD_TYPE_INTERMODULE;
     json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_RemoteExecute;
     Json ms;
     ms["C"] = command_type;
@@ -278,7 +278,7 @@ const Json createJSONID (bool reSend)
         const Json& jsonConfig = cConfigFile.GetConfigJSON();
         Json json_msg;        
         
-        json_msg[INTERMODULE_COMMAND_TYPE] =  CMD_TYPE_INTERMODULE;
+        json_msg[INTERMODULE_ROUTING_TYPE] =  CMD_TYPE_INTERMODULE;
         json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_ID;
         Json ms;
               
@@ -311,7 +311,7 @@ void onReceive (const char * message, int len)
     
     Json jMsg = Json::parse(message);
 
-    if (std::strcmp(jMsg[INTERMODULE_COMMAND_TYPE].get<std::string>().c_str(),CMD_TYPE_INTERMODULE)==0)
+    if (std::strcmp(jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().c_str(),CMD_TYPE_INTERMODULE)==0)
     {
         const Json cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
         const int messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
