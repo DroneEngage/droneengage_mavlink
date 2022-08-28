@@ -32,7 +32,6 @@ using namespace uavos;
                         TYPE_AndruavMessage_DoYAW,\
                         TYPE_AndruavMessage_DistinationLocation, \
                         TYPE_AndruavMessage_ChangeSpeed, \
-                        TYPE_AndruavMessage_Ctrl_Cameras, \
                         TYPE_AndruavMessage_TrackingTarget, \
                         TYPE_AndruavMessage_TrackingTargetLocation, \
                         TYPE_AndruavMessage_TargetLost, \
@@ -149,8 +148,9 @@ void _onConnectionStatusChanged (const int status)
  * @param bmsg 
  * @param andruav_message_id 
  * @param internal_message if true @link INTERMODULE_MODULE_KEY @endlink equaqls to Module key
+ * @param message_cmd JSON message in ms section of JSON header. if null then pass Json()
  */
-void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message)
+void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message, const Json& message_cmd)
 {
     Json fullMessage;
 
@@ -173,6 +173,7 @@ void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bm
     fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = targetPartyID; // targetID can exist even if routing is intermodule
     fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(msgRoutingType);
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
+    fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = message_cmd;
     std::string json_msg = fullMessage.dump();
         
     // prepare an array for the whole message
