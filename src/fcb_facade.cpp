@@ -176,13 +176,16 @@ void CFCBFacade::sendLocationInfo () const
     
     mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
     const mavlink_global_position_int_t&  gpos = vehicle.getMsgGlobalPositionInt();
-
+    const mavlink_gps_raw_int_t& gps = vehicle.getMSGGPSRaw();
+    
     Json message=
     {
         {"la", gpos.lat},           // latitude   [degE7]
         {"ln", gpos.lon},           // longitude  [degE7]
         {"a", gpos.alt},            // absolute altitude in mm
-        {"r", gpos.relative_alt}    // relative altitude in mm
+        {"r", gpos.relative_alt},    // relative altitude in mm
+        {"ha", gps.h_acc},          // position uncertanty in mm
+        {"y", gps.yaw},             // yaw in cdeg
         // {"gs", groundspeed}, // ground speed
         // {"ws", windspeed}   
     };
@@ -275,14 +278,14 @@ void CFCBFacade::sendParameterList (const std::string&target_party_id) const
 
         if (total_length > 500)
         {
-            m_sendBMSG (target_party_id, buf, total_length, TYPE_AndruavMessage_MAVLINK, false);
+            m_sendBMSG (target_party_id, buf, total_length, TYPE_AndruavMessage_MAVLINK, false, Json());
             total_length = 0;
         }
     }
 
     if (total_length >0)
     {
-        m_sendBMSG (target_party_id, buf, total_length, TYPE_AndruavMessage_MAVLINK, false);
+        m_sendBMSG (target_party_id, buf, total_length, TYPE_AndruavMessage_MAVLINK, false, Json());
     }
 }
 
@@ -462,7 +465,7 @@ void CFCBFacade::sendTelemetryData(const std::string&target_party_id, const mavl
 		return ;
 	}
 
-    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_LightTelemetry, false);
+    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_LightTelemetry, false, Json());
     
     return ;
 }
@@ -478,7 +481,7 @@ void CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlin
 		return ;
 	}
 
-    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false);
+    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
     
     return ;
 }
@@ -497,7 +500,7 @@ void CFCBFacade::sendMavlinkData_2(const std::string&target_party_id, const mavl
 		return ;
 	}
 
-    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false);
+    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
     
     return ;
 }
