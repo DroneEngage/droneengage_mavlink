@@ -1,6 +1,6 @@
 /** @file
  *    @brief MAVLink comm protocol testsuite generated from python_array_test.xml
- *    @see http://qgroundcontrol.org/mavlink/
+ *    @see https://mavlink.io/en/
  */
 #pragma once
 #ifndef PYTHON_ARRAY_TEST_TESTSUITE_H
@@ -81,6 +81,11 @@ static void mavlink_test_array_test_0(uint8_t system_id, uint8_t component_id, m
     mavlink_msg_array_test_0_send(MAVLINK_COMM_1 , packet1.v1 , packet1.ar_i8 , packet1.ar_u8 , packet1.ar_u16 , packet1.ar_u32 );
     mavlink_msg_array_test_0_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+
+#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
+    MAVLINK_ASSERT(mavlink_get_message_info_by_name("ARRAY_TEST_0") != NULL);
+    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_ARRAY_TEST_0) != NULL);
+#endif
 }
 
 static void mavlink_test_array_test_1(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -135,6 +140,11 @@ static void mavlink_test_array_test_1(uint8_t system_id, uint8_t component_id, m
     mavlink_msg_array_test_1_send(MAVLINK_COMM_1 , packet1.ar_u32 );
     mavlink_msg_array_test_1_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+
+#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
+    MAVLINK_ASSERT(mavlink_get_message_info_by_name("ARRAY_TEST_1") != NULL);
+    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_ARRAY_TEST_1) != NULL);
+#endif
 }
 
 static void mavlink_test_array_test_3(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -190,6 +200,11 @@ static void mavlink_test_array_test_3(uint8_t system_id, uint8_t component_id, m
     mavlink_msg_array_test_3_send(MAVLINK_COMM_1 , packet1.v , packet1.ar_u32 );
     mavlink_msg_array_test_3_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+
+#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
+    MAVLINK_ASSERT(mavlink_get_message_info_by_name("ARRAY_TEST_3") != NULL);
+    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_ARRAY_TEST_3) != NULL);
+#endif
 }
 
 static void mavlink_test_array_test_4(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -245,6 +260,11 @@ static void mavlink_test_array_test_4(uint8_t system_id, uint8_t component_id, m
     mavlink_msg_array_test_4_send(MAVLINK_COMM_1 , packet1.ar_u32 , packet1.v );
     mavlink_msg_array_test_4_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+
+#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
+    MAVLINK_ASSERT(mavlink_get_message_info_by_name("ARRAY_TEST_4") != NULL);
+    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_ARRAY_TEST_4) != NULL);
+#endif
 }
 
 static void mavlink_test_array_test_5(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -300,6 +320,11 @@ static void mavlink_test_array_test_5(uint8_t system_id, uint8_t component_id, m
     mavlink_msg_array_test_5_send(MAVLINK_COMM_1 , packet1.c1 , packet1.c2 );
     mavlink_msg_array_test_5_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+
+#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
+    MAVLINK_ASSERT(mavlink_get_message_info_by_name("ARRAY_TEST_5") != NULL);
+    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_ARRAY_TEST_5) != NULL);
+#endif
 }
 
 static void mavlink_test_array_test_6(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -365,6 +390,11 @@ static void mavlink_test_array_test_6(uint8_t system_id, uint8_t component_id, m
     mavlink_msg_array_test_6_send(MAVLINK_COMM_1 , packet1.v1 , packet1.v2 , packet1.v3 , packet1.ar_u32 , packet1.ar_i32 , packet1.ar_u16 , packet1.ar_i16 , packet1.ar_u8 , packet1.ar_i8 , packet1.ar_c , packet1.ar_d , packet1.ar_f );
     mavlink_msg_array_test_6_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+
+#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
+    MAVLINK_ASSERT(mavlink_get_message_info_by_name("ARRAY_TEST_6") != NULL);
+    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_ARRAY_TEST_6) != NULL);
+#endif
 }
 
 static void mavlink_test_array_test_7(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -427,6 +457,11 @@ static void mavlink_test_array_test_7(uint8_t system_id, uint8_t component_id, m
     mavlink_msg_array_test_7_send(MAVLINK_COMM_1 , packet1.ar_d , packet1.ar_f , packet1.ar_u32 , packet1.ar_i32 , packet1.ar_u16 , packet1.ar_i16 , packet1.ar_u8 , packet1.ar_i8 , packet1.ar_c );
     mavlink_msg_array_test_7_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+
+#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
+    MAVLINK_ASSERT(mavlink_get_message_info_by_name("ARRAY_TEST_7") != NULL);
+    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_ARRAY_TEST_7) != NULL);
+#endif
 }
 
 static void mavlink_test_array_test_8(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)
@@ -483,6 +518,11 @@ static void mavlink_test_array_test_8(uint8_t system_id, uint8_t component_id, m
     mavlink_msg_array_test_8_send(MAVLINK_COMM_1 , packet1.v3 , packet1.ar_d , packet1.ar_u16 );
     mavlink_msg_array_test_8_decode(last_msg, &packet2);
         MAVLINK_ASSERT(memcmp(&packet1, &packet2, sizeof(packet1)) == 0);
+
+#ifdef MAVLINK_HAVE_GET_MESSAGE_INFO
+    MAVLINK_ASSERT(mavlink_get_message_info_by_name("ARRAY_TEST_8") != NULL);
+    MAVLINK_ASSERT(mavlink_get_message_info_by_id(MAVLINK_MSG_ID_ARRAY_TEST_8) != NULL);
+#endif
 }
 
 static void mavlink_test_python_array_test(uint8_t system_id, uint8_t component_id, mavlink_message_t *last_msg)

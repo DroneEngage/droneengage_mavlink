@@ -10,8 +10,8 @@
     #error Wrong include order: MAVLINK_MINIMAL.H MUST NOT BE DIRECTLY USED. Include mavlink.h from the same directory instead or set ALL AND EVERY defines from MAVLINK.H manually accordingly, including the #define MAVLINK_H call.
 #endif
 
-#undef MAVLINK_THIS_XML_IDX
-#define MAVLINK_THIS_XML_IDX 4
+#undef MAVLINK_THIS_XML_HASH
+#define MAVLINK_THIS_XML_HASH 8142147949182217917
 
 #ifdef __cplusplus
 extern "C" {
@@ -276,6 +276,7 @@ typedef enum MAV_COMPONENT
    MAV_COMP_ID_GIMBAL4=173, /* Gimbal #4 | */
    MAV_COMP_ID_GIMBAL5=174, /* Gimbal #5. | */
    MAV_COMP_ID_GIMBAL6=175, /* Gimbal #6. | */
+   MAV_COMP_ID_MAVCAN=189, /* CAN over MAVLink client. | */
    MAV_COMP_ID_MISSIONPLANNER=190, /* Component that can generate/supply a mission flight plan (e.g. GCS or developer API). | */
    MAV_COMP_ID_ONBOARD_COMPUTER=191, /* Component that lives on the onboard computer (companion computer) and has some generic functionalities, such as settings system parameters and monitoring the status of some processes that don't directly speak mavlink and so on. | */
    MAV_COMP_ID_PATHPLANNER=195, /* Component that finds an optimal path between points based on a certain constraint (e.g. minimum snap, shortest path, cost, etc.). | */
@@ -315,10 +316,10 @@ typedef enum MAV_COMPONENT
 // base include
 
 
-#undef MAVLINK_THIS_XML_IDX
-#define MAVLINK_THIS_XML_IDX 4
+#undef MAVLINK_THIS_XML_HASH
+#define MAVLINK_THIS_XML_HASH 8142147949182217917
 
-#if MAVLINK_THIS_XML_IDX == MAVLINK_PRIMARY_XML_IDX
+#if MAVLINK_THIS_XML_HASH == MAVLINK_PRIMARY_XML_HASH
 # define MAVLINK_MESSAGE_INFO {MAVLINK_MESSAGE_INFO_HEARTBEAT}
 # define MAVLINK_MESSAGE_NAMES {{ "HEARTBEAT", 0 }}
 # if MAVLINK_COMMAND_24BIT
