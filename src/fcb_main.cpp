@@ -510,6 +510,8 @@ void CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_message)
     switch (mavlink_message.msgid) 
     {
         case MAVLINK_MSG_ID_HEARTBEAT:
+            // this mavlink_message can be from internal components such as camera of ADSB
+            // check msg_heartbeat.type  before parsing or rely on the vehicle stored heartbeat message.
             OnHeartBeat();
             break;
 
