@@ -25,10 +25,27 @@
 
 
 // Communication Commands
-// group broadcast
+/**
+ * @brief Group boradcast
+ * @details group broad cast overrides individual. 
+ * @see Andruav_Communication_Server for details.
+ */
 #define CMD_COMM_GROUP                  "g" 
-// individual broadcast
+/**
+ * @brief Individual broadcast.
+ * @details single target except for the following
+ * *_GD_* all GCS
+ * *_AGN_* all agents
+ * @see Andruav_Communication_Server for details.
+ */
 #define CMD_COMM_INDIVIDUAL             "i" 
+    
+/**
+ * @brief System command.
+ * @details this should be handled by communication server. e.g. task access messages.
+ * @see Andruav_Communication_Server for details.
+ */
+#define CMD_COMM_SYSTEM                 "s" 
     
 
 
@@ -43,9 +60,11 @@
 #define INTERMODULE_MODULE_KEY          "GU"
 
 // Reserved Target Values
-#define ANDRUAV_PROTOCOL_SENDER_ALL_GCS "_GCS_"
-#define ANDRUAV_PROTOCOL_SENDER_ALL_AGENTS "_AGN_"
-#define ANDRUAV_PROTOCOL_SENDER_ALL "_GD_"
+#define ANDRUAV_PROTOCOL_SENDER_ALL_GCS         "_GCS_"
+#define ANDRUAV_PROTOCOL_SENDER_ALL_AGENTS      "_AGN_"
+#define ANDRUAV_PROTOCOL_SENDER_ALL             "_GD_"
+#define SPECIAL_NAME_SYS_NAME                   "_SYS_"
+
 
 // SOCKET STATUS
 #define SOCKET_STATUS_FREASH 			1   // socket is new
@@ -68,6 +87,7 @@
 #define TYPE_AndruavSystem_Ping                 9005
 #define TYPE_AndruavSystem_LogoutCommServer     9006
 #define TYPE_AndruavSystem_ConnectedCommServer  9007
+#define TYPE_AndruavSystem_UdpProxy             9008
 
 // Inter Module Commands
 #define TYPE_AndruavModule_ID                   9100
@@ -107,7 +127,6 @@
 #define TYPE_AndruavMessage_RemoteControlSettings	    1047
 #define TYPE_AndruavMessage_SET_HOME_LOCATION           1048
 #define TYPE_AndruavMessage_RemoteControl2		        1052
-#define TYPE_AndruavMessage_Sync_EventFire              1061
 /**
  * @brief This message is sent to Leader Drone to add a slave drone in a swarm and in an index.
  * given index may contradict with other indices. It is upto Leader Drone to handle this conflict.
@@ -139,6 +158,9 @@
  * @note receiver should not assume it is a follower. It only should forward this request to the leader.
  */
 #define TYPE_AndruavMessage_FollowHim_Request           1054
+#define TYPE_AndruavMessage_Sync_EventFire              1061
+#define TYPE_AndruavMessage_Prepherials                 1070
+#define TYPE_AndruavMessage_UDPProxy_Info               1071
 
 // Binary Messages 
 #define TYPE_AndruavMessage_LightTelemetry              2022

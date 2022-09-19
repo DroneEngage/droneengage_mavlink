@@ -79,6 +79,11 @@ namespace fcb
                 m_optimization_level = level;
             }
 
+            int getOptimizationLevel ()
+            {
+                return m_optimization_level;
+            }
+
             /**
              * @details Returns true if the message should be forward via telemetry to GCS.
              * Settings of this message are stored in config.json file.

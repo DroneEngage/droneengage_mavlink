@@ -7,6 +7,7 @@
 using Json = nlohmann::json;
 
 
+typedef void (*SEND_SYSMSG_CALLBACK)(const Json&, const int& );
 typedef void (*SEND_JMSG_CALLBACK)(const std::string& targetPartyID, const Json&, const int&, const bool& );
 typedef void (*SEND_BMSG_CALLBACK)(const std::string& targetPartyID, const char *, const int bmsg_length, const int& , const bool&, const Json& );
 typedef void (*SEND_MREMSG_CALLBACK)(const int& );
@@ -31,6 +32,13 @@ namespace uavos
              */
             virtual void setPartyID (const std::string& party_id, const std::string& group_id){};
             
+
+            /**
+             * @details register callback function to send system message using it.
+             * 
+             * @param sendBMSG of type @link SEND_SYSMSG_CALLBACK @endlink 
+             */
+            virtual void registerSendSYSMSG (SEND_SYSMSG_CALLBACK sendBMSG){};
 
             /**
              * @details register callback function to send message using it.

@@ -9,38 +9,38 @@
 #include "../helpers/json.hpp"
 using Json = nlohmann::json;
 
-#include "udpClient.hpp"
+#include "udpProxy.hpp"
 
-#ifndef MAXLINE
-#define MAXLINE 8192 
-#endif
+
+
+
 
     
-uavos::comm::CUDPClient::~CUDPClient ()
+uavos::comm::CUDPProxy::~CUDPProxy ()
 {
     
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPProxy" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     if (m_stopped_called == false)
     {
         #ifdef DEBUG
-	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPProxy" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
 
         stop();
     }
 
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPProxy" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     // destroy mutex
 	//pthread_mutex_destroy(&m_lock);
 
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPClient" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: ~CUDPProxy" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
 }
@@ -53,7 +53,7 @@ uavos::comm::CUDPClient::~CUDPClient ()
  * @param host uavos-module listening ips default is 0.0.0.0
  * @param listenningPort uavos-module listerning port.
  */
-void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort)
+void uavos::comm::CUDPProxy::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort)
 {
 
     // pthread initialization
@@ -94,32 +94,24 @@ void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, co
     std::cout << _LOG_CONSOLE_TEXT_BOLD_<< "Expected Comm Server at " <<  _INFO_CONSOLE_TEXT << targetIP << ":" <<  broadcatsPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
 }
 
-void uavos::comm::CUDPClient::start()
+void uavos::comm::CUDPProxy::start()
 {
     // call directly as we are already in a thread.
     if (m_starrted == true)
         throw "Starrted called twice";
 
     startReceiver ();
-    startSenderID();
-
     m_starrted = true;
 }
 
 
-void uavos::comm::CUDPClient::startReceiver ()
+void uavos::comm::CUDPProxy::startReceiver ()
 {
     m_threadCreateUDPSocket = std::thread {[&](){ InternalReceiverEntry(); }};
 }
 
 
-void uavos::comm::CUDPClient::startSenderID ()
-{
-    m_threadSenderID = std::thread {[&](){ InternelSenderIDEntry(); }};
-}
-
-
-void uavos::comm::CUDPClient::stop()
+void uavos::comm::CUDPProxy::stop()
 {
 
     #ifdef DEBUG
@@ -171,7 +163,7 @@ void uavos::comm::CUDPClient::stop()
     
 }
 
-void uavos::comm::CUDPClient::InternalReceiverEntry()
+void uavos::comm::CUDPProxy::InternalReceiverEntry()
 {
     std::cout << "InternalReceiverEntry called" << std::endl; 
     
@@ -188,65 +180,25 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
         if (n > 0) 
         {
             buffer[n]=0;
-            if (m_OnReceive != NULL)
+            if (m_callback_udp_proxy != nullptr)
             {
-                m_OnReceive((const char *) buffer,n);
+                m_callback_udp_proxy->OnMessageReceived(this, (const char *) buffer,n);
             } 
         }
     }
 
     #ifdef DEBUG
-	//std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternalReceiverEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternalReceiverEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
 }
 
-
-/**
- * Store ID Card in JSON
- */
-void uavos::comm::CUDPClient::setJsonId (std::string jsonID)
-{
-    m_JsonID = jsonID;
-}
-
-void uavos::comm::CUDPClient::setMessageOnReceive (void (*onReceive)(const char *, int len))
-{
-    m_OnReceive = onReceive;
-}
-
-/**
- * Sending ID Periodically
- **/
-void uavos::comm::CUDPClient::InternelSenderIDEntry()
-{
-
-    #ifdef DEBUG
-	//std::cout << "InternelSenderIDEntry called" << std::endl; 
-    #endif
-
-    while (!m_stopped_called)
-    {   
-        if (m_JsonID.empty() == false)
-        {
-            //std::cout << m_JsonID.is_null() << " - " << m_JsonID.empty() << "-" << m_JsonID.is_string() << std::endl;
-            const std::string msg = m_JsonID;
-            sendMSG(msg.c_str(), msg.length());
-        }
-        sleep (1);
-    }
-
-    #ifdef DEBUG
-	//std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-
-}
 
 
 /**
  * Sends binary to Communicator
  **/
-void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
+void uavos::comm::CUDPProxy::sendMSG (const char * msg, const int length)
 {
     
     try

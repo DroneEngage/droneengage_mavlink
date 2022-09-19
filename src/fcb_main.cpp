@@ -23,6 +23,27 @@
 
 using namespace uavos::fcb;
 
+
+void CFCBMain::OnMessageReceived (const uavos::comm::CUDPProxy * udp_proxy, const char *message, int len)
+{
+    if (!m_enable_udpTelemetry || getAndruavVehicleInfo().is_gcs_blocked) return  ;
+    
+
+    mavlink_status_t status;
+	mavlink_message_t mavlink_message;
+    for (int i=0; i<len; ++ i)
+    {
+	    uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_2, message[i], &mavlink_message, &status);
+        if (msgReceived!=0)
+        {
+            mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
+        }
+
+        
+    }
+
+    
+}
 // void SchedulerThread(void * This) {
 // 	((CFCBMain *)This)->loopScheduler(); 
 
@@ -107,7 +128,17 @@ bool CFCBMain::init ()
     
     initVehicleChannelLimits(true);
     m_mavlink_optimizer.init (m_jsonConfig["message_timeouts"]);
-    m_mavlink_optimizer.setOptimizationLevel(m_jsonConfig["default_optimization_level"].get<int>());
+    
+    
+    if (m_jsonConfig.contains("default_optimization_level"))
+    { // TODO: convert this to inline as validatefield
+        m_mavlink_optimizer.setOptimizationLevel(m_jsonConfig["default_optimization_level"].get<int>());
+    }
+
+    if (m_jsonConfig.contains("udp_proxy_enabled"))
+    { // TODO: convert this to inline as validatefield
+        m_enable_udpTelemetry = m_jsonConfig["udp_proxy_enabled"].get<bool>();
+    }
     
     if (connectToFCB() == true)
     {
@@ -528,8 +559,14 @@ void CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_message)
     // if streaming active check each message to forward.
     if (m_mavlink_optimizer.shouldForwardThisMessage (mavlink_message))
     {
+        // UdpProxy
+        if (isUdpProxyMavlinkAvailable())
+        {
+            m_fcb_facade.sendUdpProxyMavlink (mavlink_message, m_udp_proxy.udp_client);    
+        }
+
+        // Normal Andruav Telemetry using WebPlugin
         std::vector<std::unique_ptr<ANDRUAV_UNIT_STRUCT>> ::iterator it;
-        
         for(it=m_TelemetryUnits.begin(); it!=m_TelemetryUnits.end(); it++)
         {
             ANDRUAV_UNIT_STRUCT *unit_ptr = it->get();
@@ -949,9 +986,12 @@ void CFCBMain::OnConnectionStatusChangedWithAndruavServer (const int status)
     if (status == SOCKET_STATUS_REGISTERED)
     {
         m_fcb_facade.callModule_reloadSavedTasks(TYPE_AndruavSystem_LoadTasks);
+
+        // open or close -if open- udpProxy once connection with communication server is established.
+        m_fcb_facade.requestUdpProxyTelemetry(m_enable_udpTelemetry,"0.0.0.0",0,"0.0.0.0",0);
         // Json json_msg = sendMREMSG(TYPE_AndruavSystem_LoadTasks);
         // const std::string msg = json_msg.dump();
-        // cUDPClient.sendMSG(msg.c_str(), msg.length());
+        // CUDPProxy.sendMSG(msg.c_str(), msg.length());
     }
 }
 
@@ -1614,4 +1654,43 @@ void CFCBMain::checkBlockedStatus()
 void CFCBMain::heartbeatCamera ()
 {
     mavlinksdk::CMavlinkCommand::getInstance().sendHeartBeatOfComponent(MAV_COMP_ID_CAMERA);
+}
+
+void CFCBMain::updateUDPProxy(const bool& enabled, const std::string&udp_ip1, const int& udp_port1, const std::string&udp_ip2, const int& udp_port2)
+{
+    if ((enabled == true) && (enabled != m_udp_proxy.enabled))
+    {
+        if (m_udp_proxy.udp_client.isStarted())
+        {
+            m_udp_proxy.udp_client.stop();
+        }
+        m_udp_proxy.udp_client.setCallback(this);
+        m_udp_proxy.udp_client.init(udp_ip1.c_str(),udp_port1,"0.0.0.0",0);
+        m_udp_proxy.udp_client.start();
+    }
+    else
+    {
+        m_udp_proxy.udp_client.stop();
+    }
+
+    m_udp_proxy.enabled = enabled;
+    m_udp_proxy.udp_ip1 = udp_ip1;
+    m_udp_proxy.udp_port1 = udp_port1;
+    m_udp_proxy.udp_ip2 = udp_ip2;
+    m_udp_proxy.udp_port2 = udp_port2;
+                
+
+    sendUdpProxyStatus(std::string());
+    return ;
+}
+
+void CFCBMain::sendUdpProxyStatus (const std::string& target_party_id)
+{
+
+    m_fcb_facade.sendUdpProxyStatus (std::string(), m_udp_proxy.enabled, m_udp_proxy.udp_ip2, m_udp_proxy.udp_port2, m_mavlink_optimizer.getOptimizationLevel());;
+}
+
+bool CFCBMain::isUdpProxyMavlinkAvailable() const 
+{
+    return m_udp_proxy.enabled;
 }

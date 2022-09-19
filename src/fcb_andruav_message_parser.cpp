@@ -153,7 +153,7 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 
 
                 mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint (latitude, longitude, altitude / 1000.0);
-                CFCBFacade::getInstance().sendFCBTargetLocation (andruav_message[ANDRUAV_PROTOCOL_SENDER], latitude, longitude, altitude);
+                CFCBFacade::getInstance().sendFCBTargetLocation (andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), latitude, longitude, altitude);
             }   
             break;
 
@@ -557,6 +557,65 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             }
             break;
 
+            case TYPE_AndruavMessage_UDPProxy_Info:
+            {
+                /*
+                    message received from another drone to communicate to it directly.
+                */
+                if (!validateField(message, "a",Json::value_t::string)) return ;
+                if (!validateField(message, "p",Json::value_t::number_integer)) return ;
+                if (!validateField(message, "o",Json::value_t::number_integer)) return ;
+                if (!validateField(message, "en",Json::value_t::boolean)) return ;
+                //TODO: COMPLETE
+                
+            }
+            break;
+
+            case TYPE_AndruavSystem_UdpProxy:
+            {   
+                /*
+                    Received from communication_server that created a udp socket me.
+                    In future version this can be received from a udp Server.
+
+                    socket1: a udp socket that can be used.
+                    socket2: a udp socket that can be used.
+                    any socket can be used by this drone and the other by other parties.
+                    the drone can determine this when sending TYPE_AndruavMessage_UDPProxy_Info to other parties.
+                    normally socket 1 is drone's socket and socket 2 for external parties.
+                */
+               
+                if (!validateField(message, "socket1",Json::value_t::object)) return ;
+                if (!validateField(message, "socket2",Json::value_t::object)) return ;
+
+                const Json&  socket1 = message["socket1"];
+                const Json&  socket2 = message["socket2"];
+                
+                if (!validateField(socket1, "address",Json::value_t::string)) return ;
+                if (!validateField(socket1, "port",Json::value_t::number_unsigned)) return ;
+                
+                if (!validateField(socket2, "address",Json::value_t::string)) return ;
+                if (!validateField(socket2, "port",Json::value_t::number_unsigned)) return ;
+
+                if (!validateField(message, "en",Json::value_t::boolean)) return ;
+                
+                /*
+                 * my address & other adress are arbitrary.
+                 * you can switch between them
+                 */
+                const bool enable = message["en"].get<bool>();
+                const std::string my_address = socket1["address"].get<std::string>();
+                const int my_port = socket1["port"].get<int>();
+                const std::string others_address = socket2["address"].get<std::string>();
+                const int  others_port = socket2["port"].get<int>();
+                
+                m_fcbMain.updateUDPProxy (enable, my_address, my_port,
+                    others_address, others_port);
+
+
+            }
+            break;
+
+
         }
     }
 }
@@ -578,11 +637,11 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
     switch (remoteCommand)
     {
         case RemoteCommand_REQUEST_PARA_LIST:
-            CFCBFacade::getInstance().sendParameterList(andruav_message[ANDRUAV_PROTOCOL_SENDER]);
+            CFCBFacade::getInstance().sendParameterList(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
         break;
 
         case TYPE_AndruavMessage_SET_HOME_LOCATION:
-            CFCBFacade::getInstance().sendHomeLocation(andruav_message[ANDRUAV_PROTOCOL_SENDER]);
+            CFCBFacade::getInstance().sendHomeLocation(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
         break;
 
         case RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB:
@@ -622,7 +681,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
                 streaming_level = cmd["LVL"].get<int>();
             }
             
-            m_fcbMain.toggleMavlinkStreaming(andruav_message[ANDRUAV_PROTOCOL_SENDER], request_type, streaming_level);
+            m_fcbMain.toggleMavlinkStreaming(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), request_type, streaming_level);
         }
         break;
 
@@ -650,7 +709,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
             // if fence name exists, send back info.
             if (geo_fence_struct != nullptr) 
             {
-                CFCBFacade::getInstance().sendGeoFenceToTarget(andruav_message[ANDRUAV_PROTOCOL_SENDER], geo_fence_struct);
+                CFCBFacade::getInstance().sendGeoFenceToTarget(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), geo_fence_struct);
             } 
             else
             {
@@ -660,7 +719,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
 
                 for(int i = 0; i < size; i++)
                 {
-                    CFCBFacade::getInstance().sendGeoFenceToTarget(andruav_message[ANDRUAV_PROTOCOL_SENDER], geo_fence_struct[i]);
+                    CFCBFacade::getInstance().sendGeoFenceToTarget(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), geo_fence_struct[i]);
                 }
             }
         }
@@ -675,7 +734,13 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
                 fence_name = cmd["fn"].get<std::string>();
             }
 
-            CFCBFacade::getInstance().sendGeoFenceAttachedStatusToTarget(andruav_message[ANDRUAV_PROTOCOL_SENDER], fence_name);
+            CFCBFacade::getInstance().sendGeoFenceAttachedStatusToTarget(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), fence_name);
+        }
+        break;
+
+        case TYPE_AndruavMessage_UDPProxy_Info:
+        {
+            m_fcbMain.sendUdpProxyStatus(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());         
         }
         break;
 
