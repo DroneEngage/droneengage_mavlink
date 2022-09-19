@@ -9,6 +9,7 @@
 #include <mavlink_events.h>
 
 #include "./uavos_common/uavos_module.hpp"
+#include "./uavos_common/udpProxy.hpp"
 #include "./helpers/json.hpp"
 using Json = nlohmann::json;
 
@@ -30,7 +31,15 @@ namespace fcb
 
     } ANDRUAV_UNIT_STRUCT;
 
-    
+    typedef struct 
+    {
+        std::string udp_ip1;
+        int udp_port1;
+        std::string udp_ip2;
+        int udp_port2;
+        bool enabled;
+        uavos::comm::CUDPProxy udp_client;
+    } ANDRUAV_UDP_PROXY;
 
     /**
      * @brief This class is the heart of FCB module. 
@@ -38,7 +47,7 @@ namespace fcb
      * It also communicates with physical FCB using mavlinksdk library.
      * 
      */
-    class CFCBMain: public uavos::CMODULE,  mavlinksdk::CMavlinkEvents
+    class CFCBMain: public uavos::CMODULE,  mavlinksdk::CMavlinkEvents, uavos::comm::CCallBack_UdpProxy
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -70,7 +79,7 @@ namespace fcb
                 m_module_features.push_back("R");
 
                 m_module_class="fcb";
-            }
+            };
 
         public:
             
@@ -89,6 +98,16 @@ namespace fcb
             bool uninit () override;
 
             void loopScheduler();
+
+            /**
+             * @details register callback function to send system message using it.
+             * 
+             * @param sendJMSG of type @link SEND_SYSMSG_CALLBACK @endlink 
+             */
+            void registerSendSYSMSG (SEND_SYSMSG_CALLBACK sendSYSMSG) override
+            {
+                m_fcb_facade.RegisterSendSYSMSG(sendSYSMSG);
+            };            
 
             /**
              * @details register callback function to send message using it.
@@ -182,7 +201,37 @@ namespace fcb
             const RCMAP_CHANNELS_MAP_INFO_STRUCT getRCChannelsMapInfo() const
             {
                 return m_rcmap_channels_info;
-            }
+            };
+
+            /**
+             * @brief called when receive {@link TYPE_AndruavSystem_UdpProxy @endlink} to 
+             * add update udpProxy database and creates a UDP socket. 
+             * 
+             * @param enabled 
+             * @param udp_ip1 
+             * @param udp_port1 
+             * @param udp_ip2 
+             * @param udp_port2 
+             */
+            void updateUDPProxy(const bool& enabled, const std::string&udp_ip1, const int& udp_port1, const std::string&udp_ip2, const int& udp_port2);
+
+            /**
+             * @brief sends udpProxy socket info to another party to start communication with me.
+             * send only one socket info not the one that I use here to communicate.
+             * 
+             * @param target_party_id 
+             */
+            void sendUdpProxyStatus (const std::string& target_party_id);
+
+            /**
+             * @brief in future there maybe multiple up for multiple purpose. for now
+             * this message will return true of there is a single udpProxy enabled.
+             * 
+             * @return true 
+             * @return false 
+             */
+            bool isUdpProxyMavlinkAvailable () const;
+
 
         public:
             void OnHeartBeat ();
@@ -212,8 +261,12 @@ namespace fcb
 
             // called from main
             void OnConnectionStatusChangedWithAndruavServer (const int status) override;
+        
+        
+        // Events implementation of uavos::comm::CCallBack_UdpProxy
         public:
-            
+            void OnMessageReceived (const uavos::comm::CUDPProxy * udp_proxy, const char *, int len) override;
+
         private: 
             void initVehicleChannelLimits(const bool display);
      
@@ -231,6 +284,11 @@ namespace fcb
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
             void update_rcmap_info();
             void checkBlockedStatus();
+
+            /**
+             * @brief emulate a camera for ardupilot.
+             * 
+             */
             void heartbeatCamera ();
 
         private:
@@ -266,6 +324,11 @@ namespace fcb
 
 
             bool m_fcb_connected = false;
+            bool m_enable_udpTelemetry = false; // defined in config file.
+
+            ANDRUAV_UDP_PROXY m_udp_proxy;
+            
+
     };
 }
 }

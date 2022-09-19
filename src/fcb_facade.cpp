@@ -454,6 +454,23 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
     return ;
 }
 
+void CFCBFacade::sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, uavos::comm::CUDPProxy& udp_client) const
+{
+
+     char buf[300];
+    // Translate message to buffer
+	unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message);
+	if (len >= 300) 
+	{
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+		return ;
+	}
+
+    
+    udp_client.sendMSG (buf, len);
+}
+
+
 void CFCBFacade::sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
 {
     char buf[300];
@@ -708,7 +725,7 @@ void CFCBFacade::callModule_reloadSavedTasks(const int& inter_module_command)
 }
 
 
-void CFCBFacade::internalCommand_takeImage()
+void CFCBFacade::internalCommand_takeImage() const
 {
     /*
         a: channelName  []
@@ -725,5 +742,70 @@ void CFCBFacade::internalCommand_takeImage()
             };
             
     m_sendJMSG (std::string(), message, TYPE_AndruavMessage_Ctrl_Cameras, true);
-    std::cout << "TYPE_AndruavMessage_Ctrl_Cameras" << std::endl;
 }
+
+/**
+ * @brief start/stop udp proxy. <b>This is a system command.</b>
+ * 
+ * @param start 
+ * @param udp_ip1 
+ * @param udp_port1
+ * @param udp_ip2 
+ * @param udp_port2 
+ */
+void CFCBFacade::requestUdpProxyTelemetry(const bool start, const std::string&udp_ip1, const int& udp_port1, const std::string&udp_ip2, const int& udp_port2)
+{
+    /*
+        {
+            en: enabled (true/false)
+            socket1: {"address":"x.x.x.x", "port":nn}
+            socket2: {"address":"x.x.x.x", "port":nn}
+        }
+    */
+
+    Json address1 = 
+            {
+                {"address",udp_ip1},
+                {"port",udp_port1}
+            };
+
+    Json address2 =
+            {
+                {"address",udp_ip2},
+                {"port",udp_port2}
+            };
+    Json message =
+            {
+                {"en",start},
+                {"socket1", address1},          // socket1 
+                {"socket2",  address2}          // socket2
+            };
+            
+    m_sendSYSMSG (message, TYPE_AndruavSystem_UdpProxy);
+}
+
+
+
+void CFCBFacade::sendUdpProxyStatus(const std::string&target_party_id, const bool& start, const std::string&udp_ip_other, const int& udp_port_other, const int& optimization_level)
+{
+    /*
+        {
+            en: enabled (true/false)
+            a: ip address_"x.x.x.x",
+            p: port in integer
+            o: optimization_level in integer
+        }
+    */
+    
+    Json message =
+            {
+                {"a", udp_ip_other},
+                {"p", udp_port_other}, 
+                {"o", optimization_level},
+                {"en", start}
+            };
+            
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_UDPProxy_Info, false);
+}
+
+

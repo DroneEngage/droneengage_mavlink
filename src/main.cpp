@@ -44,7 +44,9 @@ using namespace uavos;
                         TYPE_AndruavMessage_Sync_EventFire, \
                         TYPE_AndruavMessage_MAKE_SWARM,  \
                         TYPE_AndruavMessage_FollowHim_Request,  \
-                        TYPE_AndruavMessage_MAVLINK}
+                        TYPE_AndruavMessage_MAVLINK, \
+                        TYPE_AndruavMessage_UDPProxy_Info, \
+                        TYPE_AndruavSystem_UdpProxy}
 
 // This is a timestamp used as instance unique number. if changed then communicator module knows module has restarted.
 std::time_t instance_time_stamp;
@@ -64,7 +66,7 @@ uavos::fcb::CFCBAndruavMessageParser cAndruavResalaParser = uavos::fcb::CFCBAndr
 
 uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
 
-uavos::comm::CUDPClient& cUDPClient = uavos::comm::CUDPClient::getInstance();  
+uavos::comm::CUDPClient cUDPClient = uavos::comm::CUDPClient(); 
 
 /**
  * @brief hardware serial number
@@ -128,15 +130,7 @@ void _displaySerial (void)
  */
 void _onConnectionStatusChanged (const int status)
 {
-    // if (status == SOCKET_STATUS_REGISTERED)
-    // {
-    //     Json json_msg = sendMREMSG(callModule_reloadSavedTasks);
-    //     const std::string msg = json_msg.dump();
-    //     cUDPClient.sendMSG(msg.c_str(), msg.length());
-    // }
-
     cFCBMain.OnConnectionStatusChangedWithAndruavServer(status);
-                
 }
 
 /**
@@ -154,10 +148,10 @@ void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bm
 {
     Json fullMessage;
 
-    std::string msgRoutingType = CMD_COMM_GROUP;
+    std::string msg_routing_type = CMD_COMM_GROUP;
     if (internal_message == true)
     {
-        msgRoutingType = CMD_TYPE_INTERMODULE;
+        msg_routing_type = CMD_TYPE_INTERMODULE;
         fullMessage[INTERMODULE_MODULE_KEY]             = ModuleKey;
     }
     else
@@ -165,13 +159,13 @@ void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bm
         if (targetPartyID.length() != 0 )
         {
                     
-            msgRoutingType = CMD_COMM_INDIVIDUAL;
+            msg_routing_type = CMD_COMM_INDIVIDUAL;
         }
         
     }
         
     fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = targetPartyID; // targetID can exist even if routing is intermodule
-    fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(msgRoutingType);
+    fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(msg_routing_type);
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = message_cmd;
     std::string json_msg = fullMessage.dump();
@@ -219,25 +213,45 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
         //  Group: i.e. to all members of groups.
         //  Individual: i.e. to a given member or a certain type of members i.e. all vehicles or all GCS.
         /////////*/
-        std::string msgRoutingType = CMD_COMM_GROUP;
+        std::string msg_routing_type = CMD_COMM_GROUP;
         if (internal_message == true)
         {
-            msgRoutingType = CMD_TYPE_INTERMODULE;
+            msg_routing_type = CMD_TYPE_INTERMODULE;
             fullMessage[INTERMODULE_MODULE_KEY]             = ModuleKey;
         }
         else
         {
             if (targetPartyID.length() != 0 )
             {
-                msgRoutingType = CMD_COMM_INDIVIDUAL;
+                msg_routing_type = CMD_COMM_INDIVIDUAL;
             }
         }
         
         fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = targetPartyID; // targetID can exist even if routing is intermodule
-        fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(msgRoutingType);
+        fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(msg_routing_type);
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = jmsg;
         const std::string& msg = fullMessage.dump();
+        #ifdef DEBUG
+        //std::cout << "sendJMSG:" << msg.c_str() << std::endl;
+        #endif
+        cUDPClient.sendMSG(msg.c_str(), msg.length());
+}
+
+
+void sendSYSMSG (const Json& jmsg, const int& andruav_message_id)
+{
+        
+        Json fullMessage;
+
+        fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = std::string(SPECIAL_NAME_SYS_NAME); 
+        fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(CMD_COMM_SYSTEM);
+        fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
+        fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = jmsg;
+        const std::string& msg = fullMessage.dump();
+        #ifdef DEBUG
+        //std::cout << "sendJMSG:" << msg.c_str() << std::endl;
+        #endif
         cUDPClient.sendMSG(msg.c_str(), msg.length());
 }
 
@@ -335,7 +349,7 @@ void onReceive (const char * message, int len)
                 // tell server you dont need to send ID again.
                 std::cout << _SUCCESS_CONSOLE_TEXT_ << "Communicator Server Found " <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
                 Json jsonID = createJSONID(false);
-                cUDPClient.SetJSONID (jsonID.dump());
+                cUDPClient.setJsonId (jsonID.dump());
                 bFirstReceived = true;
             }
             return ;
@@ -407,14 +421,11 @@ void initUDPClient(int argc, char *argv[])
     
     ModuleKey = jsonConfig["module_key"];
     Json jsonID = createJSONID(true);
-    cUDPClient.SetJSONID (jsonID.dump());
-    cUDPClient.SetMessageOnReceive (&onReceive);
+    cUDPClient.setJsonId (jsonID.dump());
+    cUDPClient.setMessageOnReceive (&onReceive);
     cUDPClient.start();
 
-    cFCBMain.registerSendJMSG(sendJMSG);
-    cFCBMain.registerSendBMSG(sendBMSG);
-    cFCBMain.registerSendMREMSG(sendMREMSG);
-
+    
 }
 
 
@@ -441,8 +452,7 @@ void init (int argc, char *argv[])
     
     cConfigFile.initConfigFile (configName.c_str());
     
-    initUDPClient (argc,argv);
-
+    
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
     
     if (jsonConfig.contains("event_fire_channel") && jsonConfig.contains("event_wait_channel"))
@@ -450,7 +460,16 @@ void init (int argc, char *argv[])
         cFCBMain.setEventChannel(jsonConfig["event_fire_channel"].get<int>(), jsonConfig["event_wait_channel"].get<int>());
     }
     
+    
+    cFCBMain.registerSendSYSMSG(sendSYSMSG);
+    cFCBMain.registerSendJMSG(sendJMSG);
+    cFCBMain.registerSendBMSG(sendBMSG);
+    cFCBMain.registerSendMREMSG(sendMREMSG);
     cFCBMain.init();
+    
+    // should be last
+    initUDPClient (argc,argv);
+
     
 }
 

@@ -8,6 +8,7 @@
 #include "global.hpp"
 #include "defines.hpp"
 #include "./uavos_common/uavos_module.hpp"
+#include "./uavos_common/udpProxy.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 
@@ -87,20 +88,46 @@ namespace fcb
             void sendSyncEvent(const std::string&target_party_id, const int event_id ) const;
             void requestToFollowLeader(const std::string&target_party_id, const int slave_index) const;
             void requestUnFollowLeader(const std::string&target_party_id) const;
-            // Inter Module Remote Execute Commands
+            
+            void requestUdpProxyTelemetry(const bool start, const std::string&udp_ip1, const int& udp_port1, const std::string&udp_ip2, const int& udp_port2);
+            void sendUdpProxyStatus(const std::string&target_party_id, const bool& start, const std::string&udp_ip_other, const int& udp_port_other, const int& optimization_level);
+            // Inter Module Remote Execute Commands - commands executed by other modules in droneengage.
             void callModule_reloadSavedTasks (const int& inter_module_command);
-            void internalCommand_takeImage ();
+            void internalCommand_takeImage () const;
+            void sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, uavos::comm::CUDPProxy& udp_client) const;
+                 
 
+            void RegisterSendSYSMSG (SEND_SYSMSG_CALLBACK sendSYSMSG)
+            {
+                m_sendSYSMSG = sendSYSMSG;
+            };
+            
+            /**
+             * @brief call back function to send JSON message either 
+             * to communicator or other modules or server.
+             * 
+             * @param sendJMSG 
+             */
             void RegisterSendJMSG (SEND_JMSG_CALLBACK sendJMSG)
             {
                 m_sendJMSG = sendJMSG;
             };
             
+            /**
+             * @brief callback function to send binary message
+             * 
+             * @param sendBMSG 
+             */
             void RegisterSendBMSG (SEND_BMSG_CALLBACK sendBMSG)
             {
                 m_sendBMSG = sendBMSG;
             };
-
+            
+            /**
+             * @brief callback function to send remote-module-execute messages
+             * 
+             * @param sendMREMSG 
+             */
             void RegisterSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG)
             {
                 m_sendMREMSG = sendMREMSG;
@@ -108,10 +135,10 @@ namespace fcb
 
         private:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-            
-            SEND_JMSG_CALLBACK      m_sendJMSG = NULL;
-            SEND_BMSG_CALLBACK      m_sendBMSG = NULL;
-            SEND_MREMSG_CALLBACK    m_sendMREMSG = NULL;
+            SEND_SYSMSG_CALLBACK    m_sendSYSMSG    = NULL;
+            SEND_JMSG_CALLBACK      m_sendJMSG      = NULL;
+            SEND_BMSG_CALLBACK      m_sendBMSG      = NULL;
+            SEND_MREMSG_CALLBACK    m_sendMREMSG    = NULL;
     };
 }
 }
