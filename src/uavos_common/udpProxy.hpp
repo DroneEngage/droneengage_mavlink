@@ -36,7 +36,7 @@ class CUDPProxy
         
     public:
         
-        void init(const char * targetIP, int broadcatsPort, const char * host, int listenningPort);
+        bool init(const char * targetIP, int broadcatsPort, const char * host, int listenningPort);
         void setCallback (CCallBack_UdpProxy * callback_udp_proxy)
         {
             m_callback_udp_proxy = callback_udp_proxy;
@@ -53,8 +53,8 @@ class CUDPProxy
         void startReceiver();
 
         void InternalReceiverEntry();
-
-        struct sockaddr_in  *m_ModuleAddress = nullptr, *m_CommunicatorModuleAddress = nullptr; 
+        struct sockaddr_in  *m_udpProxyServer = nullptr; 
+        struct sockaddr_in  *m_ModuleAddress = nullptr; 
         int m_SocketFD = -1; 
         std::thread m_threadSenderID, m_threadCreateUDPSocket;
         pthread_t m_thread;

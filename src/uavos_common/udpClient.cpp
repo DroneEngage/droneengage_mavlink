@@ -83,7 +83,7 @@ void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, co
     m_CommunicatorModuleAddress->sin_addr.s_addr = inet_addr(targetIP); 
 
     // Bind the socket with the server address 
-    if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in)) < 0 ) 
+    if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in))>0) 
     { 
         std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(-1) ;
@@ -196,9 +196,10 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
     }
 
     #ifdef DEBUG
-	//std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternalReceiverEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	#ifdef DEBUG_DETAILED
+	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternalReceiverEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
-
+    #endif
 }
 
 
@@ -237,7 +238,9 @@ void uavos::comm::CUDPClient::InternelSenderIDEntry()
     }
 
     #ifdef DEBUG
+	#ifdef DEBUG_DETAILED
 	//std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     #endif
 
 }

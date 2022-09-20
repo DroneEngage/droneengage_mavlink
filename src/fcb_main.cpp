@@ -23,11 +23,14 @@
 
 using namespace uavos::fcb;
 
+#define UDP_PROXY_TIMEOUT 5000000
 
 void CFCBMain::OnMessageReceived (const uavos::comm::CUDPProxy * udp_proxy, const char *message, int len)
 {
-    if (!m_enable_udpTelemetry || getAndruavVehicleInfo().is_gcs_blocked) return  ;
-    
+    if (!m_enable_udp_telemetry || getAndruavVehicleInfo().is_gcs_blocked) return  ;
+
+    const u_int64_t now = get_time_usec();
+    m_last_access_telemetry = now;
 
     mavlink_status_t status;
 	mavlink_message_t mavlink_message;
@@ -137,7 +140,7 @@ bool CFCBMain::init ()
 
     if (m_jsonConfig.contains("udp_proxy_enabled"))
     { // TODO: convert this to inline as validatefield
-        m_enable_udpTelemetry = m_jsonConfig["udp_proxy_enabled"].get<bool>();
+        m_enable_udp_telemetry = m_jsonConfig["udp_proxy_enabled"].get<bool>();
     }
     
     if (connectToFCB() == true)
@@ -560,9 +563,15 @@ void CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_message)
     if (m_mavlink_optimizer.shouldForwardThisMessage (mavlink_message))
     {
         // UdpProxy
-        if (isUdpProxyMavlinkAvailable())
+        const u_int64_t now = get_time_usec();
+        const u_int64_t last_access_duration = (now -m_last_access_telemetry);
+        if ((isUdpProxyMavlinkAvailable()))
         {
-            m_fcb_facade.sendUdpProxyMavlink (mavlink_message, m_udp_proxy.udp_client);    
+            // stop sending mavlink if no one is sending back. except heartbeat messages.
+            if  (( last_access_duration < UDP_PROXY_TIMEOUT) || (mavlink_message.msgid == MAVLINK_MSG_ID_HEARTBEAT))
+            {
+                m_fcb_facade.sendUdpProxyMavlink (mavlink_message, m_udp_proxy.udp_client);    
+            }
         }
 
         // Normal Andruav Telemetry using WebPlugin
@@ -957,10 +966,10 @@ void CFCBMain::OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_r
 void CFCBMain::OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)
 {
     #ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 
-		<< std::string(param_name) << " : " << "count: " << std::to_string(param_message.param_index) << " of " << std::to_string(param_message.param_count)
-		<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
-		<< " changed: " << std::to_string(changed) <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+	// std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 
+	// 	<< std::string(param_name) << " : " << "count: " << std::to_string(param_message.param_index) << " of " << std::to_string(param_message.param_count)
+	// 	<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
+	// 	<< " changed: " << std::to_string(changed) <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
 	#endif
 
     if (changed) m_fcb_facade.sendParameterValue(std::string(), param_message);
@@ -988,7 +997,7 @@ void CFCBMain::OnConnectionStatusChangedWithAndruavServer (const int status)
         m_fcb_facade.callModule_reloadSavedTasks(TYPE_AndruavSystem_LoadTasks);
 
         // open or close -if open- udpProxy once connection with communication server is established.
-        m_fcb_facade.requestUdpProxyTelemetry(m_enable_udpTelemetry,"0.0.0.0",0,"0.0.0.0",0);
+        m_fcb_facade.requestUdpProxyTelemetry(m_enable_udp_telemetry,"0.0.0.0",0,"0.0.0.0",0);
         // Json json_msg = sendMREMSG(TYPE_AndruavSystem_LoadTasks);
         // const std::string msg = json_msg.dump();
         // CUDPProxy.sendMSG(msg.c_str(), msg.length());
@@ -1658,7 +1667,7 @@ void CFCBMain::heartbeatCamera ()
 
 void CFCBMain::updateUDPProxy(const bool& enabled, const std::string&udp_ip1, const int& udp_port1, const std::string&udp_ip2, const int& udp_port2)
 {
-    if ((enabled == true) && (enabled != m_udp_proxy.enabled))
+    if (enabled == true)
     {
         if (m_udp_proxy.udp_client.isStarted())
         {
