@@ -69,7 +69,9 @@ void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_par
 	{ 
 		// fresh account with index valid.
 		#ifdef DEBUG
+		#ifdef DEBUG_DETAILED
 		std::cout << "Fresh m_parameters_last_index_read: " << std::to_string(param_message.param_index) << std::endl;
+		#endif 
 		#endif 
 		
 		m_parameters_last_receive_time =  get_time_usec();
@@ -115,10 +117,12 @@ void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_par
  	
 
 	#ifdef DEBUG
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 
-		<< param_name << " : " << "count: " << std::to_string(param_message.param_index) << " of " << std::to_string(param_message.param_count)
-		<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
-		<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+	#ifdef DEBUG_DETAILED
+	// std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: " 
+	// 	<< param_name << " : " << "count: " << std::to_string(param_message.param_index) << " of " << std::to_string(param_message.param_count)
+	// 	<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
+	// 	<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+	#endif
 	#endif
 }
 
@@ -134,9 +138,11 @@ void mavlinksdk::CMavlinkParameterManager::handle_heart_beat (const mavlink_hear
 {
     const uint64_t now = get_time_usec();
 
-    // #ifdef DEBUG
-	// 	std::cout << "Timeout readings: " << std::to_string((now - m_parameters_last_receive_time)) << std::endl;
-	// #endif 
+    #ifdef DEBUG
+	#ifdef DEBUG_DETAILED
+	 	std::cout << "Timeout readings: " << std::to_string((now - m_parameters_last_receive_time)) << std::endl;
+	#endif 
+	#endif
 	// Initialize request all poarameters
 	if (m_parameter_read_mode == mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LIST_EMPTY)
 	{

@@ -3,7 +3,9 @@
 #include <sys/socket.h> 
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
+#include <sys/types.h>
 #include <unistd.h>
+       #include <netdb.h>
 
 #include "../helpers/colors.hpp"
 #include "../helpers/json.hpp"
@@ -49,11 +51,11 @@ uavos::comm::CUDPProxy::~CUDPProxy ()
  * @brief 
  * 
  * @param targetIP communication server ip
- * @param broadcatsPort communication server port
+ * @param targetPort communication server port
  * @param host uavos-module listening ips default is 0.0.0.0
  * @param listenningPort uavos-module listerning port.
  */
-void uavos::comm::CUDPProxy::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort)
+bool uavos::comm::CUDPProxy::init (const char * target_address, int targetPort, const char * host, int listenningPort)
 {
 
     // pthread initialization
@@ -63,35 +65,50 @@ void uavos::comm::CUDPProxy::init (const char * targetIP, int broadcatsPort, con
 
     // Creating socket file descriptor 
     if ( (m_SocketFD = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
-        perror("socket creation failed"); 
-        exit(EXIT_FAILURE); 
+        std::cout << _ERROR_CONSOLE_TEXT_ << "UDPProxy: Socket creation failed: " << _INFO_CONSOLE_TEXT << target_address  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return false;
     }
 
     m_ModuleAddress = new (struct sockaddr_in)();
-    m_CommunicatorModuleAddress = new (struct sockaddr_in)();
+    m_udpProxyServer = new (struct sockaddr_in)();
     memset(m_ModuleAddress, 0, sizeof(struct sockaddr_in)); 
-    memset(m_CommunicatorModuleAddress, 0, sizeof(struct sockaddr_in)); 
+    memset(m_udpProxyServer, 0, sizeof(struct sockaddr_in)); 
      
     // THIS MODULE (IP - PORT) 
     m_ModuleAddress->sin_family = AF_INET; 
     m_ModuleAddress->sin_port = htons(listenningPort); 
     m_ModuleAddress->sin_addr.s_addr = inet_addr(host);//INADDR_ANY; 
-    
+
+    // UDP Proxy could have a hostname
+    struct hostent * hostinfo = gethostbyname(target_address);
+    if(!hostinfo) {
+        std::cout << _ERROR_CONSOLE_TEXT_ << "UDPProxy: Cannot get info for udpProxy" << _INFO_CONSOLE_TEXT << target_address  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return false;
+    }
+    char * target_ip = inet_ntoa(*(struct in_addr *)*hostinfo->h_addr_list);
+    if (!target_ip)
+    {
+        std::cout << _ERROR_CONSOLE_TEXT_ << "UDPProxy: Cannot connect udp proxy " << _INFO_CONSOLE_TEXT << target_address  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return false;
+    }
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_<< "UDPProxy: Trasnlate " <<  _INFO_CONSOLE_TEXT << target_address << " into " <<  target_ip << _NORMAL_CONSOLE_TEXT_ << std::endl;  
     // Communication Server (IP - PORT) 
-    m_CommunicatorModuleAddress->sin_family = AF_INET; 
-    m_CommunicatorModuleAddress->sin_port = htons(broadcatsPort); 
-    m_CommunicatorModuleAddress->sin_addr.s_addr = inet_addr(targetIP); 
+    m_udpProxyServer->sin_family = AF_INET; 
+    m_udpProxyServer->sin_port = htons(targetPort); 
+    m_udpProxyServer->sin_addr.s_addr = inet_addr(target_ip); 
 
     // Bind the socket with the server address 
-    if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in)) < 0 ) 
+    if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in)) > 0) 
     { 
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        exit(-1) ;
+        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDPProxy: Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return false ;
     } 
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDP Listener at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDPProxy: Drone Created UDP Socket at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_<< "Expected Comm Server at " <<  _INFO_CONSOLE_TEXT << targetIP << ":" <<  broadcatsPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_<< "UDPProxy: Expected UdpProxy at " <<  _INFO_CONSOLE_TEXT << target_ip << ":" <<  targetPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+
+    return true;
 }
 
 void uavos::comm::CUDPProxy::start()
@@ -133,17 +150,13 @@ void uavos::comm::CUDPProxy::stop()
 
     try
     {
-        //pthread_join(m_threadSenderID, NULL); 	// close the thread
-        //pthread_join(m_threadCreateUDPSocket, NULL); 	// close the thread
         if (m_starrted) 
         {
             m_threadCreateUDPSocket.join();
             m_threadSenderID.join();
         }
-        //pthread_join(m_thread, NULL); 	// close the thread
-        //close(m_SocketFD); 					// close UDP socket
         delete m_ModuleAddress;
-        delete m_CommunicatorModuleAddress;
+        delete m_udpProxyServer;
 
         #ifdef DEBUG
 	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -204,7 +217,7 @@ void uavos::comm::CUDPProxy::sendMSG (const char * msg, const int length)
     try
     {
         sendto(m_SocketFD, msg, length,  
-            MSG_CONFIRM, (const struct sockaddr *) m_CommunicatorModuleAddress, 
+            MSG_CONFIRM, (const struct sockaddr *) m_udpProxyServer, 
                 sizeof(struct sockaddr_in));         
     }
     catch(const std::exception& e)
