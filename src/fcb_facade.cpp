@@ -4,6 +4,7 @@
 #include <mutex>
 #include "./helpers/json.hpp"
 using Json = nlohmann::json;
+#include "helpers/helpers.hpp"
 #include "./uavos_common/messages.hpp"
 
 #include "./mission/missions.hpp"
@@ -125,6 +126,92 @@ void CFCBFacade::sendTelemetryPanic(const std::string& target_party_id)  const
 
 }
 
+void CFCBFacade::sendHighLatencyInfo(const std::string&target_party_id) const 
+{
+    if (m_sendJMSG == NULL) return ;
+    
+    mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
+
+    
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
+    mavlink_message_t mavlink_message;
+
+    const int mode = vehicle.getHighLatencyMode();
+    
+    switch (mode)
+    {
+        case 0:
+        {   // no high latency info ... construct one from available info.
+
+            const mavlink_heartbeat_t& heartbeat = vehicle.getMsgHeartBeat();
+            const mavlink_gps_raw_int_t& gps = vehicle.getMSGGPSRaw();
+            const mavlink_global_position_int_t&  gpos = vehicle.getMsgGlobalPositionInt();
+            const mavlink_nav_controller_output_t& nav_controller = vehicle.getMsgNavController();
+            const mavlink_attitude_t& attitude = vehicle.getMsgAttitude();
+            const mavlink_battery_status_t& battery_status = vehicle.getMsgBatteryStatus();
+            const mavlink_vfr_hud_t& vfr_hud = vehicle.getMsgVFRHud();
+
+            nav_controller.target_bearing;
+            mavlink_high_latency2_t high_latency2;
+            memset(&high_latency2,0,sizeof(mavlink_high_latency2_t));
+            
+            high_latency2.timestamp=(get_time_usec()/1000) & 0xffffffff; //millis
+            high_latency2.type = heartbeat.type;
+            high_latency2.autopilot = heartbeat.autopilot;
+            high_latency2.custom_mode = heartbeat.custom_mode;
+            high_latency2.airspeed = vfr_hud.airspeed;
+            high_latency2.groundspeed = vfr_hud.groundspeed;
+            high_latency2.latitude = gpos.lat;
+            high_latency2.longitude = gpos.lon;
+            high_latency2.altitude = gpos.alt;
+            high_latency2.heading = vfr_hud.heading;
+            high_latency2.battery = battery_status.battery_remaining;
+            high_latency2.wp_num = uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().current_waypoint;
+            high_latency2.target_distance = nav_controller.wp_dist;
+            mavlink_msg_high_latency2_encode(sys_id, comp_id, &mavlink_message, &high_latency2);
+
+            mavlink_high_latency_t high_latency;
+            memset(&high_latency,0,sizeof(mavlink_high_latency_t));
+            
+    
+            high_latency.custom_mode = heartbeat.custom_mode;
+            high_latency.airspeed = vfr_hud.airspeed;
+            high_latency.groundspeed = vfr_hud.groundspeed;
+            high_latency.latitude = gpos.lat;
+            high_latency.longitude = gpos.lon;
+            high_latency.altitude_amsl = gpos.alt;
+            high_latency.heading = vfr_hud.heading;
+            high_latency.gps_nsat = gps.satellites_visible;
+            high_latency.gps_fix_type = gps.fix_type;
+            high_latency.battery_remaining = battery_status.battery_remaining;
+            high_latency.wp_distance = nav_controller.wp_dist;
+            high_latency.wp_num = uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().current_waypoint;
+            high_latency.roll = attitude.roll;
+            high_latency.pitch = attitude.pitch;
+            
+            
+            mavlink_msg_high_latency_encode(sys_id, comp_id, &mavlink_message, &high_latency);
+        };
+        break;
+
+        case MAVLINK_MSG_ID_HIGH_LATENCY:
+        {
+            const mavlink_high_latency_t& high_latency = vehicle.getHighLatency();
+            mavlink_msg_high_latency_encode(sys_id, comp_id, &mavlink_message, &high_latency);
+        }
+        break;
+
+        case MAVLINK_MSG_ID_HIGH_LATENCY2:
+        {
+            const mavlink_high_latency2_t& high_latency2 = vehicle.getHighLatency2();   
+            mavlink_msg_high_latency2_encode(sys_id, comp_id, &mavlink_message, &high_latency2);
+        }
+        break;
+    }
+    
+    sendMavlinkData (target_party_id, mavlink_message);
+}
 
 void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
 {

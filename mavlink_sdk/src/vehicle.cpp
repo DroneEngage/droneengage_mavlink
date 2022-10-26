@@ -219,6 +219,49 @@ void mavlinksdk::CVehicle::handle_system_time (const mavlink_system_time_t& syst
 	m_system_time = system_time;
 }
 
+void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
+{
+	const int temp = m_high_latency_mode;
+	m_high_latency_mode = message_id;
+	if (temp != message_id)
+	{
+		// high latency started
+		this->m_callback_vehicle->OnHighLatencyModeChanged (m_high_latency_mode);
+	}
+	
+	
+	switch (message_id)
+	{
+		case 0:
+		return ; // no high latency message
+
+		case MAVLINK_MSG_ID_HIGH_LATENCY:
+		{
+			mavlink_heartbeat_t fake_heartbeat;
+			memcpy(&fake_heartbeat, &m_heartbeat, sizeof (mavlink_heartbeat_t));
+			fake_heartbeat.base_mode = m_high_latency.base_mode;
+			fake_heartbeat.custom_mode = m_high_latency.custom_mode;
+			handle_heart_beat(fake_heartbeat);
+		}
+		break;
+		
+		case MAVLINK_MSG_ID_HIGH_LATENCY2:
+		{
+			mavlink_heartbeat_t fake_heartbeat;
+			memcpy(&fake_heartbeat, &m_heartbeat, sizeof (mavlink_heartbeat_t));
+			fake_heartbeat.type = m_high_latency2.type;
+			fake_heartbeat.autopilot = m_high_latency2.autopilot;
+			fake_heartbeat.custom_mode = m_high_latency2.custom_mode;
+			handle_heart_beat(fake_heartbeat);
+		}
+		break;
+	} 
+
+	this->m_callback_vehicle->OnHighLatencyMessageReceived (message_id);
+
+	return ;
+}
+
 void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_message)
 {
 
@@ -280,13 +323,22 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
         case MAVLINK_MSG_ID_RADIO_STATUS:
 		{
             mavlink_msg_radio_status_decode(&mavlink_message, &(m_radio_status));
-			
         }
         break;
 
+		case MAVLINK_MSG_ID_HIGH_LATENCY:
+		{
+			mavlink_msg_high_latency_decode (&mavlink_message, &m_high_latency);
+		    handle_high_latency (MAVLINK_MSG_ID_HIGH_LATENCY);
+		}
+        break;
+
 		case MAVLINK_MSG_ID_HIGH_LATENCY2:
-			mavlink_msg_high_latency2_decode(&mavlink_message, &(m_high_latency2));
-		break;
+		{
+			mavlink_msg_high_latency2_decode (&mavlink_message, &m_high_latency2);
+		    handle_high_latency (MAVLINK_MSG_ID_HIGH_LATENCY2);
+		}
+        break;
 
 		case MAVLINK_MSG_ID_LOCAL_POSITION_NED:
 		{
@@ -332,7 +384,12 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		case MAVLINK_MSG_ID_ATTITUDE:
 		{
 			mavlink_msg_attitude_decode(&mavlink_message, &(m_attitude));
-				
+        }
+		break;
+
+		case MAVLINK_MSG_ID_VFR_HUD:
+		{
+			mavlink_msg_vfr_hud_decode(&mavlink_message, &(m_vfr_hud));
         }
 		break;
 
@@ -496,7 +553,6 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
             mavlinksdk::CMavlinkWayPointManager::getInstance().handle_mission_item_request (mission_request_int);
         }
         break;
-
 
 		// MISSION PART END ======================================================================================
 

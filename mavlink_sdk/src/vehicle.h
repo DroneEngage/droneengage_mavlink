@@ -56,6 +56,8 @@ namespace mavlinksdk
         virtual void OnModeChanges(const uint32_t& custom_mode, const int& firmware_type, const MAV_AUTOPILOT& autopilot)               {};
         virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)                                                {};
         virtual void OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw)                                               {};
+        virtual void OnHighLatencyModeChanged (const int& latency_mode)                                                                 {};
+        virtual void OnHighLatencyMessageReceived (const int& latency_mode)                                                             {};
     };
 
     class CVehicle
@@ -109,7 +111,8 @@ namespace mavlinksdk
             void handle_rc_channels_raw         (const mavlink_rc_channels_t& rc_channels);
             void handle_servo_output_raw        (const mavlink_servo_output_raw_t& servo_output_raw);
             void handle_system_time             (const mavlink_system_time_t& system_time);
-            
+            void handle_high_latency            (const int message_id);
+
         // Vechile Methods
         public:
             const bool isFCBConnected() const;
@@ -144,6 +147,21 @@ namespace mavlinksdk
                 return m_radio_status;
             }
 
+            const int getHighLatencyMode () const
+            {
+                return m_high_latency_mode;
+            }
+
+            const mavlink_high_latency_t& getHighLatency () const
+            {
+                return m_high_latency;
+            }
+
+            const mavlink_high_latency2_t& getHighLatency2 () const
+            {
+                return m_high_latency2;
+            }
+
             const mavlink_local_position_ned_t& getMsgLocalPositionNED () const
             {
                 return m_local_position_ned;
@@ -172,6 +190,11 @@ namespace mavlinksdk
             const mavlink_attitude_t& getMsgAttitude () const
             {
                 return m_attitude;
+            }
+
+            const mavlink_vfr_hud_t& getMsgVFRHud () const
+            {
+                return m_vfr_hud;
             }
 
             const mavlink_home_position_t& getMsgHomePosition () const
@@ -226,6 +249,8 @@ namespace mavlinksdk
             mavlink_radio_status_t m_radio_status;
 
             // High Latency
+            int m_high_latency_mode = 0; // either equal to MAVLINK_MSG_ID_HIGH_LATENCY or MAVLINK_MSG_ID_HIGH_LATENCY2 or 0
+            mavlink_high_latency_t m_high_latency;
             mavlink_high_latency2_t m_high_latency2;
 
             // Local Position
@@ -248,6 +273,9 @@ namespace mavlinksdk
 
             // Attitude
             mavlink_attitude_t m_attitude;
+
+            // Attitude
+            mavlink_vfr_hud_t m_vfr_hud;
 
             // System Parameters?
 

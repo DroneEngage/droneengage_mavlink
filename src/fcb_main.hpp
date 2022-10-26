@@ -258,6 +258,8 @@ namespace fcb
             void OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg) override;            
             void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override;
             void OnParamReceivedCompleted() override;
+            void OnHighLatencyModeChanged (const int& latency_mode) override;
+            void OnHighLatencyMessageReceived (const int& latency_mode) override;
 
             // called from main
             void OnConnectionStatusChangedWithAndruavServer (const int status) override;

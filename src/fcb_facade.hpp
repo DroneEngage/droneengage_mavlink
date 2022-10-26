@@ -68,6 +68,7 @@ namespace fcb
             void requestID(const std::string&target_party_id) const;
             void sendTelemetryPanic(const std::string&target_party_id) const;
             void sendErrorMessage(const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const;
+            void sendHighLatencyInfo(const std::string&target_party_id) const;
             void sendGPSInfo(const std::string&target_party_id) const;
             void sendNavInfo(const std::string&target_party_id) const;
             void sendLocationInfo() const; 

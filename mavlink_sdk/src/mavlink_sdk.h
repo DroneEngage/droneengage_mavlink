@@ -191,6 +191,16 @@ namespace mavlinksdk
                 m_mavlink_events->OnServoOutputRaw (servo_output_raw);
             };
 
+            inline void OnHighLatencyModeChanged (const int& latency_mode) override 
+            {
+                m_mavlink_events->OnHighLatencyModeChanged (latency_mode);
+            };
+        
+            inline void OnHighLatencyMessageReceived (const int& latency_mode) override
+            {
+                m_mavlink_events->OnHighLatencyModeChanged (latency_mode);
+            };
+
             inline void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override 
             {
                 m_mavlink_events->OnParamReceived (param_name, param_message, changed);
