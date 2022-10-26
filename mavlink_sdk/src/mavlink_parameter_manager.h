@@ -56,7 +56,7 @@ namespace mavlinksdk
             
 
         public:
-            
+        
             void set_callback_parameter (mavlinksdk::CCallBack_Parameter* callback_parameter);
             void reloadParemeters ();
 
@@ -80,6 +80,19 @@ namespace mavlinksdk
                 return (m_parameter_read_mode== mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LIST_LOADED);
             }
 
+            void ignoreLoadingParameters(const bool ignore)
+            {
+                m_ignore_loading_parameters = ignore;
+                if (ignore == true)
+                {
+                    m_parameter_read_mode = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LIST_LOADED;
+                }
+            }
+
+            bool ignoreLoadingParameters()
+            {
+                return m_ignore_loading_parameters;
+            }
 
         protected:
 
@@ -100,6 +113,8 @@ namespace mavlinksdk
             int m_parameter_read_count = 0;
             uint16_t m_parameters_last_index_read = 0;
             uint64_t m_parameters_last_receive_time = 0;
+
+            bool m_ignore_loading_parameters = false;
     };
         
     

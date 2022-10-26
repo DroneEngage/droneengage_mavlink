@@ -29,7 +29,9 @@ void mavlinksdk::CMavlinkParameterManager::set_callback_parameter (mavlinksdk::C
  */
 void mavlinksdk::CMavlinkParameterManager::reloadParemeters ()
 {
-    m_parameter_read_mode = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LOAD_ALL_INIT;
+	if (m_ignore_loading_parameters==true) return ;
+    
+	m_parameter_read_mode = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LOAD_ALL_INIT;
 
     mavlinksdk::CMavlinkCommand::getInstance().requestParametersList();
 }
@@ -44,6 +46,8 @@ void mavlinksdk::CMavlinkParameterManager::reloadParemeters ()
  */
 void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_param_value_t& param_message)
 {
+	if (m_ignore_loading_parameters==true) return ;
+    
 	bool changed = false;
 	
 	char param_id[17];

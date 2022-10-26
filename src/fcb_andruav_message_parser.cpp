@@ -610,8 +610,6 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 
                 m_fcbMain.updateUDPProxy (enable, my_address, my_port,
                     others_address, others_port);
-
-
             }
             break;
 
@@ -637,24 +635,34 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
     switch (remoteCommand)
     {
         case RemoteCommand_REQUEST_PARA_LIST:
+            if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            
             CFCBFacade::getInstance().sendParameterList(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
         break;
 
         case TYPE_AndruavMessage_SET_HOME_LOCATION:
+            if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            
             CFCBFacade::getInstance().sendHomeLocation(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
         break;
 
         case RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB:
+            if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            
             m_fcbMain.reloadWayPoints();
         break;
 
         case RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB:
+            if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            
             m_fcbMain.clearWayPoints();
         break;
         
 
         case RemoteCommand_CLEAR_FENCE_DATA:
         {
+            if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            
             std::string fence_name;
             if (cmd.contains("fn")==true)
             {
@@ -666,6 +674,8 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
         break;
 
         case RemoteCommand_SET_START_MISSION_ITEM:
+            if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            
             if (!validateField(cmd, "n", Json::value_t::number_unsigned)) return ;
             mavlinksdk::CMavlinkCommand::getInstance().setCurrentMission(cmd["n"].get<int>());
         break;
@@ -673,6 +683,8 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
 
         case RemoteCommand_TELEMETRYCTRL:
         {
+            if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            
             if (!validateField(cmd, "Act", Json::value_t::number_unsigned)) return ;
             int request_type = cmd["Act"].get<int>();
             int streaming_level = -1;
