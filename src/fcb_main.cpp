@@ -431,8 +431,8 @@ void CFCBMain::loopScheduler ()
         if (m_counter%50 == 0)
         {
             m_fcb_facade.sendGPSInfo(std::string());
-
             m_fcb_facade.sendNavInfo(std::string());
+            //m_fcb_facade.sendHighLatencyInfo(std::string()); //TESTING
             updateGeoFenceHitStatus();
 
         }
@@ -716,6 +716,18 @@ void CFCBMain::OnFlying (const bool& is_flying)
  
 }
 
+void CFCBMain::OnHighLatencyModeChanged (const int& latency_mode)
+{
+    //TODO: TO BE Done
+    return ;
+}
+
+void CFCBMain::OnHighLatencyMessageReceived (const int& latency_mode)
+{
+    //TODO: BE Done
+    m_fcb_facade.sendHighLatencyInfo(std::string());
+    return ;
+}
 
 void CFCBMain::OnStatusText (const std::uint8_t& severity, const std::string& status)
 {
