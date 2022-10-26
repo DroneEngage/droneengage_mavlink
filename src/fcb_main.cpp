@@ -130,6 +130,14 @@ bool CFCBMain::init ()
     m_jsonConfig = cConfigFile.GetConfigJSON();
     
     initVehicleChannelLimits(true);
+
+    bool ignore = false;
+    if (m_jsonConfig.contains("ignore_loading_parameters"))
+    {
+        ignore = m_jsonConfig["ignore_loading_parameters"];
+    }
+    mavlinksdk::CMavlinkParameterManager::getInstance().ignoreLoadingParameters(ignore);
+
     m_mavlink_optimizer.init (m_jsonConfig["message_timeouts"]);
     
     
@@ -430,8 +438,8 @@ void CFCBMain::loopScheduler ()
 
         if (m_counter%50 == 0)
         {
-            m_fcb_facade.sendGPSInfo(std::string());
-            m_fcb_facade.sendNavInfo(std::string());
+            m_fcb_facade.sendGPSInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            m_fcb_facade.sendNavInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             //m_fcb_facade.sendHighLatencyInfo(std::string()); //TESTING
             updateGeoFenceHitStatus();
 
@@ -455,7 +463,7 @@ void CFCBMain::loopScheduler ()
 
         if (m_counter % 500 ==0)
         {   // 5 sec
-            m_fcb_facade.sendPowerInfo(std::string());
+            m_fcb_facade.sendPowerInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             bool fcb_connected = mavlinksdk::CVehicle::getInstance().isFCBConnected();
 
             if (fcb_connected != m_fcb_connected)
@@ -670,7 +678,7 @@ void CFCBMain::OnBoardRestarted ()
 {
     std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Flight Controller Restarted" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
-    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, "FCB boad has been restarted");
+    m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, "FCB boad has been restarted");
 
     return ;
 }
@@ -725,7 +733,7 @@ void CFCBMain::OnHighLatencyModeChanged (const int& latency_mode)
 void CFCBMain::OnHighLatencyMessageReceived (const int& latency_mode)
 {
     //TODO: BE Done
-    m_fcb_facade.sendHighLatencyInfo(std::string());
+    m_fcb_facade.sendHighLatencyInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
     return ;
 }
 
@@ -733,7 +741,7 @@ void CFCBMain::OnStatusText (const std::uint8_t& severity, const std::string& st
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText " << _NORMAL_CONSOLE_TEXT_ << status << std::endl;
     
-    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, severity, status);
+    m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_3DR, severity, status);
 
     return ;
     
@@ -775,7 +783,7 @@ void CFCBMain::OnMissionACK (const int& result, const int& mission_type, const s
         break;
     }
 
-    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, sevirity, result_msg);
+    m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_3DR, sevirity, result_msg);
     return ;
 }
 
@@ -821,7 +829,7 @@ void CFCBMain::OnMissionSaveFinished (const int& result, const int& mission_type
 {
     if (result == MAV_MISSION_RESULT::MAV_MISSION_ACCEPTED)
     {
-        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_INFO, "mission saved successfully");
+        m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_INFO, "mission saved successfully");
         //reloadWayPoints();
     }
     else
@@ -860,7 +868,7 @@ void CFCBMain::OnACK (const int& acknowledged_cmd, const int& result, const std:
     if (result !=MAV_CMD_ACK_OK)
     {
         // dont annoy the user if everything is OK.
-        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_3DR, sevirity, result_msg);
+        m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_3DR, sevirity, result_msg);
     }
 
     return ;
@@ -922,7 +930,7 @@ void CFCBMain::OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_r
         if(std::find(m_event_fired_by_me.begin(), m_event_fired_by_me.end(), event_value) == m_event_fired_by_me.end()) 
         {
             m_event_fired_by_me.push_back(event_value);
-            m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Trigger Event:") + std::to_string(event_value));
+            m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Trigger Event:") + std::to_string(event_value));
             m_fcb_facade.sendSyncEvent(std::string(""), event_value);
             
             std::cout << _INFO_CONSOLE_TEXT << "Event Triggered: " << std::to_string(event_value) << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -959,7 +967,7 @@ void CFCBMain::OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_r
     if (m_event_waiting_for  != event_value) 
     {
         m_event_waiting_for = event_value;
-        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Wait Event:") + std::to_string(m_event_waiting_for));
+        m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Wait Event:") + std::to_string(m_event_waiting_for));
 
         processIncommingEvent ();
     }
@@ -990,7 +998,7 @@ void CFCBMain::OnParamReceived(const std::string& param_name, const mavlink_para
 
 void CFCBMain::OnParamReceivedCompleted()
 {
-    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_INFO, std::string("Parameters Loaded Successfully"));
+    m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_INFO, std::string("Parameters Loaded Successfully"));
 
     update_rcmap_info();
 }
@@ -1094,7 +1102,7 @@ void CFCBMain::releaseRemoteControl()
 
     mavlinksdk::CMavlinkCommand::getInstance().releaseRCChannels();
 
-    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Released."));
+    m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Released."));
 
 }
 
@@ -1110,7 +1118,7 @@ void CFCBMain::centerRemoteControl()
     
     if ((m_rcmap_channels_info.use_smart_rc) && (!m_rcmap_channels_info.is_valid))
     {
-        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, std::string("Error: RCMAP Channels not Ready."));
+        m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, std::string("Error: RCMAP Channels not Ready."));
         return ;
     }
     
@@ -1129,7 +1137,7 @@ void CFCBMain::centerRemoteControl()
     
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS;
     m_andruav_vehicle_info.rc_command_active = true;
-    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Centered and Locked"));
+    m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Centered and Locked"));
 }
 
 
@@ -1145,7 +1153,7 @@ void CFCBMain::freezeRemoteControl()
     
     if ((m_rcmap_channels_info.use_smart_rc) && (!m_rcmap_channels_info.is_valid))
     {
-        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, std::string("Error: RCMAP Channels not Ready."));
+        m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, std::string("Error: RCMAP Channels not Ready."));
         return ;
     }
     
@@ -1173,7 +1181,7 @@ void CFCBMain::freezeRemoteControl()
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS;
     m_andruav_vehicle_info.rc_command_active = true;
     
-    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Freeze Mode"));
+    m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Freeze Mode"));
 
 }
 
@@ -1185,7 +1193,7 @@ void CFCBMain::enableRemoteControl()
 {
     if ((m_rcmap_channels_info.use_smart_rc) && (!m_rcmap_channels_info.is_valid))
     {
-        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, std::string("Error: RCMAP Channels not Ready."));
+        m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, std::string("Error: RCMAP Channels not Ready."));
         return ;
     }
     
@@ -1194,7 +1202,7 @@ void CFCBMain::enableRemoteControl()
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS;
     memset(m_andruav_vehicle_info.rc_channels, 0, 18 * sizeof(int16_t)); //zero values. RC channels will be sent later
     
-    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Joystick Mode"));
+    m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Joystick Mode"));
 }
 
 
@@ -1203,7 +1211,7 @@ void CFCBMain::enableRemoteControlGuided()
 
     if ((m_rcmap_channels_info.use_smart_rc) && (!m_rcmap_channels_info.is_valid))
     {
-        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, std::string("Error: RCMAP Channels not Ready."));
+        m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, std::string("Error: RCMAP Channels not Ready."));
         return ;
     }
     
@@ -1216,7 +1224,7 @@ void CFCBMain::enableRemoteControlGuided()
 
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED;
     
-    m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Joystick Guided Mode"));
+    m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Joystick Guided Mode"));
 
     return ;
 }
@@ -1540,7 +1548,7 @@ void CFCBMain::updateGeoFenceHitStatus()
                 total_violation = total_violation | 0b010; //bad 
 
                 std::string error_str = "violate fence " + std::string(geo_fence->getName());
-                m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_GEO_FENCE_ERROR, NOTIFICATION_TYPE_ERROR, error_str);
+                m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_GEO_FENCE_ERROR, NOTIFICATION_TYPE_ERROR, error_str);
 
                 // Note that action is taken once when state changes.
                 // This is important to allow user to reverse action or take other actions.
@@ -1561,7 +1569,7 @@ void CFCBMain::updateGeoFenceHitStatus()
                 total_violation = total_violation | 0b100; // good
             
                 std::string error_str = "safe fence " + std::string(geo_fence->getName());
-                m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_GEO_FENCE_ERROR, NOTIFICATION_TYPE_NOTICE, error_str);
+                m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_GEO_FENCE_ERROR, NOTIFICATION_TYPE_NOTICE, error_str);
             }
             
             
@@ -1648,10 +1656,19 @@ void CFCBMain::checkBlockedStatus()
     uint16_t *channel = (uint16_t *)&mavlink_rc_channels;    
     
     // move channel pointer to defined channel
-    channel += (1+ m_andruav_vehicle_info.rc_block_channel) ;
+    channel += (1+ m_andruav_vehicle_info.rc_block_channel) ; //+1 skip time stamp.
 
     const bool is_gcs_blocked = (*channel > BLOCKING_CHANNEL_HIGH_ACTIVE_PWM);
     
+    if (m_jsonConfig.contains("read_only_mode"))
+    {
+        if (m_jsonConfig["ignore_loading_parameters"] == true)
+        { // if read only true the it is always read_only_mode = true
+            m_andruav_vehicle_info.is_gcs_blocked = true;
+            return;
+        }
+    }
+
     if (m_andruav_vehicle_info.is_gcs_blocked != is_gcs_blocked)
     {
         m_andruav_vehicle_info.is_gcs_blocked = is_gcs_blocked;
@@ -1666,7 +1683,7 @@ void CFCBMain::checkBlockedStatus()
 
         m_fcb_facade.sendID(std::string());
         
-        m_fcb_facade.sendErrorMessage(std::string(), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, msg);
+        m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, msg);
 
     }
 

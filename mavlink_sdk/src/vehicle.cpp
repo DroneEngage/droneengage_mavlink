@@ -241,6 +241,7 @@ void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
 			memcpy(&fake_heartbeat, &m_heartbeat, sizeof (mavlink_heartbeat_t));
 			fake_heartbeat.base_mode = m_high_latency.base_mode;
 			fake_heartbeat.custom_mode = m_high_latency.custom_mode;
+			time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT] = time_stamps.message_id[MAVLINK_MSG_ID_HIGH_LATENCY];
 			handle_heart_beat(fake_heartbeat);
 		}
 		break;
@@ -252,6 +253,7 @@ void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
 			fake_heartbeat.type = m_high_latency2.type;
 			fake_heartbeat.autopilot = m_high_latency2.autopilot;
 			fake_heartbeat.custom_mode = m_high_latency2.custom_mode;
+			time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT] = time_stamps.message_id[MAVLINK_MSG_ID_HIGH_LATENCY2];
 			handle_heart_beat(fake_heartbeat);
 		}
 		break;
