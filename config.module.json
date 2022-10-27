@@ -42,8 +42,6 @@
   //the connection is created on the machien where this code runs not via communicator module.
   "udp_proxy_enabled": true,
 
-  // This companion computer is remote and not mounted on the vehicle.
-  "Vehicle_Is_Remote": true,
 
   "event_fire_channel": 16,
   "event_wait_channel": 15,
