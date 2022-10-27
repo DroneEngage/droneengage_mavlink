@@ -112,11 +112,16 @@ namespace mavlinksdk
             void handle_servo_output_raw        (const mavlink_servo_output_raw_t& servo_output_raw);
             void handle_system_time             (const mavlink_system_time_t& system_time);
             void handle_high_latency            (const int message_id);
+            void exit_high_latency              ();
 
         // Vechile Methods
         public:
             const bool isFCBConnected() const;
 
+            const uint64_t getMessageTime(uint16_t message_id) const
+            {
+                return time_stamps.message_id[message_id];
+            }
             const bool isArmed()
             {
                 return m_armed;
@@ -185,6 +190,11 @@ namespace mavlinksdk
             const mavlink_gps_raw_int_t& getMSGGPSRaw () const
             {
                 return m_gps_raw_int;
+            }
+
+            const mavlink_gps2_raw_t& getMSGGPS2Raw () const
+            {
+                return m_gps2_raw;
             }
 
             const mavlink_attitude_t& getMsgAttitude () const
@@ -267,6 +277,9 @@ namespace mavlinksdk
 
             // GPS Raw
             mavlink_gps_raw_int_t m_gps_raw_int;
+
+            // GPS 2 Raw
+            mavlink_gps2_raw_t m_gps2_raw;
 
             // HiRes IMU
             mavlink_highres_imu_t m_highres_imu;
