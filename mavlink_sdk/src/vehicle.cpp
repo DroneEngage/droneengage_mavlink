@@ -219,6 +219,13 @@ void mavlinksdk::CVehicle::handle_system_time (const mavlink_system_time_t& syst
 	m_system_time = system_time;
 }
 
+void mavlinksdk::CVehicle::exit_high_latency ()
+{
+	if (m_high_latency_mode==0) return ;
+	m_high_latency_mode = 0; 
+	this->m_callback_vehicle->OnHighLatencyModeChanged (0);
+}
+
 void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
 {
 	const int temp = m_high_latency_mode;
@@ -241,6 +248,7 @@ void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
 			memcpy(&fake_heartbeat, &m_heartbeat, sizeof (mavlink_heartbeat_t));
 			fake_heartbeat.base_mode = m_high_latency.base_mode;
 			fake_heartbeat.custom_mode = m_high_latency.custom_mode;
+			time_stamps.message_id[MAVLINK_MSG_ID_HIGH_LATENCY] = get_time_usec();
 			time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT] = time_stamps.message_id[MAVLINK_MSG_ID_HIGH_LATENCY];
 			handle_heart_beat(fake_heartbeat);
 		}
@@ -253,6 +261,7 @@ void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
 			fake_heartbeat.type = m_high_latency2.type;
 			fake_heartbeat.autopilot = m_high_latency2.autopilot;
 			fake_heartbeat.custom_mode = m_high_latency2.custom_mode;
+			time_stamps.message_id[MAVLINK_MSG_ID_HIGH_LATENCY2] = get_time_usec();
 			time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT] = time_stamps.message_id[MAVLINK_MSG_ID_HIGH_LATENCY2];
 			handle_heart_beat(fake_heartbeat);
 		}
@@ -352,7 +361,7 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
         case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
 		{
             mavlink_msg_global_position_int_decode(&mavlink_message, &(m_global_position_int));
-			
+			exit_high_latency ();
         }
         break;
 
@@ -366,14 +375,20 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		case MAVLINK_MSG_ID_POSITION_TARGET_GLOBAL_INT:
 		{
 			mavlink_msg_position_target_global_int_decode(&mavlink_message, &(m_position_target_global_int));
-				
+			exit_high_latency();	
         }
 		break;
 
 		case MAVLINK_MSG_ID_GPS_RAW_INT:
 		{
 			mavlink_msg_gps_raw_int_decode(&mavlink_message, &(m_gps_raw_int));
-			
+			exit_high_latency ();
+		}
+
+		case MAVLINK_MSG_ID_GPS2_RAW:
+		{
+			mavlink_msg_gps2_raw_decode(&mavlink_message, &(m_gps2_raw));
+			exit_high_latency ();
 		}
 
 		case MAVLINK_MSG_ID_HIGHRES_IMU:
@@ -401,8 +416,7 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 
 			mavlink_msg_home_position_decode(&mavlink_message, &(home_position));
 			handle_home_position (home_position);
-		
-        }
+	    }
 		break;
 
 		case MAVLINK_MSG_ID_NAV_CONTROLLER_OUTPUT:

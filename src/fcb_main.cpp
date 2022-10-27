@@ -438,8 +438,11 @@ void CFCBMain::loopScheduler ()
 
         if (m_counter%50 == 0)
         {
-            m_fcb_facade.sendGPSInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-            m_fcb_facade.sendNavInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            if (mavlinksdk::CVehicle::getInstance().getHighLatencyMode()==0)
+            {
+                m_fcb_facade.sendGPSInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+                m_fcb_facade.sendNavInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            }
             //m_fcb_facade.sendHighLatencyInfo(std::string()); //TESTING
             updateGeoFenceHitStatus();
 
@@ -678,7 +681,7 @@ void CFCBMain::OnBoardRestarted ()
 {
     std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Flight Controller Restarted" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
-    m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, "FCB boad has been restarted");
+    m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, "FCB board has been restarted");
 
     return ;
 }
@@ -727,6 +730,14 @@ void CFCBMain::OnFlying (const bool& is_flying)
 void CFCBMain::OnHighLatencyModeChanged (const int& latency_mode)
 {
     //TODO: TO BE Done
+    if (latency_mode==0)
+    {
+        std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Latency Mode: " << _NORMAL_CONSOLE_TEXT_ << "Exit" << std::endl;
+    }
+    else
+    {
+        std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Latency Mode: " << _NORMAL_CONSOLE_TEXT_ << "Enter" << std::endl;
+    }
     return ;
 }
 
@@ -1662,7 +1673,7 @@ void CFCBMain::checkBlockedStatus()
     
     if (m_jsonConfig.contains("read_only_mode"))
     {
-        if (m_jsonConfig["ignore_loading_parameters"] == true)
+        if (m_jsonConfig["read_only_mode"] == true)
         { // if read only true the it is always read_only_mode = true
             m_andruav_vehicle_info.is_gcs_blocked = true;
             return;

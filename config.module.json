@@ -47,6 +47,9 @@
 
   "event_fire_channel": 16,
   "event_wait_channel": 15,
+  
+  "read_only_mode": false,
+  "ignore_loading_parameters": true,
 
   "message_timeouts":
   { 
