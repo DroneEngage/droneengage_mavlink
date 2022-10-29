@@ -232,6 +232,7 @@ void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
     */
 
     if (m_sendJMSG == NULL) return ;
+    if (mavlinksdk::CVehicle::getInstance().getHighLatencyMode()!=0) return ;
     
     mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
 
@@ -299,10 +300,12 @@ void CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
     */
 
     if (m_sendJMSG == NULL) return ;
-    
+    if (mavlinksdk::CVehicle::getInstance().getHighLatencyMode()!=0) return ;
+               
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
     const mavlink_attitude_t& attitude = vehicle.getMsgAttitude();
     const mavlink_nav_controller_output_t& nav_controller = vehicle.getMsgNavController();
+    const mavlink_vfr_hud_t& vfr_hud = vehicle.getMsgVFRHud();
     
     // Obsolete
     // Json message =
@@ -319,12 +322,13 @@ void CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
     const int sys_id = m_mavlink_sdk.getSysId();
     const int comp_id = m_mavlink_sdk.getCompId();
 
-    mavlink_message_t mavlink_message1,mavlink_message2;
+    mavlink_message_t mavlink_message1, mavlink_message2, mavlink_message3;
     
     mavlink_msg_attitude_encode(sys_id, comp_id, &mavlink_message1, &attitude);
     mavlink_msg_nav_controller_output_encode(sys_id, comp_id, &mavlink_message2, &nav_controller);
-    
-    sendMavlinkData_2 (target_party_id, mavlink_message1, mavlink_message2);
+    mavlink_msg_vfr_hud_encode(sys_id, comp_id, &mavlink_message3, &vfr_hud);
+
+    sendMavlinkData_3 (target_party_id, mavlink_message1, mavlink_message2, mavlink_message3);
     
     return ;
 }
@@ -402,6 +406,7 @@ void CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
 {
 
     if (m_sendJMSG == NULL) return ;
+    if (mavlinksdk::CVehicle::getInstance().getHighLatencyMode()!=0) return ;
     
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
     
@@ -578,7 +583,7 @@ void CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlin
 {
     char buf[300];
     // Translate message to buffer
-	unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message);
+	uint16_t len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message);
 	if (len >= 300) 
 	{
 		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -595,10 +600,10 @@ void CFCBFacade::sendMavlinkData_2(const std::string&target_party_id, const mavl
 {
     char buf[600];
     // Translate message to buffer
-	unsigned len1 = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message1);
-	unsigned len2 = mavlink_msg_to_send_buffer((uint8_t*)&buf[len1], &mavlink_message2);
-    unsigned len = len1+len2;
-	if (len >= 600) 
+	uint16_t len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message1);
+	len += mavlink_msg_to_send_buffer((uint8_t*)&buf[len], &mavlink_message2);
+    
+    if (len >= 600) 
 	{
 		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
 		return ;
@@ -608,6 +613,29 @@ void CFCBFacade::sendMavlinkData_2(const std::string&target_party_id, const mavl
     
     return ;
 }
+
+
+void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2, const mavlink_message_t& mavlink_message3)  const
+{
+    char buf[600];
+    // Translate message to buffer
+    memset (buf,0,sizeof(buf));
+
+    uint16_t len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message1);
+	len += mavlink_msg_to_send_buffer((uint8_t*)(&buf[len]), &mavlink_message2);
+    len += mavlink_msg_to_send_buffer((uint8_t*)(&buf[len]), &mavlink_message3);
+    
+    if (len >= 600) 
+	{
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+		return ;
+	}
+
+    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
+    
+    return ;
+}
+
 
 void CFCBFacade::sendServoReadings(const std::string&target_party_id)  const
 {

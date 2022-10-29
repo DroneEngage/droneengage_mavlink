@@ -438,11 +438,7 @@ void CFCBMain::loopScheduler ()
 
         if (m_counter%50 == 0)
         {
-            if (mavlinksdk::CVehicle::getInstance().getHighLatencyMode()==0)
-            {
-                m_fcb_facade.sendGPSInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-                m_fcb_facade.sendNavInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-            }
+            m_fcb_facade.sendNavInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             //m_fcb_facade.sendHighLatencyInfo(std::string()); //TESTING
             updateGeoFenceHitStatus();
 
@@ -451,8 +447,8 @@ void CFCBMain::loopScheduler ()
         if (m_counter %100 ==0)
         {
             // each second
+            m_fcb_facade.sendGPSInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             checkBlockedStatus();
-
             heartbeatCamera();
         } 
             // .................
