@@ -240,37 +240,62 @@ void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
     
     if (vehicle.getHighLatencyMode()!=0) return ;
     
-    
-    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_GLOBAL_POSITION_INT) != MESSAGE_UNPROCESSED) return ;
-    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_GPS_RAW_INT) != MESSAGE_UNPROCESSED) return ;
-    
-    vehicle.setProcessedFlag(MAVLINK_MSG_ID_GLOBAL_POSITION_INT,MESSAGE_PROCESSED);
-    vehicle.setProcessedFlag(MAVLINK_MSG_ID_GPS_RAW_INT,MESSAGE_PROCESSED);
-        
-    const mavlink_gps_raw_int_t& gps = vehicle.getMSGGPSRaw();
-    const mavlink_global_position_int_t&  gpos = vehicle.getMsgGlobalPositionInt();
-
     const int sys_id = m_mavlink_sdk.getSysId();
     const int comp_id = m_mavlink_sdk.getCompId();
 
-    mavlink_message_t mavlink_message1,mavlink_message2;
-    mavlink_msg_global_position_int_encode(sys_id, comp_id, &mavlink_message1, &gpos);
-    mavlink_msg_gps_raw_int_encode(sys_id, comp_id, &mavlink_message2, &gps);
-    
+    mavlink_message_t mavlink_message[3];
+    int i=0;
+
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_GLOBAL_POSITION_INT) == MESSAGE_UNPROCESSED) 
+    {
+        vehicle.setProcessedFlag(MAVLINK_MSG_ID_GLOBAL_POSITION_INT,MESSAGE_PROCESSED);
+        const mavlink_global_position_int_t&  gpos = vehicle.getMsgGlobalPositionInt();
+        mavlink_msg_global_position_int_encode(sys_id, comp_id, &mavlink_message[i], &gpos);
+        ++i;
+    }
+   
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_GPS_RAW_INT) == MESSAGE_UNPROCESSED) 
+    {
+        vehicle.setProcessedFlag(MAVLINK_MSG_ID_GPS_RAW_INT,MESSAGE_PROCESSED);
+        const mavlink_gps_raw_int_t& gps = vehicle.getMSGGPSRaw();
+        mavlink_msg_gps_raw_int_encode(sys_id, comp_id, &mavlink_message[i], &gps);
+        ++i;
+    }
     if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_GPS2_RAW) == MESSAGE_UNPROCESSED)
     {
         vehicle.setProcessedFlag(MAVLINK_MSG_ID_GPS2_RAW,MESSAGE_PROCESSED);
-        mavlink_message_t mavlink_message3;
         const mavlink_gps2_raw_t& gps2 = vehicle.getMSGGPS2Raw();
-        mavlink_msg_gps2_raw_encode(sys_id, comp_id, &mavlink_message3, &gps2);
-        
-        sendMavlinkData_3 (target_party_id, mavlink_message1, mavlink_message2, mavlink_message3);
-    }
-    else
-    {
-        sendMavlinkData_2 (target_party_id, mavlink_message1, mavlink_message2);
+        mavlink_msg_gps2_raw_encode(sys_id, comp_id, &mavlink_message[i], &gps2);
+        ++i;
     }
     
+    
+    sendMavlinkData_M (target_party_id, mavlink_message, i);
+
+    // if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_GPS2_RAW) == MESSAGE_UNPROCESSED)
+    // {
+    //     vehicle.setProcessedFlag(MAVLINK_MSG_ID_GPS2_RAW,MESSAGE_PROCESSED);
+    //     mavlink_message_t mavlink_message3;
+    //     const mavlink_gps2_raw_t& gps2 = vehicle.getMSGGPS2Raw();
+    //     mavlink_msg_gps2_raw_encode(sys_id, comp_id, &mavlink_message3, &gps2);
+        
+    //     sendMavlinkData_3 (target_party_id, mavlink_message1, mavlink_message2, mavlink_message3);
+    // }
+    // else
+    // {
+    //     sendMavlinkData_2 (target_party_id, mavlink_message1, mavlink_message2);
+    // }
+    
+    // if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_GPS2_RAW) == MESSAGE_UNPROCESSED)
+    // {
+    //     vehicle.setProcessedFlag(MAVLINK_MSG_ID_GPS2_RAW,MESSAGE_PROCESSED);
+    //     mavlink_message_t mavlink_message3;
+    //     const mavlink_gps2_raw_t& gps2 = vehicle.getMSGGPS2Raw();
+    //     mavlink_msg_gps2_raw_encode(sys_id, comp_id, &mavlink_message3, &gps2);
+        
+    //     sendMavlinkData_3 (target_party_id, mavlink_message1, mavlink_message2, mavlink_message3);
+    // }
+
     return ;
 }
 
@@ -672,6 +697,33 @@ void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavl
 	len += mavlink_msg_to_send_buffer((uint8_t*)(&buf[len]), &mavlink_message2);
     len += mavlink_msg_to_send_buffer((uint8_t*)(&buf[len]), &mavlink_message3);
     
+    if (len >= 600) 
+	{
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+		return ;
+	}
+
+    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
+    
+    return ;
+}
+
+
+void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const
+{
+    if (count==0) return ;
+
+    char buf[600];
+    // Translate message to buffer
+    memset (buf,0,sizeof(buf));
+
+    uint16_t len=0;
+
+    for (int i=0;i<count;++i)
+    {
+        len += mavlink_msg_to_send_buffer((uint8_t*)(&buf[len]), &mavlink_message[i]);
+    }
+
     if (len >= 600) 
 	{
 		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
