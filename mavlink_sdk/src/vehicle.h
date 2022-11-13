@@ -11,28 +11,58 @@
 namespace mavlinksdk
 {
     // 3 seconds
-    #define HEART_BEAT_TIMEOUT 3000000l
+    #define HEART_BEAT_TIMEOUT 5000000l
     
  
     struct Time_Stamps
     {
         #define TIME_STAMP_MSG_LEN 1024
+        #define MESSAGE_UNPROCESSED     0
+        #define MESSAGE_PROCESSED       1
 
         Time_Stamps()
         {
             reset_timestamps();
         }
 
-        uint64_t message_id[TIME_STAMP_MSG_LEN];
-        
+        void setTimestamp (uint16_t message_id, uint64_t time_stamp)
+        {
+            if (message_id >= TIME_STAMP_MSG_LEN) return ;
+            m_message_id[message_id] = time_stamp;
+            m_pocessed_flag[message_id] = MESSAGE_UNPROCESSED;
+        }
+
+        uint64_t getMessageTime(uint16_t message_id) const
+        {
+            if (message_id >= TIME_STAMP_MSG_LEN) return 0;
+            return m_message_id[message_id];
+        }
+
+        uint16_t getProcessedFlag(uint16_t message_id) const
+        {
+            if (message_id >= TIME_STAMP_MSG_LEN) return 0;
+            return m_pocessed_flag[message_id];
+        }
+
+        void setProcessedFlag(uint16_t message_id, uint16_t flags)
+        {
+            if (message_id >= TIME_STAMP_MSG_LEN) return ;
+            m_pocessed_flag[message_id] = flags;
+        }
+
         void reset_timestamps()
         {
-            for (int i=0; i< TIME_STAMP_MSG_LEN; ++i)
+            for (uint16_t i=0; i< TIME_STAMP_MSG_LEN; ++i)
             {
-                message_id[i] =0;
+               m_message_id[i] = 0;
+               m_pocessed_flag[i] = MESSAGE_UNPROCESSED;
             }
         }
 
+        private: 
+            uint64_t m_message_id[TIME_STAMP_MSG_LEN];
+            uint16_t m_pocessed_flag [TIME_STAMP_MSG_LEN];
+        
         #undef TIME_STAMP_MSG_LEN
 
     };
@@ -120,8 +150,19 @@ namespace mavlinksdk
 
             const uint64_t getMessageTime(uint16_t message_id) const
             {
-                return time_stamps.message_id[message_id];
+                return time_stamps.getMessageTime(message_id);
             }
+
+            const uint64_t getProcessedFlag(uint16_t message_id) const
+            {
+                return time_stamps.getProcessedFlag(message_id);
+            }
+
+            void setProcessedFlag(uint16_t message_id, uint16_t flags)
+            {
+                return time_stamps.setProcessedFlag(message_id, flags);
+            }
+
             const bool isArmed()
             {
                 return m_armed;
@@ -145,6 +186,11 @@ namespace mavlinksdk
             const mavlink_battery_status_t& getMsgBatteryStatus () const
             {
                 return m_battery_status;
+            }
+
+            const mavlink_battery2_t& getMsgBattery2Status () const
+            {
+                return m_battery2;
             }
 
             const mavlink_radio_status_t& getMsgRadioStatus () const
@@ -207,6 +253,11 @@ namespace mavlinksdk
                 return m_vfr_hud;
             }
 
+            const mavlink_wind_t& getMsgWind () const
+            {
+                return m_wind;
+            }
+
             const mavlink_home_position_t& getMsgHomePosition () const
             {
                 return m_home_position;
@@ -255,6 +306,12 @@ namespace mavlinksdk
              */
             mavlink_battery_status_t m_battery_status;
 
+            /**
+             * @brief 
+             * only battery voltage
+             */
+            mavlink_battery2_t m_battery2;
+
             // Radio Status
             mavlink_radio_status_t m_radio_status;
 
@@ -289,6 +346,15 @@ namespace mavlinksdk
 
             // Attitude
             mavlink_vfr_hud_t m_vfr_hud;
+
+            // Wind
+            mavlink_wind_t m_wind;
+
+            /**
+            * @brief store all MAV_SENSOR_ORIENTATION predefined directions.
+            * Distance Sensors
+            */
+            mavlink_distance_sensor_t m_distance_sensors[41];
 
             // System Parameters?
 

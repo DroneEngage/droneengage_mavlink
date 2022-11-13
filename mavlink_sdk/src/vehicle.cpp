@@ -49,7 +49,7 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 		m_callback_vehicle->OnHeartBeat_First (heartbeat);
 	}
 	else 
-	if ((now - time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT]) > HEART_BEAT_TIMEOUT)
+	if ((now - time_stamps.getMessageTime(MAVLINK_MSG_ID_HEARTBEAT)) > HEART_BEAT_TIMEOUT)
 	{  // Notify when heart beat get live again.
 		m_callback_vehicle->OnHeartBeat_Resumed (heartbeat);
 	}
@@ -128,7 +128,7 @@ void mavlinksdk::CVehicle::handle_extended_system_state (const mavlink_extended_
  */
 const bool mavlinksdk::CVehicle::isFCBConnected() const
 {
-	return !((get_time_usec() - time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT]) > HEART_BEAT_TIMEOUT);
+	return !((get_time_usec() - time_stamps.getMessageTime(MAVLINK_MSG_ID_HEARTBEAT)) > HEART_BEAT_TIMEOUT);
 }
 
 
@@ -248,8 +248,9 @@ void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
 			memcpy(&fake_heartbeat, &m_heartbeat, sizeof (mavlink_heartbeat_t));
 			fake_heartbeat.base_mode = m_high_latency.base_mode;
 			fake_heartbeat.custom_mode = m_high_latency.custom_mode;
-			time_stamps.message_id[MAVLINK_MSG_ID_HIGH_LATENCY] = get_time_usec();
-			time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT] = time_stamps.message_id[MAVLINK_MSG_ID_HIGH_LATENCY];
+			uint64_t now = get_time_usec();
+			time_stamps.setTimestamp(MAVLINK_MSG_ID_HIGH_LATENCY, now);
+			time_stamps.setTimestamp(MAVLINK_MSG_ID_HEARTBEAT, now);
 			handle_heart_beat(fake_heartbeat);
 		}
 		break;
@@ -261,8 +262,9 @@ void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
 			fake_heartbeat.type = m_high_latency2.type;
 			fake_heartbeat.autopilot = m_high_latency2.autopilot;
 			fake_heartbeat.custom_mode = m_high_latency2.custom_mode;
-			time_stamps.message_id[MAVLINK_MSG_ID_HIGH_LATENCY2] = get_time_usec();
-			time_stamps.message_id[MAVLINK_MSG_ID_HEARTBEAT] = time_stamps.message_id[MAVLINK_MSG_ID_HIGH_LATENCY2];
+			uint64_t now = get_time_usec();
+			time_stamps.setTimestamp(MAVLINK_MSG_ID_HIGH_LATENCY2, now);
+			time_stamps.setTimestamp(MAVLINK_MSG_ID_HEARTBEAT, now);
 			handle_heart_beat(fake_heartbeat);
 		}
 		break;
@@ -331,7 +333,32 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
         }
         break;
 
-        case MAVLINK_MSG_ID_RADIO_STATUS:
+		case MAVLINK_MSG_ID_BATTERY2:
+		{
+			mavlink_msg_battery2_decode(&mavlink_message, &(m_battery2));
+		}
+		break;
+
+        case MAVLINK_MSG_ID_WIND:
+		{
+			mavlink_msg_wind_decode(&mavlink_message, &(m_wind));
+		}
+		break;
+
+
+		case MAVLINK_MSG_ID_DISTANCE_SENSOR:
+		{
+			mavlink_distance_sensor_t distance_sensor;
+			mavlink_msg_distance_sensor_decode(&mavlink_message, &(distance_sensor));
+			if (distance_sensor.orientation<=40)
+			{
+				m_distance_sensors[distance_sensor.orientation] = distance_sensor;
+			}
+		}
+		break;
+
+
+		case MAVLINK_MSG_ID_RADIO_STATUS:
 		{
             mavlink_msg_radio_status_decode(&mavlink_message, &(m_radio_status));
         }
@@ -581,6 +608,6 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
     }
 
 	// update last so that messages can test delay such as on heartbeat resume
-	time_stamps.message_id[msgid] = get_time_usec();
+	time_stamps.setTimestamp(msgid, get_time_usec());
 
 }
