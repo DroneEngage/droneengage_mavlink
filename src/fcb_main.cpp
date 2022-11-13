@@ -442,22 +442,32 @@ void CFCBMain::loopScheduler ()
             //m_fcb_facade.sendHighLatencyInfo(std::string()); //TESTING
             updateGeoFenceHitStatus();
 
+            if (m_counter %2 ==0)
+            { // odd 1 sec
+                // called each second group #1
+                m_fcb_facade.sendGPSInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+                checkBlockedStatus();
+            }
+            else
+            { // called each second group #2
+                heartbeatCamera();
+            }
+
         }
 
-        if (m_counter %100 ==0)
+        // .................
+        if (m_counter%100 == 0)
         {
-            // each second
-            m_fcb_facade.sendGPSInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-            checkBlockedStatus();
-            heartbeatCamera();
-        } 
-            // .................
+            if (m_counter %2 ==0)
+            { // odd 2 sec
 
-        if (m_counter % 200 ==0)
-        {   // 2 sec
-
-            // update ranges dynamically.
-            initVehicleChannelLimits(false);
+                m_fcb_facade.sendWindInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            }
+            else
+            { // called each 2 seconds group #2
+                // update ranges dynamically.
+                initVehicleChannelLimits(false);
+            }
         }
 
         if (m_counter % 500 ==0)

@@ -197,6 +197,8 @@ void CFCBFacade::sendHighLatencyInfo(const std::string&target_party_id) const
 
         case MAVLINK_MSG_ID_HIGH_LATENCY:
         {
+            if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_HIGH_LATENCY) != MESSAGE_UNPROCESSED) return ;
+            vehicle.setProcessedFlag(MAVLINK_MSG_ID_HIGH_LATENCY,MESSAGE_PROCESSED);
             const mavlink_high_latency_t& high_latency = vehicle.getHighLatency();
             mavlink_msg_high_latency_encode(sys_id, comp_id, &mavlink_message, &high_latency);
         }
@@ -204,6 +206,8 @@ void CFCBFacade::sendHighLatencyInfo(const std::string&target_party_id) const
 
         case MAVLINK_MSG_ID_HIGH_LATENCY2:
         {
+            if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_HIGH_LATENCY2) != MESSAGE_UNPROCESSED) return ;
+            vehicle.setProcessedFlag(MAVLINK_MSG_ID_HIGH_LATENCY2,MESSAGE_PROCESSED);
             const mavlink_high_latency2_t& high_latency2 = vehicle.getHighLatency2();   
             mavlink_msg_high_latency2_encode(sys_id, comp_id, &mavlink_message, &high_latency2);
         }
@@ -232,10 +236,17 @@ void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
     */
 
     if (m_sendJMSG == NULL) return ;
-    if (mavlinksdk::CVehicle::getInstance().getHighLatencyMode()!=0) return ;
-    
     mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
-
+    
+    if (vehicle.getHighLatencyMode()!=0) return ;
+    
+    
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_GLOBAL_POSITION_INT) != MESSAGE_UNPROCESSED) return ;
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_GPS_RAW_INT) != MESSAGE_UNPROCESSED) return ;
+    
+    vehicle.setProcessedFlag(MAVLINK_MSG_ID_GLOBAL_POSITION_INT,MESSAGE_PROCESSED);
+    vehicle.setProcessedFlag(MAVLINK_MSG_ID_GPS_RAW_INT,MESSAGE_PROCESSED);
+        
     const mavlink_gps_raw_int_t& gps = vehicle.getMSGGPSRaw();
     const mavlink_global_position_int_t&  gpos = vehicle.getMsgGlobalPositionInt();
 
@@ -243,11 +254,47 @@ void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
     const int comp_id = m_mavlink_sdk.getCompId();
 
     mavlink_message_t mavlink_message1,mavlink_message2;
-    mavlink_msg_gps_raw_int_encode(sys_id, comp_id, &mavlink_message1, &gps);
-        
-	mavlink_msg_global_position_int_encode(sys_id, comp_id, &mavlink_message2, &gpos);
-    sendMavlinkData_2 (target_party_id, mavlink_message1, mavlink_message2);
+    mavlink_msg_global_position_int_encode(sys_id, comp_id, &mavlink_message1, &gpos);
+    mavlink_msg_gps_raw_int_encode(sys_id, comp_id, &mavlink_message2, &gps);
     
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_GPS2_RAW) == MESSAGE_UNPROCESSED)
+    {
+        vehicle.setProcessedFlag(MAVLINK_MSG_ID_GPS2_RAW,MESSAGE_PROCESSED);
+        mavlink_message_t mavlink_message3;
+        const mavlink_gps2_raw_t& gps2 = vehicle.getMSGGPS2Raw();
+        mavlink_msg_gps2_raw_encode(sys_id, comp_id, &mavlink_message3, &gps2);
+        
+        sendMavlinkData_3 (target_party_id, mavlink_message1, mavlink_message2, mavlink_message3);
+    }
+    else
+    {
+        sendMavlinkData_2 (target_party_id, mavlink_message1, mavlink_message2);
+    }
+    
+    return ;
+}
+
+
+void CFCBFacade::sendWindInfo (const std::string&target_party_id) const
+{
+    if (m_sendJMSG == NULL) return ;
+    
+    mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
+
+    if (vehicle.getHighLatencyMode()!=0) return ;
+    
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_WIND) != MESSAGE_UNPROCESSED) return ;
+    vehicle.setProcessedFlag(MAVLINK_MSG_ID_WIND,MESSAGE_PROCESSED);
+
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
+
+    mavlink_message_t mavlink_message1;
+    const mavlink_wind_t& wind = vehicle.getMsgWind();
+    mavlink_msg_wind_encode(sys_id, comp_id, &mavlink_message1, &wind);
+    
+    sendMavlinkData (target_party_id, mavlink_message1);
+
     return ;
 }
 
