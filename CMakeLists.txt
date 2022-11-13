@@ -27,7 +27,7 @@ message( FATAL_ERROR “In-source builds not allowed! Create a build directory a
 exit(1)
 endif()
 
-project(DE_MAVLINK_PLUGIN VERSION "2.4.0")
+project(DE_MAVLINK_PLUGIN VERSION "2.4.1")
 
 
 
