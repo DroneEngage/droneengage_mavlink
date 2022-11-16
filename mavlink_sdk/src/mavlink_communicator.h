@@ -10,9 +10,7 @@ namespace mavlinksdk
 {
 namespace comm
 {
-    void *startReadThread(void *args);
-    void *startWriteThread(void *args);
-
+ 
 
 
     class CCallBack_Communicator
@@ -59,7 +57,7 @@ namespace comm
             void stop ();
             const int send_message (const mavlink_message_t& mavlink_message);
             void readThread ();
-            void writeThread ();
+            //void writeThread ();
 
         protected:
             void read_messages ();
