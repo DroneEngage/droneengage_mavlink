@@ -5,7 +5,7 @@
 
 
 typedef struct __mavlink_storm32_gimbal_device_control_t {
- float q[4]; /*<  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).*/
+ float q[4]; /*<  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, set first element to NaN to be ignored).*/
  float angular_velocity_x; /*< [rad/s] X component of angular velocity (positive: roll to the right, NaN to be ignored).*/
  float angular_velocity_y; /*< [rad/s] Y component of angular velocity (positive: tilt up, NaN to be ignored).*/
  float angular_velocity_z; /*< [rad/s] Z component of angular velocity (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).*/
@@ -62,7 +62,7 @@ typedef struct __mavlink_storm32_gimbal_device_control_t {
  * @param target_system  System ID
  * @param target_component  Component ID
  * @param flags  Gimbal device flags (UINT16_MAX to be ignored).
- * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, set first element to NaN to be ignored).
  * @param angular_velocity_x [rad/s] X component of angular velocity (positive: roll to the right, NaN to be ignored).
  * @param angular_velocity_y [rad/s] Y component of angular velocity (positive: tilt up, NaN to be ignored).
  * @param angular_velocity_z [rad/s] Z component of angular velocity (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
@@ -106,7 +106,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_device_control_pack(uint8_t sy
  * @param target_system  System ID
  * @param target_component  Component ID
  * @param flags  Gimbal device flags (UINT16_MAX to be ignored).
- * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, set first element to NaN to be ignored).
  * @param angular_velocity_x [rad/s] X component of angular velocity (positive: roll to the right, NaN to be ignored).
  * @param angular_velocity_y [rad/s] Y component of angular velocity (positive: tilt up, NaN to be ignored).
  * @param angular_velocity_z [rad/s] Z component of angular velocity (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
@@ -176,7 +176,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_device_control_encode_chan(uin
  * @param target_system  System ID
  * @param target_component  Component ID
  * @param flags  Gimbal device flags (UINT16_MAX to be ignored).
- * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, set first element to NaN to be ignored).
  * @param angular_velocity_x [rad/s] X component of angular velocity (positive: roll to the right, NaN to be ignored).
  * @param angular_velocity_y [rad/s] Y component of angular velocity (positive: tilt up, NaN to be ignored).
  * @param angular_velocity_z [rad/s] Z component of angular velocity (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
@@ -294,7 +294,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_device_control_get_flags(const
 /**
  * @brief Get field q from storm32_gimbal_device_control message
  *
- * @return  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @return  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, set first element to NaN to be ignored).
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_device_control_get_q(const mavlink_message_t* msg, float *q)
 {
