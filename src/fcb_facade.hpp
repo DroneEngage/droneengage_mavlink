@@ -72,6 +72,7 @@ namespace fcb
             void sendGPSInfo(const std::string&target_party_id) const;
             void sendNavInfo(const std::string&target_party_id) const;
             void sendWindInfo (const std::string&target_party_id) const;
+            void sendTerrainReport (const std::string&target_party_id) const;
             void sendLocationInfo() const; 
             void sendParameterList (const std::string&target_party_id) const;
             void sendParameterValue (const std::string&target_party_id, const mavlink_param_value_t& param_message) const;

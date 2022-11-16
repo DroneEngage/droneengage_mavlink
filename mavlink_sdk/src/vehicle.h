@@ -141,6 +141,9 @@ namespace mavlinksdk
             void handle_rc_channels_raw         (const mavlink_rc_channels_t& rc_channels);
             void handle_servo_output_raw        (const mavlink_servo_output_raw_t& servo_output_raw);
             void handle_system_time             (const mavlink_system_time_t& system_time);
+            void handle_terrain_data_report     (const mavlink_terrain_report_t& terrain_report);
+            
+
             void handle_high_latency            (const int message_id);
             void exit_high_latency              ();
 
@@ -278,6 +281,11 @@ namespace mavlinksdk
                 return m_system_time;
             }
 
+            const mavlink_terrain_report_t& getTerrainReport() const 
+            {  
+                return m_terrain_report;
+            }
+
             const std::string& getLastStatusText () const
             {
                 return m_status_text;
@@ -372,6 +380,8 @@ namespace mavlinksdk
             
             // System Time
             mavlink_system_time_t  m_system_time;
+
+            mavlink_terrain_report_t m_terrain_report;
 
             // Status Text
             std::string m_status_text;

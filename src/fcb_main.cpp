@@ -447,7 +447,7 @@ void CFCBMain::loopScheduler ()
             checkBlockedStatus();
             
             heartbeatCamera();
-            mavlinksdk::CMavlinkCommand::getInstance().requestMessageEmit(MAVLINK_MSG_ID_WIND);
+            //mavlinksdk::CMavlinkCommand::getInstance().requestMessageEmit(MAVLINK_MSG_ID_WIND);
             
         }
 
@@ -455,6 +455,7 @@ void CFCBMain::loopScheduler ()
         if (m_counter%100 == 0)
         {
             m_fcb_facade.sendWindInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            m_fcb_facade.sendTerrainReport(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             initVehicleChannelLimits(false);
         }
 

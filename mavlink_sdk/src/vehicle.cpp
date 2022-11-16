@@ -219,6 +219,13 @@ void mavlinksdk::CVehicle::handle_system_time (const mavlink_system_time_t& syst
 	m_system_time = system_time;
 }
 
+
+void mavlinksdk::CVehicle::handle_terrain_data_report (const mavlink_terrain_report_t& terrain_report)
+{
+	// Handle if changed to avoid replicated messages.
+	m_terrain_report = terrain_report;
+}
+
 void mavlinksdk::CVehicle::exit_high_latency ()
 {
 	if (m_high_latency_mode==0) return ;
@@ -353,7 +360,6 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 
 		case MAVLINK_MSG_ID_DISTANCE_SENSOR:
 		{
-			std::cout << "MAVLINK_MSG_ID_DISTANCE_SENSOR" << std::endl;
 			mavlink_distance_sensor_t distance_sensor;
 			mavlink_msg_distance_sensor_decode(&mavlink_message, &(distance_sensor));
 			if (distance_sensor.orientation<=40)
@@ -602,6 +608,15 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
             mavlinksdk::CMavlinkWayPointManager::getInstance().handle_mission_item_request (mission_request_int);
         }
         break;
+
+		case MAVLINK_MSG_ID_TERRAIN_REPORT:
+		{
+			mavlink_terrain_report_t terrain_report;
+			mavlink_msg_terrain_report_decode (&mavlink_message, &terrain_report);
+		
+		    handle_terrain_data_report (terrain_report);
+        }
+		break;
 
 		// MISSION PART END ======================================================================================
 

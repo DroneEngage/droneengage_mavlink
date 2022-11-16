@@ -290,13 +290,38 @@ void CFCBFacade::sendWindInfo (const std::string&target_party_id) const
     const int sys_id = m_mavlink_sdk.getSysId();
     const int comp_id = m_mavlink_sdk.getCompId();
 
-    mavlink_message_t mavlink_message1;
+    mavlink_message_t mavlink_message;
     const mavlink_wind_t& wind = vehicle.getMsgWind();
-    mavlink_msg_wind_encode(sys_id, comp_id, &mavlink_message1, &wind);
+    mavlink_msg_wind_encode(sys_id, comp_id, &mavlink_message, &wind);
     
-    sendMavlinkData (target_party_id, mavlink_message1);
+    sendMavlinkData (target_party_id, mavlink_message);
 
     return ;
+}
+
+
+void CFCBFacade::sendTerrainReport (const std::string&target_party_id) const
+{
+    if (m_sendJMSG == NULL) return ;
+    
+    mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
+
+    if (vehicle.getHighLatencyMode()!=0) return ;
+    
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_TERRAIN_REPORT) != MESSAGE_UNPROCESSED) return ;
+    vehicle.setProcessedFlag(MAVLINK_MSG_ID_TERRAIN_REPORT,MESSAGE_PROCESSED);
+
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
+
+    mavlink_message_t mavlink_message;
+    const mavlink_terrain_report_t& terrain_report = vehicle.getTerrainReport();
+    mavlink_msg_terrain_report_encode(sys_id, comp_id, &mavlink_message, &terrain_report);
+    
+    sendMavlinkData (target_party_id, mavlink_message);
+
+    return ;
+    
 }
 
 
