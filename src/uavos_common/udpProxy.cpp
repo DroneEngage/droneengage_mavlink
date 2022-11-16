@@ -154,6 +154,7 @@ void uavos::comm::CUDPProxy::stop()
         {
             m_threadCreateUDPSocket.join();
             m_threadSenderID.join();
+            m_starrted = false;
         }
         delete m_ModuleAddress;
         delete m_udpProxyServer;
