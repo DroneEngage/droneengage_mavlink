@@ -1,12 +1,12 @@
 /** @file
- *  @brief MAVLink comm protocol built from ardupilotmega.xml
+ *  @brief MAVLink comm protocol built from loweheiser.xml
  *  @see http://mavlink.org
  */
 #pragma once
 #ifndef MAVLINK_H
 #define MAVLINK_H
 
-#define MAVLINK_PRIMARY_XML_HASH 6176376251683363292
+#define MAVLINK_PRIMARY_XML_HASH -5023501407471715285
 
 #ifndef MAVLINK_STX
 #define MAVLINK_STX 253
@@ -29,6 +29,6 @@
 #endif
 
 #include "version.h"
-#include "ardupilotmega.h"
+#include "loweheiser.h"
 
 #endif // MAVLINK_H
