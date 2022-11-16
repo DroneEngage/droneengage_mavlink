@@ -45,6 +45,8 @@ class CMavlinkCommand
 
     public:
         
+        void requestMessageEmit(const uint32_t message_id) const ;
+        void sendHeartBeatOfGCS() const;
         void sendHeartBeatOfComponent(const uint8_t component_id) const;
         void doSetMode   (const int& mode, const int& custom_mode=0, const int& custom_sub_mode=0)  const;
         void doArmDisarm (const bool& arm, const bool& force)  const;

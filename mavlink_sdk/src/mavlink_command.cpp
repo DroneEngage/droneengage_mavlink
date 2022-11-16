@@ -110,7 +110,55 @@ void CMavlinkCommand::sendNative(const mavlink_message_t mavlink_message) const
 	return ;
 }
 
+void CMavlinkCommand::requestMessageEmit(const uint32_t message_id) const 
+{
 
+	// std::cout << "requestMessageInterval" << std::endl;
+	// mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	// mavlink_message_interval_t mavlink_message_interval;
+	// mavlink_message_interval.message_id = message_id;
+	// mavlink_message_interval.interval_us = interval_us;
+	// // mavlink_message_interval.target_system    = mavlink_sdk.getSysId();
+	// // mavlink_message_interval.target_component = mavlink_sdk.getCompId();
+	
+	// mavlink_message_t mavlink_message;
+	// mavlink_msg_message_interval_encode(mavlink_sdk.getSysId(),mavlink_sdk.getCompId(), &mavlink_message, &mavlink_message_interval);
+	
+	// mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+
+	
+	sendLongCommand (MAV_CMD_REQUEST_MESSAGE, false,
+		MAVLINK_MSG_ID_WIND,  // use specified location . if 1 then use current location.
+		0,  // unused
+		0,  // unused
+		0,
+		0,
+		0,
+		0);
+
+	return ;
+
+}
+
+void CMavlinkCommand::sendHeartBeatOfGCS() const
+{
+	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	mavlink_heartbeat_t mavlink_heartbeat;
+	mavlink_heartbeat.autopilot = 8;
+	mavlink_heartbeat.base_mode = 0;
+	mavlink_heartbeat.custom_mode = 0;
+	mavlink_heartbeat.mavlink_version = 3;
+	mavlink_heartbeat.system_status = 0;
+	mavlink_heartbeat.type = 6;
+	
+	mavlink_message_t mavlink_message;
+	mavlink_msg_heartbeat_encode(255,190, &mavlink_message, &mavlink_heartbeat);
+	
+	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	return ;
+}
+        
 
 void CMavlinkCommand::sendHeartBeatOfComponent(const uint8_t component_id) const
 {
