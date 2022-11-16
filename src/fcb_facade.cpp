@@ -272,30 +272,6 @@ void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
     
     sendMavlinkData_M (target_party_id, mavlink_message, i);
 
-    // if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_GPS2_RAW) == MESSAGE_UNPROCESSED)
-    // {
-    //     vehicle.setProcessedFlag(MAVLINK_MSG_ID_GPS2_RAW,MESSAGE_PROCESSED);
-    //     mavlink_message_t mavlink_message3;
-    //     const mavlink_gps2_raw_t& gps2 = vehicle.getMSGGPS2Raw();
-    //     mavlink_msg_gps2_raw_encode(sys_id, comp_id, &mavlink_message3, &gps2);
-        
-    //     sendMavlinkData_3 (target_party_id, mavlink_message1, mavlink_message2, mavlink_message3);
-    // }
-    // else
-    // {
-    //     sendMavlinkData_2 (target_party_id, mavlink_message1, mavlink_message2);
-    // }
-    
-    // if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_GPS2_RAW) == MESSAGE_UNPROCESSED)
-    // {
-    //     vehicle.setProcessedFlag(MAVLINK_MSG_ID_GPS2_RAW,MESSAGE_PROCESSED);
-    //     mavlink_message_t mavlink_message3;
-    //     const mavlink_gps2_raw_t& gps2 = vehicle.getMSGGPS2Raw();
-    //     mavlink_msg_gps2_raw_encode(sys_id, comp_id, &mavlink_message3, &gps2);
-        
-    //     sendMavlinkData_3 (target_party_id, mavlink_message1, mavlink_message2, mavlink_message3);
-    // }
-
     return ;
 }
 
@@ -482,14 +458,32 @@ void CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
     
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
     
-    const mavlink_battery_status_t& battery_status = vehicle.getMsgBatteryStatus();
-
     const int sys_id = m_mavlink_sdk.getSysId();
     const int comp_id = m_mavlink_sdk.getCompId();
 
-    mavlink_message_t mavlink_message;
-    mavlink_msg_battery_status_encode(sys_id, comp_id, &mavlink_message, &battery_status);
-    sendMavlinkData(target_party_id, mavlink_message);
+    
+    mavlink_message_t mavlink_message[2];
+    int i=0;
+
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_BATTERY_STATUS) == MESSAGE_UNPROCESSED) 
+    {
+        vehicle.setProcessedFlag(MAVLINK_MSG_ID_BATTERY_STATUS,MESSAGE_PROCESSED);
+        const mavlink_battery_status_t& battery_status = vehicle.getMsgBatteryStatus();    
+        mavlink_msg_battery_status_encode(sys_id, comp_id, &mavlink_message[i], &battery_status);
+        ++i;
+    }
+
+
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_BATTERY2) == MESSAGE_UNPROCESSED) 
+    {
+        vehicle.setProcessedFlag(MAVLINK_MSG_ID_BATTERY2,MESSAGE_PROCESSED);
+        const mavlink_battery2_t& battery2 = vehicle.getMsgBattery2Status();    
+        mavlink_msg_battery2_encode(sys_id, comp_id, &mavlink_message[i], &battery2);
+        ++i;
+    }
+
+
+    sendMavlinkData_M(target_party_id, mavlink_message, i);
     
     return ;
 }

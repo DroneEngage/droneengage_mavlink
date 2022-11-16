@@ -36,7 +36,7 @@ void CFCBMain::OnMessageReceived (const uavos::comm::CUDPProxy * udp_proxy, cons
 	mavlink_message_t mavlink_message;
     for (int i=0; i<len; ++ i)
     {
-	    uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_2, message[i], &mavlink_message, &status);
+	    uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_0, message[i], &mavlink_message, &status);
         if (msgReceived!=0)
         {
             mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
@@ -424,7 +424,7 @@ void CFCBMain::loopScheduler ()
         wait_time_nsec (0,10000000);
 
         m_counter++;
-        
+
         if (m_counter%10 ==0)
         {   // each 100 msec
             
@@ -442,32 +442,20 @@ void CFCBMain::loopScheduler ()
             //m_fcb_facade.sendHighLatencyInfo(std::string()); //TESTING
             updateGeoFenceHitStatus();
 
-            if (m_counter %2 ==0)
-            { // odd 1 sec
-                // called each second group #1
-                m_fcb_facade.sendGPSInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-                checkBlockedStatus();
-            }
-            else
-            { // called each second group #2
-                heartbeatCamera();
-            }
-
+            // called each second group #1
+            m_fcb_facade.sendGPSInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            checkBlockedStatus();
+            
+            heartbeatCamera();
+            mavlinksdk::CMavlinkCommand::getInstance().requestMessageEmit(MAVLINK_MSG_ID_WIND);
+            
         }
 
         // .................
         if (m_counter%100 == 0)
         {
-            if (m_counter %2 ==0)
-            { // odd 2 sec
-
-                m_fcb_facade.sendWindInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-            }
-            else
-            { // called each 2 seconds group #2
-                // update ranges dynamically.
-                initVehicleChannelLimits(false);
-            }
+            m_fcb_facade.sendWindInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            initVehicleChannelLimits(false);
         }
 
         if (m_counter % 500 ==0)

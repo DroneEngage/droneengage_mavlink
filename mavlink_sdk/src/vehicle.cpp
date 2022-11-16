@@ -345,9 +345,15 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		}
 		break;
 
+		case MAVLINK_MSG_ID_EKF_STATUS_REPORT:
+		{
+		}
+		break;
+
 
 		case MAVLINK_MSG_ID_DISTANCE_SENSOR:
 		{
+			std::cout << "MAVLINK_MSG_ID_DISTANCE_SENSOR" << std::endl;
 			mavlink_distance_sensor_t distance_sensor;
 			mavlink_msg_distance_sensor_decode(&mavlink_message, &(distance_sensor));
 			if (distance_sensor.orientation<=40)

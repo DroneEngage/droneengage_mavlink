@@ -415,7 +415,7 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
 	            mavlink_message_t mavlink_message;
                 for (int i=0; i<binary_length; ++ i)
                 {
-		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_1, binary_message[i+ 1], &mavlink_message, &status);
+		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_0, binary_message[i+ 1], &mavlink_message, &status);
                     if (msgReceived==0)
                     {
                         //TODO: you can add logging or warning
@@ -441,7 +441,7 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
 	            mavlink_message_t mavlink_message;
                 for (int i=0; i<binary_length; ++ i)
                 {
-		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_1, binary_message[i+ 1], &mavlink_message, &status);
+		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_0, binary_message[i+ 1], &mavlink_message, &status);
                     if (msgReceived==0)
                     {
                         //TODO: you can add logging or warning
