@@ -1,5 +1,5 @@
 #include <ardupilotmega/mavlink.h>
-#include <common/mavlink.h>
+#include <all/mavlink.h>
 #include <mavlink_helpers.h>
 #include "fcb_modes.hpp"
 #include "px4_modes.h"

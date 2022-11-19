@@ -2,7 +2,7 @@
 #define WAYPOINT_MANAGER_H_
 #include <map>
 
-#include <common/mavlink.h>
+#include <all/mavlink.h>
 #include <ardupilotmega/ardupilotmega.h>
 
 

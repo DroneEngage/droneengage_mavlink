@@ -8,7 +8,7 @@ using Json = nlohmann::json;
 
 #include "../uavos_common/messages.hpp"
 
-#include <common/mavlink.h>
+#include <all/mavlink.h>
 #include "mission_translator.hpp"
 extern std::vector<std::string> split_string_by_newline(const std::string& str);
 extern std::vector<std::string> split_string_by_delimeter(const std::string& str, const char& delimeter);

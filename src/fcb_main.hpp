@@ -3,7 +3,7 @@
 #include <thread>         // std::thread
 #include <memory>
 #include <vector>
-#include <common/mavlink.h>
+#include <all/mavlink.h>
 #include <mavlink_sdk.h>
 #include <mavlink_command.h>
 #include <mavlink_events.h>
@@ -262,7 +262,7 @@ namespace fcb
             void OnHighLatencyMessageReceived (const int& latency_mode) override;
             void OnEKFStatusReportChanged (const mavlink_ekf_status_report_t& ekf_status_report) override;
             void OnVibrationChanged (const mavlink_vibration_t& vibration);
-            
+
             // called from main
             void OnConnectionStatusChangedWithAndruavServer (const int status) override;
         
