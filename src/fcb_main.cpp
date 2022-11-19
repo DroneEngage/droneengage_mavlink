@@ -461,6 +461,11 @@ void CFCBMain::loopScheduler ()
 
         if (m_counter % 500 ==0)
         {   // 5 sec
+            
+            // no need to send it faster as it is sent by an event  if there is an important change in the values.
+            m_fcb_facade.sendEKFInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            m_fcb_facade.sendVibrationInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            
             m_fcb_facade.sendPowerInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             bool fcb_connected = mavlinksdk::CVehicle::getInstance().isFCBConnected();
 
@@ -743,6 +748,18 @@ void CFCBMain::OnHighLatencyMessageReceived (const int& latency_mode)
     return ;
 }
 
+void CFCBMain::OnEKFStatusReportChanged (const mavlink_ekf_status_report_t& ekf_status_report)
+{
+    m_fcb_facade.sendEKFInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+    return ;
+}
+
+void CFCBMain::OnVibrationChanged (const mavlink_vibration_t& vibration)
+{
+    m_fcb_facade.sendVibrationInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+    return ;
+}
+            
 void CFCBMain::OnStatusText (const std::uint8_t& severity, const std::string& status)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText " << _NORMAL_CONSOLE_TEXT_ << status << std::endl;

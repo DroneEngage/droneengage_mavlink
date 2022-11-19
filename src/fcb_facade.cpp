@@ -217,6 +217,53 @@ void CFCBFacade::sendHighLatencyInfo(const std::string&target_party_id) const
     sendMavlinkData (target_party_id, mavlink_message);
 }
 
+
+void CFCBFacade::sendEKFInfo(const std::string&target_party_id) const
+{
+    if (m_sendJMSG == NULL) return ;
+    mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
+    
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
+
+    mavlink_message_t mavlink_message;
+    
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_EKF_STATUS_REPORT) != MESSAGE_UNPROCESSED) 
+    return ;
+   
+    vehicle.setProcessedFlag(MAVLINK_MSG_ID_EKF_STATUS_REPORT,MESSAGE_PROCESSED);
+
+    const mavlink_ekf_status_report_t&  ekf_status_report = vehicle.getEkf_status_report();
+    mavlink_msg_ekf_status_report_encode(sys_id, comp_id, &mavlink_message, &ekf_status_report);
+    
+    sendMavlinkData (target_party_id, mavlink_message);
+
+    return ;
+}
+
+void CFCBFacade::sendVibrationInfo(const std::string&target_party_id) const
+{
+    if (m_sendJMSG == NULL) return ;
+    mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
+    
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
+
+    mavlink_message_t mavlink_message;
+    
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_VIBRATION) != MESSAGE_UNPROCESSED) 
+    return ;
+
+    vehicle.setProcessedFlag(MAVLINK_MSG_ID_VIBRATION,MESSAGE_PROCESSED);
+
+    const mavlink_vibration_t&  vibration = vehicle.getVibration();
+    mavlink_msg_vibration_encode(sys_id, comp_id, &mavlink_message, &vibration);
+    
+    sendMavlinkData (target_party_id, mavlink_message);
+
+    return ;
+}
+            
 void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
 {
     /*

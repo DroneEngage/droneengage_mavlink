@@ -260,7 +260,9 @@ namespace fcb
             void OnParamReceivedCompleted() override;
             void OnHighLatencyModeChanged (const int& latency_mode) override;
             void OnHighLatencyMessageReceived (const int& latency_mode) override;
-
+            void OnEKFStatusReportChanged (const mavlink_ekf_status_report_t& ekf_status_report) override;
+            void OnVibrationChanged (const mavlink_vibration_t& vibration);
+            
             // called from main
             void OnConnectionStatusChangedWithAndruavServer (const int status) override;
         

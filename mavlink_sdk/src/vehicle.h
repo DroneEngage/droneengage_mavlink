@@ -3,7 +3,7 @@
 
 #include <map>
 
-#include <common/mavlink.h>
+#include <all/mavlink.h>
 #include <ardupilotmega/ardupilotmega.h>
 
 #include "mavlink_helper.h"
@@ -88,6 +88,8 @@ namespace mavlinksdk
         virtual void OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw)                                               {};
         virtual void OnHighLatencyModeChanged (const int& latency_mode)                                                                 {};
         virtual void OnHighLatencyMessageReceived (const int& latency_mode)                                                             {};
+        virtual void OnEKFStatusReportChanged (const mavlink_ekf_status_report_t& ekf_status_report)                                    {};    
+        virtual void OnVibrationChanged (const mavlink_vibration_t& vibration)                                                          {};    
     };
 
     class CVehicle
@@ -141,9 +143,11 @@ namespace mavlinksdk
             void handle_rc_channels_raw         (const mavlink_rc_channels_t& rc_channels);
             void handle_servo_output_raw        (const mavlink_servo_output_raw_t& servo_output_raw);
             void handle_system_time             (const mavlink_system_time_t& system_time);
+            void handle_radio_status            (const mavlink_radio_status_t& radio_status);
             void handle_terrain_data_report     (const mavlink_terrain_report_t& terrain_report);
+            void handle_ekf_status_report       (const mavlink_ekf_status_report_t& ekf_status_report);
+            void handle_vibration_report        (const mavlink_vibration_t& vibration);
             
-
             void handle_high_latency            (const int message_id);
             void exit_high_latency              ();
 
@@ -194,11 +198,6 @@ namespace mavlinksdk
             const mavlink_battery2_t& getMsgBattery2Status () const
             {
                 return m_battery2;
-            }
-
-            const mavlink_radio_status_t& getMsgRadioStatus () const
-            {
-                return m_radio_status;
             }
 
             const int getHighLatencyMode () const
@@ -281,9 +280,24 @@ namespace mavlinksdk
                 return m_system_time;
             }
 
+            const mavlink_radio_status_t& getRadioStatus() const 
+            {
+                return m_radio_status;
+            }
+
             const mavlink_terrain_report_t& getTerrainReport() const 
             {  
                 return m_terrain_report;
+            }
+
+            const mavlink_ekf_status_report_t& getEkf_status_report() const 
+            {
+                return m_ekf_status_report;   
+            }
+
+            const mavlink_vibration_t& getVibration() const 
+            {
+                return m_vibration;   
             }
 
             const std::string& getLastStatusText () const
@@ -320,9 +334,7 @@ namespace mavlinksdk
              */
             mavlink_battery2_t m_battery2;
 
-            // Radio Status
-            mavlink_radio_status_t m_radio_status;
-
+            
             // High Latency
             int m_high_latency_mode = 0; // either equal to MAVLINK_MSG_ID_HIGH_LATENCY or MAVLINK_MSG_ID_HIGH_LATENCY2 or 0
             mavlink_high_latency_t m_high_latency;
@@ -381,7 +393,26 @@ namespace mavlinksdk
             // System Time
             mavlink_system_time_t  m_system_time;
 
+            // Radio Status
+            mavlink_radio_status_t m_radio_status;
+
+            // terrain report
             mavlink_terrain_report_t m_terrain_report;
+
+            /**
+             * @brief 
+             * m_ekf_status_report.flags = EKF_STATUS_FLAGS contains status notification.
+             */
+            mavlink_ekf_status_report_t m_ekf_status_report; 
+
+            // efk status
+            mavlink_vibration_t m_vibration;
+            
+            /**
+             * @brief true if m_vibration.clipping increased 
+             * from last read.
+             */
+            bool m_clipping = false;
 
             // Status Text
             std::string m_status_text;
@@ -397,6 +428,7 @@ namespace mavlinksdk
 
             // Valid only with PX4
             bool m_is_landing = false;
+            
             
 
     };

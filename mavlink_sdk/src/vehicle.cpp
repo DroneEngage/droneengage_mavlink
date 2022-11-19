@@ -226,6 +226,41 @@ void mavlinksdk::CVehicle::handle_terrain_data_report (const mavlink_terrain_rep
 	m_terrain_report = terrain_report;
 }
 
+
+void mavlinksdk::CVehicle::handle_radio_status(const mavlink_radio_status_t& radio_status)
+{
+	m_radio_status = radio_status;
+}
+
+void mavlinksdk::CVehicle::handle_ekf_status_report(const mavlink_ekf_status_report_t& ekf_status_report)
+{
+	//TODO: Handle EKF info here.
+	if (m_ekf_status_report.flags != ekf_status_report.flags)
+	{
+		m_ekf_status_report = ekf_status_report;
+		m_callback_vehicle->OnEKFStatusReportChanged(ekf_status_report);
+	}
+	
+	return ;
+}
+
+
+void mavlinksdk::CVehicle::handle_vibration_report(const mavlink_vibration_t& vibration)
+{
+	if ((vibration.clipping_0 != m_vibration.clipping_0)
+	|| (vibration.clipping_1 != m_vibration.clipping_1)
+	|| (vibration.clipping_2 != m_vibration.clipping_2))
+	{
+		m_vibration = vibration;
+		m_callback_vehicle->OnVibrationChanged(vibration);
+	}
+
+	m_vibration = vibration;
+
+	return;
+}
+
+
 void mavlinksdk::CVehicle::exit_high_latency ()
 {
 	if (m_high_latency_mode==0) return ;
@@ -352,12 +387,6 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		}
 		break;
 
-		case MAVLINK_MSG_ID_EKF_STATUS_REPORT:
-		{
-		}
-		break;
-
-
 		case MAVLINK_MSG_ID_DISTANCE_SENSOR:
 		{
 			mavlink_distance_sensor_t distance_sensor;
@@ -372,7 +401,9 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 
 		case MAVLINK_MSG_ID_RADIO_STATUS:
 		{
-            mavlink_msg_radio_status_decode(&mavlink_message, &(m_radio_status));
+			mavlink_radio_status_t radio_status;
+            mavlink_msg_radio_status_decode(&mavlink_message, &(radio_status));
+			handle_radio_status (radio_status);
         }
         break;
 
@@ -389,6 +420,25 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		    handle_high_latency (MAVLINK_MSG_ID_HIGH_LATENCY2);
 		}
         break;
+		
+		case MAVLINK_MSG_ID_EKF_STATUS_REPORT:
+		{
+			mavlink_ekf_status_report_t ekf_status_report;
+			mavlink_msg_ekf_status_report_decode (&mavlink_message, &ekf_status_report);
+
+			time_stamps.setTimestamp(msgid, get_time_usec());
+			handle_ekf_status_report(ekf_status_report);
+			return ;
+		}
+		break;
+
+		case MAVLINK_MSG_ID_VIBRATION:
+		{
+			mavlink_vibration_t vibration;
+			mavlink_msg_vibration_decode (&mavlink_message, &vibration);
+			handle_vibration_report(m_vibration);
+		}
+		break;
 
 		case MAVLINK_MSG_ID_LOCAL_POSITION_NED:
 		{
