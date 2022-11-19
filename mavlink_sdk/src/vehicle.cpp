@@ -436,7 +436,7 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		{
 			mavlink_vibration_t vibration;
 			mavlink_msg_vibration_decode (&mavlink_message, &vibration);
-			handle_vibration_report(m_vibration);
+			handle_vibration_report(vibration);
 		}
 		break;
 
