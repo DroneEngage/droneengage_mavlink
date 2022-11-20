@@ -220,6 +220,11 @@ namespace mavlinksdk
             {
                 m_mavlink_events->OnVibrationChanged (vibration);
             };  
+
+            inline void OnADSBVechileReceived (const mavlink_adsb_vehicle_t& adsb_vehicle)
+            {
+                m_mavlink_events->OnADSBVechileReceived (adsb_vehicle);
+            };    
      
 
 

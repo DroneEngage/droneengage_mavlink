@@ -759,6 +759,12 @@ void CFCBMain::OnVibrationChanged (const mavlink_vibration_t& vibration)
     m_fcb_facade.sendVibrationInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
     return ;
 }
+
+void CFCBMain::OnADSBVechileReceived (const mavlink_adsb_vehicle_t& adsb_vehicle)
+{
+    m_fcb_facade.sendADSBVehicleInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+    return ;
+}
             
 void CFCBMain::OnStatusText (const std::uint8_t& severity, const std::string& status)
 {

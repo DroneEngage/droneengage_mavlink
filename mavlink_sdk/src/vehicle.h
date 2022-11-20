@@ -90,6 +90,7 @@ namespace mavlinksdk
         virtual void OnHighLatencyMessageReceived (const int& latency_mode)                                                             {};
         virtual void OnEKFStatusReportChanged (const mavlink_ekf_status_report_t& ekf_status_report)                                    {};    
         virtual void OnVibrationChanged (const mavlink_vibration_t& vibration)                                                          {};    
+        virtual void OnADSBVechileReceived (const mavlink_adsb_vehicle_t& adsb_vehicle)                                                 {};    
     };
 
     class CVehicle
@@ -140,6 +141,7 @@ namespace mavlinksdk
             void handle_home_position           (const mavlink_home_position_t& home_position);
             void handle_param_ext_value         (const mavlink_param_ext_value_t& param_message);
             void handle_param_value             (const mavlink_param_value_t& param_message);
+            void handle_adsb_vehicle            (const mavlink_adsb_vehicle_t& adsb_vehicle);
             void handle_rc_channels_raw         (const mavlink_rc_channels_t& rc_channels);
             void handle_servo_output_raw        (const mavlink_servo_output_raw_t& servo_output_raw);
             void handle_system_time             (const mavlink_system_time_t& system_time);
@@ -270,6 +272,11 @@ namespace mavlinksdk
                 return m_nav_controller;
             }
 
+            const mavlink_adsb_vehicle_t& getADSBVechile() const 
+            {
+                return m_adsb_vehicle;
+            }
+
             const mavlink_rc_channels_t& getRCChannels () const
             {
                 return m_rc_channels;
@@ -384,6 +391,9 @@ namespace mavlinksdk
             // Desired (pitch, roll, yaw, wp_dist, alt_error)
             mavlink_nav_controller_output_t m_nav_controller;
 
+            //ADSB
+            mavlink_adsb_vehicle_t  m_adsb_vehicle;
+            
             // RCChannels
             mavlink_rc_channels_t   m_rc_channels;
 

@@ -18,7 +18,7 @@ mavlinksdk::comm::CMavlinkCommunicator::~CMavlinkCommunicator ()
 
 void mavlinksdk::comm::CMavlinkCommunicator::start ()
 {
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Communicator Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Mavlink Communicator Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
  
 
 	m_threadRead = std::thread {[&](){ readThread(); }};
@@ -32,7 +32,7 @@ void mavlinksdk::comm::CMavlinkCommunicator::stop ()
     // --------------------------------------------------------------------------
 	//   CLOSE THREADS
 	// --------------------------------------------------------------------------
-	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Communicator is Stopping Normally" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Mavlink Communicator is Stopping Normally" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
  
 	// signal exit
 	m_time_to_exit = true;
@@ -43,7 +43,7 @@ void mavlinksdk::comm::CMavlinkCommunicator::stop ()
 	//m_threadWrite.join();
 
 	// now the read and write threads are closed
-	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Communicator has Stopped" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Mavlink Communicator has Stopped" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
  
 
 	// still need to close the port separately

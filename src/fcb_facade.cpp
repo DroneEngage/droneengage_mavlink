@@ -372,6 +372,29 @@ void CFCBFacade::sendTerrainReport (const std::string&target_party_id) const
 }
 
 
+void CFCBFacade::sendADSBVehicleInfo(const std::string&target_party_id) const
+{
+    if (m_sendJMSG == NULL) return ;
+    
+    mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
+
+    if (vehicle.getHighLatencyMode()!=0) return ;
+    
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_ADSB_VEHICLE) != MESSAGE_UNPROCESSED) return ;
+    vehicle.setProcessedFlag(MAVLINK_MSG_ID_WIND,MESSAGE_PROCESSED);
+
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
+
+    mavlink_message_t mavlink_message;
+    const mavlink_adsb_vehicle_t& adsb_vehicle = vehicle.getADSBVechile();
+    mavlink_msg_adsb_vehicle_encode(sys_id, comp_id, &mavlink_message, &adsb_vehicle);
+    
+    sendMavlinkData (target_party_id, mavlink_message);
+
+    return ;
+}
+            
 void CFCBFacade::sendLocationInfo () const 
 {
     /*

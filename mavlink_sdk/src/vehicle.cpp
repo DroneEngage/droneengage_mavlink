@@ -194,7 +194,14 @@ void mavlinksdk::CVehicle::handle_param_ext_value  (const mavlink_param_ext_valu
 }
 
 
+void mavlinksdk::CVehicle::handle_adsb_vehicle (const mavlink_adsb_vehicle_t& adsb_vehicle)
+{
+	m_adsb_vehicle = adsb_vehicle;
+	m_callback_vehicle->OnADSBVechileReceived (adsb_vehicle);
 
+	return ;
+}
+            
 
 void mavlinksdk::CVehicle::handle_rc_channels_raw  (const mavlink_rc_channels_t& rc_channels)
 {
@@ -436,7 +443,10 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		{
 			mavlink_vibration_t vibration;
 			mavlink_msg_vibration_decode (&mavlink_message, &vibration);
+			
+			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_vibration_report(vibration);
+			return ;
 		}
 		break;
 
@@ -573,6 +583,18 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		}
 		break;
 		
+		case MAVLINK_MSG_ID_ADSB_VEHICLE:
+		{
+			mavlink_adsb_vehicle_t adsb_vehicle;
+			mavlink_msg_adsb_vehicle_decode(&mavlink_message, &adsb_vehicle);
+			
+			time_stamps.setTimestamp(msgid, get_time_usec());
+			handle_adsb_vehicle(adsb_vehicle);
+
+			return ;
+		}
+		break;
+
 		case MAVLINK_MSG_ID_RC_CHANNELS:
 		{
 			mavlink_rc_channels_t rc_message;

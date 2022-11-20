@@ -83,7 +83,7 @@ void CMavlinkSDK::OnMessageReceived (const mavlink_message_t& mavlink_message)
 
 void CMavlinkSDK::OnConnected (const bool& connected) 
 {
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Connected Live" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Mavlink Connected " << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
     this->m_mavlink_events->OnConnected (connected);
 }
