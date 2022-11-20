@@ -88,9 +88,10 @@ namespace mavlinksdk
         virtual void OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw)                                               {};
         virtual void OnHighLatencyModeChanged (const int& latency_mode)                                                                 {};
         virtual void OnHighLatencyMessageReceived (const int& latency_mode)                                                             {};
-        virtual void OnEKFStatusReportChanged (const mavlink_ekf_status_report_t& ekf_status_report)                                    {};    
-        virtual void OnVibrationChanged (const mavlink_vibration_t& vibration)                                                          {};    
-        virtual void OnADSBVechileReceived (const mavlink_adsb_vehicle_t& adsb_vehicle)                                                 {};    
+        virtual void OnEKFStatusReportChanged (const mavlink_ekf_status_report_t& ekf_status_report)                                    {};
+        virtual void OnVibrationChanged (const mavlink_vibration_t& vibration)                                                          {};
+        virtual void OnADSBVechileReceived (const mavlink_adsb_vehicle_t& adsb_vehicle)                                                 {};
+        virtual void OnDistanceSensorChanged (const mavlink_distance_sensor_t& distance_sensor)                                            {};
     };
 
     class CVehicle
@@ -149,6 +150,7 @@ namespace mavlinksdk
             void handle_terrain_data_report     (const mavlink_terrain_report_t& terrain_report);
             void handle_ekf_status_report       (const mavlink_ekf_status_report_t& ekf_status_report);
             void handle_vibration_report        (const mavlink_vibration_t& vibration);
+            void handle_distance_sensor         (const mavlink_distance_sensor_t& distance_sensor);
             
             void handle_high_latency            (const int message_id);
             void exit_high_latency              ();
@@ -157,157 +159,172 @@ namespace mavlinksdk
         public:
             const bool isFCBConnected() const;
 
-            const uint64_t getMessageTime(uint16_t message_id) const
+            inline const uint64_t getMessageTime(uint16_t message_id) const
             {
                 return time_stamps.getMessageTime(message_id);
             }
 
-            const uint64_t getProcessedFlag(uint16_t message_id) const
+            inline const uint64_t getProcessedFlag(uint16_t message_id) const
             {
                 return time_stamps.getProcessedFlag(message_id);
             }
 
-            void setProcessedFlag(uint16_t message_id, uint16_t flags)
+            inline void setProcessedFlag(uint16_t message_id, uint16_t flags)
             {
                 return time_stamps.setProcessedFlag(message_id, flags);
             }
 
-            const bool isArmed()
+            inline const bool isArmed()
             {
                 return m_armed;
             }
             
-            const bool isFlying() const
+            inline const bool isFlying() const
             {
                 return m_is_flying;
             } 
 
-            const mavlink_heartbeat_t& getMsgHeartBeat () const
+            inline const bool hasLidarAltitude() const 
+            {
+                return m_has_lidar_altitude;
+            }
+
+            inline const mavlink_heartbeat_t& getMsgHeartBeat () const
             {
                 return m_heartbeat;
             }
 
-            const mavlink_sys_status_t& getMsgSysStatus () const
+            inline const mavlink_sys_status_t& getMsgSysStatus () const
             {
                 return m_sys_status;
             }
 
-            const mavlink_battery_status_t& getMsgBatteryStatus () const
+            inline const mavlink_battery_status_t& getMsgBatteryStatus () const
             {
                 return m_battery_status;
             }
 
-            const mavlink_battery2_t& getMsgBattery2Status () const
+            inline const mavlink_battery2_t& getMsgBattery2Status () const
             {
                 return m_battery2;
             }
 
-            const int getHighLatencyMode () const
+            inline const int getHighLatencyMode () const
             {
                 return m_high_latency_mode;
             }
 
-            const mavlink_high_latency_t& getHighLatency () const
+            inline const mavlink_high_latency_t& getHighLatency () const
             {
                 return m_high_latency;
             }
 
-            const mavlink_high_latency2_t& getHighLatency2 () const
+            inline const mavlink_high_latency2_t& getHighLatency2 () const
             {
                 return m_high_latency2;
             }
 
-            const mavlink_local_position_ned_t& getMsgLocalPositionNED () const
+            inline const mavlink_local_position_ned_t& getMsgLocalPositionNED () const
             {
                 return m_local_position_ned;
             }
 
-            const mavlink_global_position_int_t& getMsgGlobalPositionInt () const
+            inline const mavlink_global_position_int_t& getMsgGlobalPositionInt () const
             {
                 return m_global_position_int;
             }
 
-            const mavlink_position_target_local_ned_t& getMsgTargetPositionLocalNED () const
+            inline const mavlink_position_target_local_ned_t& getMsgTargetPositionLocalNED () const
             {
                 return m_position_target_local_ned;
             }
 
-            const mavlink_position_target_global_int_t& getMsgTargetPositionGlobalInt () const
+            inline const mavlink_position_target_global_int_t& getMsgTargetPositionGlobalInt () const
             {
                 return m_position_target_global_int;
             }
 
-            const mavlink_gps_raw_int_t& getMSGGPSRaw () const
+            inline const mavlink_gps_raw_int_t& getMSGGPSRaw () const
             {
                 return m_gps_raw_int;
             }
 
-            const mavlink_gps2_raw_t& getMSGGPS2Raw () const
+            inline const mavlink_gps2_raw_t& getMSGGPS2Raw () const
             {
                 return m_gps2_raw;
             }
 
-            const mavlink_attitude_t& getMsgAttitude () const
+            inline const mavlink_attitude_t& getMsgAttitude () const
             {
                 return m_attitude;
             }
 
-            const mavlink_vfr_hud_t& getMsgVFRHud () const
+            inline const mavlink_vfr_hud_t& getMsgVFRHud () const
             {
                 return m_vfr_hud;
             }
 
-            const mavlink_wind_t& getMsgWind () const
+            inline const mavlink_wind_t& getMsgWind () const
             {
                 return m_wind;
             }
 
-            const mavlink_home_position_t& getMsgHomePosition () const
+            inline const mavlink_distance_sensor_t& getDistanceSensor (uint8_t direction)
+            {
+                return m_distance_sensors[direction];
+            }
+
+            inline const mavlink_distance_sensor_t& getLidarAltitude()
+            {
+                return m_distance_sensors[MAV_SENSOR_ORIENTATION::MAV_SENSOR_ROTATION_PITCH_270];
+            }
+
+            inline const mavlink_home_position_t& getMsgHomePosition () const
             {
                 return m_home_position;
             }
 
-            const mavlink_nav_controller_output_t& getMsgNavController() const
+            inline const mavlink_nav_controller_output_t& getMsgNavController() const
             {
                 return m_nav_controller;
             }
 
-            const mavlink_adsb_vehicle_t& getADSBVechile() const 
+            inline const mavlink_adsb_vehicle_t& getADSBVechile() const 
             {
                 return m_adsb_vehicle;
             }
 
-            const mavlink_rc_channels_t& getRCChannels () const
+            inline const mavlink_rc_channels_t& getRCChannels () const
             {
                 return m_rc_channels;
             }
 
-            const mavlink_system_time_t& getSystemTime() const 
+            inline const mavlink_system_time_t& getSystemTime() const 
             {  
                 return m_system_time;
             }
 
-            const mavlink_radio_status_t& getRadioStatus() const 
+            inline const mavlink_radio_status_t& getRadioStatus() const 
             {
                 return m_radio_status;
             }
 
-            const mavlink_terrain_report_t& getTerrainReport() const 
+            inline const mavlink_terrain_report_t& getTerrainReport() const 
             {  
                 return m_terrain_report;
             }
 
-            const mavlink_ekf_status_report_t& getEkf_status_report() const 
+            inline const mavlink_ekf_status_report_t& getEkf_status_report() const 
             {
                 return m_ekf_status_report;   
             }
 
-            const mavlink_vibration_t& getVibration() const 
+            inline const mavlink_vibration_t& getVibration() const 
             {
                 return m_vibration;   
             }
 
-            const std::string& getLastStatusText () const
+            inline const std::string& getLastStatusText () const
             {
                 return m_status_text;
             }
@@ -439,7 +456,7 @@ namespace mavlinksdk
             // Valid only with PX4
             bool m_is_landing = false;
             
-            
+            bool m_has_lidar_altitude = false;
 
     };
 }

@@ -394,7 +394,37 @@ void CFCBFacade::sendADSBVehicleInfo(const std::string&target_party_id) const
 
     return ;
 }
-            
+
+void CFCBFacade::sendDistanceSensorInfo(const std::string&target_party_id,const mavlink_distance_sensor_t& distance_sensor) const 
+{
+    if (m_sendJMSG == NULL) return ;
+    
+    mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
+
+    if (vehicle.getHighLatencyMode()!=0) return ;
+    
+    // this is not accurate check as there are many messages of different orientation with the same id
+    // but if we send them all then it is safe to check this.
+    if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_DISTANCE_SENSOR) != MESSAGE_UNPROCESSED) return ;
+    vehicle.setProcessedFlag(MAVLINK_MSG_ID_DISTANCE_SENSOR,MESSAGE_PROCESSED);
+
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
+
+    mavlink_message_t mavlink_message;
+    mavlink_msg_distance_sensor_encode(sys_id, comp_id, &mavlink_message, &distance_sensor);
+    
+    sendMavlinkData (target_party_id, mavlink_message);
+
+    return ;
+}
+
+void CFCBFacade::sendDistanceSensorInfo(const std::string&target_party_id) const
+{
+
+}
+
+
 void CFCBFacade::sendLocationInfo () const 
 {
     /*

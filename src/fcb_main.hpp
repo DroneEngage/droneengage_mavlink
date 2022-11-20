@@ -263,6 +263,7 @@ namespace fcb
             void OnEKFStatusReportChanged (const mavlink_ekf_status_report_t& ekf_status_report) override;
             void OnVibrationChanged (const mavlink_vibration_t& vibration);
             void OnADSBVechileReceived (const mavlink_adsb_vehicle_t& adsb_vehicle);
+            void OnDistanceSensorChanged (const mavlink_distance_sensor_t& distance_sensor);        
             
             // called from main
             void OnConnectionStatusChangedWithAndruavServer (const int status) override;

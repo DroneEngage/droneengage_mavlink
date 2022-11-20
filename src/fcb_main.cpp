@@ -449,6 +449,11 @@ void CFCBMain::loopScheduler ()
             heartbeatCamera();
             //mavlinksdk::CMavlinkCommand::getInstance().requestMessageEmit(MAVLINK_MSG_ID_WIND);
             
+            mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
+            if (vehicle.hasLidarAltitude())
+            {
+                m_fcb_facade.sendDistanceSensorInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS),vehicle.getLidarAltitude());
+            }
         }
 
         // .................
@@ -479,6 +484,7 @@ void CFCBMain::loopScheduler ()
         if (m_counter % 1000 ==0)
         {   // 10 sec
             m_fcb_facade.sendID(std::string());
+            m_fcb_facade.sendDistanceSensorInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
         }
 
         if (m_counter % 1500 ==0)
@@ -765,6 +771,14 @@ void CFCBMain::OnADSBVechileReceived (const mavlink_adsb_vehicle_t& adsb_vehicle
     m_fcb_facade.sendADSBVehicleInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
     return ;
 }
+
+
+void CFCBMain::OnDistanceSensorChanged (const mavlink_distance_sensor_t& distance_sensor)
+{
+    m_fcb_facade.sendDistanceSensorInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), distance_sensor);
+    return ;
+}
+            
             
 void CFCBMain::OnStatusText (const std::uint8_t& severity, const std::string& status)
 {

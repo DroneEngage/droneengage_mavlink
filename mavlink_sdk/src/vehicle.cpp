@@ -267,6 +267,35 @@ void mavlinksdk::CVehicle::handle_vibration_report(const mavlink_vibration_t& vi
 	return;
 }
 
+void mavlinksdk::CVehicle::handle_distance_sensor (const mavlink_distance_sensor_t& distance_sensor)
+{
+	
+	if (distance_sensor.orientation<=40)
+	{
+		mavlink_distance_sensor_t old_distance_sensor = m_distance_sensors[distance_sensor.orientation];
+		
+		m_distance_sensors[distance_sensor.orientation] = distance_sensor;
+		m_has_lidar_altitude = (distance_sensor.orientation ==  MAV_SENSOR_ORIENTATION::MAV_SENSOR_ROTATION_PITCH_270 );
+		if ((distance_sensor.max_distance > distance_sensor.current_distance)
+		&& (old_distance_sensor.max_distance >= old_distance_sensor.current_distance)
+		)
+		{
+			// distance in range
+			this->m_callback_vehicle->OnDistanceSensorChanged(distance_sensor);
+		}
+		else
+		if ((distance_sensor.max_distance <= distance_sensor.current_distance)
+		&& (old_distance_sensor.max_distance < old_distance_sensor.current_distance)
+		)
+		{
+			// distance out range
+			this->m_callback_vehicle->OnDistanceSensorChanged(distance_sensor);
+		}
+		
+	}
+	
+}
+
 
 void mavlinksdk::CVehicle::exit_high_latency ()
 {
@@ -398,10 +427,10 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		{
 			mavlink_distance_sensor_t distance_sensor;
 			mavlink_msg_distance_sensor_decode(&mavlink_message, &(distance_sensor));
-			if (distance_sensor.orientation<=40)
-			{
-				m_distance_sensors[distance_sensor.orientation] = distance_sensor;
-			}
+			
+			time_stamps.setTimestamp(msgid, get_time_usec());
+			handle_distance_sensor(distance_sensor);
+			return ;
 		}
 		break;
 

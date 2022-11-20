@@ -226,7 +226,12 @@ namespace mavlinksdk
                 m_mavlink_events->OnADSBVechileReceived (adsb_vehicle);
             };    
      
-
+            inline void OnDistanceSensorChanged (const mavlink_distance_sensor_t& distance_sensor)
+            {
+                m_mavlink_events->OnDistanceSensorChanged (distance_sensor);
+            };    
+     
+            
 
     };
 }

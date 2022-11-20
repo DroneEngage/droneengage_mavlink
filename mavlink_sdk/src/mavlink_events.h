@@ -35,6 +35,7 @@ namespace mavlinksdk
         virtual void OnEKFStatusReportChanged (const mavlink_ekf_status_report_t& ekf_status_report)                        {};    
         virtual void OnVibrationChanged (const mavlink_vibration_t& vibration)                                              {};    
         virtual void OnADSBVechileReceived (const mavlink_adsb_vehicle_t& adsb_vehicle)                                     {};    
+        virtual void OnDistanceSensorChanged (const mavlink_distance_sensor_t& distance_sensor)                             {};
 
         virtual void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)  {};
         virtual void OnParamReceivedCompleted()                                                                             {};
