@@ -73,7 +73,7 @@
 #include <arpa/inet.h>
 #include <stdbool.h>
 
-#include <common/mavlink.h>
+#include <all/mavlink.h>
 
 #include "./helpers/colors.h"
 #include "generic_port.h"
@@ -128,7 +128,7 @@ namespace comm
 			void initialize_defaults();
 
 			const static int BUFF_LEN=2041;
-			char buff[BUFF_LEN];
+			uint8_t buff[BUFF_LEN];
 			int buff_ptr=0;
 			int buff_len=0;
 			bool debug;

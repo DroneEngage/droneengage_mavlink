@@ -3,7 +3,7 @@
 
 
 #include <iostream>
-#include <common/mavlink.h>
+#include <all/mavlink.h>
 
 #define CONNECTION_TYPE_SERIAL  1
 #define CONNECTION_TYPE_UDP     2

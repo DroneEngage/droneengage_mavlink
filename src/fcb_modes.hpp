@@ -2,7 +2,7 @@
 #define FCB_MODES_H_
 
 #include "defines.hpp"
-#include <common/mavlink.h>
+#include <all/mavlink.h>
 
 namespace uavos
 {

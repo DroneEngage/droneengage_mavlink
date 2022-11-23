@@ -18,12 +18,12 @@ mavlinksdk::comm::CMavlinkCommunicator::~CMavlinkCommunicator ()
 
 void mavlinksdk::comm::CMavlinkCommunicator::start ()
 {
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Communicator Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Mavlink Communicator Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
  
 
 	m_threadRead = std::thread {[&](){ readThread(); }};
 
-	m_threadWrite = std::thread {[&](){ writeThread(); }};
+	//m_threadWrite = std::thread {[&](){ writeThread(); }};
     
 }
 
@@ -32,7 +32,7 @@ void mavlinksdk::comm::CMavlinkCommunicator::stop ()
     // --------------------------------------------------------------------------
 	//   CLOSE THREADS
 	// --------------------------------------------------------------------------
-	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Communicator is Stopping Normally" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Mavlink Communicator is Stopping Normally" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
  
 	// signal exit
 	m_time_to_exit = true;
@@ -40,10 +40,10 @@ void mavlinksdk::comm::CMavlinkCommunicator::stop ()
 	// wait for exit
 	
 	m_threadRead.join();
-	m_threadWrite.join();
+	//m_threadWrite.join();
 
 	// now the read and write threads are closed
-	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Communicator has Stopped" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Mavlink Communicator has Stopped" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
  
 
 	// still need to close the port separately
@@ -80,15 +80,15 @@ void mavlinksdk::comm::CMavlinkCommunicator::readThread ()
 }
 
 
-void mavlinksdk::comm::CMavlinkCommunicator::writeThread ()
-{
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "_writeThread Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+// void mavlinksdk::comm::CMavlinkCommunicator::writeThread ()
+// {
+//     std::cout << _SUCCESS_CONSOLE_TEXT_ << "_writeThread Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
-	while ( !m_time_to_exit )
-	{
-		wait_time_nsec(1,0); // Read batches at 10Hz
-	}
-}
+// 	while ( !m_time_to_exit )
+// 	{
+// 		wait_time_nsec(1,0); // Read batches at 10Hz
+// 	}
+// }
 
 
 /**
@@ -105,6 +105,7 @@ void mavlinksdk::comm::CMavlinkCommunicator::read_messages ()
 		//   READ MESSAGE
 		// ----------------------------------------------------------------------
 		mavlink_message_t message;
+		memset(&message,0,sizeof(mavlink_message_t));
 		const bool success = m_port->read_message(message);
 		
         if( success )
@@ -121,45 +122,6 @@ void mavlinksdk::comm::CMavlinkCommunicator::read_messages ()
 
 
 
-// ------------------------------------------------------------------------------
-//  Pthread Starter Helper Functions
-// ------------------------------------------------------------------------------
 
-/**
- * @brief Reading thread
- * calls @link readThread @endlink readThread
- * @param args pointer of type @link CMavlinkCommunicator @endlink
- * @return void* 
- */
-void* mavlinksdk::comm::startReadThread(void *args)
-{
-	// takes an autopilot object argument
-	mavlinksdk::comm::CMavlinkCommunicator *comm = (mavlinksdk::comm::CMavlinkCommunicator *)args;
-
-	// run the object's read thread
-	comm->readThread();
-
-	// done!
-	return NULL;
-}
-
-
-/**
- * @brief Writing thread
- * calls @link CMavlinkCommunicator @endlink writeThread.
- * @param args  pointer of type @link CMavlinkCommunicator @endlink
- * @return void* 
- */
-void* mavlinksdk::comm::startWriteThread(void *args)
-{
-	// takes an autopilot object argument
-	mavlinksdk::comm::CMavlinkCommunicator *comm = (mavlinksdk::comm::CMavlinkCommunicator *)args;
-
-	// run the object's read thread
-	comm->writeThread();
-
-	// done!
-	return NULL;
-}
 
 

@@ -69,9 +69,15 @@ namespace fcb
             void sendTelemetryPanic(const std::string&target_party_id) const;
             void sendErrorMessage(const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const;
             void sendHighLatencyInfo(const std::string&target_party_id) const;
+            void sendEKFInfo(const std::string&target_party_id) const;
+            void sendVibrationInfo(const std::string&target_party_id) const;
             void sendGPSInfo(const std::string&target_party_id) const;
             void sendNavInfo(const std::string&target_party_id) const;
             void sendWindInfo (const std::string&target_party_id) const;
+            void sendTerrainReport (const std::string&target_party_id) const;
+            void sendADSBVehicleInfo(const std::string&target_party_id) const;
+            void sendDistanceSensorInfo(const std::string&target_party_id) const;
+            void sendDistanceSensorInfo(const std::string&target_party_id,const mavlink_distance_sensor_t& distance_sensor) const;
             void sendLocationInfo() const; 
             void sendParameterList (const std::string&target_party_id) const;
             void sendParameterValue (const std::string&target_party_id, const mavlink_param_value_t& param_message) const;

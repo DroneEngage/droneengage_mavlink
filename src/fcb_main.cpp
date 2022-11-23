@@ -36,7 +36,7 @@ void CFCBMain::OnMessageReceived (const uavos::comm::CUDPProxy * udp_proxy, cons
 	mavlink_message_t mavlink_message;
     for (int i=0; i<len; ++ i)
     {
-	    uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_2, message[i], &mavlink_message, &status);
+	    uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_0, message[i], &mavlink_message, &status);
         if (msgReceived!=0)
         {
             mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
@@ -424,7 +424,7 @@ void CFCBMain::loopScheduler ()
         wait_time_nsec (0,10000000);
 
         m_counter++;
-        
+
         if (m_counter%10 ==0)
         {   // each 100 msec
             
@@ -442,36 +442,35 @@ void CFCBMain::loopScheduler ()
             //m_fcb_facade.sendHighLatencyInfo(std::string()); //TESTING
             updateGeoFenceHitStatus();
 
-            if (m_counter %2 ==0)
-            { // odd 1 sec
-                // called each second group #1
-                m_fcb_facade.sendGPSInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-                checkBlockedStatus();
+            // called each second group #1
+            m_fcb_facade.sendGPSInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            checkBlockedStatus();
+            
+            heartbeatCamera();
+            //mavlinksdk::CMavlinkCommand::getInstance().requestMessageEmit(MAVLINK_MSG_ID_WIND);
+            
+            mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
+            if (vehicle.hasLidarAltitude())
+            {
+                m_fcb_facade.sendDistanceSensorInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS),vehicle.getLidarAltitude());
             }
-            else
-            { // called each second group #2
-                heartbeatCamera();
-            }
-
         }
 
         // .................
         if (m_counter%100 == 0)
         {
-            if (m_counter %2 ==0)
-            { // odd 2 sec
-
-                m_fcb_facade.sendWindInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-            }
-            else
-            { // called each 2 seconds group #2
-                // update ranges dynamically.
-                initVehicleChannelLimits(false);
-            }
+            m_fcb_facade.sendWindInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            m_fcb_facade.sendTerrainReport(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            initVehicleChannelLimits(false);
         }
 
         if (m_counter % 500 ==0)
         {   // 5 sec
+            
+            // no need to send it faster as it is sent by an event  if there is an important change in the values.
+            m_fcb_facade.sendEKFInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            m_fcb_facade.sendVibrationInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            
             m_fcb_facade.sendPowerInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             bool fcb_connected = mavlinksdk::CVehicle::getInstance().isFCBConnected();
 
@@ -485,6 +484,7 @@ void CFCBMain::loopScheduler ()
         if (m_counter % 1000 ==0)
         {   // 10 sec
             m_fcb_facade.sendID(std::string());
+            m_fcb_facade.sendDistanceSensorInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
         }
 
         if (m_counter % 1500 ==0)
@@ -754,6 +754,32 @@ void CFCBMain::OnHighLatencyMessageReceived (const int& latency_mode)
     return ;
 }
 
+void CFCBMain::OnEKFStatusReportChanged (const mavlink_ekf_status_report_t& ekf_status_report)
+{
+    m_fcb_facade.sendEKFInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+    return ;
+}
+
+void CFCBMain::OnVibrationChanged (const mavlink_vibration_t& vibration)
+{
+    m_fcb_facade.sendVibrationInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+    return ;
+}
+
+void CFCBMain::OnADSBVechileReceived (const mavlink_adsb_vehicle_t& adsb_vehicle)
+{
+    m_fcb_facade.sendADSBVehicleInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+    return ;
+}
+
+
+void CFCBMain::OnDistanceSensorChanged (const mavlink_distance_sensor_t& distance_sensor)
+{
+    m_fcb_facade.sendDistanceSensorInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), distance_sensor);
+    return ;
+}
+            
+            
 void CFCBMain::OnStatusText (const std::uint8_t& severity, const std::string& status)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText " << _NORMAL_CONSOLE_TEXT_ << status << std::endl;

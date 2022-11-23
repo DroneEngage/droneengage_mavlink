@@ -1,7 +1,7 @@
 #ifndef MAVLINK_FTP_MANAGER_H_
 #define MAVLINK_FTP_MANAGER_H_
 
-#include <common/mavlink.h>
+#include <all/mavlink.h>
 #include <ardupilotmega/ardupilotmega.h>
 
 namespace mavlinksdk

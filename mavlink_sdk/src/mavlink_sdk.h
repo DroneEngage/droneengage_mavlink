@@ -211,8 +211,27 @@ namespace mavlinksdk
                 m_mavlink_events->OnParamReceivedCompleted ();
             };
     
-            
+            inline void OnEKFStatusReportChanged (const mavlink_ekf_status_report_t& ekf_status_report)
+            {
+                m_mavlink_events->OnEKFStatusReportChanged (ekf_status_report);
+            };   
 
+            inline void OnVibrationChanged (const mavlink_vibration_t& vibration)
+            {
+                m_mavlink_events->OnVibrationChanged (vibration);
+            };  
+
+            inline void OnADSBVechileReceived (const mavlink_adsb_vehicle_t& adsb_vehicle)
+            {
+                m_mavlink_events->OnADSBVechileReceived (adsb_vehicle);
+            };    
+     
+            inline void OnDistanceSensorChanged (const mavlink_distance_sensor_t& distance_sensor)
+            {
+                m_mavlink_events->OnDistanceSensorChanged (distance_sensor);
+            };    
+     
+            
 
     };
 }
