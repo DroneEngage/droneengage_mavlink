@@ -614,6 +614,36 @@ void CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
 }
 
 
+
+
+void CFCBFacade::sendMissionCurrent(const std::string&target_party_id, const mavlink_mission_current_t& mission_current) const
+{
+    if (m_sendJMSG == NULL) return ;
+
+    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
+    
+    const int sys_id = m_mavlink_sdk.getSysId();
+    const int comp_id = m_mavlink_sdk.getCompId();
+
+    
+    mavlink_message_t mavlink_message[2];
+    
+
+    // you do not need to do thefollowing check as you can resent this message to different GCS once then become online.
+    // there is no obsolete message here.
+    //if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_MISSION_COUNT) == MESSAGE_UNPROCESSED) 
+    vehicle.setProcessedFlag(MAVLINK_MSG_ID_MISSION_COUNT,MESSAGE_PROCESSED);
+    mavlink_msg_mission_current_encode(sys_id, comp_id, &mavlink_message[0], &mission_current);
+    
+    const mavlink_mission_count_t mission_count = mavlinksdk::CMavlinkWayPointManager::getInstance().getMissionCount();
+    mavlink_msg_mission_count_encode(sys_id, comp_id, &mavlink_message[1], &mission_count);
+    
+
+    sendMavlinkData_M(target_party_id, mavlink_message, 2);
+    
+}
+
+
 void CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
 {
     
@@ -888,6 +918,8 @@ void CFCBFacade::sendWayPointReached (const std::string&target_party_id, const i
     return ;
 }
 
+
+            
 /**
  * @brief 
  * 

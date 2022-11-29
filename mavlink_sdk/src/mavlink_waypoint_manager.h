@@ -31,6 +31,8 @@ class CCallBack_WayPoint
     virtual void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)           {};
     virtual void OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)  {};
     virtual void OnWayPointReceived (const mavlink_mission_item_int_t& mission_item_int)                            {};
+
+    virtual void OnMissionCurrentChanged (const mavlink_mission_current_t& mission_current)                         {};
 };
 
 class CMavlinkWayPointManager
@@ -55,7 +57,10 @@ class CMavlinkWayPointManager
 
     private:
 
-        CMavlinkWayPointManager() {};
+        CMavlinkWayPointManager() {
+            memset (&m_mission_current,0, sizeof (mavlink_mission_current_t));
+            memset (&m_mission_count,0, sizeof(mavlink_mission_count_t));
+        };  
 
     public:
             
@@ -69,7 +74,9 @@ class CMavlinkWayPointManager
         
     
         void setCallbackWaypoint (mavlinksdk::CCallBack_WayPoint* callback_waypoint);
-        inline int getCurrentStep () const { return m_mission_current;}
+        inline const mavlink_mission_current_t getMissionCurrent () const { return m_mission_current;}
+        inline const mavlink_mission_count_t getMissionCount () const { return m_mission_count;}
+        
 
     public:
 
@@ -93,8 +100,8 @@ class CMavlinkWayPointManager
     protected:
         mavlinksdk::CCallBack_WayPoint* m_callback_waypoint;
 
-        uint16_t  m_mission_current = 0;
-        uint16_t  m_mission_count   = 0;
+        mavlink_mission_current_t  m_mission_current;
+        mavlink_mission_count_t  m_mission_count;
         uint16_t  m_mission_write_count   = 0;
         uint16_t  m_mission_write_current   = 0;
         uint16_t  m_mission_waiting_for_seq   = 0;

@@ -47,6 +47,7 @@ namespace mavlinksdk
         virtual void OnWayPointsLoadingCompleted ()                                                                         {};
         virtual void OnMissionSaveFinished (const int& result, const int& mission_type, const std::string& result_msg)      {};
         virtual void OnMissionACK (const int& result, const int& mission_type, const std::string& result_msg)               {}; 
+        virtual void OnMissionCurrentChanged (const mavlink_mission_current_t& mission_current)                             {};
 
         // CCallBack_Communicator Related
 

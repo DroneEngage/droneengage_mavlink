@@ -119,6 +119,11 @@ namespace mavlinksdk
                 m_mavlink_events->OnWayPointReceived (mission_item_int);
             }
 
+            inline void OnMissionCurrentChanged (const mavlink_mission_current_t& mission_current) override
+            {
+                m_mavlink_events->OnMissionCurrentChanged (mission_current);
+            }  
+
             inline void OnWayPointsLoadingCompleted () override 
             {
                 m_mavlink_events->OnWayPointsLoadingCompleted();

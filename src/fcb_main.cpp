@@ -470,7 +470,6 @@ void CFCBMain::loopScheduler ()
             // no need to send it faster as it is sent by an event  if there is an important change in the values.
             m_fcb_facade.sendEKFInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             m_fcb_facade.sendVibrationInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-            
             m_fcb_facade.sendPowerInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             bool fcb_connected = mavlinksdk::CVehicle::getInstance().isFCBConnected();
 
@@ -479,6 +478,10 @@ void CFCBMain::loopScheduler ()
                 m_fcb_connected = fcb_connected;
                 m_fcb_facade.sendID(std::string());
             }
+
+
+            m_fcb_facade.sendMissionCurrent(std::string(), mavlinksdk::CMavlinkWayPointManager::getInstance().getMissionCurrent());
+            
         }
 
         if (m_counter % 1000 ==0)
@@ -881,6 +884,12 @@ void CFCBMain::OnMissionSaveFinished (const int& result, const int& mission_type
         OnMissionACK(result, mission_type, result_msg);
     }
 }
+
+void CFCBMain::OnMissionCurrentChanged (const mavlink_mission_current_t& mission_current)
+{
+    m_fcb_facade.sendMissionCurrent(std::string(), mission_current);
+}
+            
             
 void CFCBMain::OnACK (const int& acknowledged_cmd, const int& result, const std::string& result_msg)
 {
