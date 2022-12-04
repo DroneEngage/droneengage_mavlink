@@ -104,7 +104,6 @@ void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_par
 	{ 
 		m_parameter_read_mode = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LIST_LOADED;
 		std::cout << _SUCCESS_CONSOLE_TEXT_ << "Parameter LOADED " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream();
 		m_callback_parameter->OnParamReceivedCompleted();
 	}
 

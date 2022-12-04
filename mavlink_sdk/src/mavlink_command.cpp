@@ -153,7 +153,7 @@ void CMavlinkCommand::sendHeartBeatOfGCS() const
 	mavlink_heartbeat.type = 6;
 	
 	mavlink_message_t mavlink_message;
-	mavlink_msg_heartbeat_encode(255,190, &mavlink_message, &mavlink_heartbeat);
+	mavlink_msg_heartbeat_encode(255,0, &mavlink_message, &mavlink_heartbeat);
 	
 	mavlink_sdk.sendMavlinkMessage(mavlink_message);
 	return ;
@@ -769,7 +769,7 @@ void CMavlinkCommand::readParameterByIndex (const uint16_t& param_index) const
 	return ;	
 }
 
-void CMavlinkCommand::requestDataStream() const
+void CMavlinkCommand::requestDataStream(MAV_DATA_STREAM stream_id) const
 {
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
@@ -778,13 +778,13 @@ void CMavlinkCommand::requestDataStream() const
 	
 	mavlink_request_data_stream.target_system = mavlink_sdk.getSysId();
 	mavlink_request_data_stream.target_component = mavlink_sdk.getCompId();
-	mavlink_request_data_stream.req_stream_id = MAV_DATA_STREAM::MAV_DATA_STREAM_ALL;
-	mavlink_request_data_stream.req_message_rate = 1;
+	mavlink_request_data_stream.req_stream_id = stream_id;
+	mavlink_request_data_stream.req_message_rate = 4;
 	mavlink_request_data_stream.start_stop = 1;
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_request_data_stream_encode(250,190, &mavlink_message, &mavlink_request_data_stream);
+	mavlink_msg_request_data_stream_encode(255,190, &mavlink_message, &mavlink_request_data_stream);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 

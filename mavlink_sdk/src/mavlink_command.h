@@ -82,7 +82,7 @@ class CMavlinkCommand
 
         void requestExtParametersList () const;
         void requestParametersList () const;
-        void requestDataStream() const;
+        void requestDataStream(MAV_DATA_STREAM stream_id) const;
         void setServo (const int& channel, const int& pwm) const;
         
         void requestHomeLocation () const;
