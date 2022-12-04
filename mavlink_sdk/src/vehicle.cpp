@@ -47,6 +47,16 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	{  // Notify that we have something alive here.
 		m_heart_beat_first_recieved = true;
 		m_callback_vehicle->OnHeartBeat_First (heartbeat);
+		
+		//mavlinksdk::CMavlinkCommand::getInstance().sendHeartBeatOfGCS();
+		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_ALL);
+		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_RAW_CONTROLLER);
+		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_RAW_SENSORS);
+		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_RC_CHANNELS);
+		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_EXTENDED_STATUS);
+		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_EXTRA1);
+		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_EXTRA2);
+		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_EXTRA3);
 	}
 	else 
 	if ((now - time_stamps.getMessageTime(MAVLINK_MSG_ID_HEARTBEAT)) > HEART_BEAT_TIMEOUT)
