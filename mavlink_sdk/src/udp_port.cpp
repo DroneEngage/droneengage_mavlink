@@ -53,6 +53,10 @@
 // ------------------------------------------------------------------------------
 //   Includes
 // ------------------------------------------------------------------------------
+#include <iostream>
+#include <chrono>
+#include <thread>
+
 
 #include "udp_port.h"
 
@@ -183,7 +187,7 @@ int mavlinksdk::comm::UDPPort::read_message(mavlink_message_t &message)
 	}
 
 	// Done!
-	return msgReceived;
+	return (msgReceived!=0);
 }
 
 // ------------------------------------------------------------------------------
@@ -303,7 +307,15 @@ int mavlinksdk::comm::UDPPort::_read_port(uint8_t &cp)
 		struct sockaddr_in addr;
 		len = sizeof(struct sockaddr_in);
 		result = recvfrom(sock, &buff, BUFF_LEN, 0, (struct sockaddr *)&addr, &len);
+		if (result==-1)	 
+		{
+			pthread_mutex_unlock(&lock);
+			//std::this_thread::sleep_for(500);
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
+			return result;
+		}
+		
 		//always read port as ardupilot app may restart and get another port.
 		if(strcmp(inet_ntoa(addr.sin_addr), target_ip) == 0){
 			tx_port = ntohs(addr.sin_port);
