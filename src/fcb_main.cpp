@@ -471,7 +471,7 @@ void CFCBMain::loopScheduler ()
             m_fcb_facade.sendEKFInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             m_fcb_facade.sendVibrationInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             m_fcb_facade.sendPowerInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-            bool fcb_connected = mavlinksdk::CVehicle::getInstance().isFCBConnected();
+            const bool fcb_connected = mavlinksdk::CVehicle::getInstance().isFCBConnected();
 
             if (fcb_connected != m_fcb_connected)
             {
