@@ -27,7 +27,9 @@ message( FATAL_ERROR “In-source builds not allowed! Create a build directory a
 exit(1)
 endif()
 
-project(DE_MAVLINK_PLUGIN VERSION "2.8.0")
+SET (__APP__VERSION__ "2.8.5")
+add_definitions( -D__APP__VERSION__="${__APP__VERSION__}")
+project(DE_MAVLINK_PLUGIN VERSION "${__APP__VERSION__}")
 
 
 
@@ -39,8 +41,6 @@ SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(Threads REQUIRED)
-
-
 
 #define default build
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
