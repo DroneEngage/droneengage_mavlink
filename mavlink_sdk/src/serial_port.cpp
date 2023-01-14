@@ -143,6 +143,8 @@ int mavlinksdk::comm::SerialPort::read_message(mavlink_message_t &message)
 	// Couldn't read from port
 	else
 	{
+		_try_reopen();
+
 		fprintf(stderr, "ERROR: Could not read from fd %d\n", fd);
 	}
 
@@ -280,13 +282,56 @@ stop()
 
 }
 
+bool mavlinksdk::comm::SerialPort::_try_reopen()
+{
+	// --------------------------------------------------------------------------
+	//   OPEN PORT
+	// --------------------------------------------------------------------------
+	printf("OPEN PORT\n");
+
+	fd = _open_port(uart_name.c_str());
+
+	// Check success
+	if (fd == -1)
+	{
+		printf("failure, could not open port.\n");
+		return false; // return here to try again.
+	}
+
+	// --------------------------------------------------------------------------
+	//   SETUP PORT
+	// --------------------------------------------------------------------------
+	bool success = _setup_port(baudrate, 8, 1, false, false);
+
+	// --------------------------------------------------------------------------
+	//   CHECK STATUS
+	// --------------------------------------------------------------------------
+	if (!success)
+	{
+		printf("failure, could not configure port.\n");
+		return false;
+	}
+	if (fd <= 0)
+	{
+		std::cout << "Connection attempt to port" <<  uart_name << " with "<< baudrate << " baud, 8N1 failed, exiting." << std::endl;
+		return false;
+	}
+
+	// --------------------------------------------------------------------------
+	//   CONNECTED!
+	// --------------------------------------------------------------------------
+	std::cout << "Connection attempt to port" <<  uart_name << " with "<< baudrate << " baud, 8 data bits, no parity, 1 stop bit (8N1)." << std::endl;
+	lastStatus.packet_rx_drop_count = 0;
+
+
+	return true;
+}
+
 // ------------------------------------------------------------------------------
 //   Helper Function - Open Serial Port File Descriptor
 // ------------------------------------------------------------------------------
 // Where the actual port opening happens, returns file descriptor 'fd'
-int
-mavlinksdk::comm::SerialPort::
-_open_port(const char* port)
+int mavlinksdk::comm::SerialPort::_open_port(const char* port)
 {
 	// Open serial port
 	// O_RDWR - Read and write
