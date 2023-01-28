@@ -225,8 +225,10 @@ start()
 	// Check success
 	if (fd == -1)
 	{
-		printf("failure, could not open port.\n");
-		throw EXIT_FAILURE;
+		//printf("failure, could not open port.\n");
+		//throw EXIT_FAILURE;
+		is_open = true;
+		return ;
 	}
 
 	// --------------------------------------------------------------------------
