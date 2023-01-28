@@ -51,7 +51,7 @@ void CMavlinkCommand::sendLongCommand (const uint16_t& command,
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_command_long_encode(250,190, &mavlink_message, &msg);
+	mavlink_msg_command_long_encode(255,190, &mavlink_message, &msg);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -88,7 +88,7 @@ void CMavlinkCommand::sendIntCommand (const uint16_t& command,
 
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_command_int_encode(250,190, &mavlink_message, &msg);
+	mavlink_msg_command_int_encode(255,190, &mavlink_message, &msg);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -466,7 +466,7 @@ void CMavlinkCommand::clearWayPoints () const
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_mission_clear_all_encode(250,190, &mavlink_message, &mission_clear);
+	mavlink_msg_mission_clear_all_encode(255,190, &mavlink_message, &mission_clear);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -496,7 +496,7 @@ void CMavlinkCommand::setCurrentMission (const int& mission_number) const
 
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_mission_set_current_encode(250,190, &mavlink_message, &mission_current);
+	mavlink_msg_mission_set_current_encode(255,190, &mavlink_message, &mission_current);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -621,7 +621,7 @@ void CMavlinkCommand::requestParametersList () const
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_param_request_list_encode(250,190, &mavlink_message, &mavlink_param);
+	mavlink_msg_param_request_list_encode(255,190, &mavlink_message, &mavlink_param);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -647,7 +647,7 @@ void CMavlinkCommand::requestExtParametersList () const
 	
 	// // Encode
 	// mavlink_message_t mavlink_message;
-	// mavlink_msg_param_ext_request_list_encode(250,190, &mavlink_message, &mavlink_param);
+	// mavlink_msg_param_ext_request_list_encode(255,190, &mavlink_message, &mavlink_param);
 
     // mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -689,7 +689,7 @@ void CMavlinkCommand::writeParameter (const std::string& param_name, const doubl
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_param_set_encode(250,190, &mavlink_message, &mavlink_param);
+	mavlink_msg_param_set_encode(255,190, &mavlink_message, &mavlink_param);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -725,7 +725,7 @@ void CMavlinkCommand::readParameter (const std::string& param_name) const
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_param_request_read_encode(250,190, &mavlink_message, &mavlink_param);
+	mavlink_msg_param_request_read_encode(255,190, &mavlink_message, &mavlink_param);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -762,7 +762,7 @@ void CMavlinkCommand::readParameterByIndex (const uint16_t& param_index) const
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_param_request_read_encode(250,190, &mavlink_message, &mavlink_param);
+	mavlink_msg_param_request_read_encode(255,190, &mavlink_message, &mavlink_param);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -988,7 +988,7 @@ void CMavlinkCommand::gotoGuidedPoint_default (const double& latitude, const dou
 	//     // Encode
 	// 	mavlink_message_t mavlink_message;
 		
-	// 	mavlink_msg_position_target_global_int_encode(250,190, &mavlink_message, &msg);
+	// 	mavlink_msg_position_target_global_int_encode(255,190, &mavlink_message, &msg);
 
 	//    mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
