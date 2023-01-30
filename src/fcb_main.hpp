@@ -194,7 +194,13 @@ namespace fcb
                 m_event_fire_channel = event_fire_channel; 
                 m_event_wait_channel = event_wait_channel;
             }
+
+            /**
+             * @deprecated
+             */
             void toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level);
+            
+            void setStreamingLevel (const std::string& target_party_id, const int& streaming_level);
 
             bool isFCBConnected () const { return m_fcb_connected;}; 
             
