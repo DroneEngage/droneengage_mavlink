@@ -687,13 +687,14 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
             
             if (!validateField(cmd, "Act", Json::value_t::number_unsigned)) return ;
             int request_type = cmd["Act"].get<int>();
+            if (request_type != CONST_TELEMETRY_ADJUST_RATE) return ;
             int streaming_level = -1;
             if (validateField(cmd, "LVL", Json::value_t::number_unsigned))
             {
                 streaming_level = cmd["LVL"].get<int>();
             }
             
-            m_fcbMain.toggleMavlinkStreaming(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), request_type, streaming_level);
+            m_fcbMain.setStreamingLevel(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), streaming_level);
         }
         break;
 

@@ -1457,7 +1457,19 @@ void CFCBMain::processIncommingEvent()
 }
 
 
+void CFCBMain::setStreamingLevel (const std::string& target_party_id, const int& streaming_level)
+{
+    if (streaming_level != -1)
+    {
+        // update streaming level globally.
+        m_mavlink_optimizer.setOptimizationLevel(streaming_level);
+        m_mavlink_optimizer.reset_timestamps();
+    }
+}
+
+
 /**
+ * @deprecated Streaming is no longer using AndruavWebPlugin. A new method @link setStreamingLevel @endlink is used to set bandwidth.
  * @details Starts, Stops & Update Mavlink streaming to other units & GCS.
  * 
  * @param target_party_id 
