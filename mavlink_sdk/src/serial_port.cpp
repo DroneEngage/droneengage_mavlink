@@ -51,8 +51,9 @@
 // ------------------------------------------------------------------------------
 //   Includes
 // ------------------------------------------------------------------------------
-
+#include <sstream>
 #include "serial_port.h"
+
 
 
 // ----------------------------------------------------------------------------------
@@ -63,11 +64,12 @@
 //   Con/De structors
 // ------------------------------------------------------------------------------
 mavlinksdk::comm::SerialPort::
-SerialPort(const char *uart_name_ , int baudrate_)
+SerialPort(const char *uart_name , int baudrate, const bool dynamic)
 {
 	initialize_defaults();
-	uart_name = std::string(uart_name_);
-	baudrate  = baudrate_;
+	_uart_name = std::string(uart_name);
+	_baudrate  = baudrate;
+	_dynamic = dynamic;
 }
 
 mavlinksdk::comm::SerialPort::
@@ -80,7 +82,8 @@ mavlinksdk::comm::SerialPort::
 ~SerialPort()
 {
 	// destroy mutex
-	pthread_mutex_destroy(&lock);
+	pthread_mutex_destroy(&lockw);
+	pthread_mutex_destroy(&lockr);
 }
 
 void
@@ -90,13 +93,19 @@ initialize_defaults()
 	// Initialize attributes
 	debug  = false;
 	fd     = -1;
-	is_open = false;
+	_is_open = false;
 
-	uart_name = std::string("/dev/ttyUSB0");
-	baudrate  = 57600;
+	_uart_name = std::string("/dev/ttyUSB0");
+	_baudrate  = 57600;
 
 	// Start mutex
-	int result = pthread_mutex_init(&lock, NULL);
+	int result = pthread_mutex_init(&lockr, NULL);
+	if ( result != 0 )
+	{
+		printf("\n mutex init failed\n");
+		throw 1;
+	}
+	result = pthread_mutex_init(&lockw, NULL);
 	if ( result != 0 )
 	{
 		printf("\n mutex init failed\n");
@@ -143,9 +152,9 @@ int mavlinksdk::comm::SerialPort::read_message(mavlink_message_t &message)
 	// Couldn't read from port
 	else
 	{
+		std::cout << _ERROR_CONSOLE_TEXT_  << "ERROR: Could not read from serial port" << _ERROR_CONSOLE_TEXT_ << std::endl;
+		
 		_try_reopen();
-
-		fprintf(stderr, "ERROR: Could not read from fd %d\n", fd);
 	}
 
 	// --------------------------------------------------------------------------
@@ -155,7 +164,8 @@ int mavlinksdk::comm::SerialPort::read_message(mavlink_message_t &message)
 	{
 		// Report info
 		printf("Received message from serial with ID #%d (sys:%d|comp:%d):\n", message.msgid, message.sysid, message.compid);
-
+		_got_mavlink = true;
+		
 		fprintf(stderr,"Received serial data: ");
 		unsigned int i;
 		uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
@@ -218,45 +228,55 @@ start()
 	// --------------------------------------------------------------------------
 	//   OPEN PORT
 	// --------------------------------------------------------------------------
-	printf("OPEN PORT\n");
+		
+	_got_mavlink = false;
+	
+	std::ostringstream uart_name;
+	
+	uart_name << _uart_name;
 
-	fd = _open_port(uart_name.c_str());
+	if (_dynamic)
+	{
+		_portext++;
+		_portext = _portext % 10;
+		
+		uart_name << std::to_string(_portext);
+		
+	}
+	std::cout << _INFO_CONSOLE_TEXT  << " Try to open serial port: " << _SUCCESS_CONSOLE_TEXT_ << uart_name.str()  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	
+	fd = _open_port(uart_name.str().c_str());
 
 	// Check success
 	if (fd == -1)
 	{
-		//printf("failure, could not open port.\n");
-		//throw EXIT_FAILURE;
-		is_open = true;
+		_is_open = true;
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_  << "Failure," << _ERROR_CONSOLE_TEXT_ << " could not configure port: "  << _INFO_CONSOLE_TEXT << uart_name.str() << _NORMAL_CONSOLE_TEXT_ << std::endl;
 		return ;
 	}
 
 	// --------------------------------------------------------------------------
 	//   SETUP PORT
 	// --------------------------------------------------------------------------
-	bool success = _setup_port(baudrate, 8, 1, false, false);
+	bool success = _setup_port(_baudrate, 8, 1, false, false);
 
 	// --------------------------------------------------------------------------
 	//   CHECK STATUS
 	// --------------------------------------------------------------------------
 	if (!success)
 	{
-		printf("failure, could not configure port.\n");
-		throw EXIT_FAILURE;
+		std::cout << _ERROR_CONSOLE_TEXT_  << "failure," << _ERROR_CONSOLE_TEXT_ << " could not configure port." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+		return ;
 	}
-	if (fd <= 0)
-	{
-		std::cout << "Connection attempt to port" <<  uart_name << " with "<< baudrate << " baud, 8N1 failed, exiting." << std::endl;
-		throw EXIT_FAILURE;
-	}
+	
 
 	// --------------------------------------------------------------------------
 	//   CONNECTED!
 	// --------------------------------------------------------------------------
-	std::cout << "Connection attempt to port" <<  uart_name << " with "<< baudrate << " baud, 8 data bits, no parity, 1 stop bit (8N1)." << std::endl;
+	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_  << "SUCCESS: " << _SUCCESS_CONSOLE_TEXT_ << "Connection attempt to port " << _INFO_CONSOLE_TEXT <<  uart_name.str() << _SUCCESS_CONSOLE_BOLD_TEXT_ << " with "<< _baudrate << " baud, 8 data bits, no parity, 1 stop bit (8N1)." << _NORMAL_CONSOLE_TEXT_ << std::endl;
 	lastStatus.packet_rx_drop_count = 0;
 
-	is_open = true;
+	_is_open = true;
 
 	return;
 }
@@ -265,9 +285,13 @@ start()
 // ------------------------------------------------------------------------------
 //   Close Serial Port
 // ------------------------------------------------------------------------------
-void
-mavlinksdk::comm::SerialPort::
-stop()
+void mavlinksdk::comm::SerialPort::stop()
+{
+	_reOpen = false;
+	closePort();
+}
+
+void mavlinksdk::comm::SerialPort::closePort ()
 {
 	std::cout << _INFO_CONSOLE_TEXT << "Closing Serial Port" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
@@ -275,13 +299,12 @@ stop()
 
 	if ( result )
 	{
-		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WARNING: Error on port close (" << result << ")" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+		std::cout << _INFO_CONSOLE_TEXT << "WARNING: Error on port close (" << result << ")" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 	}
 
-	is_open = false;
+	_is_open = false;
 
 	printf("\n");
-
 }
 
 bool mavlinksdk::comm::SerialPort::_try_reopen()
@@ -289,43 +312,55 @@ bool mavlinksdk::comm::SerialPort::_try_reopen()
 	// --------------------------------------------------------------------------
 	//   OPEN PORT
 	// --------------------------------------------------------------------------
-	printf("OPEN PORT\n");
+	
+	if (!_reOpen) return false;
+	std::ostringstream uart_name;
+	
+	closePort();
 
-	fd = _open_port(uart_name.c_str());
+	uart_name << _uart_name;
+
+	if (_dynamic)
+	{
+		_portext++;
+		_portext = _portext % 10;
+		
+		uart_name << std::to_string(_portext);
+		
+	}
+	std::cout << _INFO_CONSOLE_TEXT  << " Try to open serial port: " << _SUCCESS_CONSOLE_TEXT_ << uart_name.str()  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	fd = _open_port(uart_name.str().c_str());
+
 
 	// Check success
 	if (fd == -1)
 	{
-		printf("failure, could not open port.\n");
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_  << "failure, could not configure port: "  << _INFO_CONSOLE_TEXT << uart_name.str() << _NORMAL_CONSOLE_TEXT_ << std::endl;
 		return false; // return here to try again.
 	}
 
 	// --------------------------------------------------------------------------
 	//   SETUP PORT
 	// --------------------------------------------------------------------------
-	bool success = _setup_port(baudrate, 8, 1, false, false);
+	bool success = _setup_port(_baudrate, 8, 1, false, false);
 
 	// --------------------------------------------------------------------------
 	//   CHECK STATUS
 	// --------------------------------------------------------------------------
 	if (!success)
 	{
-		printf("failure, could not configure port.\n");
+		std::cout << _ERROR_CONSOLE_TEXT_  << "failure, could not configure port." << _NORMAL_CONSOLE_TEXT_ << std::endl;
 		return false;
 	}
-	if (fd <= 0)
-	{
-		std::cout << "Connection attempt to port" <<  uart_name << " with "<< baudrate << " baud, 8N1 failed, exiting." << std::endl;
-		return false;
-	}
+	
 
 	// --------------------------------------------------------------------------
 	//   CONNECTED!
 	// --------------------------------------------------------------------------
-	std::cout << "Connection attempt to port" <<  uart_name << " with "<< baudrate << " baud, 8 data bits, no parity, 1 stop bit (8N1)." << std::endl;
+	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_  << "SUCCESS: " << _SUCCESS_CONSOLE_TEXT_ << "Connection attempt to port " << _INFO_CONSOLE_TEXT <<  uart_name.str() << _SUCCESS_CONSOLE_BOLD_TEXT_ << " with "<< _baudrate << " baud, 8 data bits, no parity, 1 stop bit (8N1)." << _NORMAL_CONSOLE_TEXT_ << std::endl;
 	lastStatus.packet_rx_drop_count = 0;
 
-
+	_is_open = true;
 	return true;
 }
 
@@ -526,15 +561,40 @@ mavlinksdk::comm::SerialPort::
 _read_port(uint8_t &cp)
 {
 
+	if (fd == -1) return 0;
+	
 	// Lock
-	pthread_mutex_lock(&lock);
-
-	int result = read(fd, &cp, 1);
-
+	pthread_mutex_lock(&lockr);
+	try
+	{
+	int rv;
+	fd_set set;
+    struct timeval timeout;
+	FD_ZERO(&set); /* clear the set */
+  	FD_SET(fd, &set); /* add our file descriptor to the set */
+	timeout.tv_sec = 0;
+  	timeout.tv_usec = 1000000;
+	  rv = select(fd + 1, &set, NULL, NULL, &timeout);
+	if(rv == -1)
+		perror("select"); /* an error accured */
+	else if(rv == 0)
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Error: Serial Read timout. Maytry another port" << _ERROR_CONSOLE_TEXT_ << std::endl;
+	else
+	{
+		int result = read(fd, &cp, 1);
+		pthread_mutex_unlock(&lockr);
+		return result;
+	}
+	}
+	catch (int error)
+	{
+		pthread_mutex_unlock(&lockr);
+		return 0;
+	}
 	// Unlock
-	pthread_mutex_unlock(&lock);
+	pthread_mutex_unlock(&lockr);
 
-	return result;
+	return 0;
 }
 
 
@@ -547,7 +607,7 @@ _write_port(char *buf, unsigned len)
 {
 
 	// Lock
-	pthread_mutex_lock(&lock);
+	pthread_mutex_lock(&lockw);
 
 	// Write packet via serial link
 	const int bytesWritten = static_cast<int>(write(fd, buf, len));
@@ -556,7 +616,7 @@ _write_port(char *buf, unsigned len)
 	tcdrain(fd);
 
 	// Unlock
-	pthread_mutex_unlock(&lock);
+	pthread_mutex_unlock(&lockw);
 
 
 	return bytesWritten;
