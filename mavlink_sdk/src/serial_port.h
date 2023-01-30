@@ -111,14 +111,14 @@ namespace comm
 		public:
 
 			SerialPort();
-			SerialPort(const char *uart_name_, int baudrate_);
+			SerialPort(const char *uart_name, int baudrate, bool dynamic);
 			virtual ~SerialPort();
 
 			int read_message(mavlink_message_t &message) override ;
 			int write_message(const mavlink_message_t &message) override ;
 
 			bool is_running() override {
-				return is_open;
+				return _is_open;
 			}
 			void start() override ;
 			void stop() override ;
@@ -127,15 +127,19 @@ namespace comm
 
 			int  fd;
 			mavlink_status_t lastStatus;
-			pthread_mutex_t  lock;
+			pthread_mutex_t  lockr, lockw;
 
 			void initialize_defaults();
+			void closePort ();
 
 			bool debug;
-			std::string uart_name;
-			int  baudrate;
-			bool is_open;
-			
+			std::string _uart_name;
+			int  _baudrate;
+			bool _is_open;
+			bool _reOpen = true;
+			bool _got_mavlink;
+			bool _dynamic;
+			uint8_t _portext = -1;
 			
 			
 			int  _open_port(const char* port);

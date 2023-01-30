@@ -26,18 +26,23 @@ void CMavlinkSDK::start(mavlinksdk::CMavlinkEvents * mavlink_events)
 
 }
 
-void CMavlinkSDK::connectUDP (const char *target_ip, int udp_port)
+void CMavlinkSDK::connectUDP (const char *target_ip, const int udp_port)
 {
     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "connectUDP on " << target_ip << " port " << udp_port << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
     this->m_port = std::shared_ptr<mavlinksdk::comm::GenericPort>( new mavlinksdk::comm::UDPPort(target_ip, udp_port));
 }
 
-void CMavlinkSDK::connectSerial (const char *uart_name, int baudrate)
+void CMavlinkSDK::connectSerial (const char *uart_name, const int baudrate, const bool dynamic)
 {
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "connectSerial on " << uart_name << " baudrate " << baudrate << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+    std::string dynamic_str = " serial search dynamic option is disabled.";
+    if (dynamic==true)
+    {
+        dynamic_str =" serial search dynamic option is enabled.";
+    }
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "connectSerial on " << uart_name << " baudrate " << baudrate << _INFO_CONSOLE_TEXT << dynamic_str << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
-    this->m_port   = std::shared_ptr<mavlinksdk::comm::GenericPort>( new mavlinksdk::comm::SerialPort(uart_name, baudrate));
+    this->m_port   = std::shared_ptr<mavlinksdk::comm::GenericPort>( new mavlinksdk::comm::SerialPort(uart_name, baudrate, dynamic));
 }
 
 void CMavlinkSDK::stop()

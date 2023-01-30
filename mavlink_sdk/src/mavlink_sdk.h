@@ -55,8 +55,8 @@ namespace mavlinksdk
 
         public:
             void start (mavlinksdk::CMavlinkEvents * mavlink_events);
-            void connectUDP (const char *target_ip, int udp_port);
-            void connectSerial (const char *uart_name, int baudrate);
+            void connectUDP (const char *target_ip, const int udp_port);
+            void connectSerial (const char *uart_name, const int baudrate, const bool dynamic);
             void stop();
 
 

@@ -92,10 +92,17 @@ bool CFCBMain::connectToFCB ()
     {
 
         case CONNECTION_TYPE_SERIAL:
+        {
+            bool dynamic = false;
+            if (m_jsonConfig["fcb_connection_uri"].contains("dynamic"))
+            {
+                dynamic = m_jsonConfig["fcb_connection_uri"]["dynamic"].get<bool>();
+            }
             std::cout << _INFO_CONSOLE_TEXT << "Serial Connection Initializing" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
             m_mavlink_sdk.connectSerial((m_jsonConfig["fcb_connection_uri"])["port"].get<std::string>().c_str(),
-                                     (m_jsonConfig["fcb_connection_uri"])["baudrate"].get<int>());
-            return true;
+                                     (m_jsonConfig["fcb_connection_uri"])["baudrate"].get<int>(), dynamic);
+        }
+        return true;
         
         
         case CONNECTION_TYPE_UDP:
