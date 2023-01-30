@@ -19,16 +19,23 @@
   //   "port":14551
   // },
    
-  // Using serial interface
+  // Using serial interface: static port 
   "fcb_connection_uri":
   {
     "type": "serial",
-    "port": "/dev/ttyUSB",
+    "port": "/dev/ttyUSB1",
     "baudrate": 115200,
-    "dynamic": true
+    "dynamic": false
   },
 
-  
+  // "fcb_connection_uri": dynamic port search -- it will scan ports /dev/ttyUSB0 to /dev/ttyUSB10
+  // {
+  //   "type": "serial",
+  //   "port": "/dev/ttyUSB",
+  //   "baudrate": 115200,
+  //   "dynamic": true
+  // },
+
   
   
   // DONT EDIT
