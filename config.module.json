@@ -13,11 +13,11 @@
   
   // How to connect to Ardupilot board
   // Using udp connection
-  // "fcb_connection_uri": 
-  // {"type": "udp",
-  //   "ip": "0.0.0.0",
-  //   "port":14551
-  // },
+  "fcb_connection_uri": 
+  {"type": "udp",
+    "ip": "0.0.0.0",
+    "port":14551
+  },
    
   // Using serial interface: static port 
   // "fcb_connection_uri":
@@ -29,18 +29,16 @@
   // },
 
   // Using serial interface: dynamic port search -- it will scan ports /dev/ttyUSB0 to /dev/ttyUSB10
-  "fcb_connection_uri": 
-  {
-    "type": "serial",
-    "port": "/dev/ttyUSB",
-    "baudrate": 115200,
-    "dynamic": true
-  },
+  // "fcb_connection_uri": 
+  // {
+  //   "type": "serial",
+  //   "port": "/dev/ttyUSB",
+  //   "baudrate": 115200,
+  //   "dynamic": true
+  // },
 
   
-  
-  // DONT EDIT
-  "groupID": "1",
+
 
   
   
