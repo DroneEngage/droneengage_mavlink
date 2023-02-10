@@ -135,7 +135,7 @@ namespace mavlinksdk
 
         protected:
 
-            void handle_heart_beat              (const mavlink_heartbeat_t& heartbeat);
+            bool handle_heart_beat              (const mavlink_heartbeat_t& heartbeat);
             void handle_extended_system_state   (const mavlink_extended_sys_state_t& extended_system_state);
             void handle_cmd_ack                 (const mavlink_command_ack_t& command_ack);
             void handle_status_text             (const mavlink_statustext_t& status_text);

@@ -13,20 +13,20 @@
   
   // How to connect to Ardupilot board
   // Using udp connection
-  // "fcb_connection_uri": 
-  // {"type": "udp",
-  //   "ip": "0.0.0.0",
-  //   "port":14551
-  // },
+  "fcb_connection_uri": 
+  {"type": "udp",
+    "ip": "0.0.0.0",
+    "port":14551
+  },
    
   // Using serial interface: static port 
-  "fcb_connection_uri":
-  {
-    "type": "serial",
-    "port": "/dev/ttyUSB1",
-    "baudrate": 115200,
-    "dynamic": false
-  },
+  // "fcb_connection_uri":
+  // {
+  //   "type": "serial",
+  //   "port": "/dev/ttyUSB1",
+  //   "baudrate": 115200,
+  //   "dynamic": false
+  // },
 
   // "fcb_connection_uri": dynamic port search -- it will scan ports /dev/ttyUSB0 to /dev/ttyUSB10
   // {
@@ -41,7 +41,13 @@
   // DONT EDIT
   "groupID": "1",
 
-  
+      
+  // Logger Section
+  "logger_enabled"            : true,
+  "logger_file_prfix"         : "./de_mav.log",
+  "logger_debug"              : false,
+
+
   
   // Default optimization level. This number controls the rate at which mavlink is sent in telemetry mode.
   // Adjust it to reduce bandwidth 0 - max bandwidth 3 - min bandwidth

@@ -39,3 +39,4 @@ eeprom.bin
 *.parm
 LASTLOG.TXT
 
+*.log

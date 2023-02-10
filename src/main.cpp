@@ -2,6 +2,10 @@
 #include <signal.h>
 #include <ctime>
 
+#include <plog/Log.h> 
+#include "plog/Initializers/RollingFileInitializer.h"
+
+
 #include "version.h"
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
@@ -93,7 +97,7 @@ void uninit ();
  */
 void _version (void)
 {
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ "Drone-Engage Communicator version " << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ "Drone-Engage FCB Module version " << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
 
 
@@ -304,6 +308,7 @@ const Json createJSONID (bool reSend)
         ms[JSON_INTERMODULE_MODULE_KEY]             = jsonConfig["module_key"]; 
         ms[JSON_INTERMODULE_HARDWARE_ID]            = hardware_serial; 
         ms[JSON_INTERMODULE_HARDWARE_TYPE]          = HARDWARE_TYPE_CPU; 
+        ms[JSON_INTERMODULE_VERSION]                = version_string;
         ms[JSON_INTERMODULE_RESEND]                 = reSend;
         ms[JSON_INTERMODULE_TIMESTAMP_INSTANCE]     = instance_time_stamp;
 
@@ -357,6 +362,40 @@ void onReceive (const char * message, int len)
     }
     
     cAndruavResalaParser.parseMessage(jMsg, message, len);
+    
+}
+
+
+void initLogger()
+{
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    
+    if ((jsonConfig.contains("logger_enabled") == false) || (jsonConfig["logger_enabled"].get<bool>()==false))
+    {
+        std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging is " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        return ;
+    }
+
+    std::string log_filename = "log";
+    bool debug_log = false; 
+    if (jsonConfig.contains("logger_file_prfix"))
+    {
+        log_filename = jsonConfig["logger_file_prfix"].get<std::string>();
+    }
+    if (jsonConfig.contains("logger_debug"))
+    {
+        debug_log = jsonConfig["logger_debug"].get<bool>();
+    }
+
+    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging is " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+
+    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to " << _INFO_CONSOLE_TEXT << log_filename << _NORMAL_CONSOLE_TEXT_ << " detailed:" << debug_log <<  std::endl;
+        
+
+    plog::init(plog::debug, log_filename.c_str()); 
+
+    PLOG(plog::info) << "Drone-Engage FCB Module version:" << version_string; 
     
 }
 
@@ -451,6 +490,7 @@ void init (int argc, char *argv[])
 
     
     cConfigFile.initConfigFile (configName.c_str());
+    initLogger();
     
     
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
