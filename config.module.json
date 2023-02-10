@@ -40,7 +40,13 @@
   
 
 
-  
+      
+  // Logger Section
+  "logger_enabled"            : false,
+  "logger_file_prfix"         : "./de_mav.log",
+  "logger_debug"              : false,
+
+
   
   // Default optimization level. This number controls the rate at which mavlink is sent in telemetry mode.
   // Adjust it to reduce bandwidth 0 - max bandwidth 3 - min bandwidth

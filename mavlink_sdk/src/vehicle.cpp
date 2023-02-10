@@ -23,12 +23,12 @@ void mavlinksdk::CVehicle::set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* 
 	m_callback_vehicle = callback_vehicle;
 }
 
-void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbeat)
+bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbeat)
 {
 
 	if ((heartbeat.type >=  MAV_TYPE::MAV_TYPE_GIMBAL)
 	&& (heartbeat.type !=  MAV_TYPE::MAV_TYPE_GCS))
-	return; // fix ADSB sensor.
+	return false; // fix ADSB sensor.
 
 	const bool is_armed  = (heartbeat.base_mode & MAV_MODE_FLAG_SAFETY_ARMED) != 0;
 
@@ -89,7 +89,7 @@ void mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 		m_callback_vehicle->OnModeChanges (m_heartbeat.custom_mode, m_heartbeat.type, (MAV_AUTOPILOT)m_heartbeat.autopilot);
 	}
 	
-	return ;
+	return true;
 }
 
 
@@ -384,8 +384,10 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
             //         << " custom_mode " << std::to_string(heartbeat.custom_mode)
             //         << " type " << std::to_string(heartbeat.type) << std::endl; 
 
-			handle_heart_beat (heartbeat);
-			mavlinksdk::CMavlinkParameterManager::getInstance().handle_heart_beat (heartbeat);
+			if (handle_heart_beat (heartbeat))
+			{
+				mavlinksdk::CMavlinkParameterManager::getInstance().handle_heart_beat (heartbeat);
+			}
 		}
         break;
 

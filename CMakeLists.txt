@@ -104,7 +104,8 @@ file(GLOB folder_geofence "./src/geofence/*.cpp")
 set(files ${folder_src} ${folder_uavos} ${folder_helpers}
  ${folder_mission} ${folder_geofence} 
  ${folder_sdk} ${folder_sdk_helper})
- 
+
+include_directories(${PROJECT_SOURCE_DIR}/3rdparty)
 include_directories (${PROJECT_SOURCE_DIR}/mavlink_sdk/src)
 include_directories (${PROJECT_SOURCE_DIR}/c_library_v2)
 
