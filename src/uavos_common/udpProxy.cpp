@@ -107,7 +107,9 @@ bool uavos::comm::CUDPProxy::init (const char * target_address, int targetPort, 
     std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDPProxy: Drone Created UDP Socket at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     std::cout << _LOG_CONSOLE_TEXT_BOLD_<< "UDPProxy: Expected UdpProxy at " <<  _INFO_CONSOLE_TEXT << target_ip << ":" <<  targetPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
-
+    
+    m_stopped_called = false;
+    
     return true;
 }
 
@@ -153,7 +155,7 @@ void uavos::comm::CUDPProxy::stop()
         if (m_starrted) 
         {
             m_threadCreateUDPSocket.join();
-            m_threadSenderID.join();
+            //m_threadSenderID.join();
             m_starrted = false;
         }
         delete m_ModuleAddress;

@@ -56,7 +56,7 @@ class CUDPProxy
         struct sockaddr_in  *m_udpProxyServer = nullptr; 
         struct sockaddr_in  *m_ModuleAddress = nullptr; 
         int m_SocketFD = -1; 
-        std::thread m_threadSenderID, m_threadCreateUDPSocket;
+        std::thread m_threadCreateUDPSocket;
         pthread_t m_thread;
 
         std::string m_JsonID;
