@@ -6,6 +6,10 @@
 #include <mavlink_waypoint_manager.h>
 #include <mavlink_parameter_manager.h>
 #include <mavlink_ftp_manager.h>
+
+#include <plog/Log.h> 
+#include "plog/Initializers/RollingFileInitializer.h"
+
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
 
@@ -792,9 +796,23 @@ void CFCBMain::OnDistanceSensorChanged (const mavlink_distance_sensor_t& distanc
             
 void CFCBMain::OnStatusText (const std::uint8_t& severity, const std::string& status)
 {
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText " << _NORMAL_CONSOLE_TEXT_ << status << std::endl;
+    try
+    {
+        if (!is_ascii((const signed char*)status.c_str(), status.length())) 
+        {
+            std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "OnStatusText -bad format-" << _NORMAL_CONSOLE_TEXT_ << status << std::endl;
+            PLOG(plog::error) << "OnStatusText received a non UTF-8 message format:" << status;
+            return ;
+        }
+
+        std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText " << _NORMAL_CONSOLE_TEXT_ << status << std::endl;
     
-    m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_3DR, severity, status);
+        m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_3DR, severity, status);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
 
     return ;
     
@@ -1071,23 +1089,79 @@ void CFCBMain::OnParamReceivedCompleted()
  */
 void CFCBMain::OnConnectionStatusChangedWithAndruavServer (const int status)
 {
-    if (status == SOCKET_STATUS_REGISTERED)
+    
+    switch (status)
     {
-        m_fcb_facade.callModule_reloadSavedTasks(TYPE_AndruavSystem_LoadTasks);
+        case SOCKET_STATUS_FREASH:
+        {
 
-        // open or close -if open- udpProxy once connection with communication server is established.
-        m_fcb_facade.requestUdpProxyTelemetry(m_enable_udp_telemetry,"0.0.0.0",0,"0.0.0.0",0);
-        // Json json_msg = sendMREMSG(TYPE_AndruavSystem_LoadTasks);
-        // const std::string msg = json_msg.dump();
-        // CUDPProxy.sendMSG(msg.c_str(), msg.length());
+        }
+        break;
+                
+        case SOCKET_STATUS_CONNECTING:
+        {
+            PLOG(plog::info) << "Communicator Server Connection Status: SOCKET_STATUS_CONNECTING"; 
+    
+        }
+        break;
+                
+        case SOCKET_STATUS_REGISTERED:
+        {
+            PLOG(plog::info) << "Communicator Server Connection Status: SOCKET_STATUS_REGISTERED"; 
+    
+            m_fcb_facade.callModule_reloadSavedTasks(TYPE_AndruavSystem_LoadTasks);
+
+            // open or close -if open- udpProxy once connection with communication server is established.
+            m_fcb_facade.requestUdpProxyTelemetry(m_enable_udp_telemetry,"0.0.0.0",0,"0.0.0.0",0);
+            // Json json_msg = sendMREMSG(TYPE_AndruavSystem_LoadTasks);
+            // const std::string msg = json_msg.dump();
+            // CUDPProxy.sendMSG(msg.c_str(), msg.length());
+        }
+        break;
+
+        case SOCKET_STATUS_UNREGISTERED:
+        {
+            PLOG(plog::warning) << "Communicator Server Connection Status: SOCKET_STATUS_UNREGISTERED"; 
+    
+        }
+        break;
+
+        case SOCKET_STATUS_ERROR:
+        {
+            PLOG(plog::error) << "Communicator Server Connection Status: SOCKET_STATUS_ERROR"; 
+            alertDroneEngageOffline();
+        }
+        break;
+
+        case SOCKET_STATUS_DISCONNECTING:
+        {
+            PLOG(plog::warning) << "Communicator Server Connection Status: SOCKET_STATUS_DISCONNECTING"; 
+    
+        }
+        break;
+
+        case SOCKET_STATUS_DISCONNECTED:
+        {
+            PLOG(plog::warning) << "Communicator Server Connection Status: SOCKET_STATUS_DISCONNECTED"; 
+            alertDroneEngageOffline();
+        }
+        break;
+        
+        default:
+        {
+            PLOG(plog::warning) << "Communicator Server Connection Status: Unknonwn State " << std::to_string(status); 
+            alertDroneEngageOffline();
+        }
+        break;
     }
 }
 
 
-void CFCBMain::alertUavosOffline()
+void CFCBMain::alertDroneEngageOffline()
 {
 
-
+    PLOG(plog::error) << "Alert: DroneEngage is Offline"; 
+    
     return ;
 }
 

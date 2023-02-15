@@ -140,7 +140,7 @@ namespace fcb
             };            
 
             /* cannot connect to uavos comm*/
-            void alertUavosOffline ();
+            void alertDroneEngageOffline ();
             
             const ANDRUAV_VEHICLE_INFO& getAndruavVehicleInfo ()
             {

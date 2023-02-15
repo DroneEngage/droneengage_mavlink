@@ -125,3 +125,11 @@ std::string get_linux_machine_id ()
         return std::string("");
     }
 }
+
+
+bool is_ascii(const signed char *c, size_t len) {
+  for (size_t i = 0; i < len; i++) {
+    if(c[i] < 0) return false;
+  }
+  return true;
+}

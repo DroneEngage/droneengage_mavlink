@@ -21,6 +21,8 @@ std::vector<std::string> split_string_by_newline(const std::string& str);
 
 std::string removeComments(std::string prgm);
 
+extern bool is_ascii(const signed char *c, size_t len);
+
 extern std::string get_linux_machine_id ();
 
 
