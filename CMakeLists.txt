@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.02.0)
 
 if(NOT WIN32)
   string(ASCII 27 Esc)
