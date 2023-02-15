@@ -42,8 +42,7 @@
 
       
   // Logger Section
-  "logger_enabled"            : false,
-  "logger_file_prfix"         : "./de_mav.log",
+  "logger_enabled"            : true,
   "logger_debug"              : false,
 
 
