@@ -156,7 +156,7 @@ void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bm
     if (internal_message == true)
     {
         msg_routing_type = CMD_TYPE_INTERMODULE;
-        fullMessage[INTERMODULE_MODULE_KEY]             = ModuleKey;
+        
     }
     else
     {
@@ -168,7 +168,7 @@ void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bm
         
     }
         
-    fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = targetPartyID; // targetID can exist even if routing is intermodule
+    fullMessage[INTERMODULE_MODULE_KEY]             = ModuleKey;    fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = targetPartyID; // targetID can exist even if routing is intermodule
     fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(msg_routing_type);
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = message_cmd;
@@ -221,7 +221,6 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
         if (internal_message == true)
         {
             msg_routing_type = CMD_TYPE_INTERMODULE;
-            fullMessage[INTERMODULE_MODULE_KEY]             = ModuleKey;
         }
         else
         {
@@ -231,6 +230,7 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
             }
         }
         
+        fullMessage[INTERMODULE_MODULE_KEY]             = ModuleKey;
         fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = targetPartyID; // targetID can exist even if routing is intermodule
         fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(msg_routing_type);
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
