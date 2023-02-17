@@ -416,13 +416,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 for (int i=0; i<binary_length; ++ i)
                 {
 		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_0, binary_message[i+ 1], &mavlink_message, &status);
-                    if (msgReceived==0)
+                    if (msgReceived!=0)
                     {
                         //TODO: you can add logging or warning
+                        mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
                     }
                 }
-
-                 mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
             }
             break;
 
@@ -442,13 +441,11 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 for (int i=0; i<binary_length; ++ i)
                 {
 		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_0, binary_message[i+ 1], &mavlink_message, &status);
-                    if (msgReceived==0)
+                    if (msgReceived!=0)
                     {
-                        //TODO: you can add logging or warning
+                        mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
                     }
                 }
-
-                 mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
             }
             break;
 
