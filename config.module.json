@@ -28,7 +28,8 @@
   //   "dynamic": false
   // },
 
-  // "fcb_connection_uri": dynamic port search -- it will scan ports /dev/ttyUSB0 to /dev/ttyUSB10
+  // Using serial interface: dynamic port search -- it will scan ports /dev/ttyUSB0 to /dev/ttyUSB10
+  // "fcb_connection_uri": 
   // {
   //   "type": "serial",
   //   "port": "/dev/ttyUSB",
@@ -37,9 +38,7 @@
   // },
 
   
-  
-  // DONT EDIT
-  "groupID": "1",
+
 
       
   // Logger Section
@@ -60,7 +59,8 @@
   "event_wait_channel": 15,
   
   "read_only_mode": false,
-  "ignore_loading_parameters": true,
+  // you can ignore loading parameters but the R/C Gamepad will not work.
+  "ignore_loading_parameters": false,
 
   "message_timeouts":
   { 

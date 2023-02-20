@@ -27,7 +27,7 @@
   "enable_INS": false,
   "enable_IMU_LOGGING": false,
   "module_key": "E289FEE7-F4AD-44EF-A257-C9A361316BE7", 
-  "groupID": "1",
+ 
 
 
   "default_optimization_level" : 2,
