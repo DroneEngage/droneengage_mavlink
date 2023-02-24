@@ -569,12 +569,10 @@ _read_port(uint8_t &cp)
 	{
 	int rv;
 	fd_set set;
-    struct timeval timeout;
+	struct timeval timeout = {1, 0};
 	FD_ZERO(&set); /* clear the set */
   	FD_SET(fd, &set); /* add our file descriptor to the set */
-	timeout.tv_sec = 0;
-  	timeout.tv_usec = 1000000;
-	  rv = select(fd + 1, &set, NULL, NULL, &timeout);
+	rv = select(fd + 1, &set, NULL, NULL, &timeout);
 	if(rv == -1)
 		perror("select"); /* an error accured */
 	else if(rv == 0)
