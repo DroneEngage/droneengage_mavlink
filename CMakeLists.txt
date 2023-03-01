@@ -62,11 +62,11 @@ ENDIF()
 add_compile_options(
   -Wno-return-type 
   -Wno-address-of-packed-member
+  -Werror=unused-variable
+  -Werror=unused-result
   $<$<CONFIG:DEBUG>:-g3>
   $<$<CONFIG:DEBUG>:-Og>
   $<$<CONFIG:RELEASE>:-O2>
-  $<$<CONFIG:RELEASE>:-Werror=unused-variable>
-  $<$<CONFIG:RELEASE>:-Werror=unused-result>
   $<$<CONFIG:RELEASE>:-Werror=parentheses>
 )
 
@@ -120,7 +120,7 @@ set_target_properties( OUTPUT_BINARY
 
 target_link_libraries(OUTPUT_BINARY  Threads::Threads)
 
-configure_file(config.module.json ${OUTPUT_DIRECTORY}/config.module.json COPYONLY)
+configure_file(de_mavlink.config.module.json ${OUTPUT_DIRECTORY}/de_mavlink.config.module.json COPYONLY)
 
 
 message ("${Yellow}=========================================================================${ColourReset}")
