@@ -82,7 +82,7 @@ static std::string hardware_serial;
  * @brief configuraytion file path & name
  * 
  */
-static std::string configName = "config.module.json";
+static std::string configName = "de_mavlink.config.module.json";
 
 
         
@@ -111,7 +111,7 @@ void _usage(void)
     std::cout << std::endl << _INFO_CONSOLE_TEXT "Options" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--serial:          display serial number needed for registration" << _NORMAL_CONSOLE_TEXT_ << std::ends;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t                   -s " << _NORMAL_CONSOLE_TEXT_ << std::ends;
-    std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--config:          name and path of configuration file. default [./config.module.json]" << _NORMAL_CONSOLE_TEXT_ << std::ends;
+    std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--config:          name and path of configuration file. default [./de_mavlink.config.module.json]" << _NORMAL_CONSOLE_TEXT_ << std::ends;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t                   -c ./config.json" << _NORMAL_CONSOLE_TEXT_ << std::ends;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--version:         -v" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
