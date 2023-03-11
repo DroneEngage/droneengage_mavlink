@@ -13,6 +13,7 @@
 #include "./helpers/getopt_cpp.hpp"
 #include "./uavos_common/messages.hpp"
 #include "./uavos_common/configFile.hpp"
+#include "./uavos_common/localConfigFile.hpp"
 #include "./uavos_common/udpClient.hpp"
 #include "fcb_swarm_manager.hpp"
 #include "./mission/missions.hpp"
@@ -69,6 +70,7 @@ uavos::fcb::CFCBMain& cFCBMain = uavos::fcb::CFCBMain::getInstance();
 uavos::fcb::CFCBAndruavMessageParser cAndruavResalaParser = uavos::fcb::CFCBAndruavMessageParser();
 
 uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
+uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
 
 uavos::comm::CUDPClient cUDPClient = uavos::comm::CUDPClient(); 
 
@@ -83,6 +85,7 @@ static std::string hardware_serial;
  * 
  */
 static std::string configName = "de_mavlink.config.module.json";
+static std::string localConfigName = "de_mavlink.local";
 
 
         
@@ -113,6 +116,8 @@ void _usage(void)
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t                   -s " << _NORMAL_CONSOLE_TEXT_ << std::ends;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--config:          name and path of configuration file. default [./de_mavlink.config.module.json]" << _NORMAL_CONSOLE_TEXT_ << std::ends;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t                   -c ./config.json" << _NORMAL_CONSOLE_TEXT_ << std::ends;
+    std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--bconfig:          name and path of configuration file. default [./de_mavlink.config.module.local]" << _NORMAL_CONSOLE_TEXT_ << std::ends;
+    std::cout << std::endl << _INFO_CONSOLE_TEXT "\t                   -b ./config.local" << _NORMAL_CONSOLE_TEXT_ << std::ends;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--version:         -v" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
 
@@ -168,7 +173,8 @@ void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bm
         
     }
         
-    fullMessage[INTERMODULE_MODULE_KEY]             = ModuleKey;    fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = targetPartyID; // targetID can exist even if routing is intermodule
+    fullMessage[INTERMODULE_MODULE_KEY]             = ModuleKey;    
+    fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = targetPartyID; // targetID can exist even if routing is intermodule
     fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(msg_routing_type);
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = message_cmd;
@@ -295,6 +301,9 @@ void sendMREMSG(const int& command_type)
 const Json createJSONID (bool reSend)
 {
         const Json& jsonConfig = cConfigFile.GetConfigJSON();
+        CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+        const std::string module_key = cLocalConfigFile.getStringField("module_key");
+
         Json json_msg;        
         
         json_msg[INTERMODULE_ROUTING_TYPE] =  CMD_TYPE_INTERMODULE;
@@ -305,7 +314,7 @@ const Json createJSONID (bool reSend)
         ms[JSON_INTERMODULE_MODULE_CLASS]           = cFCBMain.getModuleClass();
         ms[JSON_INTERMODULE_MODULE_MESSAGES_LIST]   = Json::array(MESSAGE_FILTER);
         ms[JSON_INTERMODULE_MODULE_FEATURES]        = cFCBMain.getModuleFeatures();
-        ms[JSON_INTERMODULE_MODULE_KEY]             = jsonConfig["module_key"]; 
+        ms[JSON_INTERMODULE_MODULE_KEY]             = module_key; 
         ms[JSON_INTERMODULE_HARDWARE_ID]            = hardware_serial; 
         ms[JSON_INTERMODULE_HARDWARE_TYPE]          = HARDWARE_TYPE_CPU; 
         ms[JSON_INTERMODULE_VERSION]                = version_string;
@@ -417,6 +426,7 @@ void initArguments (int argc, char *argv[])
     int opt;
     const struct GetOptLong::option options[] = {
         {"config",         true,   0, 'c'},
+        {"bconfig",        true,   0, 'b'},
         {"serial",         false,  0, 's'},
         {"version",        false,  0, 'v'},
         {"help",           false,  0, 'h'},
@@ -433,6 +443,9 @@ void initArguments (int argc, char *argv[])
         switch (opt) {
         case 'c':
             configName = gopt.optarg;
+            break;
+        case 'b':
+            localConfigName = gopt.optarg;
             break;
         case 'v':
             _version();
@@ -463,7 +476,6 @@ void initUDPClient(int argc, char *argv[])
             std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()));
     
     
-    ModuleKey = jsonConfig["module_key"];
     Json jsonID = createJSONID(true);
     cUDPClient.setJsonId (jsonID.dump());
     cUDPClient.setMessageOnReceive (&onReceive);
@@ -491,20 +503,31 @@ void init (int argc, char *argv[])
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING PLUGIN ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     _version();
 
-    std::cout << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << " seconds since the Epoch" << std::endl;
-
+    std::cout << _INFO_CONSOLE_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _LOG_CONSOLE_TEXT_BOLD_ << " seconds since the Epoch" << std::endl;
     
     cConfigFile.initConfigFile (configName.c_str());
-    initLogger();
+    cLocalConfigFile.InitConfigFile (localConfigName.c_str());
+
     
     
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
     
+    ModuleKey = cLocalConfigFile.getStringField("module_key");
+    if (ModuleKey=="")
+    {
+        
+        ModuleKey = std::to_string(get_time_usec());
+        cLocalConfigFile.addStringField("module_key",ModuleKey.c_str());
+        cLocalConfigFile.apply();
+    }
+
     if (jsonConfig.contains("event_fire_channel") && jsonConfig.contains("event_wait_channel"))
     {
         cFCBMain.setEventChannel(jsonConfig["event_fire_channel"].get<int>(), jsonConfig["event_wait_channel"].get<int>());
     }
     
+    
+    initLogger();
     
     cFCBMain.registerSendSYSMSG(sendSYSMSG);
     cFCBMain.registerSendJMSG(sendJMSG);
