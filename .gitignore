@@ -40,3 +40,4 @@ eeprom.bin
 LASTLOG.TXT
 
 *.log
+*.local
