@@ -105,6 +105,16 @@ void _version (void)
 
 
 /**
+ * @brief display version info
+ * 
+ */
+void _versionOnly (void)
+{
+    std::cout << version_string << std::endl;
+}
+
+
+/**
  * @brief display help for -h command argument.
  * 
  */
@@ -429,11 +439,12 @@ void initArguments (int argc, char *argv[])
         {"bconfig",        true,   0, 'b'},
         {"serial",         false,  0, 's'},
         {"version",        false,  0, 'v'},
+        {"versiononly",    false,  0, 'o'},
         {"help",           false,  0, 'h'},
         {0, false, 0, 0}
     };
     // adding ':' means there is extra parameter needed
-    GetOptLong gopt(argc, argv, "c:svh",
+    GetOptLong gopt(argc, argv, "c:b:svoh",
                     options);
 
     /*
@@ -451,6 +462,9 @@ void initArguments (int argc, char *argv[])
             _version();
             exit(0);
             break;
+        case 'o':
+            _versionOnly();
+            exit(0);
         case 's':
             _displaySerial();
             exit(0);
