@@ -127,7 +127,7 @@ namespace comm
 
 			void initialize_defaults();
 
-			const static int BUFF_LEN=2041;
+			const static int BUFF_LEN=65507;
 			uint8_t buff[BUFF_LEN];
 			int buff_ptr=0;
 			int buff_len=0;

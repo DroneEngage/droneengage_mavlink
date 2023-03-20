@@ -344,7 +344,7 @@ void onReceive (const char * message, int len)
     static bool bFirstReceived = false;
         
     #ifdef DEBUG        
-        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: " << std::to_string(len) << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     

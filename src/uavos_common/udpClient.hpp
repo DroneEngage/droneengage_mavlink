@@ -6,7 +6,7 @@
 #include <mutex>          // std::mutex, std::unique_lock
 
 #ifndef MAXLINE
-#define MAXLINE 8192 
+#define MAXLINE 65507 
 #endif
 
 namespace uavos
