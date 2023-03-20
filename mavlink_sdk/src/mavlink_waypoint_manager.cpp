@@ -47,10 +47,7 @@ void CMavlinkWayPointManager::saveWayPoints (std::map <int, mavlink_mission_item
     const int waypoint_count = mavlink_mission.size();
     m_mission_write_count = waypoint_count;
     mavlinksdk::CMavlinkCommand::getInstance().setMissionCount (waypoint_count, mission_type);
-    //m_state = WAYPOINT_STATE_WRITING_WP;
-    //writeMissionItems();
     m_state = WAYPOINT_STATE_WRITING_ACK;
-
 }
 
 
