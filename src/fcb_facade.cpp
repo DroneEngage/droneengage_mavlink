@@ -862,7 +862,7 @@ void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavl
 {
     if (count==0) return ;
 
-    char buf[600];
+    char buf[600]; //BUG: Why this specific number ???
     // Translate message to buffer
     memset (buf,0,sizeof(buf));
 
