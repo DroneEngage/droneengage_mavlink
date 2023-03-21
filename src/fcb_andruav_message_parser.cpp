@@ -427,7 +427,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
 
             case TYPE_AndruavMessage_MAVLINK:
             {   
-                //GCS uses this command to send mavlink command such as parameters.
+                // DANGER: Sending messages that is outpout of other agent's fcb can lead to 
+                // unpredicted issues such as the MAVLINK_MSG_ID_MISSION_COUNT BUG.
+                // DE-SERVER reject agents from broadcasting messages to agents unless agent id
+                // is mention explicitly or target is _AGN_.
+
+                // GCS uses this command to send mavlink command such as parameters.
                 // This command can be replaced by TYPE_AndruavMessage_LightTelemetry
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
@@ -443,7 +448,23 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
 		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_0, binary_message[i+ 1], &mavlink_message, &status);
                     if (msgReceived!=0)
                     {
-                        mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
+                        #ifdef DEBUG        
+                            std::cout << _INFO_CONSOLE_TEXT << "RX MAVLINK: " << std::to_string(mavlink_message.msgid) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                        #endif
+                        switch (mavlink_message.msgid)
+                        {
+                            case MAVLINK_MSG_ID_MISSION_COUNT:
+                            case MAVLINK_MSG_ID_MISSION_ITEM_INT:
+                            case MAVLINK_MSG_ID_AUTOPILOT_VERSION:
+                            case MAVLINK_MSG_ID_STATUSTEXT:
+                            case MAVLINK_MSG_ID_CAMERA_IMAGE_CAPTURED:
+                                // internal processing not to be forwarded to FCB.
+                                break;
+                            
+                            default:
+                                mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
+                                break;
+                        } 
                     }
                 }
             }
