@@ -495,13 +495,13 @@ void CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
     const int sys_id = m_mavlink_sdk.getSysId();
     const int comp_id = m_mavlink_sdk.getCompId();
 
-    mavlink_message_t mavlink_message1, mavlink_message2, mavlink_message3;
-    
-    mavlink_msg_attitude_encode(sys_id, comp_id, &mavlink_message1, &attitude);
-    mavlink_msg_nav_controller_output_encode(sys_id, comp_id, &mavlink_message2, &nav_controller);
-    mavlink_msg_vfr_hud_encode(sys_id, comp_id, &mavlink_message3, &vfr_hud);
+    //mavlink_message_t mavlink_message1, mavlink_message2, mavlink_message3;
+    mavlink_message_t mavlink_message[3];
+    mavlink_msg_attitude_encode(sys_id, comp_id, &mavlink_message[0], &attitude);
+    mavlink_msg_nav_controller_output_encode(sys_id, comp_id, &mavlink_message[1], &nav_controller);
+    mavlink_msg_vfr_hud_encode(sys_id, comp_id, &mavlink_message[2], &vfr_hud);
 
-    sendMavlinkData_3 (target_party_id, mavlink_message1, mavlink_message2, mavlink_message3);
+    sendMavlinkData_M (target_party_id, mavlink_message, 3);
     
     return ;
 }
@@ -816,24 +816,6 @@ void CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlin
     return ;
 }
 
-
-void CFCBFacade::sendMavlinkData_2(const std::string&target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2)  const
-{
-    char buf[600];
-    // Translate message to buffer
-	uint16_t len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message1);
-	len += mavlink_msg_to_send_buffer((uint8_t*)&buf[len], &mavlink_message2);
-    
-    if (len >= 600) 
-	{
-		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-		return ;
-	}
-
-    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
-    
-    return ;
-}
 
 
 void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2, const mavlink_message_t& mavlink_message3)  const
