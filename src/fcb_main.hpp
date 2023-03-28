@@ -198,7 +198,7 @@ namespace fcb
             /**
              * @deprecated
              */
-            void toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level);
+            //void toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level);
             
             void setStreamingLevel (const std::string& target_party_id, const int& streaming_level);
 
@@ -338,6 +338,7 @@ namespace fcb
 
             bool m_fcb_connected = false;
             bool m_enable_udp_telemetry = false; // defined in config file.
+            uint16_t m_udp_telemetry_fixed_port = 0;
             uint64_t m_last_access_telemetry = 0;
             ANDRUAV_UDP_PROXY m_udp_proxy;
             
