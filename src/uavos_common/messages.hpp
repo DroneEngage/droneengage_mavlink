@@ -202,6 +202,7 @@
 
 // Remote Execute Commands
 #define RemoteCommand_TELEMETRYCTRL                         108 // Telemetry streaming
+#define RemoteCommand_STREAMVIDEO                           110
 #define RemoteCommand_GET_WAY_POINTS                        500 // get from andruav not FCB but you can still read from fcb and refresh all   
 #define RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB            501
 #define RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB             502
