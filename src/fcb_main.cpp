@@ -31,6 +31,8 @@ using namespace uavos::fcb;
 
 void CFCBMain::OnMessageReceived (const uavos::comm::CUDPProxy * udp_proxy, const char *message, int len)
 {
+    // Execute messages received by MP or QGC by forwarding it to FCB.
+
     if (!m_enable_udp_telemetry || getAndruavVehicleInfo().is_gcs_blocked) return  ;
 
     const u_int64_t now = get_time_usec();
@@ -155,12 +157,43 @@ bool CFCBMain::init ()
     if (m_jsonConfig.contains("default_optimization_level"))
     { // TODO: convert this to inline as validatefield
         m_mavlink_optimizer.setOptimizationLevel(m_jsonConfig["default_optimization_level"].get<int>());
+        m_mavlink_optimizer.reset_timestamps();
     }
 
     if (m_jsonConfig.contains("udp_proxy_enabled"))
     { // TODO: convert this to inline as validatefield
         m_enable_udp_telemetry = m_jsonConfig["udp_proxy_enabled"].get<bool>();
     }
+    else
+    {
+        PLOG(plog::info) << "Udp Proxy fixed port is:" << m_udp_telemetry_fixed_port;
+    }
+
+                
+    if (m_enable_udp_telemetry==true)
+    {
+        
+        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Udp Proxy:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Enabled" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
+        PLOG(plog::info) << "Udp Proxy Enabled";
+
+        if (validateField(m_jsonConfig, "udp_proxy_fixed_port", Json::value_t::number_unsigned))
+        { // TODO: convert this to inline as validatefield
+            m_udp_telemetry_fixed_port = m_jsonConfig["udp_proxy_fixed_port"].get<int>();
+            std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Udp Proxy fixed port is:" << _INFO_CONSOLE_TEXT << m_udp_telemetry_fixed_port << _NORMAL_CONSOLE_TEXT_ << std::endl; 
+            PLOG(plog::info) << "Udp Proxy fixed port is:" << m_udp_telemetry_fixed_port;
+        }
+        else
+        {
+            m_udp_telemetry_fixed_port = 0;
+        }
+    }
+    else
+    {
+        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Udp Proxy:" << _ERROR_CONSOLE_BOLD_TEXT_ << "Disabled" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
+        PLOG(plog::info) << "Udp Proxy Disabled";
+    }
+    
+
     
     if (connectToFCB() == true)
     {
@@ -605,20 +638,21 @@ void CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_message)
             }
         }
 
-        // Normal Andruav Telemetry using WebPlugin
-        std::vector<std::unique_ptr<ANDRUAV_UNIT_STRUCT>> ::iterator it;
-        for(it=m_TelemetryUnits.begin(); it!=m_TelemetryUnits.end(); it++)
-        {
-            ANDRUAV_UNIT_STRUCT *unit_ptr = it->get();
+        // OBSOLETE
+        // // Normal Andruav Telemetry using WebPlugin
+        // std::vector<std::unique_ptr<ANDRUAV_UNIT_STRUCT>> ::iterator it;
+        // for(it=m_TelemetryUnits.begin(); it!=m_TelemetryUnits.end(); it++)
+        // {
+        //     ANDRUAV_UNIT_STRUCT *unit_ptr = it->get();
         
-            if (unit_ptr->is_online == true)
-            {
-                #ifdef DEBUG_2
-	                std::cout << "send to " << unit_ptr->party_id << std::endl;
-                #endif
-                m_fcb_facade.sendTelemetryData (unit_ptr->party_id, mavlink_message);
-            }
-        }
+        //     if (unit_ptr->is_online == true)
+        //     {
+        //         #ifdef DEBUG_2
+	    //             std::cout << "send to " << unit_ptr->party_id << std::endl;
+        //         #endif
+        //         m_fcb_facade.sendTelemetryData (unit_ptr->party_id, mavlink_message);
+        //     }
+        // }
     }
 
     return ;
@@ -1112,7 +1146,7 @@ void CFCBMain::OnConnectionStatusChangedWithAndruavServer (const int status)
             m_fcb_facade.callModule_reloadSavedTasks(TYPE_AndruavSystem_LoadTasks);
 
             // open or close -if open- udpProxy once connection with communication server is established.
-            m_fcb_facade.requestUdpProxyTelemetry(m_enable_udp_telemetry,"0.0.0.0",0,"0.0.0.0",0);
+            m_fcb_facade.requestUdpProxyTelemetry(m_enable_udp_telemetry,"0.0.0.0",0,"0.0.0.0",m_udp_telemetry_fixed_port);
             // Json json_msg = sendMREMSG(TYPE_AndruavSystem_LoadTasks);
             // const std::string msg = json_msg.dump();
             // CUDPProxy.sendMSG(msg.c_str(), msg.length());
@@ -1557,61 +1591,61 @@ void CFCBMain::setStreamingLevel (const std::string& target_party_id, const int&
  * @param request_type @link CONST_TELEMETRY_REQUEST_START @endlink @link CONST_TELEMETRY_REQUEST_END @endlink @link CONST_TELEMETRY_REQUEST_RESUME @endlink 
  * @param streaming_level from 0 means no optimization to 3 max optimization.
  */
-void CFCBMain::toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level)
-{
-        printf("toggleMavlinkStreaming %s %d %d\r\n", target_party_id.c_str(), request_type, streaming_level);
+// void CFCBMain::toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level)
+// {
+//         printf("toggleMavlinkStreaming %s %d %d\r\n", target_party_id.c_str(), request_type, streaming_level);
 
-        if (streaming_level != -1)
-        {
-            // update streaming level globally.
-            m_mavlink_optimizer.setOptimizationLevel(streaming_level);
-            m_mavlink_optimizer.reset_timestamps();
-        }
+//         if (streaming_level != -1)
+//         {
+//             // update streaming level globally.
+//             m_mavlink_optimizer.setOptimizationLevel(streaming_level);
+//             m_mavlink_optimizer.reset_timestamps();
+//         }
         
-        if (!target_party_id.empty())
-        {
-            std::vector<std::unique_ptr<ANDRUAV_UNIT_STRUCT>> ::iterator it;
+//         if (!target_party_id.empty())
+//         {
+//             std::vector<std::unique_ptr<ANDRUAV_UNIT_STRUCT>> ::iterator it;
             
-            bool found = false;
-            for(it=m_TelemetryUnits.begin(); it!=m_TelemetryUnits.end(); it++)
-            {
-                ANDRUAV_UNIT_STRUCT *unit = it->get();
+//             bool found = false;
+//             for(it=m_TelemetryUnits.begin(); it!=m_TelemetryUnits.end(); it++)
+//             {
+//                 ANDRUAV_UNIT_STRUCT *unit = it->get();
                 
-                std::cout << "compare to " << unit->party_id << " to " << target_party_id << std::endl;
+//                 std::cout << "compare to " << unit->party_id << " to " << target_party_id << std::endl;
                 
-                if (unit->party_id.compare(target_party_id)==0)
-                {
-                    found = true;
-                    if (request_type == CONST_TELEMETRY_REQUEST_END)
-                    {
-                        std::cout << "found unit->is_online = false" << std::endl;
-                        unit->is_online = false;
-                    }
-                    else
-                    {
-                        std::cout << "compare to " << unit->party_id << " to " << target_party_id << std::endl;
-                        if (unit->party_id.compare(target_party_id)==0)
-                        {
-                            std::cout << "found unit->is_online = true" << std::endl;
-                            unit->is_online = true;
-                        }
-                    }
-                }
-            }
+//                 if (unit->party_id.compare(target_party_id)==0)
+//                 {
+//                     found = true;
+//                     if (request_type == CONST_TELEMETRY_REQUEST_END)
+//                     {
+//                         std::cout << "found unit->is_online = false" << std::endl;
+//                         unit->is_online = false;
+//                     }
+//                     else
+//                     {
+//                         std::cout << "compare to " << unit->party_id << " to " << target_party_id << std::endl;
+//                         if (unit->party_id.compare(target_party_id)==0)
+//                         {
+//                             std::cout << "found unit->is_online = true" << std::endl;
+//                             unit->is_online = true;
+//                         }
+//                     }
+//                 }
+//             }
 
-            if (!found && (request_type != CONST_TELEMETRY_REQUEST_END))
-            {
-                std::cout << "Adding to m_TelemetryUnits " << target_party_id << std::endl;
-                ANDRUAV_UNIT_STRUCT * unit_ptr= new ANDRUAV_UNIT_STRUCT;
-                unit_ptr->party_id = target_party_id;
-                unit_ptr->is_online = true;
+//             if (!found && (request_type != CONST_TELEMETRY_REQUEST_END))
+//             {
+//                 std::cout << "Adding to m_TelemetryUnits " << target_party_id << std::endl;
+//                 ANDRUAV_UNIT_STRUCT * unit_ptr= new ANDRUAV_UNIT_STRUCT;
+//                 unit_ptr->party_id = target_party_id;
+//                 unit_ptr->is_online = true;
                 
-                m_TelemetryUnits.push_back(std::unique_ptr<ANDRUAV_UNIT_STRUCT> (unit_ptr));
-            }
-        }
+//                 m_TelemetryUnits.push_back(std::unique_ptr<ANDRUAV_UNIT_STRUCT> (unit_ptr));
+//             }
+//         }
 
-       return ;
-}
+//        return ;
+// }
 
 
 void CFCBMain::takeActionOnFenceViolation(uavos::fcb::geofence::CGeoFenceBase * geo_fence)
