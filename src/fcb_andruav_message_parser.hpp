@@ -39,16 +39,16 @@ namespace fcb
         protected:
             void parseRemoteExecute (Json &andruav_message);
 
-            inline bool validateField (const Json& message, const char *field_name, const Json::value_t field_type)
-            {
-                if (
-                    (message.contains(field_name) == false) 
-                    || (message[field_name].type() != field_type)
-                    ) 
-                    return false;
+            // inline bool validateField (const Json& message, const char *field_name, const Json::value_t field_type)
+            // {
+            //     if (
+            //         (message.contains(field_name) == false) 
+            //         || (message[field_name].type() != field_type)
+            //         ) 
+            //         return false;
 
-                return true;
-            }
+            //     return true;
+            // }
 
         private:
             uavos::fcb::CFCBMain&  m_fcbMain = uavos::fcb::CFCBMain::getInstance();

@@ -9,6 +9,9 @@
 #include <sstream>
 #include <math.h>
 
+#include "json.hpp"
+using Json = nlohmann::json;
+
 uint64_t get_time_usec();
 
 int wait_time_nsec (const time_t& seconds, const long& nano_seconds);
@@ -22,6 +25,8 @@ std::vector<std::string> split_string_by_newline(const std::string& str);
 std::string removeComments(std::string prgm);
 
 extern bool is_ascii(const signed char *c, size_t len);
+
+extern bool validateField (const Json& message, const char *field_name, const Json::value_t& field_type);
 
 extern std::string get_linux_machine_id ();
 
