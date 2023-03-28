@@ -1,7 +1,6 @@
 #include <iostream>
 #include <signal.h>
 #include <ctime>
-
 #include <plog/Log.h> 
 #include "plog/Initializers/RollingFileInitializer.h"
 
@@ -414,7 +413,7 @@ void initLogger()
     log_filename_final <<  "./logs/log_" << std::put_time(&tm, "%d-%m-%Y_%H-%M-%S") << ".log";
     mkdir("./logs/",0777);
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to " << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_TEXT_BOLD_ << " detailed:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  std::endl;
+    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to folder:" << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_TEXT_BOLD_ << " filename:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
     auto log_level = debug_log==true?plog::debug:plog::info;
 
     plog::init(log_level, log_filename_final.str().c_str()); 
