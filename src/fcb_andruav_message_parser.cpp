@@ -1,6 +1,7 @@
 #include <iostream>
 #include "defines.hpp"
 #include "./uavos_common/messages.hpp"
+#include "./helpers/helpers.hpp"
 #include "fcb_modes.hpp"
 #include "fcb_swarm_manager.hpp"
 #include "fcb_andruav_message_parser.hpp"
@@ -419,7 +420,8 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                     if (msgReceived!=0)
                     {
                         //TODO: you can add logging or warning
-                        mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
+                        //mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
+                        
                     }
                 }
             }
@@ -704,7 +706,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
             if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
             
             if (!validateField(cmd, "Act", Json::value_t::number_unsigned)) return ;
-            int request_type = cmd["Act"].get<int>();
+            const int request_type = cmd["Act"].get<int>();
             if (request_type != CONST_TELEMETRY_ADJUST_RATE) return ;
             int streaming_level = -1;
             if (validateField(cmd, "LVL", Json::value_t::number_unsigned))
