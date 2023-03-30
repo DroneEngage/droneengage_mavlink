@@ -53,8 +53,7 @@
   //udp_proxy_enabled: true means to open udpProxy for telemetry on this board.
   //the connection is created on the machien where this code runs not via communicator module.
   "udp_proxy_enabled": true,
-  "udp_proxy_fixed_port":15412,
-
+  
   "event_fire_channel": 16,
   "event_wait_channel": 15,
   
