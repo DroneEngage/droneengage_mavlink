@@ -1,4 +1,5 @@
 #!/bin/bash
+rm -rf ./logs
 rm -rf ./build
 mkdir build
 cd build
