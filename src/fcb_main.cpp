@@ -29,11 +29,18 @@ using namespace uavos::fcb;
 
 #define UDP_PROXY_TIMEOUT 5000000
 
+/**
+ * @brief Message received from UDP Proxy
+ * 
+ * @param udp_proxy 
+ * @param message 
+ * @param len 
+ */
 void CFCBMain::OnMessageReceived (const uavos::comm::CUDPProxy * udp_proxy, const char *message, int len)
 {
     // Execute messages received by MP or QGC by forwarding it to FCB.
 
-    if (!m_enable_udp_telemetry || getAndruavVehicleInfo().is_gcs_blocked) return  ;
+    if (!isUdpProxyMavlinkAvailable() || getAndruavVehicleInfo().is_gcs_blocked) return  ;
 
     const u_int64_t now = get_time_usec();
     m_last_access_telemetry = now;
@@ -162,15 +169,11 @@ bool CFCBMain::init ()
 
     if (m_jsonConfig.contains("udp_proxy_enabled"))
     { // TODO: convert this to inline as validatefield
-        m_enable_udp_telemetry = m_jsonConfig["udp_proxy_enabled"].get<bool>();
+        m_enable_udp_telemetry_in_config = m_jsonConfig["udp_proxy_enabled"].get<bool>();
     }
-    else
-    {
-        PLOG(plog::info) << "Udp Proxy fixed port is:" << m_udp_telemetry_fixed_port;
-    }
-
+    
                 
-    if (m_enable_udp_telemetry==true)
+    if (m_enable_udp_telemetry_in_config==true)
     {
         
         std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Udp Proxy:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Enabled" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
@@ -600,15 +603,18 @@ void CFCBMain::saveWayPointsToFCB()
     
 }
 
+/**
+ * @brief Message received from FCB
+ * 
+ * @param mavlink_message 
+ */
 void CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_message)
 {
-    //std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnMessageReceived" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    //m_traffic_optimizer.shouldForwardThisMessage (mavlink_message);
     
     switch (mavlink_message.msgid) 
     {
         case MAVLINK_MSG_ID_HEARTBEAT:
-            // this mavlink_message can be from internal components such as camera of ADSB
+            // this mavlink_message can be from internal components such as camera or ADSB
             // check msg_heartbeat.type  before parsing or rely on the vehicle stored heartbeat message.
             OnHeartBeat();
             break;
@@ -629,7 +635,7 @@ void CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_message)
         // UdpProxy
         const u_int64_t now = get_time_usec();
         const u_int64_t last_access_duration = (now -m_last_access_telemetry);
-        if ((isUdpProxyMavlinkAvailable()))
+        if (isUdpProxyMavlinkAvailable())
         {
             // stop sending mavlink if no one is sending back. except heartbeat messages.
             if  (( last_access_duration < UDP_PROXY_TIMEOUT) || (mavlink_message.msgid == MAVLINK_MSG_ID_HEARTBEAT))
@@ -1146,7 +1152,7 @@ void CFCBMain::OnConnectionStatusChangedWithAndruavServer (const int status)
             m_fcb_facade.callModule_reloadSavedTasks(TYPE_AndruavSystem_LoadTasks);
 
             // open or close -if open- udpProxy once connection with communication server is established.
-            m_fcb_facade.requestUdpProxyTelemetry(m_enable_udp_telemetry,"0.0.0.0",0,"0.0.0.0",m_udp_telemetry_fixed_port);
+            m_fcb_facade.requestUdpProxyTelemetry(m_enable_udp_telemetry_in_config,"0.0.0.0",0,"0.0.0.0",m_udp_telemetry_fixed_port);
             // Json json_msg = sendMREMSG(TYPE_AndruavSystem_LoadTasks);
             // const std::string msg = json_msg.dump();
             // CUDPProxy.sendMSG(msg.c_str(), msg.length());
@@ -1891,6 +1897,7 @@ void CFCBMain::updateUDPProxy(const bool& enabled, const std::string&udp_ip1, co
     }
 
     m_udp_proxy.enabled = enabled;
+    m_udp_proxy.paused  = false;
     m_udp_proxy.udp_ip1 = udp_ip1;
     m_udp_proxy.udp_port1 = udp_port1;
     m_udp_proxy.udp_ip2 = udp_ip2;
@@ -1904,10 +1911,15 @@ void CFCBMain::updateUDPProxy(const bool& enabled, const std::string&udp_ip1, co
 void CFCBMain::sendUdpProxyStatus (const std::string& target_party_id)
 {
 
-    m_fcb_facade.sendUdpProxyStatus (std::string(), m_udp_proxy.enabled, m_udp_proxy.udp_ip2, m_udp_proxy.udp_port2, m_mavlink_optimizer.getOptimizationLevel());;
+    m_fcb_facade.sendUdpProxyStatus (std::string(), m_udp_proxy.enabled, m_udp_proxy.paused, m_udp_proxy.udp_ip2, m_udp_proxy.udp_port2, m_mavlink_optimizer.getOptimizationLevel());;
 }
 
 bool CFCBMain::isUdpProxyMavlinkAvailable() const 
 {
-    return m_udp_proxy.enabled;
+    return (m_udp_proxy.enabled && (!m_udp_proxy.paused));
+}
+
+void CFCBMain::pauseUDPProxy (const bool paused)
+{
+    m_udp_proxy.paused = paused;
 }

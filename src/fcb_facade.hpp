@@ -99,8 +99,8 @@ namespace fcb
             void requestToFollowLeader(const std::string&target_party_id, const int slave_index) const;
             void requestUnFollowLeader(const std::string&target_party_id) const;
             
-            void requestUdpProxyTelemetry(const bool start, const std::string&udp_ip1, const int& udp_port1, const std::string&udp_ip2, const int& udp_port2);
-            void sendUdpProxyStatus(const std::string&target_party_id, const bool& start, const std::string&udp_ip_other, const int& udp_port_other, const int& optimization_level);
+            void requestUdpProxyTelemetry(const bool enable, const std::string&udp_ip1, const int& udp_port1, const std::string&udp_ip2, const int& udp_port2);
+            void sendUdpProxyStatus(const std::string&target_party_id, const bool& enabled, const bool& paused, const std::string&udp_ip_other, const int& udp_port_other, const int& optimization_level);
             // Inter Module Remote Execute Commands - commands executed by other modules in droneengage.
             void callModule_reloadSavedTasks (const int& inter_module_command);
             void internalCommand_takeImage () const;

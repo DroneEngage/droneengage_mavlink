@@ -869,12 +869,7 @@ void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavl
 
 void CFCBFacade::sendServoReadings(const std::string&target_party_id)  const
 {
-    Json message;
-
-    if (m_sendJMSG != NULL)
-    {
-        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_LightTelemetry, false);;
-    }
+    // TODO
 
     return ;
 }
@@ -1094,13 +1089,13 @@ void CFCBFacade::internalCommand_takeImage() const
 /**
  * @brief start/stop udp proxy. <b>This is a system command.</b>
  * 
- * @param start 
+ * @param enable 
  * @param udp_ip1 
  * @param udp_port1
  * @param udp_ip2 
  * @param udp_port2 
  */
-void CFCBFacade::requestUdpProxyTelemetry(const bool start, const std::string&udp_ip1, const int& udp_port1, const std::string&udp_ip2, const int& udp_port2)
+void CFCBFacade::requestUdpProxyTelemetry(const bool enable, const std::string&udp_ip1, const int& udp_port1, const std::string&udp_ip2, const int& udp_port2)
 {
     /*
         {
@@ -1123,7 +1118,7 @@ void CFCBFacade::requestUdpProxyTelemetry(const bool start, const std::string&ud
             };
     Json message =
             {
-                {"en",start},
+                {"en",enable},
                 {"socket1", address1},          // socket1 
                 {"socket2",  address2}          // socket2
             };
@@ -1133,7 +1128,7 @@ void CFCBFacade::requestUdpProxyTelemetry(const bool start, const std::string&ud
 
 
 
-void CFCBFacade::sendUdpProxyStatus(const std::string&target_party_id, const bool& start, const std::string&udp_ip_other, const int& udp_port_other, const int& optimization_level)
+void CFCBFacade::sendUdpProxyStatus(const std::string&target_party_id, const bool& enabled, const bool& paused, const std::string&udp_ip_other, const int& udp_port_other, const int& optimization_level)
 {
     /*
         {
@@ -1149,7 +1144,8 @@ void CFCBFacade::sendUdpProxyStatus(const std::string&target_party_id, const boo
                 {"a", udp_ip_other},
                 {"p", udp_port_other}, 
                 {"o", optimization_level},
-                {"en", start}
+                {"en", enabled},
+                {"z", paused},
             };
             
     m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_UDPProxy_Info, false);
