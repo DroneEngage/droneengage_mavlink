@@ -247,7 +247,7 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
 
         if (display)
         {
-            std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "RC Blocking is enabled at channel: " << _INFO_CONSOLE_TEXT << std::to_string(m_andruav_vehicle_info.rc_block_channel) << _ERROR_CONSOLE_BOLD_TEXT_ << " - IMPORTANT" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << _INFO_CONSOLE_BOLD_TEXT << "RC Blocking is " << _ERROR_CONSOLE_BOLD_TEXT_ << "enabled " << _INFO_CONSOLE_BOLD_TEXT << "at channel: "<< _INFO_CONSOLE_TEXT << std::to_string(m_andruav_vehicle_info.rc_block_channel) << _ERROR_CONSOLE_BOLD_TEXT_ << " - IMPORTANT" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
         }
         
         

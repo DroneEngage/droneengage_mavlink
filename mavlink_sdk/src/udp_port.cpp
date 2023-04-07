@@ -254,7 +254,7 @@ void mavlinksdk::comm::UDPPort::start()
 	// --------------------------------------------------------------------------
 	//   CONNECTED!
 	// --------------------------------------------------------------------------
-	printf("Listening to %s:%i\n", target_ip, rx_port);
+	//printf("Listening to %s:%i\n", target_ip, rx_port);
 	lastStatus.packet_rx_drop_count = 0;
 
 	is_open = true;
