@@ -7,6 +7,7 @@
 
 using namespace mavlinksdk;
 
+#define GCS_SYSID 255
 
 /**
  * @brief sens long command up to seven params.
