@@ -660,7 +660,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
             CFCBFacade::getInstance().sendParameterList(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
         break;
 
-        case TYPE_AndruavMessage_SET_HOME_LOCATION:
+        case TYPE_AndruavMessage_HomeLocation:
             if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
             
             CFCBFacade::getInstance().sendHomeLocation(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
