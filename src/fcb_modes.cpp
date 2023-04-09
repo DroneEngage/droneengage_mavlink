@@ -26,10 +26,11 @@ ANDRUAV_UNIT_TYPE uavos::fcb::CFCBModes::getAndruavVehicleType(const int mav_typ
             return ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_HELI;
 
         case MAV_TYPE_GROUND_ROVER: /* Ground rover | */
-        case MAV_TYPE_SURFACE_BOAT: /* Surface vessel, boat, ship | */
-            // TODO: Please define mode for boats
             return ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_ROVER;
 
+        case MAV_TYPE_SURFACE_BOAT: /* Surface vessel, boat, ship | */
+            return ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_BOAT;
+        
         case MAV_TYPE_SUBMARINE: /* Submarine | */
             return ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_SUBMARINE;
 
@@ -72,6 +73,7 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavMode(const uint32_t mode, con
             break;
 
         case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_ROVER:
+        case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_BOAT:
             return uavos::fcb::CFCBModes::getAndruavModeFromMavlinkRoverMode(mode, autopilot_type);
             break;
 
@@ -480,6 +482,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = ROVER_MODE_RTL;
                     return;
 
@@ -509,6 +512,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = ROVER_MODE_FOLLOW;
                     return;
 
@@ -538,6 +542,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = ROVER_MODE_AUTO;
                     return;
 
@@ -567,6 +572,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = ROVER_MODE_STEERING;
                     return;
 
@@ -596,6 +602,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = E_UNDEFINED_MODE;
                     return;
 
@@ -625,6 +632,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = ROVER_MODE_MANUAL;
                     return;
 
@@ -654,6 +662,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = ROVER_MODE_ACRO;
                     return;
 
@@ -684,6 +693,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = ROVER_MODE_GUIDED;
                     return;
 
@@ -713,6 +723,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = ROVER_MODE_LOITER;
                     return;
 
@@ -742,6 +753,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = E_UNDEFINED_MODE;
                     return;
 
@@ -771,6 +783,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = E_UNDEFINED_MODE;
                     return;
 
@@ -800,6 +813,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = E_UNDEFINED_MODE;
                     return;
 
@@ -829,6 +843,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = E_UNDEFINED_MODE;
                     return;
 
@@ -858,6 +873,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = E_UNDEFINED_MODE;
                     return;
 
@@ -887,6 +903,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = E_UNDEFINED_MODE;
                     return;
 
@@ -916,6 +933,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = ROVER_MODE_HOLD;
                     return;
 
@@ -945,6 +963,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = ROVER_MODE_SMART_RTL;
                     return;
 
@@ -974,6 +993,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = E_UNDEFINED_MODE;
                     return;
 
@@ -1003,6 +1023,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = E_UNDEFINED_MODE;
                     return;
 
@@ -1032,6 +1053,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                     return;
 
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                     custom_mode = E_UNDEFINED_MODE;
                     return;
 
@@ -1057,6 +1079,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                 case VEHICLE_TYPE_TRI:
                 case VEHICLE_TYPE_QUAD:
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                 case VEHICLE_TYPE_SUBMARINE:
                 default:
                     custom_mode = E_UNDEFINED_MODE;
@@ -1076,6 +1099,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                 case VEHICLE_TYPE_TRI:
                 case VEHICLE_TYPE_QUAD:
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                 case VEHICLE_TYPE_SUBMARINE:
                 default:
                     custom_mode = E_UNDEFINED_MODE;
@@ -1095,6 +1119,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                 case VEHICLE_TYPE_TRI:
                 case VEHICLE_TYPE_QUAD:
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                 case VEHICLE_TYPE_SUBMARINE:
                 default:
                     custom_mode = E_UNDEFINED_MODE;
@@ -1114,6 +1139,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                 case VEHICLE_TYPE_TRI:
                 case VEHICLE_TYPE_QUAD:
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                 case VEHICLE_TYPE_SUBMARINE:
                 default:
                     custom_mode = E_UNDEFINED_MODE;
@@ -1133,6 +1159,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                 case VEHICLE_TYPE_TRI:
                 case VEHICLE_TYPE_QUAD:
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                 case VEHICLE_TYPE_SUBMARINE:
                 default:
                     custom_mode = E_UNDEFINED_MODE;
@@ -1150,6 +1177,7 @@ void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const
                 case VEHICLE_TYPE_QUAD:
                 case VEHICLE_TYPE_PLANE:
                 case VEHICLE_TYPE_ROVER:
+                case VEHICLE_TYPE_BOAT:
                 case VEHICLE_TYPE_SUBMARINE:
                 default:
                     custom_mode = E_UNDEFINED_MODE;

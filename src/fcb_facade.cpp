@@ -783,7 +783,7 @@ void CFCBFacade::sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, u
     udp_client.sendMSG (buf, len);
 }
 
-
+[[deprecated("This function is deprecated. UDPProxy is used instead of webplugin")]]
 void CFCBFacade::sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
 {
     char buf[300];

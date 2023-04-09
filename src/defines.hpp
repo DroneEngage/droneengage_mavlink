@@ -31,6 +31,7 @@ typedef enum ANDRUAV_UNIT_TYPE
         VEHICLE_TYPE_PLANE      = 3,
         VEHICLE_TYPE_ROVER      = 4,
         VEHICLE_TYPE_HELI       = 5,        
+        VEHICLE_TYPE_BOAT       = 6,
         VEHICLE_TYPE_SUBMARINE  = 12,
         // no used here ... only for refence
         VEHICLE_TYPE_GIMBAL     = 15,
