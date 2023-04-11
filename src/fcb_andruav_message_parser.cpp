@@ -707,11 +707,28 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
             
             if (!validateField(cmd, "Act", Json::value_t::number_unsigned)) return ;
             const int request_type = cmd["Act"].get<int>();
-            if (request_type != CONST_TELEMETRY_ADJUST_RATE) return ;
             int streaming_level = -1;
-            if (validateField(cmd, "LVL", Json::value_t::number_unsigned))
+                    
+            switch (request_type)
             {
-                streaming_level = cmd["LVL"].get<int>();
+                case CONST_TELEMETRY_ADJUST_RATE:
+                {
+                    if (validateField(cmd, "LVL", Json::value_t::number_unsigned))
+                    {
+                        streaming_level = cmd["LVL"].get<int>();
+                    }
+                }
+                break;
+                case CONST_TELEMETRY_REQUEST_PAUSE:
+                    m_fcbMain.pauseUDPProxy(true);
+                break;
+
+                case CONST_TELEMETRY_REQUEST_RESUME:
+                    m_fcbMain.pauseUDPProxy(false);
+                break;
+
+                default:
+                return ;
             }
             
             m_fcbMain.setStreamingLevel(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), streaming_level);

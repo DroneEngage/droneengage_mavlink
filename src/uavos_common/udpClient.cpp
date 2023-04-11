@@ -173,7 +173,9 @@ void uavos::comm::CUDPClient::stop()
 
 void uavos::comm::CUDPClient::InternalReceiverEntry()
 {
-    std::cout << "InternalReceiverEntry called" << std::endl; 
+    #ifdef DEBUG
+	std::cout << "CUDPClient::InternalReceiverEntry called" << std::endl; 
+    #endif
     
     struct sockaddr_in  cliaddr;
     int n;
