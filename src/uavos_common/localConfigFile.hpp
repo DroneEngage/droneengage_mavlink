@@ -39,10 +39,14 @@ namespace uavos
         public:
             void InitConfigFile (const char* fileURL);
             const Json& GetConfigJSON();
-            void addStringField(const char * field, const char * value);
             void clearFile();
             void apply();
-            std::string getStringField(const char * field);
+            
+            std::string getStringField(const char * field) const;
+            void addStringField(const char * field, const char * value);
+            
+            const u_int32_t getNumericField(const char * field) const ;
+            void addNumericField(const char * field, const u_int32_t & value);
 
         protected:
             void ReadFile (const char * fileURL);

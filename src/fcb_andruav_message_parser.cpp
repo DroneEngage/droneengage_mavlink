@@ -1,7 +1,11 @@
 #include <iostream>
 #include "defines.hpp"
-#include "./uavos_common/messages.hpp"
+#include <plog/Log.h> 
+#include "plog/Initializers/RollingFileInitializer.h"
+
 #include "./helpers/helpers.hpp"
+#include "./uavos_common/messages.hpp"
+#include "./uavos_common/localConfigFile.hpp"
 #include "fcb_modes.hpp"
 #include "fcb_swarm_manager.hpp"
 #include "fcb_andruav_message_parser.hpp"
@@ -701,40 +705,11 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
         break;
 
 
-        case RemoteCommand_TELEMETRYCTRL:
+        case RemoteCommand_CONNECT_FCB:
         {
-            if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
-            
-            if (!validateField(cmd, "Act", Json::value_t::number_unsigned)) return ;
-            const int request_type = cmd["Act"].get<int>();
-            int streaming_level = -1;
-                    
-            switch (request_type)
-            {
-                case CONST_TELEMETRY_ADJUST_RATE:
-                {
-                    if (validateField(cmd, "LVL", Json::value_t::number_unsigned))
-                    {
-                        streaming_level = cmd["LVL"].get<int>();
-                    }
-                }
-                break;
-                case CONST_TELEMETRY_REQUEST_PAUSE:
-                    m_fcbMain.pauseUDPProxy(true);
-                break;
-
-                case CONST_TELEMETRY_REQUEST_RESUME:
-                    m_fcbMain.pauseUDPProxy(false);
-                break;
-
-                default:
-                return ;
-            }
-            
-            m_fcbMain.setStreamingLevel(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), streaming_level);
+            // This is an Andruav command and not applicable here till now.
         }
         break;
-
 
         case TYPE_AndruavSystem_LoadTasks:
         {
@@ -793,6 +768,67 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
             m_fcbMain.sendUdpProxyStatus(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());         
         }
         break;
+
+        case RemoteCommand_TELEMETRYCTRL:
+        {
+            if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            
+            if (!validateField(cmd, "Act", Json::value_t::number_unsigned)) return ;
+            const int request_type = cmd["Act"].get<int>();
+            int streaming_level = -1;
+                    
+            switch (request_type)
+            {
+                case CONST_TELEMETRY_ADJUST_RATE:
+                {
+                    if (validateField(cmd, "LVL", Json::value_t::number_unsigned))
+                    {
+                        streaming_level = cmd["LVL"].get<int>();
+                    }
+                }
+                break;
+                case CONST_TELEMETRY_REQUEST_PAUSE:
+                    m_fcbMain.pauseUDPProxy(true);
+                break;
+
+                case CONST_TELEMETRY_REQUEST_RESUME:
+                    m_fcbMain.pauseUDPProxy(false);
+                break;
+
+                default:
+                return ;
+            }
+            
+            m_fcbMain.setStreamingLevel(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), streaming_level);
+        }
+        break;
+
+
+        case RemoteCommand_SET_UDPPROXY_CLIENT_PORT:
+        {   
+            /**
+             * @brief Notice that fixed port requires comunication server to accept this request. 
+             * Communication server can choose to ignore this setting based on it settings in server.config
+             * 
+             */
+            if (cmd.contains("P")==true)
+            {
+                // read client port
+                uint32_t udp_proxy_fixed_port = cmd["P"].get<int>();
+                if (udp_proxy_fixed_port >= 0xffff) break;
+                
+                uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+                cLocalConfigFile.addNumericField("udp_proxy_fixed_port",udp_proxy_fixed_port);
+                cLocalConfigFile.apply();
+
+                std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Change UDPProxy Port to " << _INFO_CONSOLE_TEXT << udp_proxy_fixed_port <<  std::endl;
+                PLOG(plog::warning) << "SET_UDPPROXY_CLIENT_PORT: Change UDPProxy Port to:" << udp_proxy_fixed_port;
+            
+                m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("UDPProxy port update initiated."));
+
+                m_fcbMain.requestChangeUDPProxyClientPort(udp_proxy_fixed_port);
+            }
+        }
 
     } 
 }

@@ -14,6 +14,7 @@
 #include "./helpers/helpers.hpp"
 
 #include "./uavos_common/configFile.hpp"
+#include "./uavos_common/localConfigFile.hpp"
 #include "./uavos_common/messages.hpp"
 #include "fcb_modes.hpp"
 #include "./mission/missions.hpp"
@@ -172,17 +173,35 @@ bool CFCBMain::init ()
         m_enable_udp_telemetry_in_config = m_jsonConfig["udp_proxy_enabled"].get<bool>();
     }
     
-                
+    m_udp_telemetry_fixed_port = 0;
+               
     if (m_enable_udp_telemetry_in_config==true)
     {
-        
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Udp Proxy:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Enabled" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
+        uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+                
+        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Udp Proxy: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Enabled" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
         PLOG(plog::info) << "Udp Proxy Enabled";
+        
+        u_int16_t udp_proxy_fixed_port = cLocalConfigFile.getNumericField("udp_proxy_fixed_port");
+        if (udp_proxy_fixed_port==0xffff)
+        { // not found in local config ... not that local config has higher priority than the user config.
+        
+            if (validateField(m_jsonConfig, "udp_proxy_fixed_port", Json::value_t::number_unsigned))
+            { // TODO: convert this to inline as validatefield
+                udp_proxy_fixed_port = m_jsonConfig["udp_proxy_fixed_port"].get<int>();
+                cLocalConfigFile.addNumericField("udp_proxy_fixed_port",udp_proxy_fixed_port);
+                cLocalConfigFile.apply();
+                m_udp_telemetry_fixed_port = udp_proxy_fixed_port;
+            }
+        }
+        else
+        {
+            m_udp_telemetry_fixed_port = udp_proxy_fixed_port;
+        }
+        
 
-        if (validateField(m_jsonConfig, "udp_proxy_fixed_port", Json::value_t::number_unsigned))
-        { // TODO: convert this to inline as validatefield
-            m_udp_telemetry_fixed_port = m_jsonConfig["udp_proxy_fixed_port"].get<int>();
-            std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Udp Proxy fixed port is:" << _INFO_CONSOLE_TEXT << m_udp_telemetry_fixed_port << _NORMAL_CONSOLE_TEXT_ << std::endl; 
+        if (m_udp_telemetry_fixed_port!=0)
+        {   std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Udp Proxy fixed port is:" << _INFO_CONSOLE_TEXT << m_udp_telemetry_fixed_port << _NORMAL_CONSOLE_TEXT_ << std::endl; 
             PLOG(plog::info) << "Udp Proxy fixed port is:" << m_udp_telemetry_fixed_port;
         }
         else
@@ -247,7 +266,7 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
 
         if (display)
         {
-            std::cout << _INFO_CONSOLE_BOLD_TEXT << "RC Blocking is " << _ERROR_CONSOLE_BOLD_TEXT_ << "enabled " << _INFO_CONSOLE_BOLD_TEXT << "at channel: "<< _INFO_CONSOLE_TEXT << std::to_string(m_andruav_vehicle_info.rc_block_channel) << _ERROR_CONSOLE_BOLD_TEXT_ << " - IMPORTANT" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "RC Blocking is " << _ERROR_CONSOLE_BOLD_TEXT_ << "enabled " << _LOG_CONSOLE_TEXT_BOLD_ << "at channel: "<< _INFO_CONSOLE_BOLD_TEXT << std::to_string(m_andruav_vehicle_info.rc_block_channel) << _ERROR_CONSOLE_BOLD_TEXT_ << " - IMPORTANT" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
         }
         
         
@@ -1922,4 +1941,12 @@ bool CFCBMain::isUdpProxyMavlinkAvailable() const
 void CFCBMain::pauseUDPProxy (const bool paused)
 {
     m_udp_proxy.paused = paused;
+}
+
+void CFCBMain::requestChangeUDPProxyClientPort(const uint16_t udp_proxy_fixed_port)
+{
+    if (m_udp_proxy.enabled == false)  return ;
+     
+    m_fcb_facade.requestUdpProxyTelemetry(m_udp_proxy.enabled, m_udp_proxy.udp_ip1, m_udp_proxy.udp_port1,
+            m_udp_proxy.udp_ip2, udp_proxy_fixed_port);
 }
