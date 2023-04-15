@@ -28,7 +28,7 @@ void CMavlinkSDK::start(mavlinksdk::CMavlinkEvents * mavlink_events)
 
 void CMavlinkSDK::connectUDP (const char *target_ip, const int udp_port)
 {
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "connectUDP on " << target_ip << " port " << udp_port << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "connectUDP on " << _SUCCESS_CONSOLE_BOLD_TEXT_<< target_ip << " port " << udp_port << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
     this->m_port = std::shared_ptr<mavlinksdk::comm::GenericPort>( new mavlinksdk::comm::UDPPort(target_ip, udp_port));
 }
