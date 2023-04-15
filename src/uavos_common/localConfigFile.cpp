@@ -66,7 +66,7 @@ void CLocalConfigFile::WriteFile (const char * fileURL)
 void CLocalConfigFile::ReadFile (const char * fileURL)
 {
     std::ifstream stream;
-    std::cout << _LOG_CONSOLE_TEXT << "Read internal config file: " << _SUCCESS_CONSOLE_TEXT_ << fileURL << _NORMAL_CONSOLE_TEXT_ << " ...." ;
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Read internal config file: " << _SUCCESS_CONSOLE_TEXT_ << fileURL << _NORMAL_CONSOLE_TEXT_ << " ...." ;
 
     stream.open (fileURL , std::ifstream::in);
     if (!stream) {
@@ -107,7 +107,7 @@ void CLocalConfigFile::addStringField(const char * field, const char * value)
     m_ConfigJSON[std::string(field)] = std::string(value);
 }
 
-std::string CLocalConfigFile::getStringField(const char * field)
+std::string CLocalConfigFile::getStringField(const char * field) const
 {
     if (!m_ConfigJSON.contains(std::string(field))) return {};
 
@@ -115,3 +115,15 @@ std::string CLocalConfigFile::getStringField(const char * field)
 }
 
 
+void CLocalConfigFile::addNumericField(const char * field, const u_int32_t & value)
+{
+    m_ConfigJSON[std::string(field)] = value;
+}
+
+
+const u_int32_t CLocalConfigFile::getNumericField(const char * field) const 
+{
+    if (!m_ConfigJSON.contains(std::string(field))) return 0xffffffff;
+
+    return m_ConfigJSON[std::string(field)].get<int>();
+}

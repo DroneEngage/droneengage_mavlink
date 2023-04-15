@@ -246,6 +246,8 @@ namespace fcb
              */
             void pauseUDPProxy (const bool paused);
 
+            void requestChangeUDPProxyClientPort(const uint16_t udp_proxy_fixed_port);
+
         public:
             void OnHeartBeat ();
             void OnCommandLong (const mavlink_command_long_t& command_long);
