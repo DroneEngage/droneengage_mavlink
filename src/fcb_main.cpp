@@ -1945,8 +1945,16 @@ void CFCBMain::pauseUDPProxy (const bool paused)
 
 void CFCBMain::requestChangeUDPProxyClientPort(const uint16_t udp_proxy_fixed_port)
 {
-    if (m_udp_proxy.enabled == false)  return ;
-     
+    if (m_jsonConfig.contains("udp_proxy_enabled"))
+    { 
+        /**
+         * @brief In some cases, the m_udp_proxy.enabled variable may be set to false when attempting to open a port that is already in use. When this happens, 
+         * the Communication Server will also set the enabled flag to false. However, if UDP proxy usage is allowed, 
+         * you can try to force enable the proxy or change the port to resolve the issue. 
+         * It's important to note that forcing the opening of the UDP proxy is not permitted unless it's allowed in the configuration file, due to security reasons.
+         */
+        m_udp_proxy.enabled = m_jsonConfig["udp_proxy_enabled"].get<bool>();
+    }
     m_fcb_facade.requestUdpProxyTelemetry(m_udp_proxy.enabled, m_udp_proxy.udp_ip1, m_udp_proxy.udp_port1,
             m_udp_proxy.udp_ip2, udp_proxy_fixed_port);
 }
