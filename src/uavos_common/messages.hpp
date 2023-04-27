@@ -1,8 +1,15 @@
 
 
 // InterModules command
+/**
+ * @brief CMD_TYPE_INTERMODULE is used when you want to send a message from a  module to another.
+ * This is mainly used to emulate a message comes from an external gcs to a module but is created by another module.
+ * i.e. FCB module can emulate take_image even comes from gcs to camera module.
+ * Even if you do not use CMD_TYPE_INTERMODULE and uses a command id that is for inter-module commands such as id > 9500 
+ * then it will be handled by communicator module such as TYPE_AndruavModule_RemoteExecute.
+ */
 #define CMD_TYPE_INTERMODULE "uv"
-
+#define CMD_TYPE_SYSTEM_MSG  "s"
 
 // JSON InterModule Fields
 #define JSON_INTERMODULE_MODULE_ID              "a"
@@ -52,13 +59,14 @@
 
 
 // Andruav Protocol Fields
-#define ANDRUAV_PROTOCOL_GROUP_ID       "gr"
-#define ANDRUAV_PROTOCOL_SENDER         "sd"
-#define ANDRUAV_PROTOCOL_TARGET_ID      "tg"
-#define ANDRUAV_PROTOCOL_MESSAGE_TYPE   "mt"
-#define ANDRUAV_PROTOCOL_MESSAGE_CMD    "ms"
-#define INTERMODULE_ROUTING_TYPE        "ty"
-#define INTERMODULE_MODULE_KEY          "GU"
+#define ANDRUAV_PROTOCOL_GROUP_ID               "gr"
+#define ANDRUAV_PROTOCOL_SENDER                 "sd"
+#define ANDRUAV_PROTOCOL_TARGET_ID              "tg"
+#define ANDRUAV_PROTOCOL_MESSAGE_TYPE           "mt"
+#define ANDRUAV_PROTOCOL_MESSAGE_CMD            "ms"
+#define ANDRUAV_PROTOCOL_MESSAGE_PERMISSION     "p"
+#define INTERMODULE_ROUTING_TYPE                "ty"
+#define INTERMODULE_MODULE_KEY                  "GU"
 
 // Reserved Target Values
 #define ANDRUAV_PROTOCOL_SENDER_ALL_GCS         "_GCS_"
@@ -279,3 +287,13 @@
 // TYPE_AndruavMessage_UpdateSwarm actions
 #define SWARM_UPDATED                              1
 #define SWARM_DELETE                               2
+
+
+// GCS Permissions
+#define PERMISSION_ALLOW_GCS                0x00000001
+#define PERMISSION_ALLOW_UNIT               0x00000010
+#define PERMISSION_ALLOW_GCS_FULL_CONTROL   0x00000f00
+#define PERMISSION_ALLOW_GCS_WP_CONTROL     0x00000100
+#define PERMISSION_ALLOW_GCS_MODES_CONTROL  0x00000200
+#define PERMISSION_ALLOW_GCS_MODES_SERVOS   0x00000400
+#define PERMISSION_ALLOW_GCS_VIDEO          0x0000f000
