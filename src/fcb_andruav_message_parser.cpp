@@ -4,6 +4,7 @@
 #include "plog/Initializers/RollingFileInitializer.h"
 
 #include "./helpers/helpers.hpp"
+#include "./helpers/colors.hpp"
 #include "./uavos_common/messages.hpp"
 #include "./uavos_common/localConfigFile.hpp"
 #include "fcb_modes.hpp"
@@ -27,6 +28,21 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
     const int messageType = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
     bool is_binary = !(full_message[full_message_length-1]==125 || (full_message[full_message_length-2]==125));   // "}".charCodeAt(0)  IS TEXT / BINARY Msg  
     
+
+    uint32_t permission = 0;
+    if (validateField(andruav_message, ANDRUAV_PROTOCOL_MESSAGE_PERMISSION, Json::value_t::number_unsigned))
+    {
+        permission =  andruav_message[ANDRUAV_PROTOCOL_MESSAGE_PERMISSION].get<int>();
+    }
+
+    UNUSED (permission);
+
+    bool is_system = false;
+    if ((validateField(andruav_message, ANDRUAV_PROTOCOL_SENDER, Json::value_t::string)) && (andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(SPECIAL_NAME_SYS_NAME)==0))
+    {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
+        is_system = true;
+    }
+
     if (messageType == TYPE_AndruavMessage_RemoteExecute)
     {
         parseRemoteExecute(andruav_message);
@@ -44,7 +60,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             case TYPE_AndruavMessage_Arm:
             {
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
-
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_MODES_CONTROL) != PERMISSION_ALLOW_GCS_MODES_CONTROL)) 
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "Arm: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
                 // A  : bool arm/disarm
                 // [D]: bool force 
                 if (!validateField(message, "A", Json::value_t::boolean)) return ;
@@ -65,6 +86,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             {
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_MODES_CONTROL) != PERMISSION_ALLOW_GCS_MODES_CONTROL)) 
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "FlightControl: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
                 // F  : andruav unit mode
                 // [g]: longitude
                 // [a]: latitude
@@ -91,6 +118,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             {
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_MODES_CONTROL) != PERMISSION_ALLOW_GCS_MODES_CONTROL)) 
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "ChangeAltitude: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
                 // a : altitude 
                 if ((!validateField(message, "a", Json::value_t::number_float)) 
                 && (!validateField(message, "a", Json::value_t::number_unsigned)))
@@ -114,6 +147,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             {
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_MODES_CONTROL) != PERMISSION_ALLOW_GCS_MODES_CONTROL)) 
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "Land: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+
                 //TODO: could be included in change mode.
 
                 uint32_t ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode;
@@ -132,6 +171,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             {
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_MODES_CONTROL) != PERMISSION_ALLOW_GCS_MODES_CONTROL)) 
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "GuidedPoint: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
                 //  a : latitude
                 //  g : longitude
                 // [l]: altitude
@@ -166,6 +211,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             {
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_WP_CONTROL) != PERMISSION_ALLOW_GCS_WP_CONTROL)) 
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "SET_HOME_LOCATION: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
                 // T: latitude
                 // O: longitude
                 // A: altitude
@@ -189,6 +240,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             {
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_MODES_CONTROL) != PERMISSION_ALLOW_GCS_MODES_CONTROL)) 
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DoYAW: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
                 // A : target_angle
                 // R : turn_rate
                 // C : is_clock_wise
@@ -215,6 +272,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             {
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_MODES_CONTROL) != PERMISSION_ALLOW_GCS_MODES_CONTROL)) 
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "ChangeSpeed: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
                 // a : speed
                 // b : is_ground_speed
                 // c : throttle
@@ -242,7 +305,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             case TYPE_AndruavMessage_UploadWayPoints:
             {
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
-
+                
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_WP_CONTROL) != PERMISSION_ALLOW_GCS_WP_CONTROL)) \
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "UploadWayPoints: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
                 //TODO: you should allow multiple messages to allow large file to be received.
                 // !UDP packet has maximum size.
                 
@@ -315,7 +383,13 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             case TYPE_AndruavMessage_ServoChannel:
             {
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
-
+                
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_MODES_SERVOS) != PERMISSION_ALLOW_GCS_MODES_SERVOS)) 
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "ServoChannel: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
                 // n : servo_channel
                 // v : servo_value
 
@@ -335,6 +409,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             {
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_MODES_CONTROL) != PERMISSION_ALLOW_GCS_MODES_CONTROL)) 
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "RemoteControlSettings: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
                 // b: remote control setting
                 
                 if (!validateField(message, "b",Json::value_t::number_unsigned)) return ;
@@ -359,6 +439,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             {
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_MODES_CONTROL) != PERMISSION_ALLOW_GCS_MODES_CONTROL)) 
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "RemoteControl2: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
                 // value: [0,1000] IMPORTANT: -999 means channel release
                 // 'R': Rudder
                 // 'T': Throttle
@@ -406,6 +492,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) != PERMISSION_ALLOW_GCS_FULL_CONTROL)) 
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "LightTelemetry: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
                 // this is a binary message
                 // search for char '0' and then binary message is the next byte after it.
                 if (!is_binary)
@@ -440,6 +532,7 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
 
                 // GCS uses this command to send mavlink command such as parameters.
                 // This command can be replaced by TYPE_AndruavMessage_LightTelemetry
+
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
                 // this is a binary message
@@ -468,6 +561,11 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                                 break;
                             
                             default:
+                                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) != PERMISSION_ALLOW_GCS_FULL_CONTROL)) 
+                                {
+                                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "MAVLINK: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied " << _INFO_CONSOLE_TEXT << " - " << _ERROR_CONSOLE_BOLD_TEXT_<< permission << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                                    return;
+                                }
                                 mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);
                                 break;
                         } 
@@ -607,7 +705,12 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                     the drone can determine this when sending TYPE_AndruavMessage_UDPProxy_Info to other parties.
                     normally socket 1 is drone's socket and socket 2 for external parties.
                 */
-               
+                if (!is_system)
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "UdpProxy: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    return;
+                }
+
                 if (!validateField(message, "socket1",Json::value_t::object)) return ;
                 if (!validateField(message, "socket2",Json::value_t::object)) return ;
 
@@ -654,6 +757,20 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
     
     if (!validateField(cmd, "C", Json::value_t::number_unsigned)) return ;
                 
+    uint32_t permission = 0;
+    if (validateField(andruav_message, ANDRUAV_PROTOCOL_MESSAGE_PERMISSION, Json::value_t::number_unsigned))
+    {
+        permission =  andruav_message[ANDRUAV_PROTOCOL_MESSAGE_PERMISSION].get<int>();
+    }
+
+    UNUSED (permission);
+    
+    bool is_system = false;
+     
+    if ((validateField(andruav_message, ANDRUAV_PROTOCOL_SENDER, Json::value_t::string)) && (andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(SPECIAL_NAME_SYS_NAME)==0))
+    {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
+        is_system = true;
+    }
     const int remoteCommand = cmd["C"].get<int>();
     std::cout << "cmd: " << remoteCommand << std::endl;
     switch (remoteCommand)
@@ -679,6 +796,12 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
         case RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB:
             if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
             
+            if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_WP_CONTROL) != PERMISSION_ALLOW_GCS_WP_CONTROL))
+            {
+                std::cout << _INFO_CONSOLE_BOLD_TEXT << "CLEAR_WAY_POINTS_FROM_FCB: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                break;
+            }
+                
             m_fcbMain.clearWayPoints();
         break;
         
@@ -686,7 +809,12 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
         case RemoteCommand_CLEAR_FENCE_DATA:
         {
             if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
-            
+            if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_WP_CONTROL) != PERMISSION_ALLOW_GCS_WP_CONTROL)) 
+            {
+                std::cout << _INFO_CONSOLE_BOLD_TEXT << "CLEAR_FENCE_DATA: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                break;
+            }
+                
             std::string fence_name;
             if (cmd.contains("fn")==true)
             {
@@ -765,6 +893,13 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
 
         case TYPE_AndruavMessage_UDPProxy_Info:
         {
+            if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) != PERMISSION_ALLOW_GCS_FULL_CONTROL))
+            {
+                std::cout << _INFO_CONSOLE_BOLD_TEXT << "UDPProxy_Info: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                break;
+            }
+            
             m_fcbMain.sendUdpProxyStatus(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());         
         }
         break;
@@ -772,6 +907,11 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
         case RemoteCommand_TELEMETRYCTRL:
         {
             if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) != PERMISSION_ALLOW_GCS_FULL_CONTROL))
+            {
+                std::cout << _INFO_CONSOLE_BOLD_TEXT << "TELEMETRYCTRL: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                break;
+            }
             
             if (!validateField(cmd, "Act", Json::value_t::number_unsigned)) return ;
             const int request_type = cmd["Act"].get<int>();
@@ -811,6 +951,14 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
              * Communication server can choose to ignore this setting based on it settings in server.config
              * 
              */
+            
+            if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) != PERMISSION_ALLOW_GCS_FULL_CONTROL))
+            {
+                std::cout << _INFO_CONSOLE_BOLD_TEXT << "SET_UDPPROXY_CLIENT_PORT: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                break;
+            }
+            
             if (cmd.contains("P")==true)
             {
                 // read client port
