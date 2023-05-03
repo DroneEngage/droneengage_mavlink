@@ -66,7 +66,7 @@ void CLocalConfigFile::WriteFile (const char * fileURL)
 void CLocalConfigFile::ReadFile (const char * fileURL)
 {
     std::ifstream stream;
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Read internal config file: " << _SUCCESS_CONSOLE_TEXT_ << fileURL << _NORMAL_CONSOLE_TEXT_ << " ...." ;
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Read internal config file: " << _INFO_CONSOLE_TEXT << fileURL << _NORMAL_CONSOLE_TEXT_ << " ...." ;
 
     stream.open (fileURL , std::ifstream::in);
     if (!stream) {
