@@ -26,7 +26,7 @@ namespace fcb
     typedef struct 
     {
         std::string party_id;
-        int slave_index;
+        int follower_index;
 
     } ANDRUAV_UNIT_SALVE;
 
@@ -75,13 +75,21 @@ namespace fcb
 
             bool isLeader() const;
             bool isSlave() const;
-            void unFollow();
+            void followLeader(const std::string& party_id, const int follower_index, const std::string& party_id_request);
+            void unFollowLeader(const std::string& party_id_leader_to_unfollow, const std::string& party_id_request);
             ANDRUAV_SWARM_FORMATION getFormation() const;
             void makeSwarm(const ANDRUAV_SWARM_FORMATION formation);
-            void makeSlave(const std::string& party_id, const int slave_index);
-            void addSlave (const std::string& party_id, const int slave_index);
-            int slaveExists (const std::string& party_id) const;
-            std::string getLeader() const;
+            void addFollower (const std::string& party_id, const int follower_index);
+            void releaseSingleFollower (const std::string& party_id);
+            void releaseFollowers ();
+            int followersExist (const std::string& party_id) const;
+
+        public:
+
+            inline std::string getLeader() const
+            {
+                return m_leader_party_id;
+            }
             
         private:
             ANDRUAV_SWARM_FORMATION m_formation;
@@ -91,7 +99,7 @@ namespace fcb
              * @brief valid if I am a slave -follower-.
              * 
              */
-            int m_slave_index=-1;
+            int m_follower_index=-1;
             ANDRUAV_SWARM_FORMATION m_slave_formation;
     } ;
 }// namespace

@@ -15,11 +15,10 @@
 
 #include "./uavos_common/configFile.hpp"
 #include "./uavos_common/localConfigFile.hpp"
-#include "./uavos_common/messages.hpp"
+
 #include "fcb_modes.hpp"
-#include "./mission/missions.hpp"
 #include "fcb_facade.hpp"
-#include "fcb_traffic_optimizer.hpp"
+
 
 #include "fcb_main.hpp"
 

@@ -46,9 +46,11 @@ using namespace uavos;
                         TYPE_AndruavMessage_LightTelemetry, \
                         TYPE_AndruavMessage_ServoChannel, \
                         TYPE_AndruavMessage_Sync_EventFire, \
+                        TYPE_AndruavMessage_MAVLINK, \
                         TYPE_AndruavMessage_MAKE_SWARM,  \
                         TYPE_AndruavMessage_FollowHim_Request,  \
-                        TYPE_AndruavMessage_MAVLINK, \
+                        TYPE_AndruavMessage_FollowMe_Guided, \
+                        TYPE_AndruavMessage_UpdateSwarm, \
                         TYPE_AndruavMessage_UDPProxy_Info, \
                         TYPE_AndruavSystem_UdpProxy}
 

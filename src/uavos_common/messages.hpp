@@ -137,26 +137,7 @@
 #define TYPE_AndruavMessage_SET_HOME_LOCATION           1048
 #define TYPE_AndruavMessage_RemoteControl2		        1052
 /**
- * @brief This message is sent to Leader Drone to add a slave drone in a swarm and in an index.
- * given index may contradict with other indices. It is upto Leader Drone to handle this conflict.
- */
-#define TYPE_AndruavMessage_UpdateSwarm                 1058
-/**
- * @brief This command is sent to instruct a drone to be a leader with a swarm-formation.
- * A Formation FORMATION_SERB_NO_SWARM means there is no swarm mode anymore. 
- */
-#define TYPE_AndruavMessage_MAKE_SWARM                   1056
-/**
- * @brief This message is sent from Leader drone to a slave. It guides it to the destination point that it wants it to go to.
- * @details
- * There is nothing called a SLAVE Drone
- * All Drones Obey AndruavResala_FollowMe_Guided EVEN if they are Leaders.<br>
- * If a Drone wants to IGNORE these messages that is OK for whatever reason.<br>
- * If a Drone wants to Stop others from sending such messages it can send ANdruavResala_UpdateSwarm with remove action.
- */
-#define TYPE_AndruavMessage_FollowMe_Guided             1055
-/**
- * @brief tell a drone that another drone is in its team -a slave-.
+ * @brief tell a drone that another drone is in its team -a follower-.
  * @details 
  * This message can be sent from GCS or another Drone either a leader or not.
  * This message requests from the receiver "Drone" to send @ref TYPE_AndruavMessage_UpdateSwarm
@@ -167,6 +148,26 @@
  * @note receiver should not assume it is a follower. It only should forward this request to the leader.
  */
 #define TYPE_AndruavMessage_FollowHim_Request           1054
+/**
+ * @brief This message is sent from Leader drone to a follower. It guides it to the destination point that it wants it to go to.
+ * @details
+ * There is nothing called a Follower Drone
+ * All Drones Obey AndruavResala_FollowMe_Guided EVEN if they are Leaders.<br>
+ * If a Drone wants to IGNORE these messages that is OK for whatever reason.<br>
+ * If a Drone wants to Stop others from sending such messages it can send ANdruavResala_UpdateSwarm with remove action.
+ */
+#define TYPE_AndruavMessage_FollowMe_Guided             1055
+/**
+ * @brief This command is sent to instruct a drone to be a leader with a swarm-formation.
+ * A Formation FORMATION_SERB_NO_SWARM means there is no swarm mode anymore. 
+ */
+#define TYPE_AndruavMessage_MAKE_SWARM                  1056
+#define TYPE_AndruavMessage_SwarmReport                 1057
+/**
+ * @brief This message is sent to Leader Drone to add a slave drone in a swarm and in an index.
+ * given index may contradict with other indices. It is upto Leader Drone to handle this conflict.
+ */
+#define TYPE_AndruavMessage_UpdateSwarm                 1058
 #define TYPE_AndruavMessage_Sync_EventFire              1061
 #define TYPE_AndruavMessage_Prepherials                 1070
 #define TYPE_AndruavMessage_UDPProxy_Info               1071
@@ -285,9 +286,11 @@
 
 
 // TYPE_AndruavMessage_UpdateSwarm actions
-#define SWARM_UPDATED                              1
-#define SWARM_DELETE                               2
-
+#define SWARM_UPDATED                               1
+#define SWARM_DELETE                                2
+// TYPE_AndruavMessage_FollowHim_Request actions
+#define SWARM_FOLLOW                                1
+#define SWARM_UNFOLLOW                              2
 
 // GCS Permissions
 #define PERMISSION_ALLOW_GCS                0x00000001

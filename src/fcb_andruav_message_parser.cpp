@@ -525,13 +525,15 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
 
             case TYPE_AndruavMessage_MAVLINK:
             {   
-                // DANGER: Sending messages that is outpout of other agent's fcb can lead to 
-                // unpredicted issues such as the MAVLINK_MSG_ID_MISSION_COUNT BUG.
-                // DE-SERVER reject agents from broadcasting messages to agents unless agent id
-                // is mention explicitly or target is _AGN_.
-
-                // GCS uses this command to send mavlink command such as parameters.
-                // This command can be replaced by TYPE_AndruavMessage_LightTelemetry
+                /**
+                * @brief  DANGER: Sending messages that is outpout of other agent's fcb can lead to 
+                * unpredicted issues such as the MAVLINK_MSG_ID_MISSION_COUNT BUG.
+                * DE-SERVER reject agents from broadcasting messages to agents unless agent id
+                * is mention explicitly or target is _AGN_.
+                *
+                * GCS uses this command to send mavlink command such as parameters.
+                * This command can be replaced by TYPE_AndruavMessage_LightTelemetry
+                **/
 
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
@@ -574,23 +576,48 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             }
             break;
 
+            //////////////////////SWARM-START
+            /**
+             * @brief SWARM SECTION
+             * We have three messages here:
+             * 
+             * 1- TYPE_AndruavMessage_MAKE_SWARM:
+             *  sent from gcs to a drone to promote/demote a drone to leader
+             * 
+             * 2- TYPE_AndruavMessage_FollowHim_Request:
+             *  this is a message sent to a drone to make it follow a leader.
+             *  IMPORTANT concept here is that a leader can follow a leader.
+             * 
+             * 3- TYPE_AndruavMessage_UpdateSwarm:
+             * follower drone sends this message to a leader to request adding 
+             * it as a follower.
+             * 
+             */
             case TYPE_AndruavMessage_MAKE_SWARM:
-            {
-                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            {   
+                /**
+                * @brief This message is received by Leader Units to activate or deactivate swarm formation.
+                * Leader needs to inform followers if it is not a leader anymore.
+                **/
 
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+                // Become a leader drone.
                 // a: formationID
                 // b: partyID
                 // if (b:partyID) is not me then treat it as an announcement.
 
-                if (!validateField(message, "a",Json::value_t::number_unsigned)) return ;
-                if (!validateField(message, "b",Json::value_t::string)) return ;
-
+                if (!message.contains("a") || !message["a"].is_number_integer()) return ;
+                if (!message.contains("b") || !message["b"].is_string()) return ;
+                
                 if (m_fcbMain.getAndruavVehicleInfo().party_id.compare( message["b"].get<std::string>())!=0)
                 {
                     // this is an announcement.
                     // other drone should handle this message.
+                    // if this is my leader drone and it is being released then 
+                    // I can release my self or wait for it to ell me to do so -which makes more sense-.
                     return ;
                 }
+
                 const int formation = message["a"].get<int>();
 
                 m_fcb_swarm_manager.makeSwarm((ANDRUAV_SWARM_FORMATION)formation);
@@ -599,15 +626,30 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
 
             case TYPE_AndruavMessage_FollowHim_Request:
             {
+                /**
+                 * @brief tell a drone that another drone is in its team -a slave-.
+                 * @details 
+                 * This message can be sent from GCS or another Drone either a leader or not.
+                 * This message requests from the receiver "Drone" to send @ref TYPE_AndruavMessage_UpdateSwarm
+                 * to a third drone that is a LEADER requesting to join its swarm.
+                 * The receiver can refuse to send @ref TYPE_AndruavMessage_UpdateSwarm
+                 * and the third drone can also refuse the request to be followed by the receiver.
+                 * 
+                 * @note receiver should not assume it is a follower. It only should forward this request to the leader.
+                 */
+
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
-                // a: slave index    
-                // b: leader partyID - if null the unfollow
+                // a: follower index -1 means any available location.   
+                // b: leader partyID 
                 // c: slave partyID
+                // f: SWARM_FOLLOW/SWARM_UNFOLLOW
                 // if (c:partyID) is not me then treat it as an announcement.
                 
-                if (!validateField(message, "a",Json::value_t::number_integer)) return ;
-                if (!validateField(message, "c",Json::value_t::string)) return ;
+                //if (!validateField(message, "f",Json::value_t::number_integer)) return ;
+                if (!message.contains("f") || !message["f"].is_number_integer()) return ;
+                if (!message.contains("c") || !message["c"].is_string()) return ;
+                
 
                 if (m_fcbMain.getAndruavVehicleInfo().party_id.compare(message["c"].get<std::string>())!=0)
                 {
@@ -616,36 +658,53 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                     return ;
                 }
 
-                if (!validateField(message, "b",Json::value_t::string)) 
-                {
-                    // unfollow
-                    m_fcb_swarm_manager.unFollow();
+                
+                
+                if (message["f"].get<int>()==SWARM_UNFOLLOW)
+                { 
+                    // [b] can be null
+                    std::string leader = m_fcb_swarm_manager.getLeader();
+                    if (message.contains("b") && message["b"].is_string()) return ;
+                    {
+                        leader = message["b"].get<std::string>();
+                    }
+                    m_fcb_swarm_manager.unFollowLeader(leader, andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+                    break;
                 }
-                else
-                {
-                    const int slave_index = message["a"].get<int>();
+                else if (message["f"].get<int>()==SWARM_FOLLOW)
+                {   // follow leader in [b]
+                    if (!message.contains("a") || !message["a"].is_number_integer()) return ;
+                    if (!message.contains("b") || !message["b"].is_string()) return ;
+                    const int follower_index = message["a"].get<int>();
                     const std::string leader_party_id = message["b"].get<std::string>();
-                    m_fcb_swarm_manager.makeSlave(leader_party_id, slave_index);
-                }
 
+                    m_fcb_swarm_manager.followLeader(leader_party_id, follower_index, andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+                    break;
+                }
             }
             break;
 
             case TYPE_AndruavMessage_UpdateSwarm:
-            {
+            {   /**
+                * @brief This message should be processed by leader to add or remove
+                * followers. This message is sent from a follower.
+                */
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
                 /*
                     a: action [SWARM_UPDATED, SWARM_DELETE]
-                    b: slave index [mandatory with SWARM_UPDATED]
+                    b: follower index [mandatory with SWARM_UPDATED]
                     c: leader id - if this is not me then consider it a notification.
                     d: slave party id 
                 */
 
-                if (!validateField(message, "a",Json::value_t::number_integer)) return ;
-                if (!validateField(message, "c",Json::value_t::string)) return ;
-                if (!validateField(message, "d",Json::value_t::string)) return ;
-
+                //if (!validateField(message, "a",Json::value_t::number_integer)) return ;
+                //if (!validateField(message, "c",Json::value_t::string)) return ;
+                //if (!validateField(message, "d",Json::value_t::string)) return ;
+                if (!message.contains("a") || !message["a"].is_number_integer()) return ;
+                if (!message.contains("c") || !message["c"].is_string()) return ;
+                if (!message.contains("d") || !message["d"].is_string()) return ;
+                
 
                 if (m_fcbMain.getAndruavVehicleInfo().party_id.compare(message["c"].get<std::string>())!=0)
                 {
@@ -660,10 +719,10 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 if (action == SWARM_UPDATED)
                 {   
                     // add or modify swarm member
-                    if (!validateField(message, "b",Json::value_t::number_integer)) return ;
+                    //if (!validateField(message, "b",Json::value_t::number_integer)) return ;
                 
-                    const int slave_index = message["b"].get<int>();
-                    m_fcb_swarm_manager.addSlave(slave_party_id, slave_index);
+                    const int follower_index = message["b"].get<int>();
+                    m_fcb_swarm_manager.addFollower(slave_party_id, follower_index);
 
                    return ;     
                 }
@@ -672,12 +731,14 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 {
                     // remove a swarm member
                     // TODO:NOT IMPLEMENTED.
-                    //m_fcb_swarm_manager.removeSlave(slave_party_id);
+                    m_fcb_swarm_manager.releaseSingleFollower(slave_party_id);
 
                     return ;     
                 }
             }
             break;
+
+            //////////////////////SWARM-END
 
             case TYPE_AndruavMessage_UDPProxy_Info:
             {
