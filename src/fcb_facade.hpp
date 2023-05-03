@@ -96,8 +96,13 @@ namespace fcb
             void sendGeoFenceToTarget(const std::string&target_party_id, const geofence::GEO_FENCE_STRUCT * geo_fenct_struct) const;
             void sendGeoFenceHit(const std::string&target_party_id, const std::string fence_name, const double distance, const bool in_zone, const bool should_keep_outside) const;
             void sendSyncEvent(const std::string&target_party_id, const int event_id ) const;
-            void requestToFollowLeader(const std::string&target_party_id, const int slave_index) const;
+            
+            // SWARM API
+            void requestToFollowLeader(const std::string&target_party_id, const int follower_index) const;
             void requestUnFollowLeader(const std::string&target_party_id) const;
+            void requestFromUnitToFollowMe(const std::string&target_party_id, const int follower_index) const;
+            void requestFromUnitToUnFollowMe(const std::string&target_party_id) const;
+            // END SWARM API
             
             void requestUdpProxyTelemetry(const bool enable, const std::string&udp_ip1, const int& udp_port1, const std::string&udp_ip2, const int& udp_port2);
             void sendUdpProxyStatus(const std::string&target_party_id, const bool& enabled, const bool& paused, const std::string&udp_ip_other, const int& udp_port_other, const int& optimization_level);

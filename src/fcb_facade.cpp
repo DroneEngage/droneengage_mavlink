@@ -1005,19 +1005,25 @@ void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int even
    
 }
 
-
-void CFCBFacade::requestToFollowLeader(const std::string&target_party_id, const int slave_index) const
+/**
+ * @brief Sends to a leader from GCS or a follower or an agent wants to be a follower
+ * in order to add itself as a follower, or request to update location or release itself.
+ * Leader should reply with an updated TYPE_AndruavMessage_FollowHim_Request with new infomration.
+ * @param target_party_id 
+ * @param follower_index 
+ */
+void CFCBFacade::requestToFollowLeader(const std::string&target_party_id, const int follower_index) const
 {
     /*
         a: action
-        b: slave index
+        b: follower index
         c: leader id
         d: slave party id 
     */
     Json message =
             {
-                {"a", SWARM_UPDATED},
-                {"b", slave_index},
+                {"a", (int)SWARM_UPDATED},
+                {"b", follower_index},
                 {"c", target_party_id},
                 {"d", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
             };
@@ -1025,7 +1031,6 @@ void CFCBFacade::requestToFollowLeader(const std::string&target_party_id, const 
     m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_UpdateSwarm, false);
 
 }
-
 
 /**
  * @brief sends a message to my leader informing it that I am no longer following it.
@@ -1038,13 +1043,13 @@ void CFCBFacade::requestUnFollowLeader(const std::string&target_party_id) const
 {
     /*
         a: action
-        b: slave index
+        b: follower index
         c: leader id
         d: slave party id 
     */
     Json message =
             {
-                {"a", SWARM_DELETE},
+                {"a", (int)SWARM_DELETE},
                 {"c", target_party_id},
                 {"d", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
             };
@@ -1052,6 +1057,43 @@ void CFCBFacade::requestUnFollowLeader(const std::string&target_party_id) const
     m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_UpdateSwarm, false);
 
 }
+
+
+void CFCBFacade::requestFromUnitToFollowMe(const std::string&target_party_id, const int follower_index) const
+{
+    /*
+        a: null
+        b: follower index
+        c: leader id
+    */
+    Json message =
+            {   
+                {"a", follower_index },
+                {"b", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
+                {"c", target_party_id},
+                {"f", SWARM_FOLLOW}
+            };
+                
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_FollowHim_Request, false);
+}
+
+void CFCBFacade::requestFromUnitToUnFollowMe(const std::string&target_party_id) const
+{
+    /*
+        a: null
+        b: follower index
+        c: leader id
+    */
+    Json message =
+            {
+                {"b", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
+                {"c", target_party_id},
+                {"f", SWARM_UNFOLLOW}
+            };
+                
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_FollowHim_Request, false);
+}
+
 
 /**
  * @brief send inter-module-command to communication module to load tasks.

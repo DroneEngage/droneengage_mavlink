@@ -8,8 +8,12 @@
 #include <mavlink_command.h>
 #include <mavlink_events.h>
 
+#include "./uavos_common/messages.hpp"
 #include "./uavos_common/uavos_module.hpp"
 #include "./uavos_common/udpProxy.hpp"
+#include "./mission/missions.hpp"
+#include "fcb_traffic_optimizer.hpp"
+
 #include "./helpers/json.hpp"
 using Json = nlohmann::json;
 
