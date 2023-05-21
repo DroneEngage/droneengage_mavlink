@@ -49,7 +49,7 @@
   
   // Default optimization level. This number controls the rate at which mavlink is sent in telemetry mode.
   // Adjust it to reduce bandwidth 0 - max bandwidth 3 - min bandwidth
-  "default_optimization_level" : 0, 
+  "default_optimization_level" : 2, 
   //udp_proxy_enabled: true means to open udpProxy for telemetry on this board.
   //the connection is created on the machien where this code runs not via communicator module.
   "udp_proxy_enabled": true,
