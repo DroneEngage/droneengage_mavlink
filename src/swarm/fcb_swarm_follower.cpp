@@ -82,6 +82,7 @@ void CSwarmFollower::handle_leader_traffic(const std::string & leader_sender, co
                     }
 
                     const double leader_vector_bearing = getBearingOfVector (leader_gpos.vx, leader_gpos.vy);
+                    UNUSED(leader_vector_bearing);
                     const double bearing_with_leader = calculateBearing(leader_lat,leader_lon, my_lat, my_lon);
 
                     POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, bearing_with_leader, (m_fcb_swarm_manager.getFollowerIndex()+1)*100);
