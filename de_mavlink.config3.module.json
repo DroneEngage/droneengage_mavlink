@@ -5,10 +5,10 @@
   
   // IP & Port Communication Module is listening to.
   "s2s_udp_target_ip": "127.0.0.1",
-  "s2s_udp_target_port": "60000", 
+  "s2s_udp_target_port": "60300", 
   // IP & Port of this module
   "s2s_udp_listening_ip": "127.0.0.1", 
-  "s2s_udp_listening_port": "60003", 
+  "s2s_udp_listening_port": "600033", 
   
   
   // How to connect to Ardupilot board
@@ -16,7 +16,7 @@
   "fcb_connection_uri": 
   {"type": "udp",
     "ip": "0.0.0.0",
-    "port":14551
+    "port":14553
   },
    
   // Using serial interface: static port 
@@ -28,8 +28,7 @@
   //   "dynamic": false
   // },
 
-  // Using serial interface: dynamic port search -- it will scan ports /dev/ttyUSB0 to /dev/ttyUSB10
-  // "fcb_connection_uri": 
+  // "fcb_connection_uri": dynamic port search -- it will scan ports /dev/ttyUSB0 to /dev/ttyUSB10
   // {
   //   "type": "serial",
   //   "port": "/dev/ttyUSB",
@@ -38,7 +37,9 @@
   // },
 
   
-
+  
+  // DONT EDIT
+  "groupID": "1",
 
       
   // Logger Section
@@ -49,7 +50,7 @@
   
   // Default optimization level. This number controls the rate at which mavlink is sent in telemetry mode.
   // Adjust it to reduce bandwidth 0 - max bandwidth 3 - min bandwidth
-  "default_optimization_level" : 0, 
+  "default_optimization_level" : 2, 
   //udp_proxy_enabled: true means to open udpProxy for telemetry on this board.
   //the connection is created on the machien where this code runs not via communicator module.
   "udp_proxy_enabled": true,
@@ -61,37 +62,36 @@
   //"event_wait_channel": 15,
   
   "read_only_mode": false,
-  // you can ignore loading parameters but the R/C Gamepad will not work.
   "ignore_loading_parameters": false,
 
   "message_timeouts":
   { 
         "1": [0,250,500,1000],
         "2": [0,250,500,1000],     // SYSTEM_TIME
-       "24": [0,800,1000,2000],    // GPS_RAW_INT
-       "27": [0,500,1000,2000],    // RAW_IMU
-       "28": [0,500,1000,2000],    // RAW_PRESSURE
-       "29": [0,500,2000,4000],    // SCALED_PRESSURE
-       "30": [0,250,1000,2000],    // ATTITUDE
-       "32": [0,250,1000,2000],    // LOCAL_POSITION_NED
-       "33": [0,250,1000,2000],    // GLOBAL_POSITION_INT
-       "34": [0,500,1000,2000],    // RC_CHANNELS_SCALED
-       "35": [0,500,1000,2000],    // RC_CHANNELS_RAW
-       "36": [0,1000,2000,2000],   // SERVO_OUTPUT_RAW
-       "42": [0,1000,2000,4000],   // MISSION_CURRENT
-       "62": [0,250,500,1000],     // NAV_CONTROLLER_OUTPUT
-       "65": [0,500,1000,2000],    // RC_CHANNELS
-       "74": [0,500,1000,2000],    // VFR_HUD 
-       "87": [0,500,1000,1000],    // POSITION_TARGET_GLOBAL_INT
-       "116": [0,1000,2000,4000],  // SCALED_IMU2
-       "124": [0,800,1000,2000],   // GPS2_RAW
-       "125": [0,1000,2000,4000],  // POWER STATUS
-       "129": [0,1000,2000,4000],  // SCALED_IMU3
-       "136": [0,500,1000,2000],   // TERRAIN_REPORT
-       "137": [0,500,2000,4000],   // SCALED_PRESSURE2
-       "143": [0,500,2000,4000],   // SCALED_PRESSURE3
-       "147": [0,500,2000,4000],   // BATTERY_STATUS
-       "152": [0,4000,8000,12000], // MEMINO
+      "24": [0,800,1000,2000],    // GPS_RAW_INT
+      "27": [0,500,1000,2000],    // RAW_IMU
+      "28": [0,500,1000,2000],    // RAW_PRESSURE
+      "29": [0,500,2000,4000],    // SCALED_PRESSURE
+      "30": [0,250,1000,2000],    // ATTITUDE
+      "32": [0,250,1000,2000],    // LOCAL_POSITION_NED
+      "33": [0,250,1000,2000],    // GLOBAL_POSITION_INT
+      "34": [0,500,1000,2000],    // RC_CHANNELS_SCALED
+      "35": [0,500,1000,2000],    // RC_CHANNELS_RAW
+      "36": [0,1000,2000,2000],   // SERVO_OUTPUT_RAW
+      "42": [0,1000,2000,4000],   // MISSION_CURRENT
+      "62": [0,250,500,1000],     // NAV_CONTROLLER_OUTPUT
+      "65": [0,500,1000,2000],    // RC_CHANNELS
+      "74": [0,500,1000,2000],    // VFR_HUD 
+      "87": [0,500,1000,1000],    // POSITION_TARGET_GLOBAL_INT
+      "116": [0,1000,2000,4000],  // SCALED_IMU2
+      "124": [0,800,1000,2000],   // GPS2_RAW
+      "125": [0,1000,2000,4000],  // POWER STATUS
+      "129": [0,1000,2000,4000],  // SCALED_IMU3
+      "136": [0,500,1000,2000],   // TERRAIN_REPORT
+      "137": [0,500,2000,4000],   // SCALED_PRESSURE2
+      "143": [0,500,2000,4000],   // SCALED_PRESSURE3
+      "147": [0,500,2000,4000],   // BATTERY_STATUS
+      "152": [0,4000,8000,12000], // MEMINO
       "163": [0,250,500,1000],     // AHRS
       "164": [0,2000,4000,12000],   // SIMSTATE
       "165": [0,250,1000,2000],    // HWSTATUS

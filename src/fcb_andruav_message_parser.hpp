@@ -8,6 +8,7 @@
 using Json = nlohmann::json;
 
 #include "./mission/missions.hpp"
+#include "./swarm/fcb_swarm_manager.hpp"
 #include "fcb_facade.hpp"
 #include "fcb_traffic_optimizer.hpp"
 #include "fcb_main.hpp"
@@ -54,7 +55,7 @@ namespace fcb
             uavos::fcb::CFCBMain&  m_fcbMain = uavos::fcb::CFCBMain::getInstance();
             mavlinksdk::CMavlinkSDK& m_mavlinksdk = mavlinksdk::CMavlinkSDK::getInstance();
             uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
-            uavos::fcb::CSwarmManager& m_fcb_swarm_manager = uavos::fcb::CSwarmManager::getInstance();
+            uavos::fcb::swarm::CSwarmManager& m_fcb_swarm_manager = uavos::fcb::swarm::CSwarmManager::getInstance();
     };
 
 }

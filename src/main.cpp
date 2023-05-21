@@ -14,7 +14,7 @@
 #include "./uavos_common/configFile.hpp"
 #include "./uavos_common/localConfigFile.hpp"
 #include "./uavos_common/udpClient.hpp"
-#include "fcb_swarm_manager.hpp"
+#include "./swarm/fcb_swarm_manager.hpp"
 #include "./mission/missions.hpp"
 #include "fcb_facade.hpp"
 #include "fcb_traffic_optimizer.hpp"
@@ -47,6 +47,7 @@ using namespace uavos;
                         TYPE_AndruavMessage_ServoChannel, \
                         TYPE_AndruavMessage_Sync_EventFire, \
                         TYPE_AndruavMessage_MAVLINK, \
+                        TYPE_AndruavMessage_SWARM_MAVLINK, \
                         TYPE_AndruavMessage_MAKE_SWARM,  \
                         TYPE_AndruavMessage_FollowHim_Request,  \
                         TYPE_AndruavMessage_FollowMe_Guided, \
@@ -265,8 +266,8 @@ void sendSYSMSG (const Json& jmsg, const int& andruav_message_id)
         
         Json fullMessage;
 
-        fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = std::string(SPECIAL_NAME_SYS_NAME); 
-        fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(CMD_COMM_SYSTEM);
+        fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = SPECIAL_NAME_SYS_NAME; 
+        fullMessage[INTERMODULE_ROUTING_TYPE]           = CMD_COMM_SYSTEM;
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
         fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = jmsg;
         const std::string& msg = fullMessage.dump();

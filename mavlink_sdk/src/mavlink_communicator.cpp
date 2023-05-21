@@ -40,7 +40,6 @@ void mavlinksdk::comm::CMavlinkCommunicator::stop ()
 	// wait for exit
 	
 	m_threadRead.join();
-	//m_threadWrite.join();
 
 	// now the read and write threads are closed
 	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Mavlink Communicator has Stopped" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
@@ -104,8 +103,8 @@ void mavlinksdk::comm::CMavlinkCommunicator::read_messages ()
         // ----------------------------------------------------------------------
 		//   READ MESSAGE
 		// ----------------------------------------------------------------------
-		mavlink_message_t message;
-		memset(&message,0,sizeof(mavlink_message_t));
+		mavlink_message_t message = {};
+		
 		const bool success = m_port->read_message(message);
 		
         if( success )

@@ -8,6 +8,8 @@ namespace uavos
 {
 namespace fcb
 {
+namespace swarm
+{
 // Swarm Formation
 #define FORMATION_SERB_NO_SWARM     0
 #define FORMATION_SERB_THREAD       1
@@ -17,9 +19,9 @@ namespace fcb
     typedef enum
     {
         FORMATION_NO_SWARM      = 0, 
-        FORMATION_THREAD        = 0, 
-        FORMATION_VECTOR        = 0, 
-        FORMATION_VECTOR_180    = 0, 
+        FORMATION_THREAD        = 1, 
+        FORMATION_VECTOR        = 2, 
+        FORMATION_VECTOR_180    = 3, 
 
     } ANDRUAV_SWARM_FORMATION;
 
@@ -28,7 +30,7 @@ namespace fcb
         std::string party_id;
         int follower_index;
 
-    } ANDRUAV_UNIT_SALVE;
+    } ANDRUAV_UNIT_FOLLOWER;
 
 
     class CSwarmManager
@@ -73,16 +75,21 @@ namespace fcb
 
         public:
 
-            bool isLeader() const;
-            bool isSlave() const;
-            void followLeader(const std::string& party_id, const int follower_index, const std::string& party_id_request);
+            void followLeader(const std::string& leader_party_id, const int follower_index, const ANDRUAV_SWARM_FORMATION follower_formation, const std::string& party_id_request);
             void unFollowLeader(const std::string& party_id_leader_to_unfollow, const std::string& party_id_request);
-            ANDRUAV_SWARM_FORMATION getFormation() const;
+            ANDRUAV_SWARM_FORMATION getFormationAsLeader() const;
+            ANDRUAV_SWARM_FORMATION getFormationAsFollower() const;
             void makeSwarm(const ANDRUAV_SWARM_FORMATION formation);
             void addFollower (const std::string& party_id, const int follower_index);
             void releaseSingleFollower (const std::string& party_id);
             void releaseFollowers ();
             int followersExist (const std::string& party_id) const;
+            
+
+        public:
+
+            void handle_swarm_as_leader();
+            
 
         public:
 
@@ -90,18 +97,55 @@ namespace fcb
             {
                 return m_leader_party_id;
             }
+
+            inline bool isMyLeader(const std::string& leader_party_id) const
+            {
+                return  (m_leader_party_id.compare (leader_party_id)==0);
+            }
+        
+            /**
+             * @brief a unit can be a follower and a leader at the same time
+             * 
+             * @return true 
+             * @return false 
+             */
+            inline bool isLeader() const
+            {
+                return m_is_leader;
+            }
+
+            /**
+             * @brief a unit can be a follower and a leader at the same time.
+             * Note: m_follower_formation can be 0 ubtill leader confirms.
+             * but m_follower_index can be set by GCS as initial request.
+             * @return true 
+             * @return false 
+             */
+            inline bool isFollower() const
+            {
+                return m_follower_index != -1;
+            }
+
+            inline int getFollowerIndex() const
+            {
+                return m_follower_index;
+            }
+
             
         private:
-            ANDRUAV_SWARM_FORMATION m_formation;
-            std::vector <ANDRUAV_UNIT_SALVE> m_slave_units;
+            ANDRUAV_SWARM_FORMATION m_formation_as_leader;
+            bool m_is_leader = false;
+            std::vector <ANDRUAV_UNIT_FOLLOWER> m_follower_units;
             std::string m_leader_party_id;
             /**
-             * @brief valid if I am a slave -follower-.
+             * @brief valid if I am a follower.
              * 
              */
             int m_follower_index=-1;
-            ANDRUAV_SWARM_FORMATION m_slave_formation;
+            ANDRUAV_SWARM_FORMATION m_formation_as_follower;
+            
     } ;
+}// namespace
 }// namespace
 }// namespace
 

@@ -182,6 +182,7 @@
 // New Binary Messages 
 #define TYPE_AndruavMessage_ServoOutput                 6501
 #define TYPE_AndruavMessage_MAVLINK                     6502
+#define TYPE_AndruavMessage_SWARM_MAVLINK               6503
 
 // Andruav Mission Types
 #define TYPE_CMissionItem                                    0
@@ -292,6 +293,12 @@
 #define SWARM_FOLLOW                                1
 #define SWARM_UNFOLLOW                              2
 
+#define TASHKEEL_SERB_NO_SWARM                      0
+#define TASHKEEL_SERB_THREAD                        1
+#define TASHKEEL_SERB_VECTOR                        2
+#define TASHKEEL_SERB_VECTOR_180                    3
+
+
 // GCS Permissions
 #define PERMISSION_ALLOW_GCS                0x00000001
 #define PERMISSION_ALLOW_UNIT               0x00000010
@@ -300,3 +307,9 @@
 #define PERMISSION_ALLOW_GCS_MODES_CONTROL  0x00000200
 #define PERMISSION_ALLOW_GCS_MODES_SERVOS   0x00000400
 #define PERMISSION_ALLOW_GCS_VIDEO          0x0000f000
+#define PERMISSION_ALLOW_SWARM              0x000f0000
+
+
+// DistinationLocation Types
+#define DESTINATION_GUIDED_POINT            0
+#define DESTINATION_SWARM_MY_LOCATION       1

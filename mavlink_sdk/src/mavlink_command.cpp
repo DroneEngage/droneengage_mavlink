@@ -726,7 +726,7 @@ void CMavlinkCommand::readParameter (const std::string& param_name) const
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_param_request_read_encode(255,190, &mavlink_message, &mavlink_param);
+	mavlink_msg_param_request_read_encode(GCS_SYSID,190, &mavlink_message, &mavlink_param);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -763,7 +763,7 @@ void CMavlinkCommand::readParameterByIndex (const uint16_t& param_index) const
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_param_request_read_encode(255,190, &mavlink_message, &mavlink_param);
+	mavlink_msg_param_request_read_encode(GCS_SYSID,190, &mavlink_message, &mavlink_param);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -785,7 +785,7 @@ void CMavlinkCommand::requestDataStream(MAV_DATA_STREAM stream_id) const
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_request_data_stream_encode(255,190, &mavlink_message, &mavlink_request_data_stream);
+	mavlink_msg_request_data_stream_encode(GCS_SYSID,190, &mavlink_message, &mavlink_request_data_stream);
 
     mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -854,7 +854,7 @@ void CMavlinkCommand::releaseRCChannels() const
     mavlink_rc_channels.chan18_raw = UINT16_MAX-1;  // release
 	
     mavlink_message_t mavlink_message;
-	mavlink_msg_rc_channels_override_encode (255, 190, &mavlink_message, &mavlink_rc_channels);
+	mavlink_msg_rc_channels_override_encode (GCS_SYSID, 190, &mavlink_message, &mavlink_rc_channels);
 
 	mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -904,7 +904,7 @@ void CMavlinkCommand::sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], in
     mavlink_rc_channels.chan18_raw = channel_length>=18?channels[17]:UINT16_MAX;  	   	// apply or ignore
 	
     mavlink_message_t mavlink_message;
-	mavlink_msg_rc_channels_override_encode (255, 190, &mavlink_message, &mavlink_rc_channels);
+	mavlink_msg_rc_channels_override_encode (GCS_SYSID, 190, &mavlink_message, &mavlink_rc_channels);
 
 	mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -936,7 +936,7 @@ void CMavlinkCommand::sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], in
  * @param vz 
  * @param yaw_rate 
  */
-void CMavlinkCommand::ctrlGuidedVelocityInLocalFrame (const float vx, const float vy, const float vz, const float yaw_rate) const
+void CMavlinkCommand::ctrlGuidedVelocityInLocalFrame (const float vx, const float vy, const float vz, const float yaw_rate, MAV_FRAME mav_frame) const
 {
 	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
@@ -954,7 +954,7 @@ void CMavlinkCommand::ctrlGuidedVelocityInLocalFrame (const float vx, const floa
 									  POSITION_TARGET_TYPEMASK_AZ_IGNORE |
 									  POSITION_TARGET_TYPEMASK_YAW_IGNORE;
 
-    mavlink_set_position.coordinate_frame = MAV_FRAME_BODY_OFFSET_NED;
+    mavlink_set_position.coordinate_frame = mav_frame;
 
 	mavlink_set_position.vx = vx;
 	mavlink_set_position.vy = vy;
@@ -963,7 +963,7 @@ void CMavlinkCommand::ctrlGuidedVelocityInLocalFrame (const float vx, const floa
 	mavlink_set_position.yaw_rate = yaw_rate;
 
 	mavlink_message_t mavlink_message;
-	mavlink_msg_set_position_target_local_ned_encode (255, mavlink_sdk.getCompId(), &mavlink_message, &mavlink_set_position);
+	mavlink_msg_set_position_target_local_ned_encode (GCS_SYSID, mavlink_sdk.getCompId(), &mavlink_message, &mavlink_set_position);
 
 	mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
