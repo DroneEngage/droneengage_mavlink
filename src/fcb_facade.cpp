@@ -9,7 +9,7 @@ using Json = nlohmann::json;
 
 #include "./mission/missions.hpp"
 #include "fcb_traffic_optimizer.hpp"
-#include "fcb_swarm_manager.hpp"
+#include "./swarm/fcb_swarm_manager.hpp"
 #include "fcb_facade.hpp"
 #include "fcb_main.hpp"
 
@@ -40,7 +40,7 @@ void CFCBFacade::sendID(const std::string&target_party_id)  const
 
     */
     CFCBMain&  fcbMain = CFCBMain::getInstance();
-    CSwarmManager& fcb_swarm_manager = CSwarmManager::getInstance();
+    swarm::CSwarmManager& fcb_swarm_manager = swarm::CSwarmManager::getInstance();
 
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
         
@@ -63,7 +63,8 @@ void CFCBFacade::sendID(const std::string&target_party_id)  const
             {"C", andruav_vehicle_info.rc_sub_action},
             {"B", andruav_vehicle_info.is_gcs_blocked},
 
-            {"o", (int)fcb_swarm_manager.getFormation()},
+            {"n", (int)fcb_swarm_manager.getFormationAsFollower()},
+            {"o", (int)fcb_swarm_manager.getFormationAsLeader()},
             {"q", fcb_swarm_manager.getLeader()}
         };
         
@@ -463,15 +464,7 @@ void CFCBFacade::sendLocationInfo () const
  */
 void CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
 {
-    /*
-        a : nav_roll
-        b : nav_pitch
-        y : nav_yaw
-        d : target_bearing 
-        e : wp_dist
-        f : alt_error
-    */
-
+    
     if (m_sendJMSG == NULL) return ;
     if (mavlinksdk::CVehicle::getInstance().getHighLatencyMode()!=0) return ;
                
@@ -480,25 +473,19 @@ void CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
     const mavlink_nav_controller_output_t& nav_controller = vehicle.getMsgNavController();
     const mavlink_vfr_hud_t& vfr_hud = vehicle.getMsgVFRHud();
     
-    // Obsolete
-    // Json message =
-    // {
-    //     {"a", attitude.roll},
-    //     {"b", attitude.pitch},
-    //     {"y", attitude.yaw},
-    //     {"d", nav_controller.target_bearing},
-    //     {"e", nav_controller.wp_dist},
-    //     {"f", nav_controller.alt_error},
-    // };
-
+    
     // Send Mavlink
     const int sys_id = m_mavlink_sdk.getSysId();
     const int comp_id = m_mavlink_sdk.getCompId();
 
     //mavlink_message_t mavlink_message1, mavlink_message2, mavlink_message3;
     mavlink_message_t mavlink_message[3];
+    
+    // roll - pitch - yaw - rollspeed - pitchspeed - yawspeed
     mavlink_msg_attitude_encode(sys_id, comp_id, &mavlink_message[0], &attitude);
+    // nav_roll - nav_pitch - nav_bearing - target_bearing - wp_dist - alt_error - aspd_error - xtrack_error
     mavlink_msg_nav_controller_output_encode(sys_id, comp_id, &mavlink_message[1], &nav_controller);
+    // airpeed - groundspeed - heading - throttle - alt - climb
     mavlink_msg_vfr_hud_encode(sys_id, comp_id, &mavlink_message[2], &vfr_hud);
 
     sendMavlinkData_M (target_party_id, mavlink_message, 3);
@@ -670,11 +657,11 @@ void CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
 }
 
 /**
-* @brief Send points of destination guided point.
+* @brief Send points of destination guided point or swarm location or similar destination points.
 * @details This function sends destination points after confirmed from FCB.
 * GCS sends these points to uavos and then oavos sends it to FCB then uavos should send it back to gcs as a confirmation.
 */
-void CFCBFacade::sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude) const
+void CFCBFacade::sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude, const int &target_type) const
 {
     
     if (m_sendJMSG == NULL) return ;
@@ -686,6 +673,7 @@ void CFCBFacade::sendFCBTargetLocation(const std::string&target_party_id, const 
     */
     Json message=
     {
+        {"P", target_type},
         {"T", latitude},
         {"O", longitude},
         {"A", altitude}
@@ -867,6 +855,33 @@ void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavl
 }
 
 
+void CFCBFacade::sendSWARM_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const
+{
+    if (count==0) return ;
+
+    char buf[600]; //BUG: Why this specific number ???
+    // Translate message to buffer
+    memset (buf,0,sizeof(buf));
+
+    uint16_t len=0;
+
+    for (int i=0;i<count;++i)
+    {
+        len += mavlink_msg_to_send_buffer((uint8_t*)(&buf[len]), &mavlink_message[i]);
+    }
+
+    if (len >= 600) 
+	{
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+		return ;
+	}
+
+    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_SWARM_MAVLINK, false, Json());
+    
+    return ;
+}
+
+
 void CFCBFacade::sendServoReadings(const std::string&target_party_id)  const
 {
     // TODO
@@ -1016,9 +1031,9 @@ void CFCBFacade::requestToFollowLeader(const std::string&target_party_id, const 
 {
     /*
         a: action
-        b: follower index
+        b: follower index (can be -1 so leader can deceide or can be non zero as a suggestion)
         c: leader id
-        d: slave party id 
+        d: follower party id 
     */
     Json message =
             {
@@ -1043,7 +1058,6 @@ void CFCBFacade::requestUnFollowLeader(const std::string&target_party_id) const
 {
     /*
         a: action
-        b: follower index
         c: leader id
         d: slave party id 
     */
@@ -1061,6 +1075,8 @@ void CFCBFacade::requestUnFollowLeader(const std::string&target_party_id) const
 
 void CFCBFacade::requestFromUnitToFollowMe(const std::string&target_party_id, const int follower_index) const
 {
+    swarm::CSwarmManager& fcb_swarm_manager = swarm::CSwarmManager::getInstance();
+
     /*
         a: null
         b: follower index
@@ -1071,7 +1087,9 @@ void CFCBFacade::requestFromUnitToFollowMe(const std::string&target_party_id, co
                 {"a", follower_index },
                 {"b", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
                 {"c", target_party_id},
+                {"d", fcb_swarm_manager.getFormationAsLeader()},
                 {"f", SWARM_FOLLOW}
+                
             };
                 
     m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_FollowHim_Request, false);

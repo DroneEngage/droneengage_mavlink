@@ -98,11 +98,12 @@ file(GLOB folder_helpers "./src/helpers/*.cpp")
 file(GLOB folder_uavos "./src/uavos_common/*.cpp")
 file(GLOB folder_mission "./src/mission/*.cpp")
 file(GLOB folder_geofence "./src/geofence/*.cpp")
+file(GLOB folder_swarm "./src/swarm/*.cpp")
 
 
 
 set(files ${folder_src} ${folder_uavos} ${folder_helpers}
- ${folder_mission} ${folder_geofence} 
+ ${folder_mission} ${folder_geofence}  ${folder_swarm}
  ${folder_sdk} ${folder_sdk_helper})
 
 include_directories(${PROJECT_SOURCE_DIR}/3rdparty)

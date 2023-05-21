@@ -78,7 +78,7 @@ class CMavlinkCommand
         void sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], int channel_length) const;
         
 
-        void ctrlGuidedVelocityInLocalFrame (const float vx, const float vy, const float vz, const float yaw_rate) const;
+        void ctrlGuidedVelocityInLocalFrame (const float vx, const float vy, const float vz, const float yaw_rate, MAV_FRAME mav_frame) const;
 
         void requestExtParametersList () const;
         void requestParametersList () const;

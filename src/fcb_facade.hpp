@@ -83,7 +83,7 @@ namespace fcb
             void sendParameterValue (const std::string&target_party_id, const mavlink_param_value_t& param_message) const;
             void sendPowerInfo(const std::string&target_party_id) const;
             void sendHomeLocation(const std::string&target_party_id) const;
-            void sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude) const;
+            void sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude, const int &target_type) const;
             void sendWayPoints(const std::string&target_party_id) const;
             void sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message) const;
             void sendMavlinkData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const;
@@ -102,6 +102,7 @@ namespace fcb
             void requestUnFollowLeader(const std::string&target_party_id) const;
             void requestFromUnitToFollowMe(const std::string&target_party_id, const int follower_index) const;
             void requestFromUnitToUnFollowMe(const std::string&target_party_id) const;
+            void sendSWARM_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const;
             // END SWARM API
             
             void requestUdpProxyTelemetry(const bool enable, const std::string&udp_ip1, const int& udp_port1, const std::string&udp_ip2, const int& udp_port2);

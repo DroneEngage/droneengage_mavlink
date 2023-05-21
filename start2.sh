@@ -1,1 +1,1 @@
-xterm -title "mavlink2"  -e "./bin/de_ardupilot.so -c ./config.module2.json"  &
+xterm -title "mavlink2" -bg black -fg white -e "./bin/de_ardupilot.so -c /home/mhefny/TDisk/public_versions/uavos/drone_engage_mavlink/de_mavlink.config2.module.json  -b /home/mhefny/TDisk/public_versions/uavos/drone_engage_mavlink/de_mavlink2.local"  &

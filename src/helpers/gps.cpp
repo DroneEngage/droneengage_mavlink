@@ -16,13 +16,13 @@ using namespace std;
 /**
  * @brief return distanbce in meters
  * 
- * @param latitude_new 
- * @param longitude_new 
- * @param latitude_old 
- * @param longitude_old 
+ * @param latitude_new  format 1e-7
+ * @param longitude_new format 1e-7
+ * @param latitude_old  format 1e-7
+ * @param longitude_old format 1e-7
  * @return double distance in meters
  */
-double calcGPSDistance(double latitude_new, double longitude_new, double latitude_old, double longitude_old)
+double calcGPSDistance(const double& latitude_new, const double& longitude_new, const double& latitude_old, const double& longitude_old)
 {
     double  lat_new = latitude_old * GRADOS_RADIANES;
     double  lat_old = latitude_new * GRADOS_RADIANES;
@@ -47,32 +47,85 @@ double calcGPSDistance(double latitude_new, double longitude_new, double latitud
     return distance;
 }
 
+// Function to get the point at a given bearing and distance from a given point.
+//
+// Args:
+//   lat1: The latitude of the first point.
+//   lon1: The longitude of the first point.
+//   bearing: The bearing in degrees.
+//   distance: The distance in kilometers.
+//
+// Returns:
+//   A tuple of (latitude, longitude) of the point at the given bearing and distance.
 
-double calculateBearing(double lon1, double lat1, double lon2, double lat2)
-{
-    double longitude1 = lon1;
-    double longitude2 = lon2;
-    double latitude1 = lat1 * GRADOS_RADIANES;
-    double latitude2 = lat2 * GRADOS_RADIANES;
-    double longDiff= (longitude2-longitude1) * GRADOS_RADIANES;
-    double y= sin(longDiff) * cos(latitude2);
-    double x= cos(latitude1) * sin(latitude2) - sin(latitude1) * cos(latitude2) * cos(longDiff);
+POINT_2D get_point_at_bearing(const double&  lat1, const double&  lon1, const double&  bearing_deg, const double&  distance_m) {
+
+    // Convert the latitude and longitude to radians.
+    double lat1_radians = lat1 * GRADOS_RADIANES;
+    double lon1_radians = lon1 * GRADOS_RADIANES;
+
+    // Calculate the bearing in radians.
+    double bearing_radians = bearing_deg * GRADOS_RADIANES;
+
+    // Calculate the latitude and longitude of the new point.
+    const double lat2 = asin(
+        sin(lat1_radians) * cos(distance_m / RADIO_TERRESTRE) +
+        cos(lat1_radians) * sin(distance_m / RADIO_TERRESTRE) * cos(bearing_radians));
+    const double lon2 = lon1_radians + atan2(
+        sin(bearing_radians) * sin(distance_m / RADIO_TERRESTRE) * cos(lat1_radians),
+        cos(distance_m / RADIO_TERRESTRE) - sin(lat1_radians) * sin(lat2));
+
+    // Convert the latitude and longitude to degrees.
+    double lat2_degrees = lat2 * RADIANES_GRADOS;
+    double lon2_degrees = lon2 * RADIANES_GRADOS;
+
+    POINT_2D  closest;
+    closest.latitude  = lat2_degrees;
+    closest.longitude = lon2_degrees;
     
-    // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "
-    // << "lon1:" << std::to_string(lon1)
-    // << "lat1:" << std::to_string(lat1)
-    // << "lon2:" << std::to_string(lon2)
-    // << "lat2:" << std::to_string(lat2)
-    // << std::endl;
+    return closest;
+}
 
+
+/**
+ * @brief Get the Bearing object
+ * IMPORTANT: if you are using vx & vy of GPS then use (vx, vy) 
+ * @param velocityY 
+ * @param velocityX 
+ * @return double 
+ */
+double getBearingOfVector(double velocityX, double velocityY) {
+
+  // Normalize the velocity vector.
+  double velocityMagnitude = sqrt(velocityX * velocityX + velocityY * velocityY);
+  double velocityUnitX = velocityX / velocityMagnitude;
+  double velocityUnitY = velocityY / velocityMagnitude;
+
+  // Get the angle of the normalized velocity vector.
+  double angle = atan2(velocityUnitY, velocityUnitX);
+
+  // Convert the angle to degrees.
+  return fmod((angle * 180.0 / M_PI + 360),360);
+}
+
+double calculateBearing(const double& lat1, const double& lon1, const double& lat2, const double& lon2)
+{
+    const double longitude1 = lon1;
+    const double longitude2 = lon2;
+    const double latitude1 = lat1 * GRADOS_RADIANES;
+    const double latitude2 = lat2 * GRADOS_RADIANES;
+    const double longDiff= (longitude2-longitude1) * GRADOS_RADIANES;
+    const double y= sin(longDiff) * cos(latitude2);
+    const double x= cos(latitude1) * sin(latitude2) - sin(latitude1) * cos(latitude2) * cos(longDiff);
+    
     return fmod(((RADIANES_GRADOS *(atan2(y, x)))+360),360);
 }
 
 
 
-double inPolygon(double lat1, double lon1, std::vector<POINT_3D> points)
+double inPolygon(const double&  lat1, const double&  lon1, const std::vector<POINT_3D> points)
 {
-    int nvert= points.size();
+    const int nvert= points.size();
     int i, j, c = 0;
     for (i = 0, j = nvert-1; i < nvert; j = i++) {
         // std::cout << std::to_string(points[i].longitude) << " " << std::to_string(points[j].longitude) << " " << std::to_string(lon1) << "(points[i].longitude>lon1)" << std::to_string((points[i].longitude>lon1))
@@ -90,11 +143,11 @@ double inPolygon(double lat1, double lon1, std::vector<POINT_3D> points)
     return c;
 }
 
-POINT_2D findIntersectionPoint(double ptx, double pty, double p1x, double p1y, double p2x, double p2y)
+POINT_2D findIntersectionPoint(const double& ptx, const double& pty, const double& p1x, const double& p1y, const double& p2x, const double& p2y)
 {
     POINT_2D  closest;
-    double dx = p2x - p1x;
-    double dy = p2y - p1y;
+    const double dx = p2x - p1x;
+    const double dy = p2y - p1y;
     if ((dx == 0) && (dy == 0))
     {
         // It's a point not a line segment.
@@ -105,7 +158,7 @@ POINT_2D findIntersectionPoint(double ptx, double pty, double p1x, double p1y, d
     }
 
     // Calculate the t that minimizes the distance.
-    double t = ((ptx - p1x) * dx + (pty - p1y) * dy) /
+    const double t = ((ptx - p1x) * dx + (pty - p1y) * dy) /
                 (dx * dx + dy * dy);
 
     // See if this represents one of the segment's
@@ -129,7 +182,7 @@ POINT_2D findIntersectionPoint(double ptx, double pty, double p1x, double p1y, d
     return closest;
 }
 
-double findDistanceToSegment(double ptx, double pty, double p1x, double p1y, double p2x, double p2y)
+double findDistanceToSegment(const double& ptx, const double& pty, const double& p1x, const double& p1y, const double& p2x, const double& p2y)
 {
     POINT_2D  closest = findIntersectionPoint(ptx, pty, p1x,p1y,p2x,p2y);
     return calcGPSDistance(ptx,pty,closest.latitude,closest.longitude);

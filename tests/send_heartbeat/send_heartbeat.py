@@ -1,6 +1,13 @@
+# This function is used to test sending a HEARTBEAT next to HEARTBEAT sent by FC.
+# This is used to solve some issues in UI
+
+
 from pymavlink import mavutil
 import time
 import argparse
+
+
+
 
 def send_heartbeat(ip_address, port, system_id, component_id):
     # Start a connection listening on a UDP port

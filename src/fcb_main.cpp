@@ -24,6 +24,7 @@
 
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
+#include "./swarm/fcb_swarm_manager.hpp"
 
 using namespace uavos::fcb;
 
@@ -483,6 +484,8 @@ void CFCBMain::remoteControlSignal ()
  */
 void CFCBMain::loopScheduler ()
 {
+    swarm::CSwarmManager& fcb_swarm_manager = swarm::CSwarmManager::getInstance();
+
     while (!m_exit_thread)
     {
         // timer each 10m sec.
@@ -492,7 +495,8 @@ void CFCBMain::loopScheduler ()
 
         if (m_counter%10 ==0)
         {   // each 100 msec
-            
+            fcb_swarm_manager.handle_swarm_as_leader();
+
         }
 
         if (m_counter%30 ==0)
@@ -504,7 +508,6 @@ void CFCBMain::loopScheduler ()
         if (m_counter%50 == 0)
         {
             m_fcb_facade.sendNavInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-            //m_fcb_facade.sendHighLatencyInfo(std::string()); //TESTING
             updateGeoFenceHitStatus();
 
             // called each second group #1
@@ -512,7 +515,6 @@ void CFCBMain::loopScheduler ()
             checkBlockedStatus();
             
             heartbeatCamera();
-            //mavlinksdk::CMavlinkCommand::getInstance().requestMessageEmit(MAVLINK_MSG_ID_WIND);
             
             mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
             if (vehicle.hasLidarAltitude())
@@ -1542,8 +1544,8 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
                 !m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_throttle]?0:
                 (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle]) / 100.0f,
                 !m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_yaw]?0:
-                (rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw] - 1500) / 1000.0f
-                );
+                (rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw] - 1500) / 1000.0f,
+                MAV_FRAME_BODY_OFFSET_NED);
             }
             else
             {
@@ -1551,7 +1553,8 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
                 (1500 - rc_chammels_pwm[1]) / 100.0f,
                 (1500 - rc_chammels_pwm[0]) / 100.0f,
                 (1500 - rc_chammels_pwm[2]) / 100.0f,
-                (1500 - rc_chammels_pwm[3]) / 100.0f
+                (1500 - rc_chammels_pwm[3]) / 100.0f,
+                MAV_FRAME_BODY_OFFSET_NED
                 );
             }
         }
@@ -1736,7 +1739,7 @@ void CFCBMain::updateGeoFenceHitStatus()
         uavos::fcb::geofence::GEO_FENCE_STRUCT * g = geo_fence_struct_list[i];
         uavos::fcb::geofence::CGeoFenceBase * geo_fence = g->geoFence.get();
         const int local_index = geo_fence_struct_list[i]->local_index;
-        double in_zone_new = geo_fence->isInside(gpos.lat * 0.0000001, gpos.lon * 0.0000001, gpos.alt);
+        double in_zone_new = geo_fence->isInside(gpos.lat / 10000000.0f, gpos.lon / 10000000.0f, gpos.alt);
         double in_zone = g->parties[local_index].get()->in_zone;
         
         if ((in_zone == -INFINITY) || (signum(in_zone_new) != signum(in_zone)))
