@@ -879,6 +879,12 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json &andruav_message)
             CFCBFacade::getInstance().sendHomeLocation(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
         break;
 
+        case RemoteCommand_MISSION_COUNT:
+            // mission cound and mission current are sent together in DE.
+        case RemoteCommand_MISSION_CURRENT:
+            CFCBFacade::getInstance().sendMissionCurrent(std::string());
+        break;
+
         case RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB:
             if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
             

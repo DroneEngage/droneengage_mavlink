@@ -547,7 +547,7 @@ void CFCBMain::loopScheduler ()
             }
 
 
-            m_fcb_facade.sendMissionCurrent(std::string(), mavlinksdk::CMavlinkWayPointManager::getInstance().getMissionCurrent());
+            
             
         }
 
@@ -555,6 +555,7 @@ void CFCBMain::loopScheduler ()
         {   // 10 sec
             m_fcb_facade.sendID(std::string());
             m_fcb_facade.sendDistanceSensorInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+            m_fcb_facade.sendMissionCurrent(std::string());
         }
 
         if (m_counter % 1500 ==0)
@@ -972,7 +973,7 @@ void CFCBMain::OnMissionSaveFinished (const int& result, const int& mission_type
 
 void CFCBMain::OnMissionCurrentChanged (const mavlink_mission_current_t& mission_current)
 {
-    m_fcb_facade.sendMissionCurrent(std::string(), mission_current);
+    m_fcb_facade.sendMissionCurrent(std::string());
 }
             
             
