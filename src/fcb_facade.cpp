@@ -585,7 +585,7 @@ void CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
 
 
 
-void CFCBFacade::sendMissionCurrent(const std::string&target_party_id, const mavlink_mission_current_t& mission_current) const
+void CFCBFacade::sendMissionCurrent(const std::string&target_party_id) const
 {
     if (m_sendJMSG == NULL) return ;
 
@@ -595,6 +595,7 @@ void CFCBFacade::sendMissionCurrent(const std::string&target_party_id, const mav
     
     mavlink_message_t mavlink_message[2];
     
+    const mavlink_mission_current_t mission_current = mavlinksdk::CMavlinkWayPointManager::getInstance().getMissionCurrent();
 
     // you do not need to do thefollowing check as you can resent this message to different GCS once then become online.
     // there is no obsolete message here.

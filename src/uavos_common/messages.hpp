@@ -222,6 +222,9 @@
 #define RemoteCommand_SET_START_MISSION_ITEM                504
 #define RemoteCommand_REQUEST_PARA_LIST                     505 // list of FCB parameters
 #define RemoteCommand_SET_UDPPROXY_CLIENT_PORT              506
+#define RemoteCommand_MISSION_COUNT                         507
+#define RemoteCommand_MISSION_CURRENT                       508
+
 
 // Drone Report
 #define Drone_Report_NAV_ItemReached            1

@@ -91,7 +91,7 @@ namespace fcb
             void sendMavlinkData_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const;
             void sendServoReadings(const std::string&target_party_id) const;
             void sendWayPointReached(const std::string&target_party_id, const int& mission_sequence) const;
-            void sendMissionCurrent(const std::string&target_party_id, const mavlink_mission_current_t& mission_current) const;
+            void sendMissionCurrent(const std::string&target_party_id) const;
             void sendGeoFenceAttachedStatusToTarget(const std::string&target_party_id, const std::string&fence_name) const;
             void sendGeoFenceToTarget(const std::string&target_party_id, const geofence::GEO_FENCE_STRUCT * geo_fenct_struct) const;
             void sendGeoFenceHit(const std::string&target_party_id, const std::string fence_name, const double distance, const bool in_zone, const bool should_keep_outside) const;
