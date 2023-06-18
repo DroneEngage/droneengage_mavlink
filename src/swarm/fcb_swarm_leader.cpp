@@ -19,14 +19,12 @@ void CSwarmManager::handle_swarm_as_leader()
     if ((now - previous) > 1000000)
     {
         mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
-        mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-    
         for (const auto& item : m_follower_units) {
             
             mavlink_message_t mavlink_message[2];
         
-            const int sys_id = m_mavlink_sdk.getSysId();
-            const int comp_id = m_mavlink_sdk.getCompId();
+            const int sys_id = vehicle.getSysId();
+            const int comp_id = vehicle.getCompId();
 
             const mavlink_attitude_t& attitude = vehicle.getMsgAttitude();
             const mavlink_global_position_int_t&  my_gpos = vehicle.getMsgGlobalPositionInt();

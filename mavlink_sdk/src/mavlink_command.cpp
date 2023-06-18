@@ -1,9 +1,8 @@
 #include <iostream>
 
 #include "mavlink_command.h"
-#include "mavlink_sdk.h"
 #include "mavlink_waypoint_manager.h"
-#include "vehicle.h"
+
 
 using namespace mavlinksdk;
 
@@ -34,11 +33,11 @@ void CMavlinkCommand::sendLongCommand (const uint16_t& command,
                 const float& param7) const
 {
 	
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
+ 
 	mavlink_command_long_t msg = { 0 };
-	msg.target_system    = mavlink_sdk.getSysId();
-	msg.target_component = mavlink_sdk.getCompId();
+	msg.target_system    = m_vehicle.getSysId();
+	msg.target_component = m_vehicle.getCompId();
 	msg.command          = command;
 	msg.confirmation     = confirmation;
 	
@@ -52,9 +51,9 @@ void CMavlinkCommand::sendLongCommand (const uint16_t& command,
 	
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_command_long_encode(255,190, &mavlink_message, &msg);
+	mavlink_msg_command_long_encode(GCS_SYSID,190, &mavlink_message, &msg);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
@@ -71,11 +70,11 @@ void CMavlinkCommand::sendIntCommand (const uint16_t& command,
                 const float& z) const
 {
 	
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
 	
 	mavlink_command_int_t msg = { 0 };
-	msg.target_system    = mavlink_sdk.getSysId();
-	msg.target_component = mavlink_sdk.getCompId();
+	msg.target_system    = m_vehicle.getSysId();
+	msg.target_component = m_vehicle.getCompId();
 	msg.command          = command;
 	msg.frame     		 = frame;
 	
@@ -89,9 +88,9 @@ void CMavlinkCommand::sendIntCommand (const uint16_t& command,
 
 	// Encode
 	mavlink_message_t mavlink_message;
-	mavlink_msg_command_int_encode(255,190, &mavlink_message, &msg);
+	mavlink_msg_command_int_encode(GCS_SYSID,190, &mavlink_message, &msg);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
@@ -105,9 +104,7 @@ void CMavlinkCommand::sendIntCommand (const uint16_t& command,
  */
 void CMavlinkCommand::sendNative(const mavlink_message_t mavlink_message) const
 {
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-	
-	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 	return ;
 }
 
@@ -115,15 +112,15 @@ void CMavlinkCommand::requestMessageEmit(const uint32_t message_id) const
 {
 
 	// std::cout << "requestMessageInterval" << std::endl;
-	// mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	// 
 	// mavlink_message_interval_t mavlink_message_interval;
 	// mavlink_message_interval.message_id = message_id;
 	// mavlink_message_interval.interval_us = interval_us;
-	// // mavlink_message_interval.target_system    = mavlink_sdk.getSysId();
-	// // mavlink_message_interval.target_component = mavlink_sdk.getCompId();
+	// // mavlink_message_interval.target_system    = m_vehicle.getSysId();
+	// // mavlink_message_interval.target_component = m_vehicle.getCompId();
 	
 	// mavlink_message_t mavlink_message;
-	// mavlink_msg_message_interval_encode(mavlink_sdk.getSysId(),mavlink_sdk.getCompId(), &mavlink_message, &mavlink_message_interval);
+	// mavlink_msg_message_interval_encode(m_vehicle.getSysId(),mavlink_sdk.getCompId(), &mavlink_message, &mavlink_message_interval);
 	
 	// mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -144,7 +141,6 @@ void CMavlinkCommand::requestMessageEmit(const uint32_t message_id) const
 
 void CMavlinkCommand::sendHeartBeatOfGCS() const
 {
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	mavlink_heartbeat_t mavlink_heartbeat;
 	mavlink_heartbeat.autopilot = 8;
 	mavlink_heartbeat.base_mode = 0;
@@ -154,23 +150,23 @@ void CMavlinkCommand::sendHeartBeatOfGCS() const
 	mavlink_heartbeat.type = 6;
 	
 	mavlink_message_t mavlink_message;
-	mavlink_msg_heartbeat_encode(255,0, &mavlink_message, &mavlink_heartbeat);
+	mavlink_msg_heartbeat_encode(GCS_SYSID,0, &mavlink_message, &mavlink_heartbeat);
 	
-	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 	return ;
 }
         
 
 void CMavlinkCommand::sendHeartBeatOfComponent(const uint8_t component_id) const
 {
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-	mavlinksdk::CVehicle& vehicle = mavlinksdk::CVehicle::getInstance();
-	const mavlink_heartbeat_t mavlink_heartbeat= vehicle.getMsgHeartBeat();
+	
+
+	const mavlink_heartbeat_t mavlink_heartbeat= m_vehicle.getMsgHeartBeat();
 	
 	mavlink_message_t mavlink_message;
-	mavlink_msg_heartbeat_encode(mavlink_sdk.getSysId(),component_id, &mavlink_message, &mavlink_heartbeat);
+	mavlink_msg_heartbeat_encode(m_vehicle.getSysId(),component_id, &mavlink_message, &mavlink_heartbeat);
 
-	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 	return ;
 }
 
@@ -402,8 +398,6 @@ void CMavlinkCommand::sendMissionAck (const  uint8_t target_system, uint8_t targ
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: sendMissionAck " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-	
 	mavlink_mission_ack_t mission_ack;
 	mission_ack.type = result;
 	mission_ack.target_system = target_system;
@@ -412,7 +406,7 @@ void CMavlinkCommand::sendMissionAck (const  uint8_t target_system, uint8_t targ
 	mavlink_message_t mavlink_message;
 	mavlink_msg_mission_ack_encode(255,190, &mavlink_message, &mission_ack);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
@@ -433,12 +427,12 @@ void CMavlinkCommand::getWayPointByNumber (const int& mission_number) const
     #endif
     
 	
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
 	
 	mavlink_mission_request_int_t mission_request = {0};
 
-	mission_request.target_system = mavlink_sdk.getSysId();
-	mission_request.target_component = mavlink_sdk.getCompId();
+	mission_request.target_system = m_vehicle.getSysId();
+	mission_request.target_component = m_vehicle.getCompId();
 	mission_request.mission_type = MAV_MISSION_TYPE_MISSION;
 	mission_request.seq = mission_number;
 	
@@ -447,21 +441,21 @@ void CMavlinkCommand::getWayPointByNumber (const int& mission_number) const
 	mavlink_message_t mavlink_message;
 	mavlink_msg_mission_request_int_encode(255,190, &mavlink_message, &mission_request);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
 
 void CMavlinkCommand::clearWayPoints () const
 {
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
 	
 	mavlinksdk::CMavlinkWayPointManager::getInstance().clearWayPoints();
 
 	mavlink_mission_clear_all_t mission_clear;
 
-	mission_clear.target_system = mavlink_sdk.getSysId();
-	mission_clear.target_component = mavlink_sdk.getCompId();
+	mission_clear.target_system = m_vehicle.getSysId();
+	mission_clear.target_component = m_vehicle.getCompId();
 	mission_clear.mission_type = MAV_MISSION_TYPE_MISSION; //MAV_MISSION_TYPE_ALL;
 	
 	
@@ -469,7 +463,7 @@ void CMavlinkCommand::clearWayPoints () const
 	mavlink_message_t mavlink_message;
 	mavlink_msg_mission_clear_all_encode(GCS_SYSID,190, &mavlink_message, &mission_clear);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
@@ -489,17 +483,16 @@ void CMavlinkCommand::setCurrentMission (const int& mission_number) const
 
 	mavlink_mission_set_current_t mission_current ={0};
 
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
-	mission_current.target_system = mavlink_sdk.getSysId();
-	mission_current.target_component = mavlink_sdk.getCompId();
+	mission_current.target_system = m_vehicle.getSysId();
+	mission_current.target_component = m_vehicle.getCompId();
 	mission_current.seq = mission_number;
 
 	// Encode
 	mavlink_message_t mavlink_message;
 	mavlink_msg_mission_set_current_encode(GCS_SYSID,190, &mavlink_message, &mission_current);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
@@ -513,17 +506,17 @@ void CMavlinkCommand::requestMissionList () const
     
 	mavlink_mission_request_list_t mission_request_list ={0};
 
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
-	mission_request_list.target_system = mavlink_sdk.getSysId();
-	mission_request_list.target_component = mavlink_sdk.getCompId();
+	
+	mission_request_list.target_system = m_vehicle.getSysId();
+	mission_request_list.target_component = m_vehicle.getCompId();
 	mission_request_list.mission_type = MAV_MISSION_TYPE_MISSION;
 
 	// Encode
 	mavlink_message_t mavlink_message;
 	mavlink_msg_mission_request_list_encode(255,190, &mavlink_message, &mission_request_list);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
@@ -544,10 +537,10 @@ void CMavlinkCommand::setMissionCount (const int& mission_count, MAV_MISSION_TYP
     
 	mavlink_mission_count_t mission_count_msg = {0};
 
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
-	mission_count_msg.target_system = mavlink_sdk.getSysId();
-	mission_count_msg.target_component = mavlink_sdk.getCompId();
+
+	mission_count_msg.target_system = m_vehicle.getSysId();
+	mission_count_msg.target_component = m_vehicle.getCompId();
 	mission_count_msg.mission_type = mission_type;
 	mission_count_msg.count = mission_count;
 
@@ -555,7 +548,7 @@ void CMavlinkCommand::setMissionCount (const int& mission_count, MAV_MISSION_TYP
 	mavlink_message_t mavlink_message;
 	mavlink_msg_mission_count_encode(255,190, &mavlink_message, &mission_count_msg);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
@@ -571,32 +564,32 @@ void CMavlinkCommand::writeMission (std::map <int, mavlink_mission_item_int_t> m
 
 void CMavlinkCommand::writeMissionItem (mavlink_mission_item_int_t mavlink_mission) const
 {
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
-	mavlink_mission.target_system = mavlink_sdk.getSysId();
-	mavlink_mission.target_component = mavlink_sdk.getCompId();
+	
+	mavlink_mission.target_system = m_vehicle.getSysId();
+	mavlink_mission.target_component = m_vehicle.getCompId();
 	
 	// Encode
 	mavlink_message_t mavlink_message;
 	mavlink_msg_mission_item_int_encode(255, 190, &mavlink_message, &mavlink_mission);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
 
 void CMavlinkCommand::writeMissionItem (mavlink_mission_item_t mavlink_mission) const
 {
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
-	mavlink_mission.target_system = mavlink_sdk.getSysId();
-	mavlink_mission.target_component = mavlink_sdk.getCompId();
+	
+	mavlink_mission.target_system = m_vehicle.getSysId();
+	mavlink_mission.target_component = m_vehicle.getCompId();
 	
 	// Encode
 	mavlink_message_t mavlink_message;
 	mavlink_msg_mission_item_encode(255, 190, &mavlink_message, &mavlink_mission);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
@@ -615,16 +608,16 @@ void CMavlinkCommand::requestParametersList () const
 	
 	mavlink_param_request_list_t mavlink_param;
 
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
-	mavlink_param.target_system = mavlink_sdk.getSysId();
-	mavlink_param.target_component = mavlink_sdk.getCompId();
+	
+	mavlink_param.target_system = m_vehicle.getSysId();
+	mavlink_param.target_component = m_vehicle.getCompId();
 	
 	// Encode
 	mavlink_message_t mavlink_message;
 	mavlink_msg_param_request_list_encode(GCS_SYSID,190, &mavlink_message, &mavlink_param);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;	
 }
@@ -641,14 +634,14 @@ void CMavlinkCommand::requestExtParametersList () const
 	
 	// mavlink_param_ext_request_list_t mavlink_param;
 
-	// mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	// 
 	
-	// mavlink_param.target_system = mavlink_sdk.getSysId();
-	// mavlink_param.target_component = mavlink_sdk.getCompId();
+	// mavlink_param.target_system = m_vehicle.getSysId();
+	// mavlink_param.target_component = m_vehicle.getCompId();
 	
 	// // Encode
 	// mavlink_message_t mavlink_message;
-	// mavlink_msg_param_ext_request_list_encode(255,190, &mavlink_message, &mavlink_param);
+	// mavlink_msg_param_ext_request_list_encode(GCS_SYSID,190, &mavlink_message, &mavlink_param);
 
     // mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
@@ -668,7 +661,7 @@ void CMavlinkCommand::requestExtParametersList () const
 void CMavlinkCommand::writeParameter (const std::string& param_name, const double &value)  const
 {
 	//TODO to be implemented	
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
 	const std::map<std::string, mavlink_param_value_t>& parameters_list = mavlinksdk::CMavlinkParameterManager::getInstance().getParametersList();
 	
 
@@ -681,8 +674,8 @@ void CMavlinkCommand::writeParameter (const std::string& param_name, const doubl
 		return ; // not found
 	} 
 	
-	mavlink_param.target_system = mavlink_sdk.getSysId();
-	mavlink_param.target_component = mavlink_sdk.getCompId();
+	mavlink_param.target_system = m_vehicle.getSysId();
+	mavlink_param.target_component = m_vehicle.getCompId();
 	
 	mavlink_param.param_value = value;
 	mavlink_param.param_type = it->second.param_type;
@@ -692,7 +685,7 @@ void CMavlinkCommand::writeParameter (const std::string& param_name, const doubl
 	mavlink_message_t mavlink_message;
 	mavlink_msg_param_set_encode(GCS_SYSID,190, &mavlink_message, &mavlink_param);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
@@ -706,7 +699,7 @@ void CMavlinkCommand::writeParameter (const std::string& param_name, const doubl
 void CMavlinkCommand::readParameter (const std::string& param_name) const
 {
 	//TODO to be implemented	
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
 	const std::map<std::string, mavlink_param_value_t>& parameters_list = mavlinksdk::CMavlinkParameterManager::getInstance().getParametersList();
 	
 
@@ -719,8 +712,8 @@ void CMavlinkCommand::readParameter (const std::string& param_name) const
 		return ; // not found
 	} 
 	
-	mavlink_param.target_system = mavlink_sdk.getSysId();
-	mavlink_param.target_component = mavlink_sdk.getCompId();
+	mavlink_param.target_system = m_vehicle.getSysId();
+	mavlink_param.target_component = m_vehicle.getCompId();
 	memcpy (mavlink_param.param_id, it->first.c_str(), 16);
 	mavlink_param.param_index = -1; //Send -1 to use the param ID field as identifier (else the param id will be ignored)
 	
@@ -728,7 +721,7 @@ void CMavlinkCommand::readParameter (const std::string& param_name) const
 	mavlink_message_t mavlink_message;
 	mavlink_msg_param_request_read_encode(GCS_SYSID,190, &mavlink_message, &mavlink_param);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;	
 }
@@ -750,14 +743,14 @@ void CMavlinkCommand::readParameterByIndex (const uint16_t& param_index) const
     #endif
 
 
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
 	//const std::map<std::string, mavlink_param_value_t>& parameters_list = mavlinksdk::CMavlinkParameterManager::getInstance().getParametersList();
 	
 
 	mavlink_param_request_read_t mavlink_param;
 	
-	mavlink_param.target_system = mavlink_sdk.getSysId();
-	mavlink_param.target_component = mavlink_sdk.getCompId();
+	mavlink_param.target_system = m_vehicle.getSysId();
+	mavlink_param.target_component = m_vehicle.getCompId();
 	memset (mavlink_param.param_id, 0, 16);
 	mavlink_param.param_index = param_index; 
 	
@@ -765,20 +758,20 @@ void CMavlinkCommand::readParameterByIndex (const uint16_t& param_index) const
 	mavlink_message_t mavlink_message;
 	mavlink_msg_param_request_read_encode(GCS_SYSID,190, &mavlink_message, &mavlink_param);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;	
 }
 
 void CMavlinkCommand::requestDataStream(MAV_DATA_STREAM stream_id) const
 {
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
 	
 
 	mavlink_request_data_stream_t mavlink_request_data_stream;
 	
-	mavlink_request_data_stream.target_system = mavlink_sdk.getSysId();
-	mavlink_request_data_stream.target_component = mavlink_sdk.getCompId();
+	mavlink_request_data_stream.target_system = m_vehicle.getSysId();
+	mavlink_request_data_stream.target_component = m_vehicle.getCompId();
 	mavlink_request_data_stream.req_stream_id = stream_id;
 	mavlink_request_data_stream.req_message_rate = 4;
 	mavlink_request_data_stream.start_stop = 1;
@@ -787,7 +780,7 @@ void CMavlinkCommand::requestDataStream(MAV_DATA_STREAM stream_id) const
 	mavlink_message_t mavlink_message;
 	mavlink_msg_request_data_stream_encode(GCS_SYSID,190, &mavlink_message, &mavlink_request_data_stream);
 
-    mavlink_sdk.sendMavlinkMessage(mavlink_message);
+    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 }
 
@@ -828,11 +821,11 @@ void CMavlinkCommand::requestHomeLocation () const
  */
 void CMavlinkCommand::releaseRCChannels() const
 {
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
 	
 	mavlink_rc_channels_override_t mavlink_rc_channels = {0};
-	mavlink_rc_channels.target_system    = mavlink_sdk.getSysId();
-	mavlink_rc_channels.target_component = mavlink_sdk.getCompId();
+	mavlink_rc_channels.target_system    = m_vehicle.getSysId();
+	mavlink_rc_channels.target_component = m_vehicle.getCompId();
 	
 	mavlink_rc_channels.chan1_raw = 0;				// release
     mavlink_rc_channels.chan2_raw = 0;				// release
@@ -856,7 +849,7 @@ void CMavlinkCommand::releaseRCChannels() const
     mavlink_message_t mavlink_message;
 	mavlink_msg_rc_channels_override_encode (GCS_SYSID, 190, &mavlink_message, &mavlink_rc_channels);
 
-	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
@@ -878,11 +871,11 @@ void CMavlinkCommand::sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], in
 		channel_length = MAX_RC_CHANNELS;
 	}
 
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
 	
 	mavlink_rc_channels_override_t mavlink_rc_channels = {0};
-	mavlink_rc_channels.target_system    = mavlink_sdk.getSysId();
-	mavlink_rc_channels.target_component = mavlink_sdk.getCompId();
+	mavlink_rc_channels.target_system    = m_vehicle.getSysId();
+	mavlink_rc_channels.target_component = m_vehicle.getCompId();
 	
 	mavlink_rc_channels.chan1_raw = channel_length>=1?channels[0]:UINT16_MAX;  			// apply or ignore
     mavlink_rc_channels.chan2_raw = channel_length>=2?channels[1]:UINT16_MAX;  			// apply or ignore
@@ -906,7 +899,7 @@ void CMavlinkCommand::sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], in
     mavlink_message_t mavlink_message;
 	mavlink_msg_rc_channels_override_encode (GCS_SYSID, 190, &mavlink_message, &mavlink_rc_channels);
 
-	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	// #ifdef DEBUG
     //     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT 
@@ -938,13 +931,12 @@ void CMavlinkCommand::sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], in
  */
 void CMavlinkCommand::ctrlGuidedVelocityInLocalFrame (const float vx, const float vy, const float vz, const float yaw_rate, MAV_FRAME mav_frame) const
 {
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
 	
 	mavlink_set_position_target_local_ned_t mavlink_set_position = {0};
 
 
-	mavlink_set_position.target_system    = mavlink_sdk.getSysId();
-	mavlink_set_position.target_component = mavlink_sdk.getCompId();
+	mavlink_set_position.target_system    = m_vehicle.getSysId();
+	mavlink_set_position.target_component = m_vehicle.getCompId();
 	
 	mavlink_set_position.type_mask =  POSITION_TARGET_TYPEMASK_X_IGNORE |
 									  POSITION_TARGET_TYPEMASK_Y_IGNORE |
@@ -963,9 +955,9 @@ void CMavlinkCommand::ctrlGuidedVelocityInLocalFrame (const float vx, const floa
 	mavlink_set_position.yaw_rate = yaw_rate;
 
 	mavlink_message_t mavlink_message;
-	mavlink_msg_set_position_target_local_ned_encode (GCS_SYSID, mavlink_sdk.getCompId(), &mavlink_message, &mavlink_set_position);
+	mavlink_msg_set_position_target_local_ned_encode (GCS_SYSID, m_vehicle.getCompId(), &mavlink_message, &mavlink_set_position);
 
-	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
 	return ;
 }
@@ -989,15 +981,15 @@ void CMavlinkCommand::gotoGuidedPoint_default (const double& latitude, const dou
 	//     // Encode
 	// 	mavlink_message_t mavlink_message;
 		
-	// 	mavlink_msg_position_target_global_int_encode(255,190, &mavlink_message, &msg);
+	// 	mavlink_msg_position_target_global_int_encode(GCS_SYSID,190, &mavlink_message, &msg);
 
 	//    mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
-	mavlinksdk::CMavlinkSDK& mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+	
 	
 	mavlink_mission_item_t msg = {0};
-	msg.target_system    = mavlink_sdk.getSysId();
-	msg.target_component = mavlink_sdk.getCompId();
+	msg.target_system    = m_vehicle.getSysId();
+	msg.target_component = m_vehicle.getCompId();
     msg.current = 2; // TODO use guided mode enum
     msg.frame = MAV_FRAME::MAV_FRAME_GLOBAL_RELATIVE_ALT;
     msg.command = MAV_CMD::MAV_CMD_NAV_WAYPOINT; //
@@ -1014,7 +1006,7 @@ void CMavlinkCommand::gotoGuidedPoint_default (const double& latitude, const dou
 	
  	mavlink_msg_mission_item_encode (GCS_SYSID,190, &mavlink_message, &msg);
 
-	mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 }
 
 

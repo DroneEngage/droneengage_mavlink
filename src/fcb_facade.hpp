@@ -150,7 +150,8 @@ namespace fcb
             };
 
         private:
-            mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+            mavlinksdk::CVehicle&    m_vehicle      =  mavlinksdk::CVehicle::getInstance();
+
             SEND_SYSMSG_CALLBACK    m_sendSYSMSG    = NULL;
             SEND_JMSG_CALLBACK      m_sendJMSG      = NULL;
             SEND_BMSG_CALLBACK      m_sendBMSG      = NULL;

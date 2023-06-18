@@ -43,8 +43,6 @@ namespace mavlinksdk
 
             CMavlinkSDK() 
             {
-                m_sysid  = 0;
-                m_compid = 0;
                 m_mavlink_events    = (mavlinksdk::CMavlinkEvents*) this;
             }                    // Constructor? (the {} brackets) are needed here.
 
@@ -60,17 +58,7 @@ namespace mavlinksdk
             void stop();
 
 
-        // Reading Status
-        public:
-            inline const int& getSysId () const
-            {
-                return m_sysid;
-            }
-            inline const int& getCompId () const
-            {
-                return m_compid;
-            }
-
+        
         // Writing Status
         public:    
             
@@ -83,8 +71,7 @@ namespace mavlinksdk
               std::shared_ptr<mavlinksdk::comm::GenericPort> m_port;
               std::unique_ptr<mavlinksdk::comm::CMavlinkCommunicator> m_communicator;
               bool m_stopped_called = false;
-              int m_sysid;
-              int m_compid;
+              
 
         // CCallback_Communicator inheritance
         protected:

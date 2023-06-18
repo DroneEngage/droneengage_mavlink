@@ -16,6 +16,8 @@ mavlinksdk::CVehicle::CVehicle()
 	time_stamps.reset_timestamps();
 	m_system_time.time_boot_ms = 0;
 	m_system_time.time_unix_usec = 0;
+	m_sysid  = 0;
+    m_compid = 0;
 }
 
 void mavlinksdk::CVehicle::set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* callback_vehicle)
@@ -27,15 +29,18 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 {
 
 	if ((heartbeat.type >=  MAV_TYPE::MAV_TYPE_GIMBAL)
-	&& (heartbeat.type !=  MAV_TYPE::MAV_TYPE_GCS))
+	|| (heartbeat.type ==  MAV_TYPE::MAV_TYPE_GCS))
 	return false; // fix ADSB sensor.
+
+	m_sysid = mavlink_message_temp.sysid;
+	m_compid = mavlink_message_temp.compid;
 
 	const bool is_armed  = (heartbeat.base_mode & MAV_MODE_FLAG_SAFETY_ARMED) != 0;
 
 	
 	
 	//Detect mode change
-	const bool is_mode_changed = (m_heartbeat.custom_mode != heartbeat.custom_mode) || !m_heart_beat_first_recieved;
+	const bool is_mode_changed = ((m_heartbeat.custom_mode != heartbeat.custom_mode) || (m_heartbeat.type != heartbeat.type) || (m_heartbeat.autopilot != heartbeat.autopilot)) || !m_heart_beat_first_recieved;
 	
 
 	// copy 
@@ -371,7 +376,8 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
     // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "parseMessage:" << std::to_string(msgid) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     // #endif
 
-	
+	mavlink_message_temp = mavlink_message;
+
 	switch (mavlink_message.msgid)
 	{
         case MAVLINK_MSG_ID_HEARTBEAT:

@@ -71,11 +71,12 @@ void CMavlinkSDK::OnMessageReceived (const mavlink_message_t& mavlink_message)
     //std::cout << _SUCCESS_CONSOLE_TEXT_ << "Message Received" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
     try
     {
-        if (mavlink_message.sysid != 255) {
-            // most probably this is not your vehicle.
-            m_sysid  = mavlink_message.sysid;
-	        m_compid = mavlink_message.compid;
-        }
+        // do not uncomment because in this point we do not know if this is a drone message or not.
+        // if (mavlink_message.sysid != 255) {
+        //     // most probably this is not your vehicle.
+        //     m_sysid  = mavlink_message.sysid;
+	    //     m_compid = mavlink_message.compid;
+        // }
 
         mavlinksdk::CVehicle::getInstance().parseMessage(mavlink_message);
     

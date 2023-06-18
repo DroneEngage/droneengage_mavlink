@@ -1014,7 +1014,11 @@ void CFCBMain::OnACK (const int& acknowledged_cmd, const int& result, const std:
  
 void CFCBMain::OnModeChanges(const uint32_t& custom_mode, const int& firmware_type, const MAV_AUTOPILOT& autopilot)
 {
+    // vehicle type is determined here
+    m_andruav_vehicle_info.vehicle_type = CFCBModes::getAndruavVehicleType (firmware_type);
+    m_andruav_vehicle_info.autopilot = autopilot;
     
+    // vehicle mode is mapped here to andruav mode.
     m_andruav_vehicle_info.flying_mode = CFCBModes::getAndruavMode (custom_mode, CFCBModes::getAndruavVehicleType(firmware_type), autopilot);
     adjustRemoteJoystickByMode(m_andruav_vehicle_info.rc_sub_action);
     m_fcb_facade.sendID(std::string());
