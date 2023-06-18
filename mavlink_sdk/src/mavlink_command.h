@@ -4,6 +4,8 @@
 #include <map>
 #include <all/mavlink.h>
 #include <ardupilotmega/ardupilotmega.h>
+#include "mavlink_sdk.h"
+#include "vehicle.h"
 
 #define MAX_RC_CHANNELS     18
 
@@ -115,6 +117,9 @@ class CMavlinkCommand
                 const float& param6 = 0.0f,
                 const float& param7 = 0.0f)  const;
 
+    private:
+        mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
+        mavlinksdk::CVehicle &m_vehicle =  mavlinksdk::CVehicle::getInstance();
 
 };
 

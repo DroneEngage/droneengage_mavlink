@@ -128,6 +128,25 @@ namespace mavlinksdk
             }
 
         public:
+            inline const int& getSysId () const
+            {
+                return m_sysid;
+            }
+            inline const int& getCompId () const
+            {
+                return m_compid;
+            }
+
+            inline const int& setSysId (const int& sysid) 
+            {
+                m_sysid = sysid;
+            }
+            inline const int& setCompId (const int& compid) 
+            {
+                m_compid = compid;
+            }
+
+        public:
 
             void set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* callback_vehicle);
             void parseMessage (const mavlink_message_t& mavlink_message);
@@ -457,6 +476,11 @@ namespace mavlinksdk
             bool m_is_landing = false;
             
             bool m_has_lidar_altitude = false;
+
+            mavlink_message_t mavlink_message_temp;
+
+            int m_sysid{0};
+            int m_compid{0};
 
     };
 }
