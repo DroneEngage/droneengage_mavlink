@@ -135,7 +135,7 @@ int mavlinksdk::comm::UDPPort::read_message(mavlink_message_t &message)
 	if (result > 0)
 	{
 		// the parsing
-		msgReceived = mavlink_parse_char(MAVLINK_COMM_0, cp, &message, &status);
+		msgReceived = mavlink_parse_char(MAVLINK_CHANNEL_UDP, cp, &message, &status);
 
 		// check for dropped packets
 		if ((lastStatus.packet_rx_drop_count != status.packet_rx_drop_count) && debug )

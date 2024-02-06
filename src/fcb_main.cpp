@@ -50,7 +50,7 @@ void CFCBMain::OnMessageReceived (const uavos::comm::CUDPProxy * udp_proxy, cons
 	mavlink_message_t mavlink_message;
     for (int i=0; i<len; ++ i)
     {
-	    uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_0, message[i], &mavlink_message, &status);
+	    uint8_t msgReceived = mavlink_parse_char(MAVLINK_CHANNEL_TELEMETRY, message[i], &mavlink_message, &status);
         if (msgReceived!=0)
         {
             mavlinksdk::CMavlinkCommand::getInstance().sendNative(mavlink_message);

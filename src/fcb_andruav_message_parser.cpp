@@ -485,7 +485,11 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 m_fcbMain.updateRemoteControlChannels(rc_channels);
 
             }
-
+            
+            // This message was using for Telemetry. It has been replaced with UDPProxy
+            // However the message itself is still valid and can be used to send mavlink 
+            // Again there is a message called TYPE_AndruavMessage_MAVLINK for exchanging mavlink.
+            // So this is considered a redundant none used function.
             case TYPE_AndruavMessage_LightTelemetry:
             {   
                 
@@ -511,7 +515,7 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
 	            mavlink_message_t mavlink_message;
                 for (int i=0; i<binary_length; ++ i)
                 {
-		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_0, binary_message[i+ 1], &mavlink_message, &status);
+		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_CHANNEL_INTERMODULE, binary_message[i+ 1], &mavlink_message, &status);
                     if (msgReceived!=0)
                     {
                         //TODO: you can add logging or warning
@@ -545,7 +549,7 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
 	            mavlink_message_t mavlink_message;
                 for (int i=0; i<binary_length; ++ i)
                 {
-		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_COMM_0, binary_message[i+ 1], &mavlink_message, &status);
+		            uint8_t msgReceived = mavlink_parse_char(MAVLINK_CHANNEL_INTERMODULE, binary_message[i+ 1], &mavlink_message, &status);
                     if (msgReceived!=0)
                     {
                         #ifdef DEBUG        
