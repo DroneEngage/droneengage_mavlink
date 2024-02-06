@@ -19,13 +19,18 @@ void CSwarmManager::handle_swarm_as_leader()
     if ((now - previous) > 1000000)
     {
         mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
-        for (const auto& item : m_follower_units) {
+        
+        // loop on followers unit
+        for (const auto& item : m_follower_units) 
+        {
             
+
             mavlink_message_t mavlink_message[2];
         
             const int sys_id = vehicle.getSysId();
             const int comp_id = vehicle.getCompId();
 
+            // get my attitude and position to share with followers.
             const mavlink_attitude_t& attitude = vehicle.getMsgAttitude();
             const mavlink_global_position_int_t&  my_gpos = vehicle.getMsgGlobalPositionInt();
 
@@ -34,8 +39,11 @@ void CSwarmManager::handle_swarm_as_leader()
             // time_boot_ms - lat - lon - alt - relative - alt - vx - vy - vz - hdg
             mavlink_msg_global_position_int_encode(sys_id, comp_id, &mavlink_message[1], &my_gpos);
             
-                uavos::fcb::CFCBFacade::getInstance().sendSWARM_M (item.party_id, mavlink_message, 2);
-                previous = now;
-            }
+            // forward info to followers.
+            uavos::fcb::CFCBFacade::getInstance().sendSWARM_M (item.party_id, mavlink_message, 2);
+            
+        }
+
+        previous = now;
     }
 }
