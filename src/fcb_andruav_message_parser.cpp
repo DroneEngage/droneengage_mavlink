@@ -50,7 +50,7 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
 
     else
     {
-        Json message = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+        Json cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
         
         switch (messageType)
         {
@@ -67,15 +67,15 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 
                 // A  : bool arm/disarm
                 // [D]: bool force 
-                if (!validateField(message, "A", Json::value_t::boolean)) return ;
+                if (!validateField(cmd, "A", Json::value_t::boolean)) return ;
                 
-                bool arm = message["A"].get<bool>();
+                bool arm = cmd["A"].get<bool>();
                 bool force = false;
-                if (message.contains("D") == true)
+                if (cmd.contains("D") == true)
                 {
-                    if (!validateField(message, "D", Json::value_t::boolean)) return ;
+                    if (!validateField(cmd, "D", Json::value_t::boolean)) return ;
                 
-                    force = message["D"].get<bool>();
+                    force = cmd["D"].get<bool>();
                 }
                 mavlinksdk::CMavlinkCommand::getInstance().doArmDisarm(arm,force);
             }
@@ -96,9 +96,9 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 // [a]: latitude
                 // [r]: radius 
 
-                if (!validateField(message, "F", Json::value_t::number_unsigned)) return ;
+                if (!validateField(cmd, "F", Json::value_t::number_unsigned)) return ;
                 
-                const int andruav_mode = message["F"].get<int>();
+                const int andruav_mode = cmd["F"].get<int>();
                 //double langitude = 0.0f;
                 // TODO: Missing circle and guided go to here mode.
                 uint32_t ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode;
@@ -124,11 +124,11 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 }
                 
                 // a : altitude 
-                if ((!validateField(message, "a", Json::value_t::number_float)) 
-                && (!validateField(message, "a", Json::value_t::number_unsigned)))
+                if ((!validateField(cmd, "a", Json::value_t::number_float)) 
+                && (!validateField(cmd, "a", Json::value_t::number_unsigned)))
                     return ;
                 
-                double altitude = message["a"].get<double>();
+                double altitude = cmd["a"].get<double>();
                 
                 if (mavlinksdk::CVehicle::getInstance().isFlying()== true)
                 {
@@ -181,19 +181,19 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 // [l]: altitude
                 // other fields are obscelete.
                 
-                if (!validateField(message, "a", Json::value_t::number_float)) return ;
-                if (!validateField(message, "g", Json::value_t::number_float)) return ;
+                if (!validateField(cmd, "a", Json::value_t::number_float)) return ;
+                if (!validateField(cmd, "g", Json::value_t::number_float)) return ;
                 
-                double latitude  = message["a"].get<double>();
-                double longitude = message["g"].get<double>();
+                double latitude  = cmd["a"].get<double>();
+                double longitude = cmd["g"].get<double>();
                 double altitude  = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt().relative_alt;
-                if (message.contains("l") == true)
+                if (cmd.contains("l") == true)
                 {
-                    if ((!validateField(message, "l", Json::value_t::number_float)) 
-                    && (!validateField(message, "l", Json::value_t::number_unsigned)))
+                    if ((!validateField(cmd, "l", Json::value_t::number_float)) 
+                    && (!validateField(cmd, "l", Json::value_t::number_unsigned)))
                         return ;
                 
-                    double alt = message["l"].get<double>();
+                    double alt = cmd["l"].get<double>();
                     if (alt != 0.0)
                     {
                         altitude = alt * 1000.0;
@@ -219,13 +219,13 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 // T: latitude
                 // O: longitude
                 // A: altitude
-                if (!validateField(message, "T", Json::value_t::number_float)) return ;
-                if (!validateField(message, "O", Json::value_t::number_float)) return ;
+                if (!validateField(cmd, "T", Json::value_t::number_float)) return ;
+                if (!validateField(cmd, "O", Json::value_t::number_float)) return ;
                 //if (!validateField(message, "A", Json::value_t::number_float)) return ;
 
-                double latitude  = message["T"].get<double>();
-                double longitude = message["O"].get<double>();
-                double altitude  = message["A"].get<double>();
+                double latitude  = cmd["T"].get<double>();
+                double longitude = cmd["O"].get<double>();
+                double altitude  = cmd["A"].get<double>();
                 if (altitude == 0)
                 {
                     altitude  = mavlinksdk::CVehicle::getInstance().getMsgHomePosition().altitude / 1000.0f; // convert to meter
@@ -249,19 +249,19 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 // R : turn_rate
                 // C : is_clock_wise
                 // L : is_relative
-                if ((!validateField(message, "A", Json::value_t::number_unsigned)) 
-                && (!validateField(message, "A", Json::value_t::number_integer)))
+                if ((!validateField(cmd, "A", Json::value_t::number_unsigned)) 
+                && (!validateField(cmd, "A", Json::value_t::number_integer)))
                     return ;
-                if ((!validateField(message, "R", Json::value_t::number_unsigned)) 
-                && (!validateField(message, "R", Json::value_t::number_integer)))
+                if ((!validateField(cmd, "R", Json::value_t::number_unsigned)) 
+                && (!validateField(cmd, "R", Json::value_t::number_integer)))
                     return ;
-                if (!validateField(message, "C", Json::value_t::boolean)) return ;
-                if (!validateField(message, "L", Json::value_t::boolean)) return ;
+                if (!validateField(cmd, "C", Json::value_t::boolean)) return ;
+                if (!validateField(cmd, "L", Json::value_t::boolean)) return ;
 
-                double target_angle  = message["A"].get<double>();
-                double turn_rate = message["R"].get<double>();
-                bool is_clock_wise  = message["C"].get<bool>();
-                bool is_relative = message["L"].get<bool>();
+                double target_angle = cmd["A"].get<double>();
+                double turn_rate    = cmd["R"].get<double>();
+                bool is_clock_wise  = cmd["C"].get<bool>();
+                bool is_relative    = cmd["L"].get<bool>();
                 
                 mavlinksdk::CMavlinkCommand::getInstance().setYawCondition( target_angle, turn_rate, is_clock_wise, is_relative);
             }
@@ -281,19 +281,19 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 // b : is_ground_speed
                 // c : throttle
                 // d : is_relative
-                if ((!validateField(message, "a", Json::value_t::number_float)) 
-                && (!validateField(message, "a", Json::value_t::number_unsigned)))
+                if ((!validateField(cmd, "a", Json::value_t::number_float)) 
+                && (!validateField(cmd, "a", Json::value_t::number_unsigned)))
                     return ;
-                if (!validateField(message, "b", Json::value_t::boolean)) return ;
-                if ((!validateField(message, "c", Json::value_t::number_float)) 
-                && (!validateField(message, "c", Json::value_t::number_integer)))
+                if (!validateField(cmd, "b", Json::value_t::boolean)) return ;
+                if ((!validateField(cmd, "c", Json::value_t::number_float)) 
+                && (!validateField(cmd, "c", Json::value_t::number_integer)))
                     return ;
-                if (!validateField(message, "d", Json::value_t::boolean)) return ;
+                if (!validateField(cmd, "d", Json::value_t::boolean)) return ;
 
-                double speed = message["a"].get<double>();
-                bool is_ground_speed = message["b"].get<bool>();
-                double throttle = message["c"].get<double>();
-                bool is_relative = message["d"].get<bool>();
+                double speed            = cmd["a"].get<double>();
+                bool is_ground_speed    = cmd["b"].get<bool>();
+                double throttle         = cmd["c"].get<double>();
+                bool is_relative        = cmd["d"].get<bool>();
                 
                 const int speed_type = is_ground_speed?1:0;
 
@@ -316,14 +316,14 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 /*
                     a : std::string serialized mission file
                 */
-                if (!validateField(message, "a", Json::value_t::string)) 
+                if (!validateField(cmd, "a", Json::value_t::string)) 
                 {
                     CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
 
                     break ;
                 }
 
-                std::string mission = message ["a"];
+                std::string mission = cmd ["a"];
                 mission::CMissionTranslator cMissionTranslator;
                 
                 std::unique_ptr<std::map <int, std::unique_ptr<mission::CMissionItem>>> new_mission_items = cMissionTranslator.translateMissionText(mission);
@@ -365,9 +365,9 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 // This could be the _SYS_ in this case it is my own fences.
 
                 //if (!validateField(message, "t", Json::value_t::number_unsigned)) return ;
-                std::unique_ptr<geofence::CGeoFenceBase> fence = geofence::CGeoFenceFactory::getInstance().getGeoFenceObject(message);
+                std::unique_ptr<geofence::CGeoFenceBase> fence = geofence::CGeoFenceFactory::getInstance().getGeoFenceObject(cmd);
                 geofence::CGeoFenceManager::getInstance().addFence(std::move(fence));
-                geofence::CGeoFenceManager::getInstance().attachToGeoFence(m_fcbMain.getAndruavVehicleInfo().party_id, message["n"].get<std::string>());
+                geofence::CGeoFenceManager::getInstance().attachToGeoFence(m_fcbMain.getAndruavVehicleInfo().party_id, cmd["n"].get<std::string>());
                 // geofence::GEO_FENCE_STRUCT * fence_struct = geofence::CGeoFenceManager::getInstance().getFenceByName(message["n"].get<std::string>());
                 // std::vector<geofence::GEO_FENCE_STRUCT*> fence_struct_vect = geofence::CGeoFenceManager::getInstance().getFencesOfParty (m_fcbMain.getAndruavVehicleInfo().party_id);
                 // if (fence_struct!=NULL)
@@ -392,11 +392,11 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 // n : servo_channel
                 // v : servo_value
 
-                if (!validateField(message, "n",Json::value_t::number_unsigned)) return ;
-                if (!validateField(message, "v",Json::value_t::number_unsigned)) return ;
+                if (!validateField(cmd, "n",Json::value_t::number_unsigned)) return ;
+                if (!validateField(cmd, "v",Json::value_t::number_unsigned)) return ;
 
-                int servo_channel = message["n"].get<int>();
-                int servo_value = message["v"].get<int>();
+                int servo_channel = cmd["n"].get<int>();
+                int servo_value = cmd["v"].get<int>();
                 if (servo_value == 9999) servo_value = 2000;
                 if (servo_value == 0) servo_value = 1000;
                 mavlinksdk::CMavlinkCommand::getInstance().setServo (servo_channel, servo_value);
@@ -416,9 +416,9 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 
                 // b: remote control setting
                 
-                if (!validateField(message, "b",Json::value_t::number_unsigned)) return ;
+                if (!validateField(cmd, "b",Json::value_t::number_unsigned)) return ;
                 
-                int rc_sub_action = message["b"].get<int>();
+                int rc_sub_action = cmd["b"].get<int>();
                 m_fcbMain.adjustRemoteJoystickByMode((RC_SUB_ACTION)rc_sub_action);
 
                 // update status
@@ -428,9 +428,9 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
 
             case TYPE_AndruavMessage_Sync_EventFire:
             {
-                if (!validateField(message, "a",Json::value_t::number_unsigned)) return ;
+                if (!validateField(cmd, "a",Json::value_t::number_unsigned)) return ;
                 
-                m_fcbMain.insertIncommingEvent(message["a"].get<int>());
+                m_fcbMain.insertIncommingEvent(cmd["a"].get<int>());
             }
             break;
 
@@ -453,31 +453,31 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 // ['x']: Aux-2 optional
                 // ['y']: Aux-3 optional
                 // ['z']: Aux-4 optional
-                if (!validateField(message, "R",Json::value_t::number_unsigned)) return ;
-                if (!validateField(message, "T",Json::value_t::number_unsigned)) return ;
-                if (!validateField(message, "A",Json::value_t::number_unsigned)) return ;
-                if (!validateField(message, "E",Json::value_t::number_unsigned)) return ;
+                if (!validateField(cmd, "R",Json::value_t::number_unsigned)) return ;
+                if (!validateField(cmd, "T",Json::value_t::number_unsigned)) return ;
+                if (!validateField(cmd, "A",Json::value_t::number_unsigned)) return ;
+                if (!validateField(cmd, "E",Json::value_t::number_unsigned)) return ;
                 
                 int16_t rc_channels[18] = {-999};
                 const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map = m_fcbMain.getRCChannelsMapInfo();
                 if ((rc_map.use_smart_rc) && (rc_map.is_valid))
                 {
-                    rc_channels[rc_map.rcmap_yaw]       = 1000 - message["R"].get<int>(); // to be aligned with default settings of Ardu
-                    rc_channels[rc_map.rcmap_throttle]  = 1000 - message["T"].get<int>();
-                    rc_channels[rc_map.rcmap_roll]      = 1000 - message["A"].get<int>(); // to be aligned with default settings of Ardu
-                    rc_channels[rc_map.rcmap_pitch]     = 1000 - message["E"].get<int>();
+                    rc_channels[rc_map.rcmap_yaw]       = 1000 - cmd["R"].get<int>(); // to be aligned with default settings of Ardu
+                    rc_channels[rc_map.rcmap_throttle]  = 1000 - cmd["T"].get<int>();
+                    rc_channels[rc_map.rcmap_roll]      = 1000 - cmd["A"].get<int>(); // to be aligned with default settings of Ardu
+                    rc_channels[rc_map.rcmap_pitch]     = 1000 - cmd["E"].get<int>();
                 
                 }
                 else
                 {
-                    rc_channels[3] = 1000 - message["R"].get<int>(); // to be aligned with default settings of Ardu
-                    rc_channels[2] = 1000 - message["T"].get<int>();
-                    rc_channels[0] = 1000 - message["A"].get<int>(); // to be aligned with default settings of Ardu
-                    rc_channels[1] = 1000 - message["E"].get<int>();
-                    rc_channels[4] = validateField(message, "w",Json::value_t::number_integer)?message["w"].get<int>():-999;
-                    rc_channels[5] = validateField(message, "x",Json::value_t::number_integer)?message["x"].get<int>():-999;
-                    rc_channels[6] = validateField(message, "y",Json::value_t::number_integer)?message["y"].get<int>():-999;
-                    rc_channels[7] = validateField(message, "z",Json::value_t::number_integer)?message["z"].get<int>():-999;
+                    rc_channels[3] = 1000 - cmd["R"].get<int>(); // to be aligned with default settings of Ardu
+                    rc_channels[2] = 1000 - cmd["T"].get<int>();
+                    rc_channels[0] = 1000 - cmd["A"].get<int>(); // to be aligned with default settings of Ardu
+                    rc_channels[1] = 1000 - cmd["E"].get<int>();
+                    rc_channels[4] = validateField(cmd, "w",Json::value_t::number_integer)?cmd["w"].get<int>():-999;
+                    rc_channels[5] = validateField(cmd, "x",Json::value_t::number_integer)?cmd["x"].get<int>():-999;
+                    rc_channels[6] = validateField(cmd, "y",Json::value_t::number_integer)?cmd["y"].get<int>():-999;
+                    rc_channels[7] = validateField(cmd, "z",Json::value_t::number_integer)?cmd["z"].get<int>():-999;
                 }
                 
                 
@@ -632,10 +632,10 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 // b: partyID
                 // if (b:partyID) is not me then treat it as an announcement.
 
-                if (!message.contains("a") || !message["a"].is_number_integer()) return ;
-                if (!message.contains("b") || !message["b"].is_string()) return ;
+                if (!cmd.contains("a") || !cmd["a"].is_number_integer()) return ;
+                if (!cmd.contains("b") || !cmd["b"].is_string()) return ;
                 
-                if (m_fcbMain.getAndruavVehicleInfo().party_id.compare( message["b"].get<std::string>())!=0)
+                if (m_fcbMain.getAndruavVehicleInfo().party_id.compare( cmd["b"].get<std::string>())!=0)
                 {
                     // this is an announcement.
                     // other drone should handle this message.
@@ -644,7 +644,7 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                     return ;
                 }
 
-                const int formation = message["a"].get<int>();
+                const int formation = cmd["a"].get<int>();
 
                 m_fcb_swarm_manager.makeSwarm((uavos::fcb::swarm::ANDRUAV_SWARM_FORMATION)formation);
             }
@@ -674,13 +674,13 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 // if (c:partyID) is not me then treat it as an announcement.
                 
                 //if (!validateField(message, "f",Json::value_t::number_integer)) return ;
-                if (!message.contains("f") || !message["f"].is_number_integer()) return ;
-                if (!message.contains("c") || !message["c"].is_string()) return ;
+                if (!cmd.contains("f") || !cmd["f"].is_number_integer()) return ;
+                if (!cmd.contains("c") || !cmd["c"].is_string()) return ;
                 
 
-                if (m_fcbMain.getAndruavVehicleInfo().party_id.compare(message["c"].get<std::string>())!=0)
+                if (m_fcbMain.getAndruavVehicleInfo().party_id.compare(cmd["c"].get<std::string>())!=0)
                 {
-                    std::cout << "FollowHim_Request announcement by: " << message["c"].get<std::string>() << std::endl;
+                    std::cout << "FollowHim_Request announcement by: " << cmd["c"].get<std::string>() << std::endl;
 
                     // this is an announcement.
                     // other drone should handle this message.
@@ -688,30 +688,30 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 }
 
                 
-                const int swar_action = message["f"].get<int>();
+                const int swar_action = cmd["f"].get<int>();
                 if (swar_action==SWARM_UNFOLLOW)
                 { 
                     // [b] can be null
                     std::string leader = m_fcb_swarm_manager.getLeader();
-                    if (message.contains("b") && message["b"].is_string()) 
+                    if (cmd.contains("b") && cmd["b"].is_string()) 
                     {
-                        leader = message["b"].get<std::string>();
+                        leader = cmd["b"].get<std::string>();
                     }
                     m_fcb_swarm_manager.unFollowLeader(leader, andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
                     break;
                 }
                 else if (swar_action==SWARM_FOLLOW)
                 {   // follow leader in [b]
-                    if (!message.contains("a") || !message["a"].is_number_integer()) return ;
-                    if (!message.contains("b") || !message["b"].is_string()) return ;
+                    if (!cmd.contains("a") || !cmd["a"].is_number_integer()) return ;
+                    if (!cmd.contains("b") || !cmd["b"].is_string()) return ;
                     
                     
-                    const int follower_index = message["a"].get<int>();
-                    const std::string leader_party_id = message["b"].get<std::string>();
+                    const int follower_index = cmd["a"].get<int>();
+                    const std::string leader_party_id = cmd["b"].get<std::string>();
                     swarm::ANDRUAV_SWARM_FORMATION follower_formation = swarm::ANDRUAV_SWARM_FORMATION::FORMATION_NO_SWARM;
-                    if (message.contains("d") && message["d"].is_number_integer()) 
+                    if (cmd.contains("d") && cmd["d"].is_number_integer()) 
                     {
-                        follower_formation = (swarm::ANDRUAV_SWARM_FORMATION) message["d"].get<int>();
+                        follower_formation = (swarm::ANDRUAV_SWARM_FORMATION) cmd["d"].get<int>();
                     }
                     
                     m_fcb_swarm_manager.followLeader(leader_party_id, follower_index, follower_formation, andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
@@ -739,25 +739,25 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 */
 
                 //if (!validateField(message, "d",Json::value_t::string)) return ;
-                if (!message.contains("a") || !message["a"].is_number_integer()) return ;
-                if (!message.contains("c") || !message["c"].is_string()) return ;
-                if (!message.contains("d") || !message["d"].is_string()) return ;
+                if (!cmd.contains("a") || !cmd["a"].is_number_integer()) return ;
+                if (!cmd.contains("c") || !cmd["c"].is_string()) return ;
+                if (!cmd.contains("d") || !cmd["d"].is_string()) return ;
                 
 
-                if (m_fcbMain.getAndruavVehicleInfo().party_id.compare(message["c"].get<std::string>())!=0)
+                if (m_fcbMain.getAndruavVehicleInfo().party_id.compare(cmd["c"].get<std::string>())!=0)
                 {
                     // this is an announcement.
                     // other drone should handle this message.
                     return ;
                 }
 
-                const int action = message["a"].get<int>();
-                const std::string follower_party_id = message["d"].get<std::string>();
+                const int action = cmd["a"].get<int>();
+                const std::string follower_party_id = cmd["d"].get<std::string>();
                     
                 if (action == SWARM_UPDATED)
                 {   
                     // add or modify swarm member
-                    const int follower_index = message["b"].get<int>();
+                    const int follower_index = cmd["b"].get<int>();
                     m_fcb_swarm_manager.addFollower(follower_party_id, follower_index);
 
                    return ;     
@@ -780,10 +780,10 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 /*
                     message received from another drone to communicate to it directly.
                 */
-                if (!validateField(message, "a",Json::value_t::string)) return ;
-                if (!validateField(message, "p",Json::value_t::number_integer)) return ;
-                if (!validateField(message, "o",Json::value_t::number_integer)) return ;
-                if (!validateField(message, "en",Json::value_t::boolean)) return ;
+                if (!validateField(cmd, "a",Json::value_t::string)) return ;
+                if (!validateField(cmd, "p",Json::value_t::number_integer)) return ;
+                if (!validateField(cmd, "o",Json::value_t::number_integer)) return ;
+                if (!validateField(cmd, "en",Json::value_t::boolean)) return ;
                 //TODO: COMPLETE
                 
             }
@@ -807,11 +807,11 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                     return;
                 }
 
-                if (!validateField(message, "socket1",Json::value_t::object)) return ;
-                if (!validateField(message, "socket2",Json::value_t::object)) return ;
+                if (!validateField(cmd, "socket1",Json::value_t::object)) return ;
+                if (!validateField(cmd, "socket2",Json::value_t::object)) return ;
 
-                const Json&  socket1 = message["socket1"];
-                const Json&  socket2 = message["socket2"];
+                const Json&  socket1 = cmd["socket1"];
+                const Json&  socket2 = cmd["socket2"];
                 
                 if (!validateField(socket1, "address",Json::value_t::string)) return ;
                 if (!validateField(socket1, "port",Json::value_t::number_unsigned)) return ;
@@ -819,13 +819,13 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 if (!validateField(socket2, "address",Json::value_t::string)) return ;
                 if (!validateField(socket2, "port",Json::value_t::number_unsigned)) return ;
 
-                if (!validateField(message, "en",Json::value_t::boolean)) return ;
+                if (!validateField(cmd, "en",Json::value_t::boolean)) return ;
                 
                 /*
                  * my address & other adress are arbitrary.
                  * you can switch between them
                  */
-                const bool enable = message["en"].get<bool>();
+                const bool enable = cmd["en"].get<bool>();
                 const std::string my_address = socket1["address"].get<std::string>();
                 const int my_port = socket1["port"].get<int>();
                 const std::string others_address = socket2["address"].get<std::string>();
