@@ -688,7 +688,7 @@ void CFCBMain::OnMessageReceived (const mavlink_message_t& mavlink_message)
 
 void CFCBMain::OnConnected (const bool& connected)
 {
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnConnected" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " -- OnConnected" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     if (m_andruav_vehicle_info.use_fcb != connected)
     {
         m_andruav_vehicle_info.use_fcb = connected;
@@ -861,12 +861,12 @@ void CFCBMain::OnStatusText (const std::uint8_t& severity, const std::string& st
     {
         if (!is_ascii((const signed char*)status.c_str(), status.length())) 
         {
-            std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "OnStatusText -bad format-" << _NORMAL_CONSOLE_TEXT_ << status << std::endl;
-            PLOG(plog::error) << "OnStatusText received a non UTF-8 message format:" << status;
+            std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << " -- OnStatusText -bad format-" << _NORMAL_CONSOLE_TEXT_ << status << std::endl;
+            PLOG(plog::error) << " -- OnStatusText received a non UTF-8 message format:" << status;
             return ;
         }
 
-        std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnStatusText " << _NORMAL_CONSOLE_TEXT_ << status << std::endl;
+        std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << " -- OnStatusText " << _NORMAL_CONSOLE_TEXT_ << status << std::endl;
     
         m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_3DR, severity, status);
     }

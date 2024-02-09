@@ -11,8 +11,6 @@ using namespace mavlinksdk;
 
 void CMavlinkSDK::start(mavlinksdk::CMavlinkEvents * mavlink_events)
 {
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "MavlinkSDK Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
-
     this->m_mavlink_events = mavlink_events;
 
     this->m_port.get()->start();
@@ -22,13 +20,11 @@ void CMavlinkSDK::start(mavlinksdk::CMavlinkEvents * mavlink_events)
     mavlinksdk::CMavlinkParameterManager::getInstance().set_callback_parameter (this);
     this->m_communicator = std::unique_ptr<mavlinksdk::comm::CMavlinkCommunicator> ( new mavlinksdk::comm::CMavlinkCommunicator(this->m_port, this));
     this->m_communicator.get()->start();
-
-
 }
 
 void CMavlinkSDK::connectUDP (const char *target_ip, const int udp_port)
 {
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "connectUDP on " << _SUCCESS_CONSOLE_BOLD_TEXT_<< target_ip << " port " << udp_port << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDP is listening on: " << _INFO_CONSOLE_TEXT << target_ip << _LOG_CONSOLE_TEXT_BOLD_ << " port " << _INFO_CONSOLE_TEXT  << udp_port << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
     this->m_port = std::shared_ptr<mavlinksdk::comm::GenericPort>( new mavlinksdk::comm::UDPPort(target_ip, udp_port));
 }
@@ -40,7 +36,7 @@ void CMavlinkSDK::connectSerial (const char *uart_name, const int baudrate, cons
     {
         dynamic_str =" serial search dynamic option is enabled.";
     }
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "connectSerial on " << uart_name << " baudrate " << baudrate << _INFO_CONSOLE_TEXT << dynamic_str << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "connectSerial on " << _INFO_CONSOLE_TEXT << uart_name << " baudrate " << baudrate << _INFO_CONSOLE_TEXT << dynamic_str << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
     this->m_port   = std::shared_ptr<mavlinksdk::comm::GenericPort>( new mavlinksdk::comm::SerialPort(uart_name, baudrate, dynamic));
 }
@@ -92,7 +88,7 @@ void CMavlinkSDK::OnMessageReceived (const mavlink_message_t& mavlink_message)
 
 void CMavlinkSDK::OnConnected (const bool& connected) 
 {
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Mavlink Connected " << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Mavlink Connected " << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
     this->m_mavlink_events->OnConnected (connected);
 }

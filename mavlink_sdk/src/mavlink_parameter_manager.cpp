@@ -103,7 +103,7 @@ void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_par
 	if (param_message.param_index == (param_message.param_count-1)) 
 	{ 
 		m_parameter_read_mode = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LIST_LOADED;
-		std::cout << _SUCCESS_CONSOLE_TEXT_ << "Parameter LOADED " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+		std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "* Parameter LOADED " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 		m_callback_parameter->OnParamReceivedCompleted();
 	}
 

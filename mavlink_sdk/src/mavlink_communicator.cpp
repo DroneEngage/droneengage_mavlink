@@ -63,8 +63,6 @@ const int mavlinksdk::comm::CMavlinkCommunicator::send_message (const mavlink_me
  */
 void mavlinksdk::comm::CMavlinkCommunicator::readThread ()
 {
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "_readThread Started" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
- 
     m_reading_status = true;
 
 	while ( ! m_time_to_exit )

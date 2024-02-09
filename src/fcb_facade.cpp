@@ -116,7 +116,7 @@ void CFCBFacade::sendErrorMessage (const std::string&target_party_id, const int&
         m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_Error, false);
     }
  
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "sendErrorMessage " << _NORMAL_CONSOLE_TEXT_ << description << std::endl;
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << " -- sendErrorMessage " << _NORMAL_CONSOLE_TEXT_ << description << std::endl;
     
     return ;
 }

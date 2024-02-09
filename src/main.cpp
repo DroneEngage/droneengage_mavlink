@@ -346,7 +346,7 @@ void onReceive (const char * message, int len)
     static bool bFirstReceived = false;
         
     #ifdef DEBUG        
-        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: " << std::to_string(len) << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     
@@ -373,7 +373,7 @@ void onReceive (const char * message, int len)
             if (!bFirstReceived)
             { 
                 // tell server you dont need to send ID again.
-                std::cout << _SUCCESS_CONSOLE_TEXT_ << "Communicator Server Found " <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": PartyID(" << _INFO_CONSOLE_TEXT << PartyID << _SUCCESS_CONSOLE_TEXT_ << ") GroupID(" << _INFO_CONSOLE_TEXT << GroupID << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
                 PLOG(plog::info) << "Communicator Server Found: PartyID(" << PartyID << ") GroupID(" << GroupID << ")"; 
                 Json jsonID = createJSONID(false);
                 cUDPClient.setJsonId (jsonID.dump());
@@ -416,7 +416,7 @@ void initLogger()
     log_filename_final <<  "./logs/log_" << std::put_time(&tm, "%d-%m-%Y_%H-%M-%S") << ".log";
     mkdir("./logs/",0777);
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to folder:" << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_TEXT_BOLD_ << " filename:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to folder: " << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_TEXT_BOLD_ << " filename:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
     auto log_level = debug_log==true?plog::debug:plog::info;
 
     plog::init(log_level, log_filename_final.str().c_str()); 
