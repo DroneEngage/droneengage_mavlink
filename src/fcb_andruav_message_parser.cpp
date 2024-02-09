@@ -601,7 +601,62 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
             }
             break;
 
-            //////////////////////SWARM-START
+            /**
+             * @brief P2P SECTION
+             * This should be a generic P2P as much as possible.
+             * For now we will focus on ESP32-Mesh
+             * 
+             * We have two messages here:
+             * 
+             * 1- TYPE_AndruavMessage_P2P_ACTION:
+             *  This message contains requests to connect/disconnect/search ...etc.
+             * 
+             * 
+             * 
+             * 2- TYPE_AndruavMessage_P2P_STATUS:
+             *  This message contains information about P2P status.
+             * 
+             * 
+            */
+
+           case TYPE_AndruavMessage_P2P_ACTION:
+           {
+                /**
+                 * @brief This is a general purpose message 
+                 * 
+                 * a: P2P_ACTION_ ... commands
+                 * b: mac address
+                 * p: wifi_password
+                 * c: channel
+                 * 
+                */
+
+                if (!cmd.contains("a") || !cmd["a"].is_number_integer()) return ;
+                if (!cmd.contains("b") || !cmd["b"].is_string()) return ;
+                
+
+           }
+           break;
+
+           case TYPE_AndruavMessage_P2P_STATUS:
+           {
+                /**
+                 * @brief This is a general purpose message 
+                 * 
+                 * a: P2P_STATUS_ ... commands
+                 * b: mac address
+                 * p: wifi_password
+                 * c: channel
+                 * 
+                */
+
+                if (!cmd.contains("a") || !cmd["a"].is_number_integer()) return ;
+                if (!cmd.contains("b") || !cmd["b"].is_string()) return ;
+                
+
+           }
+           break;
+
             /**
              * @brief SWARM SECTION
              * We have three messages here:

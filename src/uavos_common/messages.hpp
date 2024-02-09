@@ -171,8 +171,15 @@
 #define TYPE_AndruavMessage_Sync_EventFire              1061
 #define TYPE_AndruavMessage_Prepherials                 1070
 #define TYPE_AndruavMessage_UDPProxy_Info               1071
+/**
+ * Used to set unit name and description.
+ * This message is mainly sent from web and received by communication module.
+*/
+#define TYPE_AndruavMessage_Unit_Name                   1072
 
 // Binary Messages 
+
+//deprecated telemetry technology
 #define TYPE_AndruavMessage_LightTelemetry              2022
 
 // New JSON Messages 
@@ -183,6 +190,19 @@
 #define TYPE_AndruavMessage_ServoOutput                 6501
 #define TYPE_AndruavMessage_MAVLINK                     6502
 #define TYPE_AndruavMessage_SWARM_MAVLINK               6503
+
+/**
+ * Used by other modules to exchange mavlink information
+ * between each other.
+ * This allows custom implementation for sharing mavlink info 
+ * between mavlink module and other modules.
+*/
+#define TYPE_AndruavMessage_INTERNAL_MAVLINK            6504
+
+#define TYPE_AndruavMessage_P2P_ACTION                  6505
+#define TYPE_AndruavMessage_P2P_STATUS                  6506
+
+
 
 // Andruav Mission Types
 #define TYPE_CMissionItem                                    0
@@ -202,6 +222,17 @@
 #define TYPE_CMissionAction_CameraControl                  203 // same as mavlink
 #define TYPE_CMissionAction_CameraTrigger                  206 // same as mavlink
 #define TYPE_CMissionAction_DummyMission                 99999
+
+
+// P2P Parameters
+
+#define P2P_ACTION_RESTART_TO_MAC                           0
+#define P2P_ACTION_CONNECT_TO_MAC                           1
+#define P2P_ACTION_CANDICATE_MAC                            2
+
+#define P2P_STATUS_CONNECTED_TO_MAC                         0
+#define P2P_STATUS_DISCONNECTED_FROM_MAC                    1
+
 
 // // Remote Control Sub Actions
 // #define RC_SUB_ACTION_RELEASED                           0
