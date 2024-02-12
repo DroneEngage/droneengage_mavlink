@@ -192,26 +192,30 @@ void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bm
     fullMessage[INTERMODULE_ROUTING_TYPE]           = std::string(msg_routing_type);
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = message_cmd;
+
     std::string json_msg = fullMessage.dump();
-        
-    // prepare an array for the whole message
-    char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
-    std::unique_ptr<char []> msg = std::unique_ptr<char []> (msg_ptr);
-    // copy json part
-    strcpy(msg_ptr,json_msg.c_str());
-    // add zero '0' delimeter
-    msg_ptr[json_msg.length()] = 0;
-    // copy binary message
+    
+    /**** Attach Binary part to String after inserting NULL ***/
+
+    // Prepare a vector for the whole message
+    std::vector<char> msg(json_msg.begin(), json_msg.end());
+    msg.push_back('\0'); // Add null terminator
+
+    // Append binary message
     if (bmsg_length != 0)
     {
-        // empty binary contents of a binary can exist if binary contents is optional
-        // or will be filled by communicator module.
-        memcpy(&msg[json_msg.length()+1], bmsg, bmsg_length);
+        msg.insert(msg.end(), bmsg, bmsg + bmsg_length);
     }
 
+    // Access the complete message as a char array
+    char* msg_ptr = msg.data();
+
+    /**** Attachment End ****/
+
+
     cUDPClient.sendMSG(msg_ptr, json_msg.length()+1+bmsg_length);
-        
-    msg.release();
+
+    return ;
 }
 
 
