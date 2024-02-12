@@ -230,13 +230,13 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
         
         Json fullMessage;
 
-        /*////////
+        /**
         // Route messages:
         //  Internally: i.e. UAVOS Communication module will handle it and will resend it to other modules
         //                  or modulated then forwarded to Cmmunication Server.
         //  Group: i.e. to all members of groups.
         //  Individual: i.e. to a given member or a certain type of members i.e. all vehicles or all GCS.
-        /////////*/
+        */
         std::string msg_routing_type = CMD_COMM_GROUP;
         if (internal_message == true)
         {

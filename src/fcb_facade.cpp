@@ -17,10 +17,16 @@ using Json = nlohmann::json;
 
 using namespace uavos::fcb;
 
-
-           
-void CFCBFacade::sendID(const std::string&target_party_id)  const
+/**
+/// @brief This is an internal command that communicator will extend.
+/// it can resend it directly or choose to send it later based 
+/// on logic implemented in the communicator module.
+/// @param target_party_id 
+*/
+void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
 {
+    if (m_sendJMSG == NULL) return ;
+    
     /*
          VT : vehicle type
          FM : flying mode
@@ -70,10 +76,7 @@ void CFCBFacade::sendID(const std::string&target_party_id)  const
 
         
 
-    if (m_sendJMSG != NULL)
-    {
-        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_ID, true);
-    }
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_ID, true);
     
     return ;
 }
@@ -81,22 +84,23 @@ void CFCBFacade::sendID(const std::string&target_party_id)  const
 
 void CFCBFacade::requestID(const std::string&target_party_id)  const
 {
+    if (m_sendJMSG == NULL) return ;
+    
     Json message = 
         {
             {"C", TYPE_AndruavMessage_ID}
         };
         
 
-    if (m_sendJMSG != NULL)
-    {
-        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_RemoteExecute, true);
-    }
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_RemoteExecute, true);
     
     return ;
 }
 
 void CFCBFacade::sendErrorMessage (const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description)  const
 {
+    if (m_sendJMSG == NULL) return ;
+    
     /*
         EN : error number  "not currently processed".
         IT : info type indicate what component is reporting the error.
@@ -111,11 +115,8 @@ void CFCBFacade::sendErrorMessage (const std::string&target_party_id, const int&
             {"DS", description}
         };
 
-    if (m_sendJMSG != NULL)
-    {
-        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_Error, false);
-    }
- 
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_Error, false);
+    
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << " -- sendErrorMessage " << _NORMAL_CONSOLE_TEXT_ << description << std::endl;
     
     return ;
@@ -755,6 +756,8 @@ void CFCBFacade::sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, u
 [[deprecated("This function is deprecated. UDPProxy is used instead of webplugin")]]
 void CFCBFacade::sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
 {
+    if (m_sendBMSG == NULL) return ;
+    
     char buf[300];
     // Translate message to buffer
 	unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message);
@@ -771,6 +774,8 @@ void CFCBFacade::sendTelemetryData(const std::string&target_party_id, const mavl
 
 void CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
 {
+    if (m_sendBMSG == NULL) return ;
+    
     char buf[300];
     // Translate message to buffer
 	uint16_t len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message);
@@ -789,6 +794,8 @@ void CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlin
 
 void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2, const mavlink_message_t& mavlink_message3)  const
 {
+    if (m_sendBMSG == NULL) return ;
+    
     char buf[600];
     // Translate message to buffer
     memset (buf,0,sizeof(buf));
@@ -811,6 +818,8 @@ void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavl
 
 void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const
 {
+    if (m_sendBMSG == NULL) return ;
+    
     if (count==0) return ;
 
     char buf[600]; //BUG: Why this specific number ???
@@ -838,6 +847,8 @@ void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavl
 
 void CFCBFacade::sendSWARM_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const
 {
+    if (m_sendBMSG == NULL) return ;
+    
     if (count==0) return ;
 
     char buf[600]; //BUG: Why this specific number ???
@@ -1192,4 +1203,25 @@ void CFCBFacade::sendUdpProxyStatus(const std::string&target_party_id, const boo
     m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_UDPProxy_Info, false);
 }
 
+/**
+/// @brief This is an internal command that the communication mobule will extend and fill
+/// an will send it to target party [target_party_id].
+/// @param target_party_id 
+*/
+void CFCBFacade::API_IC_P2P_connectToMeshOnMac (const std::string& target_party_id) const 
+{
+    
+    Json message = { 
+        {"a", P2P_ACTION_CONNECT_TO_MAC},
+        {"int_prty", target_party_id},   // to be removed by communicator.
+        /*
+        {"b", node_mac},
+        {"p", wifi_password},
+        {"c", wifi_channel},
+        */
 
+     };
+ 
+    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_P2P_ACTION, true);
+ 
+}

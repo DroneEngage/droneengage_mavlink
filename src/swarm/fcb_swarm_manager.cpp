@@ -9,6 +9,16 @@
 using namespace uavos::fcb::swarm;
 
 
+/**
+ * @brief: 
+ * UnFollow Leader: The follower informs the leader that it will unfolllow it and that is all.
+ * 
+ * Follow Leader: Normally this request is called from GCS. The drone is told to follow a leader.
+ *                The follower can accept or reject. If it accepts it sends a request to the leader
+ *                to ask it to join. The leader can accept or reject and send back location 
+ *                and formation pattern to follower if accepted.
+ * 
+*/
 void CSwarmManager::followLeader(const std::string& leader_party_id, const int follower_index, const ANDRUAV_SWARM_FORMATION follower_formation, const std::string& party_id_request)
 {
     
@@ -17,7 +27,7 @@ void CSwarmManager::followLeader(const std::string& leader_party_id, const int f
         // you ask me to follow nothing. This is bad.
         // I should get unFollowLeader message to unfollow leader.
         // this is a bad message so ignore.
-        // mabe because of a racing condition.
+        // maybe because of a racing condition.
         return ;
     }
 
@@ -47,7 +57,7 @@ void CSwarmManager::followLeader(const std::string& leader_party_id, const int f
     //NOTE: MAYBE IN FUTURE WE SPLIT THIS INTO TWO MESSAGES.
     // REQUEST_TO_FOLLOW & DO_FOLLOW
     
-    uavos::fcb::CFCBFacade::getInstance().sendID(std::string());
+    uavos::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
 }
 
 
@@ -93,7 +103,7 @@ void CSwarmManager::unFollowLeader(const std::string& party_id_leader_to_unfollo
 
     std::cout << "UnFollow " << party_id_leader_to_unfollow << " requested by: " << party_id_request << " DONE." << std::endl;
 
-    uavos::fcb::CFCBFacade::getInstance().sendID(std::string());
+    uavos::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
 }
             
 ANDRUAV_SWARM_FORMATION CSwarmManager::getFormationAsFollower() const
@@ -132,7 +142,7 @@ void CSwarmManager::makeSwarm(const ANDRUAV_SWARM_FORMATION formation)
 	
     //TODO: handle change formation for followers.
     //TODO: problems include formation transition, & max number of followers.
-    uavos::fcb::CFCBFacade::getInstance().sendID(std::string());
+    uavos::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
 }
 
 
@@ -186,7 +196,8 @@ void CSwarmManager::addFollower (const std::string& party_id, const int follower
 	
     // add a new one
     m_follower_units.push_back({party_id, follower_idx});
-    uavos::fcb::CFCBFacade::getInstance().requestFromUnitToFollowMe (party_id, follower_idx);    
+    uavos::fcb::CFCBFacade::getInstance().requestFromUnitToFollowMe (party_id, follower_idx);
+    uavos::fcb::CFCBFacade::getInstance().API_IC_P2P_connectToMeshOnMac(party_id);
 }
 
 void CSwarmManager::releaseFollowers ()

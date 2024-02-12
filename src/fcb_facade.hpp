@@ -64,7 +64,7 @@ namespace fcb
 
         public:
 
-            void sendID(const std::string&target_party_id) const;
+            void API_IC_sendID(const std::string&target_party_id) const;
             void requestID(const std::string&target_party_id) const;
             void sendTelemetryPanic(const std::string&target_party_id) const;
             void sendErrorMessage(const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const;
@@ -112,6 +112,14 @@ namespace fcb
             void internalCommand_takeImage () const;
             void sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, uavos::comm::CUDPProxy& udp_client) const;
                  
+
+        public:
+
+            void API_IC_P2P_connectToMeshOnMac (const std::string& target_party_id) const;
+
+
+
+        public:
 
             void RegisterSendSYSMSG (SEND_SYSMSG_CALLBACK sendSYSMSG)
             {

@@ -8,7 +8,17 @@ using Json = nlohmann::json;
 
 
 typedef void (*SEND_SYSMSG_CALLBACK)(const Json&, const int& );
+
+/**
+ * @brief sends JSON packet
+ * 
+ * @param targetPartyID 
+ * @param jmsg 
+ * @param andruav_message_id 
+ * @param internal_message if true @link INTERMODULE_MODULE_KEY @endlink equaqls to Module key
+ */
 typedef void (*SEND_JMSG_CALLBACK)(const std::string& targetPartyID, const Json&, const int&, const bool& );
+
 typedef void (*SEND_BMSG_CALLBACK)(const std::string& targetPartyID, const char *, const int bmsg_length, const int& , const bool&, const Json& );
 typedef void (*SEND_MREMSG_CALLBACK)(const int& );
 

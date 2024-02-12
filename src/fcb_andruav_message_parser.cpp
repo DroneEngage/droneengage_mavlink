@@ -422,7 +422,7 @@ void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char *
                 m_fcbMain.adjustRemoteJoystickByMode((RC_SUB_ACTION)rc_sub_action);
 
                 // update status
-                CFCBFacade::getInstance().sendID(std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
+                CFCBFacade::getInstance().API_IC_sendID(std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
             }
             break;
 

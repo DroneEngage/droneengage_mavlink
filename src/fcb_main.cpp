@@ -543,7 +543,7 @@ void CFCBMain::loopScheduler ()
             if (fcb_connected != m_fcb_connected)
             {
                 m_fcb_connected = fcb_connected;
-                m_fcb_facade.sendID(std::string());
+                m_fcb_facade.API_IC_sendID(std::string());
             }
 
 
@@ -553,7 +553,7 @@ void CFCBMain::loopScheduler ()
 
         if (m_counter % 1000 ==0)
         {   // 10 sec
-            m_fcb_facade.sendID(std::string());
+            m_fcb_facade.API_IC_sendID(std::string());
             m_fcb_facade.sendDistanceSensorInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             m_fcb_facade.sendMissionCurrent(std::string());
         }
@@ -739,7 +739,7 @@ void CFCBMain::OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)
 
     m_andruav_vehicle_info.gps_mode =  GPS_MODE_FCB;
 
-    m_fcb_facade.sendID(std::string());
+    m_fcb_facade.API_IC_sendID(std::string());
 
     // request home location
     mavlinksdk::CMavlinkCommand::getInstance().requestHomeLocation();
@@ -753,7 +753,7 @@ void CFCBMain::OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)
     m_andruav_vehicle_info.vehicle_type = CFCBModes::getAndruavVehicleType (heartbeat.type);
     m_andruav_vehicle_info.autopilot = heartbeat.autopilot;
     
-    m_fcb_facade.sendID(std::string());
+    m_fcb_facade.API_IC_sendID(std::string());
     
     return ;
 }
@@ -774,7 +774,7 @@ void CFCBMain::OnArmed (const bool& armed)
     
     m_andruav_vehicle_info.is_armed = armed;
 
-    m_fcb_facade.sendID(std::string());
+    m_fcb_facade.API_IC_sendID(std::string());
 
     return ;
 }
@@ -801,7 +801,7 @@ void CFCBMain::OnFlying (const bool& is_flying)
         }
 
         m_andruav_vehicle_info.is_flying = is_flying;
-        m_fcb_facade.sendID(std::string());
+        m_fcb_facade.API_IC_sendID(std::string());
     }
 
     return ;
@@ -1022,7 +1022,7 @@ void CFCBMain::OnModeChanges(const uint32_t& custom_mode, const int& firmware_ty
     // vehicle mode is mapped here to andruav mode.
     m_andruav_vehicle_info.flying_mode = CFCBModes::getAndruavMode (custom_mode, CFCBModes::getAndruavVehicleType(firmware_type), autopilot);
     adjustRemoteJoystickByMode(m_andruav_vehicle_info.rc_sub_action);
-    m_fcb_facade.sendID(std::string());
+    m_fcb_facade.API_IC_sendID(std::string());
 
     return ;
 }   
@@ -1892,7 +1892,7 @@ void CFCBMain::checkBlockedStatus()
             msg = "GCS is Blocked.";
         }
 
-        m_fcb_facade.sendID(std::string());
+        m_fcb_facade.API_IC_sendID(std::string());
         
         m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, msg);
 
