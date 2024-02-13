@@ -8,7 +8,7 @@
   "s2s_udp_target_port": "60000", 
   // IP & Port of this module
   "s2s_udp_listening_ip": "127.0.0.1", 
-  "s2s_udp_listening_port": "60003", 
+  "s2s_udp_listening_port": "61003", 
   
   
   // How to connect to Ardupilot board
