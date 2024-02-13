@@ -34,10 +34,10 @@ void CSwarmManager::handle_swarm_as_leader()
             const mavlink_attitude_t& attitude = vehicle.getMsgAttitude();
             const mavlink_global_position_int_t&  my_gpos = vehicle.getMsgGlobalPositionInt();
 
-            // roll - pitch - yaw - rollspeed - pitchspeed - yawspeed
-            mavlink_msg_attitude_encode(sys_id, comp_id, &mavlink_message[0], &attitude);
             // time_boot_ms - lat - lon - alt - relative - alt - vx - vy - vz - hdg
-            mavlink_msg_global_position_int_encode(sys_id, comp_id, &mavlink_message[1], &my_gpos);
+            mavlink_msg_global_position_int_encode(sys_id, comp_id, &mavlink_message[0], &my_gpos);
+            // roll - pitch - yaw - rollspeed - pitchspeed - yawspeed
+            mavlink_msg_attitude_encode(sys_id, comp_id, &mavlink_message[1], &attitude);
             
             // forward info to followers.
             uavos::fcb::CFCBFacade::getInstance().sendSWARM_M (item.party_id, mavlink_message, 2);

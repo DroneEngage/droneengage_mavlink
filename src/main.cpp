@@ -19,6 +19,7 @@
 #include "fcb_facade.hpp"
 #include "fcb_traffic_optimizer.hpp"
 #include "./uavos_common/uavos_module.hpp"
+#include "./swarm/fcb_swarm_follower.hpp"
 #include "fcb_main.hpp"
 #include "fcb_andruav_message_parser.hpp"
 
@@ -355,41 +356,64 @@ void onReceive (const char * message, int len)
         std::cout << _INFO_CONSOLE_TEXT << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-    
-    Json jMsg = Json::parse(message);
-
-    if (std::strcmp(jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().c_str(),CMD_TYPE_INTERMODULE)==0)
+    try
     {
-        const Json cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+        /* code */
+        Json jMsg = Json::parse(message);
         const int messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
-    
-        if (messageType== TYPE_AndruavModule_ID)
+
+        if (std::strcmp(jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().c_str(),CMD_TYPE_INTERMODULE)==0)
         {
-            const Json moduleID = cmd ["f"];
-            PartyID = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
-            GroupID = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
-            cFCBMain.setPartyID(PartyID, GroupID);
+            const Json cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
             
-            const int status = cmd ["g"].get<int>();
-            if (AndruavServerConnectionStatus != status)
+        
+            if (messageType== TYPE_AndruavModule_ID)
             {
-                _onConnectionStatusChanged (status);
+                const Json moduleID = cmd ["f"];
+                PartyID = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+                GroupID = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
+                cFCBMain.setPartyID(PartyID, GroupID);
+                
+                const int status = cmd ["g"].get<int>();
+                if (AndruavServerConnectionStatus != status)
+                {
+                    _onConnectionStatusChanged (status);
+                }
+                AndruavServerConnectionStatus = status;
+                if (!bFirstReceived)
+                { 
+                    // tell server you dont need to send ID again.
+                    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": PartyID(" << _INFO_CONSOLE_TEXT << PartyID << _SUCCESS_CONSOLE_TEXT_ << ") GroupID(" << _INFO_CONSOLE_TEXT << GroupID << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    PLOG(plog::info) << "Communicator Server Found: PartyID(" << PartyID << ") GroupID(" << GroupID << ")"; 
+                    Json jsonID = createJSONID(false);
+                    cUDPClient.setJsonId (jsonID.dump());
+                    bFirstReceived = true;
+                }
+                return ;
             }
-            AndruavServerConnectionStatus = status;
-            if (!bFirstReceived)
-            { 
-                // tell server you dont need to send ID again.
-                std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": PartyID(" << _INFO_CONSOLE_TEXT << PartyID << _SUCCESS_CONSOLE_TEXT_ << ") GroupID(" << _INFO_CONSOLE_TEXT << GroupID << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-                PLOG(plog::info) << "Communicator Server Found: PartyID(" << PartyID << ") GroupID(" << GroupID << ")"; 
-                Json jsonID = createJSONID(false);
-                cUDPClient.setJsonId (jsonID.dump());
-                bFirstReceived = true;
-            }
-            return ;
+
+            
         }
-    }
+
+        /*
+        * Handles SWARM MESSAGE
+        * P2P Message SHOULD BE ENCAPSULATED
+        */
+        if (messageType == TYPE_AndruavMessage_SWARM_MAVLINK)
+            {
+                const std::string leader_sender = jMsg[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
+                uavos::fcb::swarm::CSwarmFollower& swarm_follower = uavos::fcb::swarm::CSwarmFollower::getInstance();
+                swarm_follower.handle_leader_traffic(leader_sender, message, len);
+            
+                return ;
+            }
+        cAndruavResalaParser.parseMessage(jMsg, message, len);
     
-    cAndruavResalaParser.parseMessage(jMsg, message, len);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
     
 }
 

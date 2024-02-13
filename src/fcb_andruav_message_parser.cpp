@@ -18,11 +18,10 @@ using namespace uavos::fcb;
 
 
 
-/**
- * @brief Parse messages receuved from uavos_comm"
- * 
- * @param andruav_message message received from uavos_comm
- */
+/// @brief Parses & executes messages received from uavos_comm"
+/// @param parsed JSON message received from uavos_comm 
+/// @param full_message 
+/// @param full_message_length 
 void CFCBAndruavMessageParser::parseMessage (Json &andruav_message, const char * full_message, const int & full_message_length)
 {
     const int messageType = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
