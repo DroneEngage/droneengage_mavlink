@@ -632,8 +632,6 @@ void quit_handler( int sig )
 
 int main (int argc, char *argv[])
 {
-    instance_time_stamp = std::time(nullptr);
-     
     init (argc, argv);
 
     while (!exit_me)
