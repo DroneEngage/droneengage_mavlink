@@ -14,6 +14,7 @@
 #include "./uavos_common/configFile.hpp"
 #include "./uavos_common/localConfigFile.hpp"
 #include "./uavos_common/udpClient.hpp"
+#include "./uavos_common/uavos_module.hpp"
 #include "./swarm/fcb_swarm_manager.hpp"
 #include "./mission/missions.hpp"
 #include "fcb_facade.hpp"
@@ -71,13 +72,14 @@ std::string  ModuleID;
 std::string  ModuleKey;
 int AndruavServerConnectionStatus = SOCKET_STATUS_FREASH;
 
+uavos::comm::CModule& cModule= uavos::comm::CModule::getInstance();
+
 uavos::fcb::CFCBMain& cFCBMain = uavos::fcb::CFCBMain::getInstance();
 uavos::fcb::CFCBAndruavMessageParser cAndruavResalaParser = uavos::fcb::CFCBAndruavMessageParser();
 
 uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
 uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
 
-uavos::comm::CUDPClient cUDPClient = uavos::comm::CUDPClient(); 
 
 /**
  * @brief hardware serial number
@@ -214,7 +216,7 @@ void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bm
     /**** Attachment End ****/
 
 
-    cUDPClient.sendMSG(msg_ptr, json_msg.length()+1+bmsg_length);
+    cModule.sendMSG(msg_ptr, json_msg.length()+1+bmsg_length);
 
     return ;
 }
@@ -264,7 +266,7 @@ void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& an
         #ifdef DEBUG
         //std::cout << "sendJMSG:" << msg.c_str() << std::endl;
         #endif
-        cUDPClient.sendMSG(msg.c_str(), msg.length());
+        cModule.sendMSG(msg.c_str(), msg.length());
 }
 
 
@@ -281,7 +283,7 @@ void sendSYSMSG (const Json& jmsg, const int& andruav_message_id)
         #ifdef DEBUG
         //std::cout << "sendJMSG:" << msg.c_str() << std::endl;
         #endif
-        cUDPClient.sendMSG(msg.c_str(), msg.length());
+        cModule.sendMSG(msg.c_str(), msg.length());
 }
 
 /**
@@ -300,7 +302,7 @@ void sendMREMSG(const int& command_type)
     ms["C"] = command_type;
     json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
     const std::string msg = json_msg.dump();
-    cUDPClient.sendMSG(msg.c_str(), msg.length());              
+    cModule.sendMSG(msg.c_str(), msg.length());              
 }
 
 /**
@@ -317,40 +319,39 @@ void sendMREMSG(const int& command_type)
  * @param reSend if true then server should reply with server json_msg
  * @return const Json 
  */
-const Json createJSONID (bool reSend)
-{
-        const Json& jsonConfig = cConfigFile.GetConfigJSON();
-        CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
-        const std::string module_key = cLocalConfigFile.getStringField("module_key");
+// const Json createJSONID (bool reSend)
+// {
+//         const Json& jsonConfig = cConfigFile.GetConfigJSON();
+//         CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+//         const std::string module_key = cLocalConfigFile.getStringField("module_key");
 
-        Json json_msg;        
+//         Json json_msg;        
         
-        json_msg[INTERMODULE_ROUTING_TYPE] =  CMD_TYPE_INTERMODULE;
-        json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_ID;
-        Json ms;
+//         json_msg[INTERMODULE_ROUTING_TYPE] =  CMD_TYPE_INTERMODULE;
+//         json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_ID;
+//         Json ms;
               
-        ms[JSON_INTERMODULE_MODULE_ID]              = jsonConfig["module_id"];
-        ms[JSON_INTERMODULE_MODULE_CLASS]           = cFCBMain.getModuleClass();
-        ms[JSON_INTERMODULE_MODULE_MESSAGES_LIST]   = Json::array(MESSAGE_FILTER);
-        ms[JSON_INTERMODULE_MODULE_FEATURES]        = cFCBMain.getModuleFeatures();
-        ms[JSON_INTERMODULE_MODULE_KEY]             = module_key; 
-        ms[JSON_INTERMODULE_HARDWARE_ID]            = hardware_serial; 
-        ms[JSON_INTERMODULE_HARDWARE_TYPE]          = HARDWARE_TYPE_CPU; 
-        ms[JSON_INTERMODULE_VERSION]                = version_string;
-        ms[JSON_INTERMODULE_RESEND]                 = reSend;
-        ms[JSON_INTERMODULE_TIMESTAMP_INSTANCE]     = instance_time_stamp;
+//         ms[JSON_INTERMODULE_MODULE_ID]              = jsonConfig["module_id"];
+//         ms[JSON_INTERMODULE_MODULE_CLASS]           = cFCBMain.getModuleClass();
+//         ms[JSON_INTERMODULE_MODULE_MESSAGES_LIST]   = Json::array(MESSAGE_FILTER);
+//         ms[JSON_INTERMODULE_MODULE_FEATURES]        = cFCBMain.getModuleFeatures();
+//         ms[JSON_INTERMODULE_MODULE_KEY]             = module_key; 
+//         ms[JSON_INTERMODULE_HARDWARE_ID]            = hardware_serial; 
+//         ms[JSON_INTERMODULE_HARDWARE_TYPE]          = HARDWARE_TYPE_CPU; 
+//         ms[JSON_INTERMODULE_VERSION]                = version_string;
+//         ms[JSON_INTERMODULE_RESEND]                 = reSend;
+//         ms[JSON_INTERMODULE_TIMESTAMP_INSTANCE]     = instance_time_stamp;
 
-        json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
-        #ifdef DEBUG
-            std::cout << json_msg.dump(4) << std::endl;              
-        #endif
-        return json_msg;
-}
+//         json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
+//         #ifdef DEBUG
+//             std::cout << json_msg.dump(4) << std::endl;              
+//         #endif
+//         return json_msg;
+// }
 
 
 void onReceive (const char * message, int len)
 {
-    static bool bFirstReceived = false;
         
     #ifdef DEBUG        
         std::cout << _INFO_CONSOLE_TEXT << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -369,26 +370,16 @@ void onReceive (const char * message, int len)
         
             if (messageType== TYPE_AndruavModule_ID)
             {
-                const Json moduleID = cmd ["f"];
-                PartyID = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
-                GroupID = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
-                cFCBMain.setPartyID(PartyID, GroupID);
+                cFCBMain.setPartyID(cModule.getPartyId(), cModule.getGroupId());
                 
                 const int status = cmd ["g"].get<int>();
+                // TODO: Status Message should be a separate message
                 if (AndruavServerConnectionStatus != status)
                 {
-                    _onConnectionStatusChanged (status);
+                    cFCBMain.OnConnectionStatusChangedWithAndruavServer(status);
                 }
                 AndruavServerConnectionStatus = status;
-                if (!bFirstReceived)
-                { 
-                    // tell server you dont need to send ID again.
-                    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": PartyID(" << _INFO_CONSOLE_TEXT << PartyID << _SUCCESS_CONSOLE_TEXT_ << ") GroupID(" << _INFO_CONSOLE_TEXT << GroupID << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-                    PLOG(plog::info) << "Communicator Server Found: PartyID(" << PartyID << ") GroupID(" << GroupID << ")"; 
-                    Json jsonID = createJSONID(false);
-                    cUDPClient.setJsonId (jsonID.dump());
-                    bFirstReceived = true;
-                }
+                
                 return ;
             }
 
@@ -514,19 +505,29 @@ void initArguments (int argc, char *argv[])
 void initUDPClient(int argc, char *argv[])
 {
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+        
+    cModule.defineModule(
+        MODULE_CLASS_FCB,
+        jsonConfig["module_id"],
+        cLocalConfigFile.getStringField("module_key"),
+        version_string,
+        Json::array(MESSAGE_FILTER)
+    );
+
+    cModule.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);
+    cModule.addModuleFeatures(MODULE_FEATURE_RECEIVING_TELEMETRY);
+    cModule.setHardware(hardware_serial, ENUM_HARDWARE_TYPE::HARDWARE_TYPE_CPU);
+    
+    
+
+    cModule.setMessageOnReceive (&onReceive);
     
     // UDP Server
-    cUDPClient.init(jsonConfig["s2s_udp_target_ip"].get<std::string>().c_str(),
+    cModule.init(jsonConfig["s2s_udp_target_ip"].get<std::string>().c_str(),
             std::stoi(jsonConfig["s2s_udp_target_port"].get<std::string>().c_str()),
             jsonConfig["s2s_udp_listening_ip"].get<std::string>().c_str() ,
             std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()));
-    
-    
-    Json jsonID = createJSONID(true);
-    cUDPClient.setJsonId (jsonID.dump());
-    cUDPClient.setMessageOnReceive (&onReceive);
-    cUDPClient.start();
-
     
 }
 
@@ -601,7 +602,7 @@ void uninit ()
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-    cUDPClient.stop();
+    cModule.uninit();
 
     #ifdef DEBUG
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint_after Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;

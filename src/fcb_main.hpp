@@ -52,7 +52,7 @@ namespace fcb
      * It also communicates with physical FCB using mavlinksdk library.
      * 
      */
-    class CFCBMain: public uavos::CMODULE,  mavlinksdk::CMavlinkEvents, uavos::comm::CCallBack_UdpProxy
+    class CFCBMain: public mavlinksdk::CMavlinkEvents, uavos::comm::CCallBack_UdpProxy
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -79,11 +79,6 @@ namespace fcb
             {
                 m_event_wait_channel = -1; // no event
                 m_event_fired_by_me.clear(); // nothing fired
-
-                m_module_features.push_back("T");
-                m_module_features.push_back("R");
-
-                m_module_class="fcb";
             };
 
         public:
@@ -99,8 +94,8 @@ namespace fcb
 
         public:
 
-            bool init () override;
-            bool uninit () override;
+            bool init ();
+            bool uninit ();
 
             void loopScheduler();
 
@@ -109,7 +104,7 @@ namespace fcb
              * 
              * @param sendJMSG of type @link SEND_SYSMSG_CALLBACK @endlink 
              */
-            void registerSendSYSMSG (SEND_SYSMSG_CALLBACK sendSYSMSG) override
+            void registerSendSYSMSG (SEND_SYSMSG_CALLBACK sendSYSMSG) 
             {
                 m_fcb_facade.RegisterSendSYSMSG(sendSYSMSG);
             };            
@@ -119,7 +114,7 @@ namespace fcb
              * 
              * @param sendJMSG of type @link SEND_JMSG_CALLBACK @endlink 
              */
-            void registerSendJMSG (SEND_JMSG_CALLBACK sendJMSG) override
+            void registerSendJMSG (SEND_JMSG_CALLBACK sendJMSG) 
             {
                 m_fcb_facade.RegisterSendJMSG(sendJMSG);
             };            
@@ -129,7 +124,7 @@ namespace fcb
              * 
              * @param sendBMSG of type @link SEND_BMSG_CALLBACK @endlink 
              */
-            void registerSendBMSG (SEND_BMSG_CALLBACK sendBMSG) override
+            void registerSendBMSG (SEND_BMSG_CALLBACK sendBMSG) 
             {
                 m_fcb_facade.RegisterSendBMSG(sendBMSG);
             };            
@@ -139,7 +134,7 @@ namespace fcb
              * 
              * @param sendMREMSG of type @link SEND_MREMSG_CALLBACK @endlink 
              */
-            void registerSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG) override
+            void registerSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG) 
             {
                 m_fcb_facade.RegisterSendMREMSG(sendMREMSG);
             };            
@@ -182,7 +177,7 @@ namespace fcb
              * @param party_id 
              * @param group_id 
              */
-            void setPartyID (const std::string& party_id, const std::string& group_id) override
+            void setPartyID (const std::string& party_id, const std::string& group_id) 
             {
                 m_andruav_vehicle_info.party_id = party_id;
                 m_andruav_vehicle_info.group_id = group_id;
@@ -286,7 +281,7 @@ namespace fcb
             void OnDistanceSensorChanged (const mavlink_distance_sensor_t& distance_sensor);        
             
             // called from main
-            void OnConnectionStatusChangedWithAndruavServer (const int status) override;
+            void OnConnectionStatusChangedWithAndruavServer (const int status) ;
         
         
         // Events implementation of uavos::comm::CCallBack_UdpProxy

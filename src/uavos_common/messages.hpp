@@ -26,7 +26,6 @@
 
 
 
-#define HARDWARE_TYPE_CPU   1
 
 
 

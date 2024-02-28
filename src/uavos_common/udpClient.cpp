@@ -183,16 +183,21 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
     
     while (!m_stopped_called)
     {
+        
+        
         // TODO: you should send header ot message length and handle if total message size is larger than MAXLINE.
         n = recvfrom(m_SocketFD, (char *)buffer, MAXLINE,  
                 MSG_WAITALL, ( struct sockaddr *) &cliaddr, &sender_address_size);
-        
+        #ifdef DEBUG
+	        std::cout << "CUDPClient::InternalReceiverEntry recvfrom" << std::endl; 
+        #endif
+    
         if (n > 0) 
         {
             buffer[n]=0;
-            if (m_OnReceive != NULL)
+            if (m_callback != NULL)
             {
-                m_OnReceive((const char *) buffer,n);
+                m_callback->onReceive((const char *) buffer,n);
             } 
         }
     }
@@ -211,11 +216,6 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
 void uavos::comm::CUDPClient::setJsonId (std::string jsonID)
 {
     m_JsonID = jsonID;
-}
-
-void uavos::comm::CUDPClient::setMessageOnReceive (void (*onReceive)(const char *, int len))
-{
-    m_OnReceive = onReceive;
 }
 
 /**
