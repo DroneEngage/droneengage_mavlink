@@ -17,18 +17,6 @@ class CUDPClient
 {
 
     public:
-        //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
-        // static CUDPClient& getInstance()
-        // {
-        //     static CUDPClient instance;
-
-        //     return instance;
-        // }
-
-        // CUDPClient(CUDPClient const&)            = delete;
-        // void operator=(CUDPClient const&)        = delete;
-
-    public:
 
         CUDPClient()
         {

@@ -75,6 +75,12 @@ namespace uavos
             // called from main
             virtual void OnConnectionStatusChangedWithAndruavServer (const int status){};
 
+            /**
+             * @brief Get the Module Features object
+             *  module features i.e. can transmit, can recieve, needs stream ...etc.
+             * in this case we use T & R only. 
+             * @return const Json 
+             */
             virtual  inline const Json getModuleFeatures() const
             {
                 return m_module_features;
