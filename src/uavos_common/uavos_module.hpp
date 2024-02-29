@@ -85,18 +85,20 @@ namespace comm
 
 
         public:
-                void setMessageOnReceive (void (*onReceive)(const char *, int len))
+
+            void setMessageOnReceive (void (*onReceive)(const char *, int len))
                 {
                     m_OnReceive = onReceive;
                 }
         
-                void sendMSG (const char * msg, const int length)
+            void sendMSG (const char * msg, const int length)
                 {
                     cUDPClient.sendMSG (msg, length);
                 }
 
 
-                void onReceive (const char *, int len) override;
+            void onReceive (const char *, int len) override;
+
         public:
 
             /**
@@ -125,34 +127,6 @@ namespace comm
             void setPartyID (const std::string& party_id, const std::string& group_id){};
             
 
-            /**
-             * @details register callback function to send system message using it.
-             * 
-             * @param sendBMSG of type @link SEND_SYSMSG_CALLBACK @endlink 
-             */
-            void registerSendSYSMSG (SEND_SYSMSG_CALLBACK sendBMSG){};
-
-            /**
-             * @details register callback function to send message using it.
-             * 
-             * @param sendJMSG of type @link SEND_JMSG_CALLBACK @endlink 
-             */
-            void registerSendJMSG (SEND_JMSG_CALLBACK sendJMSG){};
-
-            /**
-             * @details register callback function to send message using it.
-             * 
-             * @param sendBMSG of type @link SEND_BMSG_CALLBACK @endlink 
-             */
-            void registerSendBMSG (SEND_BMSG_CALLBACK sendBMSG){};
-
-
-            /**
-             * @details register call back to send InterModule remote execute message.
-             * 
-             * @param sendMREMSG of type @link SEND_MREMSG_CALLBACK @endlink 
-             */
-            void registerSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG){};
             
             // called from main
             void OnConnectionStatusChangedWithAndruavServer (const int status){};
