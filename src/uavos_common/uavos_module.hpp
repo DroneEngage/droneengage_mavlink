@@ -24,21 +24,6 @@ typedef enum {
 #define MODULE_CLASS_GENERIC                    "gen"
 
 
-typedef void (*SEND_SYSMSG_CALLBACK)(const Json&, const int& );
-
-/**
- * @brief sends JSON packet
- * 
- * @param targetPartyID 
- * @param jmsg 
- * @param andruav_message_id 
- * @param internal_message if true @link INTERMODULE_MODULE_KEY @endlink equaqls to Module key
- */
-typedef void (*SEND_JMSG_CALLBACK)(const std::string& targetPartyID, const Json&, const int&, const bool& );
-
-typedef void (*SEND_BMSG_CALLBACK)(const std::string& targetPartyID, const char *, const int bmsg_length, const int& , const bool&, const Json& );
-typedef void (*SEND_MREMSG_CALLBACK)(const int& );
-
 namespace uavos
 {
 
@@ -82,6 +67,14 @@ namespace comm
             bool uninit ();
             
 
+
+
+        public:
+
+            void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message, const Json& message_cmd);
+            void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& andruav_message_id, const bool& internal_message);
+            void sendSYSMSG (const Json& jmsg, const int& andruav_message_id);
+            void sendMREMSG(const int& command_type);
 
 
         public:

@@ -25,7 +25,7 @@ using namespace uavos::fcb;
 */
 void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     /*
          VT : vehicle type
@@ -76,7 +76,7 @@ void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
 
         
 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_ID, true);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_ID, true);
     
     return ;
 }
@@ -84,7 +84,7 @@ void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
 
 void CFCBFacade::requestID(const std::string&target_party_id)  const
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     Json message = 
         {
@@ -92,14 +92,14 @@ void CFCBFacade::requestID(const std::string&target_party_id)  const
         };
         
 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_RemoteExecute, true);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_RemoteExecute, true);
     
     return ;
 }
 
 void CFCBFacade::sendErrorMessage (const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description)  const
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     /*
         EN : error number  "not currently processed".
@@ -115,7 +115,7 @@ void CFCBFacade::sendErrorMessage (const std::string&target_party_id, const int&
             {"DS", description}
         };
 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_Error, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Error, false);
     
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << " -- sendErrorMessage " << _NORMAL_CONSOLE_TEXT_ << description << std::endl;
     
@@ -129,7 +129,7 @@ void CFCBFacade::sendTelemetryPanic(const std::string& target_party_id)  const
 
 void CFCBFacade::sendHighLatencyInfo(const std::string&target_party_id) const 
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     const int sys_id = m_vehicle.getSysId();
     const int comp_id = m_vehicle.getCompId();
@@ -218,7 +218,7 @@ void CFCBFacade::sendHighLatencyInfo(const std::string&target_party_id) const
 
 void CFCBFacade::sendEKFInfo(const std::string&target_party_id) const
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     const int sys_id = m_vehicle.getSysId();
     const int comp_id = m_vehicle.getCompId();
@@ -240,7 +240,7 @@ void CFCBFacade::sendEKFInfo(const std::string&target_party_id) const
 
 void CFCBFacade::sendVibrationInfo(const std::string&target_party_id) const
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     const int sys_id = m_vehicle.getSysId();
     const int comp_id = m_vehicle.getCompId();
@@ -278,7 +278,7 @@ void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
         [c]         : accuracy
     */
 
-    if (m_sendJMSG == NULL) return ;
+    
     
     if (m_vehicle.getHighLatencyMode()!=0) return ;
     
@@ -320,7 +320,7 @@ void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
 
 void CFCBFacade::sendWindInfo (const std::string&target_party_id) const
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     if (m_vehicle.getHighLatencyMode()!=0) return ;
     
@@ -342,7 +342,7 @@ void CFCBFacade::sendWindInfo (const std::string&target_party_id) const
 
 void CFCBFacade::sendTerrainReport (const std::string&target_party_id) const
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     if (m_vehicle.getHighLatencyMode()!=0) return ;
     
@@ -365,7 +365,7 @@ void CFCBFacade::sendTerrainReport (const std::string&target_party_id) const
 
 void CFCBFacade::sendADSBVehicleInfo(const std::string&target_party_id) const
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     if (m_vehicle.getHighLatencyMode()!=0) return ;
     
@@ -386,7 +386,7 @@ void CFCBFacade::sendADSBVehicleInfo(const std::string&target_party_id) const
 
 void CFCBFacade::sendDistanceSensorInfo(const std::string&target_party_id,const mavlink_distance_sensor_t& distance_sensor) const 
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     if (m_vehicle.getHighLatencyMode()!=0) return ;
     
@@ -420,7 +420,7 @@ void CFCBFacade::sendLocationInfo () const
         a           : absolute altitude
         r           : relative altitude
     */
-    if (m_sendJMSG == NULL) return ;
+    
     
     mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
     const mavlink_global_position_int_t&  gpos = vehicle.getMsgGlobalPositionInt();
@@ -438,7 +438,7 @@ void CFCBFacade::sendLocationInfo () const
         // {"ws", windspeed}   
     };
 
-    m_sendJMSG ("", message, TYPE_AndruavModule_Location_Info, true);
+    m_module.sendJMSG ("", message, TYPE_AndruavModule_Location_Info, true);
     
     
 }
@@ -451,7 +451,7 @@ void CFCBFacade::sendLocationInfo () const
 void CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
 {
     
-    if (m_sendJMSG == NULL) return ;
+    
     if (mavlinksdk::CVehicle::getInstance().getHighLatencyMode()!=0) return ;
                
     const mavlink_attitude_t& attitude = m_vehicle.getMsgAttitude();
@@ -485,7 +485,7 @@ void CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
  */
 void CFCBFacade::sendParameterList (const std::string&target_party_id) const 
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     const int sys_id = m_vehicle.getSysId();
     const int comp_id = m_vehicle.getCompId();
@@ -533,7 +533,7 @@ void CFCBFacade::sendParameterList (const std::string&target_party_id) const
  */
 void CFCBFacade::sendParameterValue (const std::string&target_party_id, const mavlink_param_value_t& param_message) const 
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     const int sys_id = m_vehicle.getSysId();
     const int comp_id = m_vehicle.getCompId();
@@ -550,7 +550,7 @@ void CFCBFacade::sendParameterValue (const std::string&target_party_id, const ma
 void CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
 {
 
-    if (m_sendJMSG == NULL) return ;
+    
     if (m_vehicle.getHighLatencyMode()!=0) return ;
     
     const int sys_id = m_vehicle.getSysId();
@@ -588,7 +588,7 @@ void CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
 
 void CFCBFacade::sendMissionCurrent(const std::string&target_party_id) const
 {
-    if (m_sendJMSG == NULL) return ;
+    
 
     const int sys_id = m_vehicle.getSysId();
     const int comp_id = m_vehicle.getCompId();
@@ -616,7 +616,7 @@ void CFCBFacade::sendMissionCurrent(const std::string&target_party_id) const
 void CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
 {
     
-    if (m_sendJMSG == NULL) return ;
+    
     
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
     const mavlink_home_position_t& home = vehicle.getMsgHomePosition();
@@ -633,7 +633,7 @@ void CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
         {"A", home.altitude / 1000.0f}
     };
 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_HomeLocation, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_HomeLocation, false);
     
     return ;
 }
@@ -646,7 +646,7 @@ void CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
 void CFCBFacade::sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude, const int &target_type) const
 {
     
-    if (m_sendJMSG == NULL) return ;
+    
     
     /*
         T : latitude in xx.xxxxx
@@ -661,7 +661,7 @@ void CFCBFacade::sendFCBTargetLocation(const std::string&target_party_id, const 
         {"A", altitude}
     };
 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_DistinationLocation, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_DistinationLocation, false);
     
     return ;
 }
@@ -680,7 +680,7 @@ std::mutex g_pages_mutex;
 void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
 {
 
-    if (m_sendJMSG == NULL) return ;
+    
     
     std::lock_guard<std::mutex> guard(g_pages_mutex);
     
@@ -696,7 +696,7 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
             {"n", 0}
         };
 
-        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_WayPoints, false);
+        m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_WayPoints, false);
         
         return ;
     }
@@ -728,7 +728,7 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
             message["i"] = WAYPOINT_CHUNK;
         }
 
-        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_WayPoints, false);
+        m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_WayPoints, false);
         
     }
 
@@ -767,7 +767,7 @@ void CFCBFacade::sendTelemetryData(const std::string&target_party_id, const mavl
 		return ;
 	}
 
-    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_LightTelemetry, false, Json());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_LightTelemetry, false, Json());
     
     return ;
 }
@@ -785,7 +785,7 @@ void CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlin
 		return ;
 	}
 
-    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
     
     return ;
 }
@@ -810,7 +810,7 @@ void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavl
 		return ;
 	}
 
-    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
     
     return ;
 }
@@ -839,7 +839,7 @@ void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavl
 		return ;
 	}
 
-    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
     
     return ;
 }
@@ -868,7 +868,7 @@ void CFCBFacade::sendSWARM_M(const std::string&target_party_id, const mavlink_me
 		return ;
 	}
 
-    m_sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_SWARM_MAVLINK, false, Json());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_SWARM_MAVLINK, false, Json());
     
     return ;
 }
@@ -884,7 +884,7 @@ void CFCBFacade::sendServoReadings(const std::string&target_party_id)  const
 
 void CFCBFacade::sendWayPointReached (const std::string&target_party_id, const int& mission_sequence)  const
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     /*
         R: Report Type
@@ -897,7 +897,7 @@ void CFCBFacade::sendWayPointReached (const std::string&target_party_id, const i
         {"P", mission_sequence}
     };
 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_DroneReport, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_DroneReport, false);
     
     return ;
 }
@@ -912,7 +912,7 @@ void CFCBFacade::sendWayPointReached (const std::string&target_party_id, const i
  */
 void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_party_id, const std::string&fence_name) const
 {
-    if (m_sendJMSG == NULL) return ;
+    
     
     
     if (fence_name.empty()==true)
@@ -929,7 +929,7 @@ void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_par
                     {"a", true}
                 };
                 
-                m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFenceAttachStatus, false);
+            m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFenceAttachStatus, false);
         }
     }
     else
@@ -942,7 +942,7 @@ void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_par
         geofence::GEO_FENCE_STRUCT * geo_fence_struct = geofence::CGeoFenceManager::getInstance().getFenceByName(fence_name);
         message["a"] = ((geo_fence_struct != nullptr) && (geofence::CGeoFenceManager::getInstance().getIndexOfPartyInGeoFence(uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct)>=0));
         
-        m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFenceAttachStatus, false);
+        m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFenceAttachStatus, false);
     }
 
         
@@ -966,7 +966,7 @@ void CFCBFacade::sendGeoFenceToTarget(const std::string&target_party_id, const g
     Json message = geo_fence_base->getMessage();
     
 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFence, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFence, false);
     
 }
 
@@ -990,7 +990,7 @@ void CFCBFacade::sendGeoFenceHit(const std::string&target_party_id, const std::s
                 {"o", should_keep_outside}
             };
                 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_GEOFenceHit, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_GEOFenceHit, false);
         
 }
 
@@ -1008,7 +1008,7 @@ void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int even
                 {"a", event_id}
             };
                 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, false);
    
 }
 
@@ -1035,7 +1035,7 @@ void CFCBFacade::requestToFollowLeader(const std::string&target_party_id, const 
                 {"d", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
             };
                 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_UpdateSwarm, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_UpdateSwarm, false);
 
 }
 
@@ -1060,7 +1060,7 @@ void CFCBFacade::requestUnFollowLeader(const std::string&target_party_id) const
                 {"d", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
             };
                 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_UpdateSwarm, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_UpdateSwarm, false);
 
 }
 
@@ -1084,7 +1084,7 @@ void CFCBFacade::requestFromUnitToFollowMe(const std::string&target_party_id, co
                 
             };
                 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_FollowHim_Request, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_FollowHim_Request, false);
 }
 
 void CFCBFacade::requestFromUnitToUnFollowMe(const std::string&target_party_id) const
@@ -1101,7 +1101,7 @@ void CFCBFacade::requestFromUnitToUnFollowMe(const std::string&target_party_id) 
                 {"f", SWARM_UNFOLLOW}
             };
                 
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_FollowHim_Request, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_FollowHim_Request, false);
 }
 
 
@@ -1115,7 +1115,7 @@ void CFCBFacade::requestFromUnitToUnFollowMe(const std::string&target_party_id) 
  */
 void CFCBFacade::callModule_reloadSavedTasks(const int& inter_module_command)
 {
-    m_sendMREMSG(inter_module_command);
+    m_module.sendMREMSG(inter_module_command);
 }
 
 
@@ -1135,7 +1135,7 @@ void CFCBFacade::internalCommand_takeImage() const
                 {"d",0}
             };
             
-    m_sendJMSG (std::string(), message, TYPE_AndruavMessage_Ctrl_Cameras, true);
+    m_module.sendJMSG (std::string(), message, TYPE_AndruavMessage_Ctrl_Cameras, true);
 }
 
 /**
@@ -1175,7 +1175,7 @@ void CFCBFacade::requestUdpProxyTelemetry(const bool enable, const std::string&u
                 {"socket2",  address2}          // socket2
             };
             
-    m_sendSYSMSG (message, TYPE_AndruavSystem_UdpProxy);
+    m_module.sendSYSMSG (message, TYPE_AndruavSystem_UdpProxy);
 }
 
 
@@ -1200,7 +1200,7 @@ void CFCBFacade::sendUdpProxyStatus(const std::string&target_party_id, const boo
                 {"z", paused},
             };
             
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_UDPProxy_Info, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_UDPProxy_Info, false);
 }
 
 /**
@@ -1222,6 +1222,6 @@ void CFCBFacade::API_IC_P2P_connectToMeshOnMac (const std::string& target_party_
 
      };
  
-    m_sendJMSG (target_party_id, message, TYPE_AndruavMessage_P2P_ACTION, true);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_P2P_ACTION, true);
  
 }
