@@ -15,7 +15,8 @@ using Json = nlohmann::json;
 #define MAXLINE 8192 
 #endif
 
-    
+const int chunkSize = MAXLINE - 1000; // Adjust the chunk size as per your requirements
+ 
 uavos::comm::CUDPClient::~CUDPClient ()
 {
     
@@ -174,37 +175,64 @@ void uavos::comm::CUDPClient::stop()
 void uavos::comm::CUDPClient::InternalReceiverEntry()
 {
     #ifdef DEBUG
-	std::cout << "CUDPClient::InternalReceiverEntry called" << std::endl; 
+    std::cout << "CUDPClient::InternalReceiverEntry called" << std::endl;
     #endif
-    
-    struct sockaddr_in  cliaddr;
+
+    struct sockaddr_in cliaddr;
     int n;
-     __socklen_t sender_address_size = sizeof (cliaddr);
+    __socklen_t sender_address_size = sizeof(cliaddr);
     
+    std::vector<std::vector<uint8_t>> receivedChunks; // Map to store received chunks
+
+
     while (!m_stopped_called)
     {
-        
-        
-        // TODO: you should send header ot message length and handle if total message size is larger than MAXLINE.
-        n = recvfrom(m_SocketFD, (char *)buffer, MAXLINE,  
-                MSG_WAITALL, ( struct sockaddr *) &cliaddr, &sender_address_size);
+        n = recvfrom(m_SocketFD, (char*)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr*)&cliaddr, &sender_address_size);
         #ifdef DEBUG
-	        std::cout << "CUDPClient::InternalReceiverEntry recvfrom" << std::endl; 
+        std::cout << "CUDPClient::InternalReceiverEntry recvfrom" << std::endl;
         #endif
-    
-        if (n > 0) 
+
+        if (n > 0)
         {
-            buffer[n]=0;
-            if (m_callback != NULL)
+            int chunkLength = n - sizeof(uint8_t); // Calculate chunk length excluding the chunk number byte
+            
+            bool end = chunkLength < chunkSize;
+            
+            // Store the received chunk in the map
+            receivedChunks.emplace_back(buffer + sizeof(uint8_t), buffer + n);
+
+            
+            // Check if we have received all the chunks
+            if (end)
             {
-                m_callback->onReceive((const char *) buffer,n);
-            } 
+                // Sort the vector of chunks based on chunkNumber
+                //std::sort(receivedChunks.begin(), receivedChunks.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+                // Concatenate the chunks in order
+                std::vector<uint8_t> concatenatedData;
+                for (auto& chunk : receivedChunks)
+                {
+                    concatenatedData.insert(concatenatedData.end(), chunk.begin(), chunk.end());
+                }
+                
+                concatenatedData.push_back(0);
+                 
+                // Call the onReceive callback with the concatenated data
+                if (m_callback != nullptr)
+                {
+                    m_callback->onReceive((const char *) concatenatedData.data(), concatenatedData.size());
+                }
+
+                // Clear the map for the next set of chunks
+                receivedChunks.clear();
+            }
         }
     }
 
     #ifdef DEBUG
-	#ifdef DEBUG_DETAILED
-	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternalReceiverEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #ifdef DEBUG_DETAILED
+    std::cout << __FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  " << _LOG_CONSOLE_TEXT
+              << "DEBUG: InternalReceiverEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     #endif
 }
@@ -230,6 +258,8 @@ void uavos::comm::CUDPClient::InternelSenderIDEntry()
 
     while (!m_stopped_called)
     {   
+        std::lock_guard<std::mutex> lock(m_lock2);
+
         if (m_JsonID.empty() == false)
         {
             //std::cout << m_JsonID.is_null() << " - " << m_JsonID.empty() << "-" << m_JsonID.is_string() << std::endl;
@@ -254,14 +284,41 @@ void uavos::comm::CUDPClient::InternelSenderIDEntry()
 void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
 {
     
+    std::lock_guard<std::mutex> lock(m_lock);
+
     try
     {
-        sendto(m_SocketFD, msg, length,  
-            MSG_CONFIRM, (const struct sockaddr *) m_CommunicatorModuleAddress, 
-                sizeof(struct sockaddr_in));         
+        int remainingLength = length;
+        int offset = 0;
+        uint8_t chunk_number = 0;
+
+        while (remainingLength > 0)
+        {
+            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            // TODO: BUG HERE WHEN PACKET = chunkSize
+            int chunkLength = std::min(chunkSize, remainingLength);
+
+            // Create a new message with the chunk size + sizeof(uint8_t)
+            char chunkMsg[chunkLength + sizeof(uint8_t)];
+
+            // Set the first byte as chunk number
+            chunkMsg[0] = static_cast<uint8_t>(chunk_number);
+
+            // Copy the chunk data into the message
+            std::memcpy(chunkMsg + sizeof(uint8_t), msg + offset, chunkLength);
+
+            sendto(m_SocketFD, chunkMsg, chunkLength + sizeof(uint8_t),
+                MSG_CONFIRM, (const struct sockaddr*)m_CommunicatorModuleAddress,
+                sizeof(struct sockaddr_in));
+
+            remainingLength -= chunkLength;
+            offset += chunkLength;
+            chunk_number++;
+        }
     }
-    catch(const std::exception& e)
+    catch (const std::exception& e)
     {
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         std::cerr << e.what() << '\n';
     }
     

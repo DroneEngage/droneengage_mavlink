@@ -63,6 +63,7 @@ class CUDPClient
         bool m_starrted = false;
         bool m_stopped_called = false;
         std::mutex m_lock;  
+        std::mutex m_lock2;  
  
         char buffer[MAXLINE]; 
 
