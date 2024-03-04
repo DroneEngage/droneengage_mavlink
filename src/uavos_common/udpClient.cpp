@@ -196,11 +196,8 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
 
         if (n > 0)
         {
-            const uint8_t chunkNumber = buffer[0]; // First byte is the chunk number
-            
-            
-            // Last packet is always equal to 255 (0xff) regardless if its actual number.
-            const bool end = chunkNumber==0xff;
+            // First two bytes represent the chunk number
+            const uint16_t chunkNumber = (buffer[1] << 8) | buffer[0]; 
             
             if (chunkNumber==0)
             {
@@ -208,8 +205,11 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
                 receivedChunks.clear();
             }
 
+            // Last packet is always equal to 0xFFFF regardless of its actual number.
+            const bool end = chunkNumber == 0xFFFF;
+
             // Store the received chunk in the map
-            receivedChunks.emplace_back(buffer + sizeof(uint8_t), buffer + n);
+            receivedChunks.emplace_back(buffer + 2 * sizeof(uint8_t), buffer + n);
 
             
             // Check if we have received all the chunks
@@ -300,7 +300,7 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
     {
         int remainingLength = length;
         int offset = 0;
-        uint8_t chunk_number = 0;
+        uint16_t chunk_number = 0;
 
         while (remainingLength > 0)
         {
@@ -310,24 +310,26 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
             remainingLength -= chunkLength;
             
             // Create a new message with the chunk size + sizeof(uint8_t)
-            char chunkMsg[chunkLength + sizeof(uint8_t)];
+            char chunkMsg[chunkLength + 2 * sizeof(uint8_t)];
 
             // Set the first byte as chunk number
             if (remainingLength==0)
             {
                 // Last packet is always equal to 255 (0xff) regardless if its actual number.
-                chunkMsg[0] = static_cast<uint8_t>(0xff);
+                chunkMsg[0] = 0xFF;
+                chunkMsg[1] = 0xFF;
             }
             else
             {
-                chunkMsg[0] = static_cast<uint8_t>(chunk_number);
+                chunkMsg[0] = static_cast<uint8_t>(chunk_number & 0xFF);
+                chunkMsg[1] = static_cast<uint8_t>((chunk_number >> 8) & 0xFF);
             }
             
 
             // Copy the chunk data into the message
-            std::memcpy(chunkMsg + sizeof(uint8_t), msg + offset, chunkLength);
+            std::memcpy(chunkMsg + 2 * sizeof(uint8_t), msg + offset, chunkLength);
 
-            sendto(m_SocketFD, chunkMsg, chunkLength + sizeof(uint8_t),
+            sendto(m_SocketFD, chunkMsg, chunkLength + 2 * sizeof(uint8_t),
                 MSG_CONFIRM, (const struct sockaddr*)m_CommunicatorModuleAddress,
                 sizeof(struct sockaddr_in));
 
