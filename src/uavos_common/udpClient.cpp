@@ -15,8 +15,10 @@ using Json = nlohmann::json;
 #define MAXLINE 8192 
 #endif
 
-const int chunkSize = MAXLINE - 1000; // Adjust the chunk size as per your requirements
- 
+#define MAX_UDP_DATABUS_PACKET_SIZE MAXLINE
+
+const int chunkSize = MAX_UDP_DATABUS_PACKET_SIZE; 
+
 uavos::comm::CUDPClient::~CUDPClient ()
 {
     
@@ -194,10 +196,18 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
 
         if (n > 0)
         {
-            int chunkLength = n - sizeof(uint8_t); // Calculate chunk length excluding the chunk number byte
+            const uint8_t chunkNumber = buffer[0]; // First byte is the chunk number
             
-            bool end = chunkLength < chunkSize;
             
+            // Last packet is always equal to 255 (0xff) regardless if its actual number.
+            const bool end = chunkNumber==0xff;
+            
+            if (chunkNumber==0)
+            {
+                // clear any corrupted/incomplete packets
+                receivedChunks.clear();
+            }
+
             // Store the received chunk in the map
             receivedChunks.emplace_back(buffer + sizeof(uint8_t), buffer + n);
 
@@ -297,12 +307,22 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
             std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
             // TODO: BUG HERE WHEN PACKET = chunkSize
             int chunkLength = std::min(chunkSize, remainingLength);
-
+            remainingLength -= chunkLength;
+            
             // Create a new message with the chunk size + sizeof(uint8_t)
             char chunkMsg[chunkLength + sizeof(uint8_t)];
 
             // Set the first byte as chunk number
-            chunkMsg[0] = static_cast<uint8_t>(chunk_number);
+            if (remainingLength==0)
+            {
+                // Last packet is always equal to 255 (0xff) regardless if its actual number.
+                chunkMsg[0] = static_cast<uint8_t>(0xff);
+            }
+            else
+            {
+                chunkMsg[0] = static_cast<uint8_t>(chunk_number);
+            }
+            
 
             // Copy the chunk data into the message
             std::memcpy(chunkMsg + sizeof(uint8_t), msg + offset, chunkLength);
@@ -311,7 +331,7 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
                 MSG_CONFIRM, (const struct sockaddr*)m_CommunicatorModuleAddress,
                 sizeof(struct sockaddr_in));
 
-            remainingLength -= chunkLength;
+            
             offset += chunkLength;
             chunk_number++;
         }

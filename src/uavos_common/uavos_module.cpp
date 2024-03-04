@@ -208,26 +208,42 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
         {
             const Json cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
             
-        
-            if (messageType== TYPE_AndruavModule_ID)
-            {
-                const Json moduleID = cmd ["f"];
-                m_party_id = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
-                m_group_id = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
-                
-                if (!bFirstReceived)
-                { 
-                    // tell server you dont need to send ID again.
-                    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": m_party_id(" << _INFO_CONSOLE_TEXT << m_party_id << _SUCCESS_CONSOLE_TEXT_ << ") m_group_id(" << _INFO_CONSOLE_TEXT << m_group_id << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-                    Json jsonID = createJSONID(false);
-                    cUDPClient.setJsonId (jsonID.dump());
-                    bFirstReceived = true;
-                }
-                
-                if (m_OnReceive!= nullptr) m_OnReceive(message, len);
 
-                return ;
+            switch (messageType)
+            {
+            case TYPE_AndruavModule_ID:
+                {
+                    const Json moduleID = cmd ["f"];
+                    m_party_id = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+                    m_group_id = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
+                    
+                    if (!bFirstReceived)
+                    { 
+                        // tell server you dont need to send ID again.
+                        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": m_party_id(" << _INFO_CONSOLE_TEXT << m_party_id << _SUCCESS_CONSOLE_TEXT_ << ") m_group_id(" << _INFO_CONSOLE_TEXT << m_group_id << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                        Json jsonID = createJSONID(false);
+                        cUDPClient.setJsonId (jsonID.dump());
+                        bFirstReceived = true;
+                    }
+                    
+                    if (m_OnReceive!= nullptr) m_OnReceive(message, len);
+
+                    return ;
+                }
+                break;
+            
+            case TYPE_AndruavMessage_DUMMY:
+                {
+                    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " TYPE_AndruavMessage_DUMMY" << _SUCCESS_CONSOLE_TEXT_ << message <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                        
+                }
+                break;
+
+                default:
+                    break;
             }
+            
+            
 
             
         }
