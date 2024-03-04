@@ -57,7 +57,8 @@ using namespace uavos;
                         TYPE_AndruavMessage_UDPProxy_Info, \
                         TYPE_AndruavSystem_UdpProxy, \
                         TYPE_AndruavMessage_P2P_ACTION, \
-                        TYPE_AndruavMessage_P2P_STATUS}
+                        TYPE_AndruavMessage_P2P_STATUS, \
+                        TYPE_AndruavMessage_DUMMY}
 
 // This is a timestamp used as instance unique number. if changed then communicator module knows module has restarted.
 std::time_t instance_time_stamp;
