@@ -18,6 +18,9 @@ typedef enum {
 
 #define MODULE_FEATURE_RECEIVING_TELEMETRY      "R"
 #define MODULE_FEATURE_SENDING_TELEMETRY        "T"
+#define MODULE_FEATURE_CAPTURE_IMAGE            "C"
+#define MODULE_FEATURE_CAPTURE_VIDEO            "V"
+
 
 #define MODULE_CLASS_FCB                        "fcb"
 #define MODULE_CLASS_VIDEO                      "camera"
@@ -106,9 +109,8 @@ namespace comm
              * 't': hardware_type. 
              * 'z': resend request flag
              * @param reSend if true then server should reply with server json_msg
-             * @return const Json 
              */
-            Json createJSONID (bool reSend) const;
+            void createJSONID (bool reSend) ;
 
 
             /**

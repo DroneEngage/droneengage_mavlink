@@ -29,8 +29,7 @@ bool uavos::comm::CModule::init (const std::string targetIP, int broadcatsPort, 
     // UDP Server
     cUDPClient.init(targetIP.c_str(), broadcatsPort, host.c_str() ,listenningPort);
     
-    Json jsonID = createJSONID(true);
-    cUDPClient.setJsonId (jsonID.dump());
+    createJSONID(true);
     cUDPClient.start();
 
     return true;
@@ -221,8 +220,7 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
                     { 
                         // tell server you dont need to send ID again.
                         std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": m_party_id(" << _INFO_CONSOLE_TEXT << m_party_id << _SUCCESS_CONSOLE_TEXT_ << ") m_group_id(" << _INFO_CONSOLE_TEXT << m_group_id << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-                        Json jsonID = createJSONID(false);
-                        cUDPClient.setJsonId (jsonID.dump());
+                        createJSONID(false);
                         bFirstReceived = true;
                     }
                     
@@ -268,9 +266,9 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
  * 't': hardware_type. 
  * 'z': resend request flag
  * @param reSend if true then server should reply with server json_msg
- * @return const Json 
+ * @return 
  */
-Json uavos::comm::CModule::createJSONID (bool reSend) const
+void uavos::comm::CModule::createJSONID (bool reSend)
 {
         Json json_msg;        
         
@@ -293,5 +291,8 @@ Json uavos::comm::CModule::createJSONID (bool reSend) const
         #ifdef DEBUG
             //std::cout << json_msg.dump(4) << std::endl;              
         #endif
-        return json_msg;
+
+        cUDPClient.setJsonId (json_msg.dump());
+
+        return ;
 }

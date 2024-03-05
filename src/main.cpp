@@ -19,7 +19,6 @@
 #include "./mission/missions.hpp"
 #include "fcb_facade.hpp"
 #include "fcb_traffic_optimizer.hpp"
-#include "./uavos_common/uavos_module.hpp"
 #include "./swarm/fcb_swarm_follower.hpp"
 #include "fcb_main.hpp"
 #include "fcb_andruav_message_parser.hpp"
@@ -364,7 +363,7 @@ void initArguments (int argc, char *argv[])
     }
 }
 
-void initUDPClient(int argc, char *argv[])
+void initUavosModule(int argc, char *argv[])
 {
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
     CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
@@ -445,7 +444,7 @@ void init (int argc, char *argv[])
     cFCBMain.init();
     
     // should be last
-    initUDPClient (argc,argv);
+    initUavosModule (argc,argv);
 
     
 }
