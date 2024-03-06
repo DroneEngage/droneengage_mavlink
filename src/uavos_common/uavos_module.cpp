@@ -39,6 +39,8 @@ bool uavos::comm::CModule::init (const std::string targetIP, int broadcatsPort, 
 bool uavos::comm::CModule::uninit ()
 {
     cUDPClient.stop();
+
+    return true;
 }
 
 
@@ -254,6 +256,14 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
     }
 }
 
+
+void uavos::comm::CModule::appendExtraField(const std::string name, const Json_de& ms)
+{
+    // Add the provided ms object as an entry to m_stdinValues
+    m_stdinValues[name] = ms;
+}
+
+
 /**
  * @brief creates JSON message that identifies Module
  * @details generates JSON message that identifies module
@@ -287,7 +297,15 @@ void uavos::comm::CModule::createJSONID (bool reSend)
         ms[JSON_INTERMODULE_RESEND]                 = reSend;
         ms[JSON_INTERMODULE_TIMESTAMP_INSTANCE]     = m_instance_time_stamp;
 
+        // Add fields from m_stdinValues to ms
+        for (const std::pair<std::string, Json_de>&  entry : m_stdinValues) {
+            const std::string& key = entry.first;
+            const Json_de& value = entry.second;
+            ms[key] = value;
+        }
+
         json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
+
         #ifdef DEBUG
             //std::cout << json_msg.dump(4) << std::endl;              
         #endif

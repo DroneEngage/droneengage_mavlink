@@ -130,7 +130,7 @@ namespace comm
              * @brief Get the Module Features object
              *  module features i.e. can transmit, can recieve, needs stream ...etc.
              * in this case we use T & R only. 
-             * @return const Json_de 
+             * @return const Json 
              */
              inline const Json_de getModuleFeatures() const
             {
@@ -185,7 +185,15 @@ namespace comm
                 return m_party_id;
             }
 
+        public:
+
+            void appendExtraField(const std::string name, const Json_de& ms);
+        
         protected:
+            std::map <std::string,Json_de> m_stdinValues;
+            
+
+            
 
             /**
             * @brief module features i.e. can transmit, can recieve, needs stream ...etc.
