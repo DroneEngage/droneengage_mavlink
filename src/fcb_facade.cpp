@@ -3,7 +3,7 @@
 #include <thread>
 #include <mutex>
 #include "./helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 #include "helpers/helpers.hpp"
 #include "./uavos_common/messages.hpp"
 
@@ -51,7 +51,7 @@ void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
         
     const ANDRUAV_VEHICLE_INFO& andruav_vehicle_info = fcbMain.getAndruavVehicleInfo();
 
-    Json message =
+    Json_de message =
         {
             {"VT", andruav_vehicle_info.vehicle_type},     
             {"FM", andruav_vehicle_info.flying_mode},     
@@ -86,7 +86,7 @@ void CFCBFacade::requestID(const std::string&target_party_id)  const
 {
     
     
-    Json message = 
+    Json_de message = 
         {
             {"C", TYPE_AndruavMessage_ID}
         };
@@ -107,7 +107,7 @@ void CFCBFacade::sendErrorMessage (const std::string&target_party_id, const int&
         NT : sevirity and com,pliant with ardupilot.
         DS : description message.
     */
-    Json message =
+    Json_de message =
         {
             {"EN", error_number},
             {"IT", info_type},
@@ -426,7 +426,7 @@ void CFCBFacade::sendLocationInfo () const
     const mavlink_global_position_int_t&  gpos = vehicle.getMsgGlobalPositionInt();
     const mavlink_gps_raw_int_t& gps = vehicle.getMSGGPSRaw();
     
-    Json message=
+    Json_de message=
     {
         {"la", gpos.lat},           // latitude   [degE7]
         {"ln", gpos.lon},           // longitude  [degE7]
@@ -514,14 +514,14 @@ void CFCBFacade::sendParameterList (const std::string&target_party_id) const
 
         if (total_length > 500)
         {
-            m_sendBMSG (target_party_id, buf, total_length, TYPE_AndruavMessage_MAVLINK, false, Json());
+            m_module.sendBMSG (target_party_id, buf, total_length, TYPE_AndruavMessage_MAVLINK, false, Json_de());
             total_length = 0;
         }
     }
 
     if (total_length >0)
     {
-        m_sendBMSG (target_party_id, buf, total_length, TYPE_AndruavMessage_MAVLINK, false, Json());
+        m_module.sendBMSG (target_party_id, buf, total_length, TYPE_AndruavMessage_MAVLINK, false, Json_de());
     }
 }
 
@@ -626,7 +626,7 @@ void CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
         O : longitude in xx.xxxxx
         A : altitude in meters
     */
-    Json message=
+    Json_de message=
     {
         {"T", home.latitude / 10000000.0f},
         {"O", home.longitude / 10000000.0f},
@@ -653,7 +653,7 @@ void CFCBFacade::sendFCBTargetLocation(const std::string&target_party_id, const 
         O : longitude in xx.xxxxx
         A : altitude in meters
     */
-    Json message=
+    Json_de message=
     {
         {"P", target_type},
         {"T", latitude},
@@ -691,7 +691,7 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
 
     if (length ==0)
     {
-        Json message =
+        Json_de message =
         {
             {"n", 0}
         };
@@ -705,14 +705,14 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
 
     for (int i=0; i< length; i+=MAX_WAYPOINT_CHUNK)
     {
-        Json message;
+        Json_de message;
         int lastsentIndex = 0;
         for (int j =0; (j<MAX_WAYPOINT_CHUNK) && (j+i < length); ++j)
         {
             auto it = andruav_missions.mission_items.find(i+j);
             mission::CMissionItem *mi= it->second.get();
             
-            Json message_item = mi->getAndruavMission();
+            Json_de message_item = mi->getAndruavMission();
             message[std::to_string(lastsentIndex)] = message_item;
             
             lastsentIndex++;   
@@ -756,8 +756,6 @@ void CFCBFacade::sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, u
 [[deprecated("This function is deprecated. UDPProxy is used instead of webplugin")]]
 void CFCBFacade::sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
 {
-    if (m_sendBMSG == NULL) return ;
-    
     char buf[300];
     // Translate message to buffer
 	unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message);
@@ -767,15 +765,13 @@ void CFCBFacade::sendTelemetryData(const std::string&target_party_id, const mavl
 		return ;
 	}
 
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_LightTelemetry, false, Json());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_LightTelemetry, false, Json_de());
     
     return ;
 }
 
 void CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
 {
-    if (m_sendBMSG == NULL) return ;
-    
     char buf[300];
     // Translate message to buffer
 	uint16_t len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message);
@@ -785,7 +781,7 @@ void CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlin
 		return ;
 	}
 
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json_de());
     
     return ;
 }
@@ -794,8 +790,6 @@ void CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlin
 
 void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2, const mavlink_message_t& mavlink_message3)  const
 {
-    if (m_sendBMSG == NULL) return ;
-    
     char buf[600];
     // Translate message to buffer
     memset (buf,0,sizeof(buf));
@@ -810,7 +804,7 @@ void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavl
 		return ;
 	}
 
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json_de());
     
     return ;
 }
@@ -818,8 +812,6 @@ void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavl
 
 void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const
 {
-    if (m_sendBMSG == NULL) return ;
-    
     if (count==0) return ;
 
     char buf[600]; //BUG: Why this specific number ???
@@ -839,7 +831,7 @@ void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavl
 		return ;
 	}
 
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json_de());
     
     return ;
 }
@@ -847,8 +839,6 @@ void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavl
 
 void CFCBFacade::sendSWARM_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const
 {
-    if (m_sendBMSG == NULL) return ;
-    
     if (count==0) return ;
 
     char buf[600]; //BUG: Why this specific number ???
@@ -868,7 +858,7 @@ void CFCBFacade::sendSWARM_M(const std::string&target_party_id, const mavlink_me
 		return ;
 	}
 
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_SWARM_MAVLINK, false, Json());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_SWARM_MAVLINK, false, Json_de());
     
     return ;
 }
@@ -891,7 +881,7 @@ void CFCBFacade::sendWayPointReached (const std::string&target_party_id, const i
         P: Parameter1
     */
 
-    Json message =
+    Json_de message =
     {
         {"R", Drone_Report_NAV_ItemReached},
         {"P", mission_sequence}
@@ -923,7 +913,7 @@ void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_par
 
         for(int i = 0; i < size; i++)
         {
-            Json message =
+            Json_de message =
                 {
                     {"n", geo_fence_struct_list[i]->geoFence.get()->getName()},
                     {"a", true}
@@ -934,7 +924,7 @@ void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_par
     }
     else
     {
-        Json message =
+        Json_de message =
                 {
                     {"n", fence_name}
                 };
@@ -963,7 +953,7 @@ void CFCBFacade::sendGeoFenceToTarget(const std::string&target_party_id, const g
 
     if (geo_fence_base == nullptr) return ;
     
-    Json message = geo_fence_base->getMessage();
+    Json_de message = geo_fence_base->getMessage();
     
 
     m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFence, false);
@@ -982,7 +972,7 @@ void CFCBFacade::sendGeoFenceToTarget(const std::string&target_party_id, const g
  */
 void CFCBFacade::sendGeoFenceHit(const std::string&target_party_id, const std::string fence_name, const double distance, const bool in_zone, const bool should_keep_outside) const
 {
-    Json message =
+    Json_de message =
             {
                 {"n", fence_name},
                 {"z", in_zone},
@@ -1003,7 +993,7 @@ void CFCBFacade::sendGeoFenceHit(const std::string&target_party_id, const std::s
  */
 void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int event_id ) const
 {
-    Json message =
+    Json_de message =
             {
                 {"a", event_id}
             };
@@ -1027,7 +1017,7 @@ void CFCBFacade::requestToFollowLeader(const std::string&target_party_id, const 
         c: leader id
         d: follower party id 
     */
-    Json message =
+    Json_de message =
             {
                 {"a", (int)SWARM_UPDATED},
                 {"b", follower_index},
@@ -1053,7 +1043,7 @@ void CFCBFacade::requestUnFollowLeader(const std::string&target_party_id) const
         c: leader id
         d: slave party id 
     */
-    Json message =
+    Json_de message =
             {
                 {"a", (int)SWARM_DELETE},
                 {"c", target_party_id},
@@ -1074,7 +1064,7 @@ void CFCBFacade::requestFromUnitToFollowMe(const std::string&target_party_id, co
         b: follower index
         c: leader id
     */
-    Json message =
+    Json_de message =
             {   
                 {"a", follower_index },
                 {"b", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
@@ -1094,7 +1084,7 @@ void CFCBFacade::requestFromUnitToUnFollowMe(const std::string&target_party_id) 
         b: follower index
         c: leader id
     */
-    Json message =
+    Json_de message =
             {
                 {"b", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
                 {"c", target_party_id},
@@ -1127,7 +1117,7 @@ void CFCBFacade::internalCommand_takeImage() const
         c: timeBetweenShots
         d: distanceBetweenShots
     */
-    Json message =
+    Json_de message =
             {
                 {"a", ""},  //first available camera
                 {"b", 1},
@@ -1157,18 +1147,18 @@ void CFCBFacade::requestUdpProxyTelemetry(const bool enable, const std::string&u
         }
     */
 
-    Json address1 = 
+    Json_de address1 = 
             {
                 {"address",udp_ip1},
                 {"port",udp_port1}
             };
 
-    Json address2 =
+    Json_de address2 =
             {
                 {"address",udp_ip2},
                 {"port",udp_port2}
             };
-    Json message =
+    Json_de message =
             {
                 {"en",enable},
                 {"socket1", address1},          // socket1 
@@ -1191,7 +1181,7 @@ void CFCBFacade::sendUdpProxyStatus(const std::string&target_party_id, const boo
         }
     */
     
-    Json message =
+    Json_de message =
             {
                 {"a", udp_ip_other},
                 {"p", udp_port_other}, 
@@ -1211,7 +1201,7 @@ void CFCBFacade::sendUdpProxyStatus(const std::string&target_party_id, const boo
 void CFCBFacade::API_IC_P2P_connectToMeshOnMac (const std::string& target_party_id) const 
 {
     
-    Json message = { 
+    Json_de message = { 
         {"a", P2P_ACTION_CONNECT_TO_MAC},
         {"int_prty", target_party_id},   // to be removed by communicator.
         /*

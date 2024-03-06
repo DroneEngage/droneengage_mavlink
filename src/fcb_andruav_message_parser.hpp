@@ -5,7 +5,7 @@
 #include <mavlink_sdk.h>
 
 #include "./helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 #include "./mission/missions.hpp"
 #include "./swarm/fcb_swarm_manager.hpp"
@@ -35,21 +35,11 @@ namespace fcb
 
         public:
 
-            void parseMessage (Json &andruav_message, const char * message, const int & message_length);
+            void parseMessage (Json_de &andruav_message, const char * message, const int & message_length);
             
         protected:
-            void parseRemoteExecute (Json &andruav_message);
-
-            // inline bool validateField (const Json& message, const char *field_name, const Json::value_t field_type)
-            // {
-            //     if (
-            //         (message.contains(field_name) == false) 
-            //         || (message[field_name].type() != field_type)
-            //         ) 
-            //         return false;
-
-            //     return true;
-            // }
+            void parseRemoteExecute (Json_de &andruav_message);
+   
 
         private:
             uavos::fcb::CFCBMain&  m_fcbMain = uavos::fcb::CFCBMain::getInstance();

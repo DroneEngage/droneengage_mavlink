@@ -12,7 +12,7 @@ void uavos::comm::CModule::defineModule (
                  std::string module_id,
                  std::string module_key,
                  std::string module_version,
-                 Json message_filter
+                 Json_de message_filter
             ) 
 {
     m_module_class = module_class;
@@ -42,9 +42,9 @@ bool uavos::comm::CModule::uninit ()
 }
 
 
-void uavos::comm::CModule::sendSYSMSG (const Json& jmsg, const int& andruav_message_id)
+void uavos::comm::CModule::sendSYSMSG (const Json_de& jmsg, const int& andruav_message_id)
 {
-    Json fullMessage;
+    Json_de fullMessage;
 
     fullMessage[ANDRUAV_PROTOCOL_TARGET_ID]         = SPECIAL_NAME_SYS_NAME; 
     fullMessage[INTERMODULE_ROUTING_TYPE]           = CMD_COMM_SYSTEM;
@@ -69,9 +69,9 @@ void uavos::comm::CModule::sendSYSMSG (const Json& jmsg, const int& andruav_mess
  * @param andruav_message_id 
  * @param internal_message if true @link INTERMODULE_MODULE_KEY @endlink equaqls to Module key
  */
-void uavos::comm::CModule::sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& andruav_message_id, const bool& internal_message)
+void uavos::comm::CModule::sendJMSG (const std::string& targetPartyID, const Json_de& jmsg, const int& andruav_message_id, const bool& internal_message)
 {
-    Json fullMessage;
+    Json_de fullMessage;
 
     /**
     // Route messages:
@@ -115,11 +115,11 @@ void uavos::comm::CModule::sendJMSG (const std::string& targetPartyID, const Jso
  * @param bmsg 
  * @param andruav_message_id 
  * @param internal_message if true @link INTERMODULE_MODULE_KEY @endlink equaqls to Module key
- * @param message_cmd JSON message in ms section of JSON header. if null then pass Json()
+ * @param message_cmd JSON message in ms section of JSON header. if null then pass Json_de()
  */
-void uavos::comm::CModule::sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message, const Json& message_cmd)
+void uavos::comm::CModule::sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message, const Json_de& message_cmd)
 {
-    Json fullMessage;
+    Json_de fullMessage;
 
     std::string msg_routing_type = CMD_COMM_GROUP;
     if (internal_message == true)
@@ -173,15 +173,15 @@ void uavos::comm::CModule::sendBMSG (const std::string& targetPartyID, const cha
 * @brief similar to Remote execute command but between modules.
 * 
 * @param command_type 
-* @return const Json 
+* @return const Json_de 
 */
 void uavos::comm::CModule::sendMREMSG(const int& command_type)
 {
-    Json json_msg;        
+    Json_de json_msg;        
         
     json_msg[INTERMODULE_ROUTING_TYPE] =  CMD_TYPE_INTERMODULE;
     json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_RemoteExecute;
-    Json ms;
+    Json_de ms;
     ms["C"] = command_type;
     json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
     const std::string msg = json_msg.dump();
@@ -200,19 +200,19 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
     try
     {
         /* code */
-        Json jMsg = Json::parse(message);
+        Json_de jMsg = Json_de::parse(message);
         const int messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
 
         if (std::strcmp(jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().c_str(),CMD_TYPE_INTERMODULE)==0)
         {
-            const Json cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+            const Json_de cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
             
 
             switch (messageType)
             {
             case TYPE_AndruavModule_ID:
                 {
-                    const Json moduleID = cmd ["f"];
+                    const Json_de moduleID = cmd ["f"];
                     m_party_id = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
                     m_group_id = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
                     
@@ -270,11 +270,11 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
  */
 void uavos::comm::CModule::createJSONID (bool reSend)
 {
-        Json json_msg;        
+        Json_de json_msg;        
         
         json_msg[INTERMODULE_ROUTING_TYPE] =  CMD_TYPE_INTERMODULE;
         json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_ID;
-        Json ms;
+        Json_de ms;
               
         ms[JSON_INTERMODULE_MODULE_ID]              = m_module_id;
         ms[JSON_INTERMODULE_MODULE_CLASS]           = m_module_class;

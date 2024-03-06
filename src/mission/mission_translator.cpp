@@ -4,7 +4,7 @@
 
 #include "../helpers/colors.hpp"
 #include "../helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 #include "../uavos_common/messages.hpp"
 
@@ -22,16 +22,16 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
         std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> mission_items = std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> (new std::map <int, std::unique_ptr<CMissionItem>>);
         //std::unique_ptr <uavos::fcb::mission::ANDRUAV_UNIT_MISSION> andruav_mission = std::unique_ptr<uavos::fcb::mission::ANDRUAV_UNIT_MISSION> ();
 
-        Json mission = Json::parse(mission_text);
+        Json_de mission = Json_de::parse(mission_text);
         if (std::string(mission["fileType"]).find("Plan") != std::string::npos)
         {
-            if ((mission.contains("mission") != true) || (mission["mission"].type() != Json::value_t::object))
+            if ((mission.contains("mission") != true) || (mission["mission"].type() != Json_de::value_t::object))
             {
                 return std::nullptr_t();
             }
             
-            Json  homePosition = mission["mission"]["plannedHomePosition"]; 
-            Json  missionlist  = mission["mission"]["items"];
+            Json_de  homePosition = mission["mission"]["plannedHomePosition"]; 
+            Json_de  missionlist  = mission["mission"]["items"];
             const int mission_item_count = missionlist.size();
             if (mission_item_count == 0)
             {
@@ -63,7 +63,7 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
             // remaining messages
             for (int i=0; i< mission_item_count; ++i)
             {
-                Json mission_item_element = missionlist[i];
+                Json_de mission_item_element = missionlist[i];
                 std::string type = mission_item_element["type"].get<std::string>();
                 bool auto_continue = mission_item_element["autoContinue"].get<bool>();
                 int command = mission_item_element["command"].get<int>();
@@ -206,7 +206,7 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>  CMissionTranslat
     }
     else 
     {
-        Json mission = Json::parse(mission_text);
+        Json_de mission = Json_de::parse(mission_text);
         return translateQGCFormat (mission_text);
         
     }

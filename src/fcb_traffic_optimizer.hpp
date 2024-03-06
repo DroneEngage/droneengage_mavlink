@@ -3,7 +3,7 @@
 
 
 #include "./helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 #include <all/mavlink.h>
 #include <mavlink_sdk.h>
@@ -65,7 +65,7 @@ namespace fcb
             
         public:
 
-            void init(const Json &mavlink_messages_config);
+            void init(const Json_de &mavlink_messages_config);
 
             /*
             * @details Determines stream optimization. A critical parameter for network bandwidth.

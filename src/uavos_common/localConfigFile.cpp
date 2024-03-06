@@ -13,7 +13,7 @@
 using namespace uavos;
 
 
-const Json& CLocalConfigFile::GetConfigJSON()
+const Json_de& CLocalConfigFile::GetConfigJSON()
 {
     return  m_ConfigJSON;
 }
@@ -89,7 +89,7 @@ bool CLocalConfigFile::ParseData (std::string jsonString)
 {
    try
    {
-        m_ConfigJSON = Json::parse(removeComments(jsonString));
+        m_ConfigJSON = Json_de::parse(removeComments(jsonString));
    }
    catch(const std::exception& e)
    {

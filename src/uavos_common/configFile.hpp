@@ -4,7 +4,7 @@
 
 #include <sstream>
 #include "../helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 namespace uavos
 {
@@ -39,7 +39,7 @@ namespace uavos
         public:
             void initConfigFile (const char* fileURL);
             void reloadFile ();
-            const Json& GetConfigJSON();
+            const Json_de& GetConfigJSON();
             std::string getFileName () const {return m_file_url;};
             
         protected:
@@ -50,7 +50,7 @@ namespace uavos
         private:
             std::string m_file_url;
             std::stringstream m_fileContents;
-            Json m_ConfigJSON;
+            Json_de m_ConfigJSON;
         
 
     };

@@ -15,7 +15,7 @@
 #include "fcb_traffic_optimizer.hpp"
 
 #include "./helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 
 #include "defines.hpp"
@@ -98,46 +98,6 @@ namespace fcb
             bool uninit ();
 
             void loopScheduler();
-
-            /**
-             * @details register callback function to send system message using it.
-             * 
-             * @param sendJMSG of type @link SEND_SYSMSG_CALLBACK @endlink 
-             */
-            void registerSendSYSMSG (SEND_SYSMSG_CALLBACK sendSYSMSG) 
-            {
-                m_fcb_facade.RegisterSendSYSMSG(sendSYSMSG);
-            };            
-
-            /**
-             * @details register callback function to send message using it.
-             * 
-             * @param sendJMSG of type @link SEND_JMSG_CALLBACK @endlink 
-             */
-            void registerSendJMSG (SEND_JMSG_CALLBACK sendJMSG) 
-            {
-                m_fcb_facade.RegisterSendJMSG(sendJMSG);
-            };            
-
-            /**
-             * @details register callback function to send message using it.
-             * 
-             * @param sendBMSG of type @link SEND_BMSG_CALLBACK @endlink 
-             */
-            void registerSendBMSG (SEND_BMSG_CALLBACK sendBMSG) 
-            {
-                m_fcb_facade.RegisterSendBMSG(sendBMSG);
-            };            
-
-            /**
-             * @details register call back to send InterModule remote execute message.
-             * 
-             * @param sendMREMSG of type @link SEND_MREMSG_CALLBACK @endlink 
-             */
-            void registerSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG) 
-            {
-                m_fcb_facade.RegisterSendMREMSG(sendMREMSG);
-            };            
 
             /* cannot connect to uavos comm*/
             void alertDroneEngageOffline ();
@@ -313,7 +273,7 @@ namespace fcb
             void heartbeatCamera ();
 
         private:
-            Json m_jsonConfig;
+            Json_de m_jsonConfig;
             int m_connection_type;
             /**
              * @brief servo channel used for sending events

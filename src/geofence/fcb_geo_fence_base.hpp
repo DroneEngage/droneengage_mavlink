@@ -6,7 +6,7 @@
 
 
 #include "../helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 
 
@@ -33,12 +33,12 @@ namespace geofence
             ~CGeoFenceBase();
 
         public:
-            virtual void parse (const Json& message);
+            virtual void parse (const Json_de& message);
             virtual double isInside(double lat, double lng, double alt) const { };
 
         public:
 
-            virtual Json getMessage();
+            virtual Json_de getMessage();
 
             inline std::string getName ()
             {
@@ -92,7 +92,7 @@ namespace geofence
              * @brief Location in message is NOT E7 format. but the object uses E7.
              * 
              */
-            Json m_message;
+            Json_de m_message;
             
     };
 
@@ -106,9 +106,9 @@ namespace geofence
 
         public:
         
-            void parse (const Json& message)override;
+            void parse (const Json_de& message)override;
             double isInside(double lat, double lng, double alt) const override;
-            Json getMessage() override;
+            Json_de getMessage() override;
             
             inline void getLocation (double& lat, double& lng, double& alt) const
             {
@@ -141,9 +141,9 @@ namespace geofence
 
         public:
         
-            void parse (const Json& message)override;
+            void parse (const Json_de& message)override;
             double isInside(double lat, double lng, double alt) const override;
-            Json getMessage() override;
+            Json_de getMessage() override;
         
         protected:
             std::vector<POINT_3D> m_vertex;
@@ -159,9 +159,9 @@ namespace geofence
 
         public:
         
-            void parse (const Json& message)override;
+            void parse (const Json_de& message)override;
             double isInside(double lat, double lng, double alt) const override;
-            Json getMessage() override;
+            Json_de getMessage() override;
 
         protected:
             std::vector<POINT_3D> m_vertex;
@@ -213,7 +213,7 @@ namespace geofence
 
             public:
 
-                std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> getGeoFenceObject (const Json& message) const;
+                std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> getGeoFenceObject (const Json_de& message) const;
             
 
     };

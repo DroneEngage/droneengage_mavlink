@@ -2,7 +2,7 @@
 #include "fcb_traffic_optimizer.hpp"
 
 
-void uavos::fcb::CMavlinkTrafficOptimizer::init(const Json &mavlink_messages_config)
+void uavos::fcb::CMavlinkTrafficOptimizer::init(const Json_de &mavlink_messages_config)
 {
     for(auto it=mavlink_messages_config.begin();it!=mavlink_messages_config.end();++it){
         //std::cout << it.key() << std::endl;

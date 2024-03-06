@@ -159,56 +159,6 @@ void _onConnectionStatusChanged (const int status)
     cFCBMain.OnConnectionStatusChangedWithAndruavServer(status);
 }
 
-/**
- * @brief sends binary packet
- * @details sends binary packet.
- * Binary packet always has JSON header then 0 then binary data.
- * 
- * @param targetPartyID 
- * @param bmsg 
- * @param andruav_message_id 
- * @param internal_message if true @link INTERMODULE_MODULE_KEY @endlink equaqls to Module key
- * @param message_cmd JSON message in ms section of JSON header. if null then pass Json()
- */
-void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message, const Json& message_cmd)
-{
-    sendBMSG(targetPartyID, bmsg, bmsg_length, andruav_message_id, internal_message, message_cmd);
-
-    return ;
-}
-
-
-/**
- * @brief sends JSON packet
- * @details sends JSON packet.
- * 
- * 
- * @param targetPartyID 
- * @param jmsg 
- * @param andruav_message_id 
- * @param internal_message if true @link INTERMODULE_MODULE_KEY @endlink equaqls to Module key
- */
-void sendJMSG (const std::string& targetPartyID, const Json& jmsg, const int& andruav_message_id, const bool& internal_message)
-{
-    cModule.sendJMSG(targetPartyID, jmsg, andruav_message_id, internal_message);
-}
-
-
-void sendSYSMSG (const Json& jmsg, const int& andruav_message_id)
-{
-    cModule.sendSYSMSG(jmsg, andruav_message_id);
-}
-
-/**
-* @brief similar to Remote execute command but between modules.
-* 
-* @param command_type 
-* @return const Json 
-*/
-void sendMREMSG(const int& command_type)
-{
-    cModule.sendMREMSG(command_type);              
-}
 
 
 void onReceive (const char * message, int len)
@@ -221,12 +171,12 @@ void onReceive (const char * message, int len)
     try
     {
         /* code */
-        Json jMsg = Json::parse(message);
+        Json_de jMsg = Json_de::parse(message);
         const int messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
 
         if (std::strcmp(jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().c_str(),CMD_TYPE_INTERMODULE)==0)
         {
-            const Json cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+            const Json_de cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
             
         
             if (messageType== TYPE_AndruavModule_ID)
@@ -272,7 +222,7 @@ void onReceive (const char * message, int len)
 
 void initLogger()
 {
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
     
     if ((jsonConfig.contains("logger_enabled") == false) || (jsonConfig["logger_enabled"].get<bool>()==false))
     {
@@ -365,7 +315,7 @@ void initArguments (int argc, char *argv[])
 
 void initUavosModule(int argc, char *argv[])
 {
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
     CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
         
     cModule.defineModule(
@@ -373,7 +323,7 @@ void initUavosModule(int argc, char *argv[])
         jsonConfig["module_id"],
         cLocalConfigFile.getStringField("module_key"),
         version_string,
-        Json::array(MESSAGE_FILTER)
+        Json_de::array(MESSAGE_FILTER)
     );
 
     cModule.addModuleFeatures(MODULE_FEATURE_SENDING_TELEMETRY);
@@ -418,7 +368,7 @@ void init (int argc, char *argv[])
 
     
     
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
     
     ModuleKey = cLocalConfigFile.getStringField("module_key");
     if (ModuleKey=="")
@@ -437,10 +387,6 @@ void init (int argc, char *argv[])
     
     initLogger();
     
-    cFCBMain.registerSendSYSMSG(sendSYSMSG);
-    cFCBMain.registerSendJMSG(sendJMSG);
-    cFCBMain.registerSendBMSG(sendBMSG);
-    cFCBMain.registerSendMREMSG(sendMREMSG);
     cFCBMain.init();
     
     // should be last

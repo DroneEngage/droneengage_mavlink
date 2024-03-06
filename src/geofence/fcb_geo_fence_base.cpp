@@ -21,7 +21,7 @@ CGeoFenceBase::~CGeoFenceBase()
     
 }
 
-void CGeoFenceBase::parse (const Json& message)
+void CGeoFenceBase::parse (const Json_de& message)
 {
    m_fence_name = message["n"].get<std::string>();
    m_should_keep_outside = message["o"].get<int>()==1; 
@@ -31,7 +31,7 @@ void CGeoFenceBase::parse (const Json& message)
 }
             
 
-Json CGeoFenceBase::getMessage()
+Json_de CGeoFenceBase::getMessage()
 {
     return m_message;
 }
@@ -49,10 +49,10 @@ CGeoFenceCylinder::~CGeoFenceCylinder()
     
 }
 
-void CGeoFenceCylinder::parse (const Json& message)
+void CGeoFenceCylinder::parse (const Json_de& message)
 {
     CGeoFenceBase::parse(message);
-    Json circle = message["0"];
+    Json_de circle = message["0"];
     m_latitude = circle["a"].get<double>() ;  //E7 format to match mavlink gps data
     m_longitude = circle["g"].get<double>() ;  //E7 format to match mavlink gps data
     if (circle.contains("l")==true)
@@ -67,7 +67,7 @@ void CGeoFenceCylinder::parse (const Json& message)
 }
 
 
-Json CGeoFenceCylinder::getMessage() 
+Json_de CGeoFenceCylinder::getMessage() 
 {
     return CGeoFenceBase::getMessage();
 }
@@ -104,7 +104,7 @@ CGeoFencePolygon::~CGeoFencePolygon()
     
 }
 
-void CGeoFencePolygon::parse (const Json& message)
+void CGeoFencePolygon::parse (const Json_de& message)
 {
     CGeoFenceBase::parse(message);
 
@@ -114,7 +114,7 @@ void CGeoFencePolygon::parse (const Json& message)
 
     for (int i=0; i<vertex_count; ++i)
     {
-        Json vertex = message[std::to_string(i)];
+        Json_de vertex = message[std::to_string(i)];
         m_vertex.push_back(POINT_3D());
         m_vertex[i].latitude = vertex["a"].get<double>() ;
         m_vertex[i].longitude = vertex["g"].get<double>() ;
@@ -131,7 +131,7 @@ void CGeoFencePolygon::parse (const Json& message)
     }
 }
   
-Json CGeoFencePolygon::getMessage() 
+Json_de CGeoFencePolygon::getMessage() 
 {
     return CGeoFenceBase::getMessage();
 }
@@ -171,7 +171,7 @@ CGeoFenceLine::~CGeoFenceLine()
     
 }
 
-void CGeoFenceLine::parse (const Json& message)
+void CGeoFenceLine::parse (const Json_de& message)
 {
     CGeoFenceBase::parse(message);
 
@@ -181,7 +181,7 @@ void CGeoFenceLine::parse (const Json& message)
 
     for (int i=0; i<vertex_count; ++i)
     {
-        Json vertex = message[std::to_string(i)];
+        Json_de vertex = message[std::to_string(i)];
         m_vertex.push_back(POINT_3D());
         m_vertex[i].latitude = vertex["a"].get<double>() ;
         m_vertex[i].longitude = vertex["g"].get<double>() ;
@@ -200,7 +200,7 @@ void CGeoFenceLine::parse (const Json& message)
     m_width = message["r"].get<int>();
 }
             
-Json CGeoFenceLine::getMessage() 
+Json_de CGeoFenceLine::getMessage() 
 {
     return CGeoFenceBase::getMessage();
 }
@@ -229,7 +229,7 @@ double CGeoFenceLine::isInside(double lat, double lng, double alt) const
 
 //******************************** FACTORY
 
-std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> CGeoFenceFactory::getGeoFenceObject (const Json& message) const
+std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> CGeoFenceFactory::getGeoFenceObject (const Json_de& message) const
 {
     std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> cGeoFenceBase  (new uavos::fcb::geofence::CGeoFenceLine());
 

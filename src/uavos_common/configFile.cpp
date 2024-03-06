@@ -13,7 +13,7 @@
 using namespace uavos;
 
 
-const Json& CConfigFile::GetConfigJSON()
+const Json_de& CConfigFile::GetConfigJSON()
 {
     return  m_ConfigJSON;
 }
@@ -62,6 +62,6 @@ void CConfigFile::ReadFile (const char * fileURL)
 void CConfigFile::ParseData (std::string jsonString)
 {
 
-    m_ConfigJSON = Json::parse(removeComments(jsonString));
+    m_ConfigJSON = Json_de::parse(removeComments(jsonString));
     
 }

@@ -186,7 +186,7 @@ bool CFCBMain::init ()
         if (udp_proxy_fixed_port==0xffff)
         { // not found in local config ... not that local config has higher priority than the user config.
         
-            if (validateField(m_jsonConfig, "udp_proxy_fixed_port", Json::value_t::number_unsigned))
+            if (validateField(m_jsonConfig, "udp_proxy_fixed_port", Json_de::value_t::number_unsigned))
             { // TODO: convert this to inline as validatefield
                 udp_proxy_fixed_port = m_jsonConfig["udp_proxy_fixed_port"].get<int>();
                 cLocalConfigFile.addNumericField("udp_proxy_fixed_port",udp_proxy_fixed_port);
@@ -302,8 +302,8 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
     
     // Apply RC Channels settings - non smart rc section.
     int index =0;
-    const Json rc_channels = m_jsonConfig["rc_channels"];
-    Json values;
+    const Json_de rc_channels = m_jsonConfig["rc_channels"];
+    Json_de values;
     
     values = rc_channels["rc_channel_enabled"];
     for (auto it = values.begin(); it != values.end(); ++it){
@@ -1178,7 +1178,7 @@ void CFCBMain::OnConnectionStatusChangedWithAndruavServer (const int status)
 
             // open or close -if open- udpProxy once connection with communication server is established.
             m_fcb_facade.requestUdpProxyTelemetry(m_enable_udp_telemetry_in_config,"0.0.0.0",0,"0.0.0.0",m_udp_telemetry_fixed_port);
-            // Json json_msg = sendMREMSG(TYPE_AndruavSystem_LoadTasks);
+            // Json_de json_msg = sendMREMSG(TYPE_AndruavSystem_LoadTasks);
             // const std::string msg = json_msg.dump();
             // CUDPProxy.sendMSG(msg.c_str(), msg.length());
         }

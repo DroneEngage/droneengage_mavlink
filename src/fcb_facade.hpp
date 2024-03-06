@@ -14,7 +14,7 @@
 
 
 
-typedef void (*SEND_SYSMSG_CALLBACK)(const Json&, const int& );
+typedef void (*SEND_SYSMSG_CALLBACK)(const Json_de&, const int& );
 
 /**
  * @brief sends JSON packet
@@ -24,9 +24,9 @@ typedef void (*SEND_SYSMSG_CALLBACK)(const Json&, const int& );
  * @param andruav_message_id 
  * @param internal_message if true @link INTERMODULE_MODULE_KEY @endlink equaqls to Module key
  */
-typedef void (*SEND_JMSG_CALLBACK)(const std::string& targetPartyID, const Json&, const int&, const bool& );
+typedef void (*SEND_JMSG_CALLBACK)(const std::string& targetPartyID, const Json_de&, const int&, const bool& );
 
-typedef void (*SEND_BMSG_CALLBACK)(const std::string& targetPartyID, const char *, const int bmsg_length, const int& , const bool&, const Json& );
+typedef void (*SEND_BMSG_CALLBACK)(const std::string& targetPartyID, const char *, const int bmsg_length, const int& , const bool&, const Json_de& );
 typedef void (*SEND_MREMSG_CALLBACK)(const int& );
 
 
@@ -135,52 +135,8 @@ namespace fcb
             void API_IC_P2P_connectToMeshOnMac (const std::string& target_party_id) const;
 
 
-
-        public:
-
-            void RegisterSendSYSMSG (SEND_SYSMSG_CALLBACK sendSYSMSG)
-            {
-                m_sendSYSMSG = sendSYSMSG;
-            };
-            
-            /**
-             * @brief call back function to send JSON message either 
-             * to communicator or other modules or server.
-             * 
-             * @param sendJMSG 
-             */
-            void RegisterSendJMSG (SEND_JMSG_CALLBACK sendJMSG)
-            {
-                m_sendJMSG = sendJMSG;
-            };
-            
-            /**
-             * @brief callback function to send binary message
-             * 
-             * @param sendBMSG 
-             */
-            void RegisterSendBMSG (SEND_BMSG_CALLBACK sendBMSG)
-            {
-                m_sendBMSG = sendBMSG;
-            };
-            
-            /**
-             * @brief callback function to send remote-module-execute messages
-             * 
-             * @param sendMREMSG 
-             */
-            void RegisterSendMREMSG (SEND_MREMSG_CALLBACK sendMREMSG)
-            {
-                m_sendMREMSG = sendMREMSG;
-            };
-
         private:
             mavlinksdk::CVehicle&    m_vehicle      =  mavlinksdk::CVehicle::getInstance();
-
-            SEND_SYSMSG_CALLBACK    m_sendSYSMSG    = NULL;
-            SEND_JMSG_CALLBACK      m_sendJMSG      = NULL;
-            SEND_BMSG_CALLBACK      m_sendBMSG      = NULL;
-            SEND_MREMSG_CALLBACK    m_sendMREMSG    = NULL;
 
             uavos::comm::CModule &m_module = uavos::comm::CModule::getInstance();            
     };

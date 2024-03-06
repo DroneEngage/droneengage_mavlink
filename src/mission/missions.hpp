@@ -7,7 +7,7 @@
 #include <all/mavlink.h>
 
 #include "../helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 namespace uavos
 {
@@ -32,7 +32,7 @@ class CMissionItem
 
     public:
         virtual void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int);
-        virtual Json getAndruavMission   ()=0;
+        virtual Json_de getAndruavMission   ()=0;
         virtual mavlink_mission_item_int_t getArdupilotMission ()=0;
 
     public:
@@ -66,7 +66,7 @@ class CDummy_Step : public CMissionItem
 
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     
@@ -90,7 +90,7 @@ class CDelay_Step : public CMissionItem
 
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     public:
@@ -135,7 +135,7 @@ class CDelay_State_Machine_Step : public CMissionItem
 
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     public:
@@ -166,7 +166,7 @@ class CGuided_Enabled_Step : public CMissionItem
 
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     public:
@@ -192,7 +192,7 @@ class CCameraControl_Step: public CMissionItem
 
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     public:
@@ -218,7 +218,7 @@ class CCameraTrigger_Step: public CMissionItem
 
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     public:
@@ -244,7 +244,7 @@ class CChange_Altitude_Step : public CMissionItem
 
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     public:
@@ -272,7 +272,7 @@ class CContinue_And_Change_Altitude_Step : public CMissionItem
 
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     public:
@@ -306,7 +306,7 @@ class CChange_Speed_Step : public CMissionItem
 
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     public:
@@ -357,7 +357,7 @@ class CChange_Heading_Step : public CMissionItem
 
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     public:
@@ -402,7 +402,7 @@ class CLoiter_Turns_Step : public CMissionItem
 
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
         /**
@@ -463,7 +463,7 @@ class CRTL_Step : public CMissionItem
 
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
 };
@@ -481,7 +481,7 @@ class CTakeOff_Step : public CMissionItem
     void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     public:
@@ -530,7 +530,7 @@ class CLand_Step : public CMissionItem
         void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     public:
@@ -585,7 +585,7 @@ class CWayPoint_Step : public CMissionItem
         void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int) override;
 
     public:
-        Json getAndruavMission   () override;
+        Json_de getAndruavMission   () override;
         mavlink_mission_item_int_t getArdupilotMission () override;
 
     public:

@@ -7,7 +7,7 @@
 
 #include "../helpers/colors.hpp"
 #include "../helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 #include "udpClient.hpp"
 

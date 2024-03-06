@@ -138,13 +138,13 @@ bool is_ascii(const signed char *c, size_t len) {
 /**
  * @brief 
  *  returns true if field exist and of specified type
- * @param message Json object
+ * @param message Json_de object
  * @param field_name requested field name
  * @param field_type specified type
  * @return true if found and of specified type
  * @return false 
  */
-bool validateField (const Json& message, const char *field_name, const Json::value_t& field_type)
+bool validateField (const Json_de& message, const char *field_name, const Json_de::value_t& field_type)
 {
     if (
         (message.contains(field_name) == false) 
