@@ -12,10 +12,10 @@ using Json_de = nlohmann::json;
 #include "udpClient.hpp"
 
 #ifndef MAXLINE
-#define MAXLINE 8192 
+#define MAXLINE 0xffff 
 #endif
 
-#define MAX_UDP_DATABUS_PACKET_SIZE MAXLINE
+#define MAX_UDP_DATABUS_PACKET_SIZE 8192
 
 const int chunkSize = MAX_UDP_DATABUS_PACKET_SIZE; 
 
@@ -325,14 +325,22 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
                 chunkMsg[1] = static_cast<uint8_t>((chunk_number >> 8) & 0xFF);
             }
             
-
+            // #ifdef DEBUG
+	        // std::cout << "chunkNumber:" << chunk_number << " :chunkLength :" << chunkLength << std::endl;
+            // #endif
+            
             // Copy the chunk data into the message
             std::memcpy(chunkMsg + 2 * sizeof(uint8_t), msg + offset, chunkLength);
 
             sendto(m_SocketFD, chunkMsg, chunkLength + 2 * sizeof(uint8_t),
                 MSG_CONFIRM, (const struct sockaddr*)m_CommunicatorModuleAddress,
                 sizeof(struct sockaddr_in));
-
+            
+            if (remainingLength!=0) 
+            {
+                // fast sending causes packet loss.
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
             
             offset += chunkLength;
             chunk_number++;
