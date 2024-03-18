@@ -8,6 +8,25 @@
 
 #include "helpers.hpp"
 
+
+std::string get_time_string()
+{
+  struct timeval _time_stamp;
+  gettimeofday(&_time_stamp, NULL);
+
+  // Convert the timestamp to a time_t value
+  time_t time_t_value = _time_stamp.tv_sec;
+
+  // Convert the time_t value to a tm struct
+  struct tm *tm = localtime(&time_t_value);
+
+  // Format the time string
+  char time_string[20];
+  strftime(time_string, sizeof(time_string), "%Y_%m_%d_%H_%M_%S", tm);
+
+  return time_string;
+}
+
 uint64_t get_time_usec()
 {
 	static struct timeval _time_stamp;

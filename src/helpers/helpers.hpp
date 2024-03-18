@@ -12,6 +12,9 @@
 #include "json.hpp"
 using Json_de = nlohmann::json;
 
+
+std::string get_time_string();
+
 uint64_t get_time_usec();
 
 int wait_time_nsec (const time_t& seconds, const long& nano_seconds);
