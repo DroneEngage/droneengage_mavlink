@@ -195,7 +195,7 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
 {
     static bool bFirstReceived = false;
         
-    #ifdef DEBUG        
+    #ifdef DDEBUG        
         std::cout << _INFO_CONSOLE_TEXT << "RX MSG: :len " << std::to_string(len) << ":" << message <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
@@ -226,7 +226,7 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
                         bFirstReceived = true;
                     }
                     
-                    if (m_OnReceive!= nullptr) m_OnReceive(message, len);
+                    if (m_OnReceive!= nullptr) m_OnReceive(message, len, jMsg);
 
                     return ;
                 }
@@ -248,7 +248,7 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
             
         }
 
-        if (m_OnReceive!= nullptr) m_OnReceive(message, len);
+        if (m_OnReceive!= nullptr) m_OnReceive(message, len, jMsg);
     }
     catch(const std::exception& e)
     {

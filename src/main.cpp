@@ -161,7 +161,7 @@ void _onConnectionStatusChanged (const int status)
 
 
 
-void onReceive (const char * message, int len)
+void onReceive (const char * message, int len, Json_de jMsg)
 {
         
     #ifdef DEBUG        
@@ -170,8 +170,6 @@ void onReceive (const char * message, int len)
     
     try
     {
-        /* code */
-        Json_de jMsg = Json_de::parse(message);
         const int messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
 
         if (std::strcmp(jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().c_str(),CMD_TYPE_INTERMODULE)==0)

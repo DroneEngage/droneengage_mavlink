@@ -82,7 +82,7 @@ namespace comm
 
         public:
 
-            void setMessageOnReceive (void (*onReceive)(const char *, int len))
+            void setMessageOnReceive (void (*onReceive)(const char *, int len, Json_de jMsg))
                 {
                     m_OnReceive = onReceive;
                 }
@@ -252,7 +252,7 @@ namespace comm
             
             Json_de m_message_filter;
 
-            void (*m_OnReceive)(const char *, int len) = nullptr;
+            void (*m_OnReceive)(const char *, int len, Json_de jMsg) = nullptr;
 
     };
 };
