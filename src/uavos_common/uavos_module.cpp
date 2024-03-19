@@ -252,7 +252,7 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
     }
     catch(const std::exception& e)
     {
-        std::cerr << e.what() << '\n';
+        std::cout << "ERROR:" << e.what() << std::endl ;
     }
 }
 

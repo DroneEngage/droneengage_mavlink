@@ -225,6 +225,10 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
                     concatenatedData.insert(concatenatedData.end(), chunk.begin(), chunk.end());
                 }
                 
+                // NOTICE WE DONT KNOW
+                // if this is a test message or text and binary
+                // so we inject null at the end
+                // it should be removed later if it is binary.
                 concatenatedData.push_back(0);
                  
                 // Call the onReceive callback with the concatenated data
@@ -304,7 +308,6 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
 
         while (remainingLength > 0)
         {
-            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
             // TODO: BUG HERE WHEN PACKET = chunkSize
             int chunkLength = std::min(chunkSize, remainingLength);
             remainingLength -= chunkLength;
