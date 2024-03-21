@@ -287,8 +287,15 @@ void CMavlinkCommand::changeAltitude (const float& altitude) const
 {
 
 	const mavlink_position_target_global_int_t& mavlink_global_position_int = mavlinksdk::CVehicle::getInstance().getMsgTargetPositionGlobalInt();
-	
-	gotoGuidedPoint(mavlink_global_position_int.lat_int / 10000000.0f, mavlink_global_position_int.lon_int / 10000000.0f, altitude );
+	if ((mavlink_global_position_int.lon_int!=0) || (mavlink_global_position_int.lat_int!=0))
+	{
+		gotoGuidedPoint(mavlink_global_position_int.lat_int / 10000000.0f, mavlink_global_position_int.lon_int / 10000000.0f, altitude );
+	}
+	else
+	{
+		const mavlink_global_position_int_t&  mavlink_global_position_int = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt();
+		gotoGuidedPoint(mavlink_global_position_int.lat / 10000000.0f, mavlink_global_position_int.lon / 10000000.0f, altitude );
+	}
 	
 
 	// sendLongCommand (MAV_CMD_NAV_TAKEOFF, true,
