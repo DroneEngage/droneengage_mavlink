@@ -89,10 +89,15 @@ namespace swarm
 
         public:
 
-            void handle_swarm_as_leader();
+            void handleSwarmsAsLeader();
             
 
         public:
+        
+            inline const std::vector<ANDRUAV_UNIT_FOLLOWER>& getFollowerUnits() const 
+            {
+                return m_follower_units;
+            }
 
             inline std::string getLeader() const
             {
@@ -136,7 +141,6 @@ namespace swarm
         private:
             ANDRUAV_SWARM_FORMATION m_formation_as_leader;
             bool m_is_leader = false;
-            //std::unordered_map<uint16_t, ANDRUAV_UNIT_FOLLOWER> m_follower_units; 
             std::vector <ANDRUAV_UNIT_FOLLOWER> m_follower_units;
             
             std::string m_leader_party_id;

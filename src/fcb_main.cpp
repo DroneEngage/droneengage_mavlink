@@ -24,7 +24,7 @@
 
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
-#include "./swarm/fcb_swarm_manager.hpp"
+#include "./swarm/fcb_swarm_leader.hpp"
 
 using namespace uavos::fcb;
 
@@ -484,7 +484,7 @@ void CFCBMain::remoteControlSignal ()
  */
 void CFCBMain::loopScheduler ()
 {
-    swarm::CSwarmManager& fcb_swarm_manager = swarm::CSwarmManager::getInstance();
+    swarm::CSwarmLeader& fcb_swarm_leader = swarm::CSwarmLeader::getInstance();
 
     while (!m_exit_thread)
     {
@@ -495,7 +495,7 @@ void CFCBMain::loopScheduler ()
 
         if (m_counter%10 ==0)
         {   // each 100 msec
-            fcb_swarm_manager.handle_swarm_as_leader();
+            fcb_swarm_leader.handleSwarmsAsLeader();
 
         }
 

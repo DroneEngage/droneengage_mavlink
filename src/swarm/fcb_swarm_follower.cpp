@@ -10,6 +10,83 @@
 using namespace uavos::fcb::swarm;
 
 
+/**
+ * @brief Logic of thread formation for follower in implemented here.
+ * 
+ */
+void CSwarmFollower::updateFollowerInThreadFormation()
+{
+    // get my own location
+    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
+    const mavlink_global_position_int_t&  my_gpos = vehicle.getMsgGlobalPositionInt();
+    const double leader_lat = m_leader_gpos_new.lat / 10000000.0f;
+    const double leader_lon = m_leader_gpos_new.lon / 10000000.0f;
+
+    // get current time
+    const u_int64_t now = get_time_usec();
+
+    #ifdef DEBUG
+        std::cout << _INFO_CONSOLE_TEXT << "time_diff: " <<  ":" << (m_leader_last_access - now) << ":" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+                   
+    // test if leader speed is very low then break.
+    double speed_sq = m_leader_gpos_new.vx * m_leader_gpos_new.vx + m_leader_gpos_new.vy * m_leader_gpos_new.vy;
+    if (speed_sq < 100) 
+    {
+        return ;
+    }
+
+    const double my_lat = my_gpos.lat / 10000000.0f;
+    const double my_lon = my_gpos.lon / 10000000.0f;
+
+    // distance between me & leader
+    const double distance_to_leader = calcGPSDistance(leader_lat,leader_lon, my_lat, my_lon);
+
+    if (distance_to_leader <  (m_fcb_swarm_manager.getFollowerIndex()+1)*100)  
+    {
+        // rope effect ... ignore when distance is less than robe length.
+        return ;
+    }
+
+    
+                    
+    const double leader_vector_bearing = getBearingOfVector (m_leader_gpos_new.vx, m_leader_gpos_new.vy);
+    UNUSED(leader_vector_bearing);
+    const double bearing_with_leader = calculateBearing(leader_lat,leader_lon, my_lat, my_lon);
+
+    POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, bearing_with_leader, (m_fcb_swarm_manager.getFollowerIndex()+1)*100);
+
+    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude , p.longitude , (m_leader_gpos_new.relative_alt + (m_fcb_swarm_manager.getFollowerIndex()+1) * 10000) / 1000.0);
+    CFCBFacade::getInstance().sendFCBTargetLocation("", p.latitude , p.longitude, (double) m_leader_gpos_new.relative_alt, DESTINATION_SWARM_MY_LOCATION);
+    
+    // store latest readings.
+    m_leader_last_access = now;
+    m_leader_gpos_old = m_leader_gpos_new;
+}
+
+
+/**
+ * @brief Update me as a follower based on the active formation.
+ * 
+ */
+void CSwarmFollower::updateFollower()
+{
+    switch (m_fcb_swarm_manager.getFormationAsFollower())
+    {
+        case FORMATION_THREAD:
+            updateFollowerInThreadFormation();
+            break;
+        case FORMATION_VECTOR:
+            break;
+        case FORMATION_VECTOR_180:
+            break;
+        
+        default:
+            break;
+    }
+}
+
+
 void CSwarmFollower::handle_leader_traffic(const std::string & leader_sender, const char * full_message, const int & full_message_length)
 {
 
@@ -25,7 +102,7 @@ void CSwarmFollower::handle_leader_traffic(const std::string & leader_sender, co
     const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
     int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1) );
 
-
+    bool valid = false;
     mavlink_status_t status;
 	mavlink_message_t mavlink_message;
     for (int i=0; i<binary_length; ++ i)
@@ -33,6 +110,7 @@ void CSwarmFollower::handle_leader_traffic(const std::string & leader_sender, co
 	    uint8_t msgReceived = mavlink_parse_char(MAVLINK_CHANNEL_INTERMODULE, binary_message[i+ 1], &mavlink_message, &status);
         if (msgReceived!=0)
         {
+            valid = true;
             #ifdef DEBUG        
             std::cout << _INFO_CONSOLE_TEXT << "RX SWARM MAVLINK: " << std::to_string(mavlink_message.msgid) << _NORMAL_CONSOLE_TEXT_ << std::endl;
             #endif
@@ -41,64 +119,24 @@ void CSwarmFollower::handle_leader_traffic(const std::string & leader_sender, co
                 case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
                 {
                     // decode message
-                    mavlink_global_position_int_t leader_gpos;
-                    mavlink_msg_global_position_int_decode(&mavlink_message, &(leader_gpos));
+                    mavlink_msg_global_position_int_decode(&mavlink_message, &(m_leader_gpos_new));
                     
-                    
-                    // get my own location
-                    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
-                    const mavlink_global_position_int_t&  my_gpos = vehicle.getMsgGlobalPositionInt();
-                    const double leader_lat = leader_gpos.lat / 10000000.0f;
-                    const double leader_lon = leader_gpos.lon / 10000000.0f;
-
-                    // get current time
-                    const u_int64_t now = get_time_usec();
-                    
-                    std::cout << _INFO_CONSOLE_TEXT << "time_diff: " <<  ":" << (m_leader_last_access - now) << ":" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
-                    
-                    // test if leader speed is very low then break.
-                    double speed_sq = leader_gpos.vx * leader_gpos.vx + leader_gpos.vy * leader_gpos.vy;
-                    if (speed_sq < 100) 
-                    {
-                        return ;
-                    }
-                    //const double leader_motion_bearing = calculateBearing (leader_lat,leader_lon, m_leader_gpos_latest.lat / 10000000.0f, m_leader_gpos_latest.lon / 10000000.0f);
-                    
-                    // store latest readings.
-                    m_leader_last_access = now;
-                    m_leader_gpos_latest = leader_gpos;
-
-                    const double my_lat = my_gpos.lat / 10000000.0f;
-                    const double my_lon = my_gpos.lon / 10000000.0f;
-
-
-                    // distance between me & leader
-                    const double distance_to_leader = calcGPSDistance(leader_lat,leader_lon, my_lat, my_lon);
-
-                    if (distance_to_leader <  (m_fcb_swarm_manager.getFollowerIndex()+1)*100)  
-                    {
-                        // rope effect ... ignore when distance is less than robe length.
-                        return ;
-                    }
-
-                    const double leader_vector_bearing = getBearingOfVector (leader_gpos.vx, leader_gpos.vy);
-                    UNUSED(leader_vector_bearing);
-                    const double bearing_with_leader = calculateBearing(leader_lat,leader_lon, my_lat, my_lon);
-
-                    POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, bearing_with_leader, (m_fcb_swarm_manager.getFollowerIndex()+1)*100);
-
-                    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude , p.longitude , (leader_gpos.relative_alt + (m_fcb_swarm_manager.getFollowerIndex()+1) * 10000) / 1000.0);
-                    CFCBFacade::getInstance().sendFCBTargetLocation("", p.latitude , p.longitude, (double) leader_gpos.relative_alt, DESTINATION_SWARM_MY_LOCATION);
                     #ifdef DEBUG        
-                    std::cout << _INFO_CONSOLE_TEXT << "RX SWARM MAVLINK: " << std::to_string(mavlink_message.msgid) << ":" << leader_gpos.lat << ":" << leader_gpos.lon << ":" << leader_gpos.relative_alt << ":" << leader_gpos.vx << ":" << leader_gpos.vy << ":" << leader_gpos.vz << ":" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
-                    std::cout << _INFO_CONSOLE_TEXT << "RX SWARM MAVLINK: " << leader_vector_bearing << "   :   " << _SUCCESS_CONSOLE_TEXT_ << bearing_with_leader << ":" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
-                    //std::cout << _INFO_CONSOLE_TEXT << "gotoGuidedPoint: " <<  ":" << p.latitude << ":" << p.longitude << ":" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+                        std::cout << _INFO_CONSOLE_TEXT << "RX SWARM MAVLINK: " << std::to_string(mavlink_message.msgid) << ":" << m_leader_gpos_new.lat << ":" << m_leader_gpos_new.lon << ":" << m_leader_gpos_new.relative_alt << ":" << m_leader_gpos_new.vx << ":" << m_leader_gpos_new.vy << ":" << m_leader_gpos_new.vz << ":" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+                        //std::cout << _INFO_CONSOLE_TEXT << "RX SWARM MAVLINK: " << leader_vector_bearing << "   :   " << _SUCCESS_CONSOLE_TEXT_ << bearing_with_leader << ":" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+                        //std::cout << _INFO_CONSOLE_TEXT << "gotoGuidedPoint: " <<  ":" << p.latitude << ":" << p.longitude << ":" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
                     #endif
+
                 }
                 break;
                         
             }
             
         }
+    }
+    
+    if (valid) 
+    {
+        updateFollower();
     }
 }

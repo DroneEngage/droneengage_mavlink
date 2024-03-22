@@ -52,11 +52,15 @@ namespace swarm
 
             void handle_leader_traffic(const std::string & leader_sender, const char * full_message, const int & full_message_length);
 
+        private:
 
+            void updateFollower();
+            void updateFollowerInThreadFormation();
 
         private:
             
-            mavlink_global_position_int_t m_leader_gpos_latest;
+            mavlink_global_position_int_t m_leader_gpos_new;
+            mavlink_global_position_int_t m_leader_gpos_old;
             u_int64_t m_leader_last_access;
 
         private:

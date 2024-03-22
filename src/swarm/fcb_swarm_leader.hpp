@@ -51,8 +51,13 @@ namespace swarm
 
         public:
 
-            void handle_swarm_as_leader();
+            void handleSwarmsAsLeader();
 
+
+        private:
+
+            void updateFollowers();
+            void updateFollowersThreadFormation();
 
 
         private:
