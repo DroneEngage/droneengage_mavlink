@@ -18,9 +18,9 @@ using Json_de = nlohmann::json;
 using namespace uavos::fcb;
 
 /**
-/// @brief This is an internal command that communicator will extend.
-/// it can resend it directly or choose to send it later based 
-/// on logic implemented in the communicator module.
+/// @brief This is an internal command that communicator will extend i.e. will add extra fields to this messages.
+/// Communicator can resend it directly or choose to send it later 
+/// based on logic implemented in the communicator module.
 /// @param target_party_id 
 */
 void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
@@ -1194,8 +1194,10 @@ void CFCBFacade::sendUdpProxyStatus(const std::string&target_party_id, const boo
 }
 
 /**
-/// @brief This is an internal command that the communication mobule will extend and fill
-/// an will send it to target party [target_party_id].
+/// @brief Instruct a unit to connect via P2P mesh to a given address.
+/// 
+/// *This is an internal command that the communication mobule will extend and fill
+/// *and will send it to target party [target_party_id].
 /// @param target_party_id 
 */
 void CFCBFacade::API_IC_P2P_connectToMeshOnMac (const std::string& target_party_id) const 
