@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 
 namespace uavos
 {
@@ -83,8 +84,8 @@ namespace swarm
             void addFollower (const std::string& party_id, const int follower_index);
             void releaseSingleFollower (const std::string& party_id);
             void releaseFollowers ();
-            int followersExist (const std::string& party_id) const;
-            
+            int followerExist (const std::string& party_id) const;
+            int insertFollowerinSwarmFormation(const std::string& party_id);
 
         public:
 
@@ -135,7 +136,9 @@ namespace swarm
         private:
             ANDRUAV_SWARM_FORMATION m_formation_as_leader;
             bool m_is_leader = false;
+            //std::unordered_map<uint16_t, ANDRUAV_UNIT_FOLLOWER> m_follower_units; 
             std::vector <ANDRUAV_UNIT_FOLLOWER> m_follower_units;
+            
             std::string m_leader_party_id;
             /**
              * @brief valid if I am a follower.

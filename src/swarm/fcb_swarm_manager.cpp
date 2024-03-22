@@ -13,10 +13,13 @@ using namespace uavos::fcb::swarm;
  * @brief: 
  * UnFollow Leader: The follower informs the leader that it will unfolllow it and that is all.
  * 
- * Follow Leader: Normally this request is called from GCS. The drone is told to follow a leader.
+ * Follow Leader: Normally this request is called first by GCS. The drone is told to follow a leader.
  *                The follower can accept or reject. If it accepts it sends a request to the leader
  *                to ask it to join. The leader can accept or reject and send back location 
  *                and formation pattern to follower if accepted.
+ * 
+ *                The leader drone will call this function in the follwer drone directly or as 
+ *                a reply of requestToFollowLeader()
  * 
 */
 void CSwarmManager::followLeader(const std::string& leader_party_id, const int follower_index, const ANDRUAV_SWARM_FORMATION follower_formation, const std::string& party_id_request)
@@ -48,9 +51,16 @@ void CSwarmManager::followLeader(const std::string& leader_party_id, const int f
     // also this can be 0 unless it is send from my leader
     m_formation_as_follower = follower_formation;
 
-    std::cout << "Follow " << leader_party_id << " index:" << m_follower_index << " m_formation_as_follower:" << m_formation_as_follower << " requested by: " << party_id_request << std::endl;
+    std::string event = "Follow " + leader_party_id + " index:" + std::to_string(m_follower_index) + " fromation#:" + std::to_string(m_formation_as_follower) + " requested by: " + party_id_request;
+    std::cout << std::endl << _INFO_CONSOLE_TEXT << "Follow " << _SUCCESS_CONSOLE_BOLD_TEXT_ << leader_party_id 
+        << _INFO_CONSOLE_TEXT << " index:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << m_follower_index 
+        << _INFO_CONSOLE_TEXT << " m_formation_as_follower:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << m_formation_as_follower 
+        << _INFO_CONSOLE_TEXT<< " requested by: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_request << std::endl;
+    
+    uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, event);
+
     if ((!party_id_request.empty()) && (party_id_request!=leader_party_id))
-    { // if the requestor is not the leader then I need to ask the leader.
+    { // if the requestor is not the leader then I need to ask the leader. and then the leader will call back followLeader() again.
         uavos::fcb::CFCBFacade::getInstance().requestToFollowLeader (m_leader_party_id, m_follower_index);
     }
 
@@ -83,7 +93,13 @@ void CSwarmManager::unFollowLeader(const std::string& party_id_leader_to_unfollo
         // I am not following it anyway.
         // this is not an error. It can happen due to event racing.
         // also the unfollow request origin could be the follower so it is not following the leader anymore.
-        std::cout << "Unfollow " << party_id_leader_to_unfollow << " but I am not following it" << std::endl;
+        std::string event = "Unfollow " + party_id_leader_to_unfollow + " but I am not following it";
+        
+        std::cout << std::endl << _INFO_CONSOLE_TEXT << "Unfollow " << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_leader_to_unfollow
+            << _INFO_CONSOLE_TEXT << " but I am not following it" << std::endl;
+        
+        uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, event);
+
         return ;
     }
     
@@ -92,7 +108,13 @@ void CSwarmManager::unFollowLeader(const std::string& party_id_leader_to_unfollo
         // sender is NOT my leader so inform the leader.. 
         // Typical scenario here is GCS is asking me to unfollow a leader.
         
-        std::cout << "Unfollow:" << party_id_leader_to_unfollow << " . Tell it that I am not following it anymore." << std::endl;
+        std::string event = "Unfollow " + party_id_leader_to_unfollow + " . Tell it that I am not following it anymore.";
+        
+        std::cout << std::endl << _INFO_CONSOLE_TEXT << "Unfollow:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_leader_to_unfollow 
+            << _INFO_CONSOLE_TEXT << " . Tell it that I am not following it anymore." << std::endl;
+        
+        uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, event);
+        
         uavos::fcb::CFCBFacade::getInstance().requestUnFollowLeader (m_leader_party_id);
     }
                     
@@ -101,8 +123,13 @@ void CSwarmManager::unFollowLeader(const std::string& party_id_leader_to_unfollo
     m_follower_index = -1;
     m_formation_as_follower = ANDRUAV_SWARM_FORMATION::FORMATION_NO_SWARM;
 
-    std::cout << "UnFollow " << party_id_leader_to_unfollow << " requested by: " << party_id_request << " DONE." << std::endl;
+    std::string event = "Unfollow " + party_id_leader_to_unfollow + " requested by: " + party_id_request + " DONE.";
+    std::cout << std::endl << _INFO_CONSOLE_TEXT << "UnFollow " << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_leader_to_unfollow 
+        << _INFO_CONSOLE_TEXT << " requested by: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_request 
+        << _INFO_CONSOLE_TEXT << " DONE." << std::endl;
 
+    uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, event);
+        
     uavos::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
 }
             
@@ -134,8 +161,10 @@ void CSwarmManager::makeSwarm(const ANDRUAV_SWARM_FORMATION formation)
         m_is_leader = false;
         // RoundRobin on all followers and release them.
         releaseFollowers();
+
         return ;
     }
+
     m_is_leader = true;
 
     std::cout << _INFO_CONSOLE_TEXT << std::endl << "Promoted to a Leader" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -155,7 +184,7 @@ void CSwarmManager::makeSwarm(const ANDRUAV_SWARM_FORMATION formation)
  * @param party_id The party ID of the follower drone to search for.
  * @return The index of the follower drone if it exists in the list, or -1 if it does not exist.
 */
-int CSwarmManager::followersExist(const std::string& party_id) const {
+int CSwarmManager::followerExist(const std::string& party_id) const {
     auto it = std::find_if(m_follower_units.begin(), m_follower_units.end(),
                 [&](const ANDRUAV_UNIT_FOLLOWER& unit) { return unit.party_id == party_id; });
     if (it != m_follower_units.end()) {
@@ -167,6 +196,33 @@ int CSwarmManager::followersExist(const std::string& party_id) const {
 
 
 /**
+ * @brief 
+ * 
+ * @param party_id 
+ * @return int if you return (-1) then you reject adding.
+ */
+int CSwarmManager::insertFollowerinSwarmFormation(const std::string& party_id) {
+
+    int follower_idx = 0;
+
+    // Find the smallest missing index by iterating from 1 onwards
+    for(const ANDRUAV_UNIT_FOLLOWER& i : m_follower_units) 
+    {
+        if (i.follower_index <= follower_idx)
+        {
+            ++follower_idx;
+        }
+    }
+    
+    std::cout << _INFO_CONSOLE_TEXT << std::endl << "SWARM: " << "add Follower " << party_id << " at " << follower_idx <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+	
+    m_follower_units.push_back({party_id, follower_idx});
+
+    return follower_idx;
+}
+
+
+/**
  * @brief adds a vehicle as a follower -slave-.
  * @details adding a vehicle as a slave requires the leader that is (Me) to send it guides to follow (Me).
  * @param party_id 
@@ -174,7 +230,7 @@ int CSwarmManager::followersExist(const std::string& party_id) const {
  */
 void CSwarmManager::addFollower (const std::string& party_id, const int follower_index)
 {
-    if (followersExist(party_id) != -1) 
+    if (followerExist(party_id) != -1) 
     {
         #ifdef DEBUG        
             std::cout << _INFO_CONSOLE_TEXT << "addFollower: " << party_id << " is already added." _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -182,20 +238,14 @@ void CSwarmManager::addFollower (const std::string& party_id, const int follower
         return ;
     }
 
-    int follower_idx;
-    if (follower_index < (int)m_follower_units.size())
-    {  //BUG: REVAMP this to avoid re-taking same location index.
-        follower_idx = m_follower_units.size();
-    }
-    else
-    {
-        follower_idx = follower_index;
-    }
     
-    std::cout << _INFO_CONSOLE_TEXT << std::endl << "SWARM: " << "add Follower " << party_id << " at " << follower_idx <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-	
-    // add a new one
-    m_follower_units.push_back({party_id, follower_idx});
+    int follower_idx = insertFollowerinSwarmFormation (party_id);
+    if (follower_idx==-1)
+    {
+        // rejected;
+        //TODO: send a rejection message.
+        return ;
+    }
     uavos::fcb::CFCBFacade::getInstance().requestFromUnitToFollowMe (party_id, follower_idx);
     uavos::fcb::CFCBFacade::getInstance().API_IC_P2P_connectToMeshOnMac(party_id);
 }
