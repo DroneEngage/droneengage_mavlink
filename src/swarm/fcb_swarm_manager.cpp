@@ -162,15 +162,19 @@ void CSwarmManager::makeSwarm(const ANDRUAV_SWARM_FORMATION formation)
         // RoundRobin on all followers and release them.
         releaseFollowers();
 
-        return ;
+    }
+    else
+    {   
+
+        m_is_leader = true;
+
+        std::cout << _INFO_CONSOLE_TEXT << std::endl << "Promoted to a Leader" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        //TODO: handle change formation for followers.
+        //TODO: problems include formation transition, & max number of followers.
+
     }
 
-    m_is_leader = true;
-
-    std::cout << _INFO_CONSOLE_TEXT << std::endl << "Promoted to a Leader" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-	
-    //TODO: handle change formation for followers.
-    //TODO: problems include formation transition, & max number of followers.
     uavos::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
 }
 
