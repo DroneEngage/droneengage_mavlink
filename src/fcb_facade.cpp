@@ -1205,11 +1205,12 @@ void CFCBFacade::API_IC_P2P_connectToMeshOnMac (const std::string& target_party_
     
     Json_de message = { 
         {"a", P2P_ACTION_CONNECT_TO_MAC},
-        {"int_prty", target_party_id},   // to be removed by communicator.
+        {"int_prty", target_party_id},   // to be removed by communicator and replaced by more mesh related data.
         /*
-        {"b", node_mac},
-        {"p", wifi_password},
-        {"c", wifi_channel},
+            Mesh related data:
+                {"b", node_mac},
+                {"p", wifi_password},
+                {"c", wifi_channel},
         */
 
      };
