@@ -1214,7 +1214,8 @@ void CFCBFacade::API_IC_P2P_connectToMeshOnMac (const std::string& target_party_
         */
 
      };
- 
+    
+    // internal message used by communicator.
     m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_P2P_ACTION, true);
  
 }

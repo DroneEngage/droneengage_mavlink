@@ -87,6 +87,16 @@ void CSwarmFollower::updateFollower()
 }
 
 
+/**
+ * @brief Receives location, speed,...etc. from leader SWARM INFO
+ * it then uses it based on formation and order in formation to determine 
+ * followr exact location, speed...etc.
+ * * Received info could be follower exact location, or could be leader location
+ * * then each foller calculate its location. It is all based on formation pattern.
+ * @param leader_sender 
+ * @param full_message 
+ * @param full_message_length 
+ */
 void CSwarmFollower::handle_leader_traffic(const std::string & leader_sender, const char * full_message, const int & full_message_length)
 {
 
@@ -111,7 +121,7 @@ void CSwarmFollower::handle_leader_traffic(const std::string & leader_sender, co
         if (msgReceived!=0)
         {
             valid = true;
-            #ifdef DEBUG        
+            #ifdef DDEBUG        
             std::cout << _INFO_CONSOLE_TEXT << "RX SWARM MAVLINK: " << std::to_string(mavlink_message.msgid) << _NORMAL_CONSOLE_TEXT_ << std::endl;
             #endif
             switch (mavlink_message.msgid)
