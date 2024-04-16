@@ -133,7 +133,7 @@ namespace fcb
         public:
 
             void API_IC_P2P_connectToMeshOnMac (const std::string& target_party_id) const;
-
+            void API_IC_P2P_accessMac (const std::string& target_party_id) const;
 
         private:
             mavlinksdk::CVehicle&    m_vehicle      =  mavlinksdk::CVehicle::getInstance();

@@ -231,6 +231,13 @@
 #define P2P_ACTION_RESTART_TO_MAC                           0
 #define P2P_ACTION_CONNECT_TO_MAC                           1
 #define P2P_ACTION_CANDICATE_MAC                            2
+#define P2P_ACTION_SCAN_NETWORK                             3
+/**
+ * @brief this is different from P2P_ACTION_CONNECT_TO_MAC 
+ * in that it does not require direct access 
+ * or specifies who is parent to whom.
+ */
+#define P2P_ACTION_ACCESS_TO_MAC                            4
 
 #define P2P_STATUS_CONNECTED_TO_MAC                         0
 #define P2P_STATUS_DISCONNECTED_FROM_MAC                    1

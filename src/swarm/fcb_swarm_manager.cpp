@@ -251,7 +251,7 @@ void CSwarmManager::addFollower (const std::string& party_id, const int follower
         return ;
     }
     uavos::fcb::CFCBFacade::getInstance().requestFromUnitToFollowMe (party_id, follower_idx);
-    uavos::fcb::CFCBFacade::getInstance().API_IC_P2P_connectToMeshOnMac(party_id);
+    uavos::fcb::CFCBFacade::getInstance().API_IC_P2P_accessMac(party_id);
 }
 
 void CSwarmManager::releaseFollowers ()

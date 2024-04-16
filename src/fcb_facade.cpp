@@ -1219,3 +1219,22 @@ void CFCBFacade::API_IC_P2P_connectToMeshOnMac (const std::string& target_party_
     m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_P2P_ACTION, true);
  
 }
+
+void CFCBFacade::API_IC_P2P_accessMac (const std::string& target_party_id) const 
+{
+    Json_de message = { 
+        {"a", P2P_ACTION_ACCESS_TO_MAC},
+        {"int_prty", target_party_id},   // to be removed by communicator and replaced by more mesh related data.
+        /*
+            Mesh related data:
+                {"b", node_mac},
+                {"p", wifi_password},
+                {"c", wifi_channel},
+        */
+     };
+    
+    // internal message used by communicator.
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_P2P_ACTION, true);
+ 
+}
+    
