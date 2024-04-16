@@ -3,6 +3,7 @@
 
 #include <sys/time.h>
 #include <time.h>
+#include <cstdint>
 
 inline uint64_t get_time_usec()
 {

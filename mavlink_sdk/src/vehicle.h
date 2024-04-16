@@ -2,6 +2,7 @@
 #define VEHICLE_H_
 
 #include <map>
+#include <cstdint>
 
 #include <all/mavlink.h>
 #include <ardupilotmega/ardupilotmega.h>
