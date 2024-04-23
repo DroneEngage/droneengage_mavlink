@@ -98,7 +98,7 @@ void CSwarmManager::unFollowLeader(const std::string& party_id_leader_to_unfollo
         std::cout << std::endl << _INFO_CONSOLE_TEXT << "Unfollow " << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_leader_to_unfollow
             << _INFO_CONSOLE_TEXT << " but I am not following it" << std::endl;
         
-        uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, event);
+        //uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, event);
 
         return ;
     }
