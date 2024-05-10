@@ -116,6 +116,64 @@ static inline uint16_t mavlink_msg_storm32_gimbal_device_status_pack(uint8_t sys
 }
 
 /**
+ * @brief Pack a storm32_gimbal_device_status message
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ *
+ * @param target_system  System ID
+ * @param target_component  Component ID
+ * @param time_boot_ms [ms] Timestamp (time since system boot).
+ * @param flags  Gimbal device flags currently applied.
+ * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation). The frame depends on the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag.
+ * @param angular_velocity_x [rad/s] X component of angular velocity (NaN if unknown).
+ * @param angular_velocity_y [rad/s] Y component of angular velocity (NaN if unknown).
+ * @param angular_velocity_z [rad/s] Z component of angular velocity (the frame depends on the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN if unknown).
+ * @param yaw_absolute [deg] Yaw in absolute frame relative to Earth's North, north is 0 (NaN if unknown).
+ * @param failure_flags  Failure flags (0 for no failure).
+ * @return length of the message in bytes (excluding serial stream start sign)
+ */
+static inline uint16_t mavlink_msg_storm32_gimbal_device_status_pack_status(uint8_t system_id, uint8_t component_id, mavlink_status_t *_status, mavlink_message_t* msg,
+                               uint8_t target_system, uint8_t target_component, uint32_t time_boot_ms, uint16_t flags, const float *q, float angular_velocity_x, float angular_velocity_y, float angular_velocity_z, float yaw_absolute, uint16_t failure_flags)
+{
+#if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
+    char buf[MAVLINK_MSG_ID_STORM32_GIMBAL_DEVICE_STATUS_LEN];
+    _mav_put_uint32_t(buf, 0, time_boot_ms);
+    _mav_put_float(buf, 20, angular_velocity_x);
+    _mav_put_float(buf, 24, angular_velocity_y);
+    _mav_put_float(buf, 28, angular_velocity_z);
+    _mav_put_float(buf, 32, yaw_absolute);
+    _mav_put_uint16_t(buf, 36, flags);
+    _mav_put_uint16_t(buf, 38, failure_flags);
+    _mav_put_uint8_t(buf, 40, target_system);
+    _mav_put_uint8_t(buf, 41, target_component);
+    _mav_put_float_array(buf, 4, q, 4);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_STORM32_GIMBAL_DEVICE_STATUS_LEN);
+#else
+    mavlink_storm32_gimbal_device_status_t packet;
+    packet.time_boot_ms = time_boot_ms;
+    packet.angular_velocity_x = angular_velocity_x;
+    packet.angular_velocity_y = angular_velocity_y;
+    packet.angular_velocity_z = angular_velocity_z;
+    packet.yaw_absolute = yaw_absolute;
+    packet.flags = flags;
+    packet.failure_flags = failure_flags;
+    packet.target_system = target_system;
+    packet.target_component = target_component;
+    mav_array_memcpy(packet.q, q, sizeof(float)*4);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_STORM32_GIMBAL_DEVICE_STATUS_LEN);
+#endif
+
+    msg->msgid = MAVLINK_MSG_ID_STORM32_GIMBAL_DEVICE_STATUS;
+#if MAVLINK_CRC_EXTRA
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_STORM32_GIMBAL_DEVICE_STATUS_MIN_LEN, MAVLINK_MSG_ID_STORM32_GIMBAL_DEVICE_STATUS_LEN, MAVLINK_MSG_ID_STORM32_GIMBAL_DEVICE_STATUS_CRC);
+#else
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_STORM32_GIMBAL_DEVICE_STATUS_MIN_LEN, MAVLINK_MSG_ID_STORM32_GIMBAL_DEVICE_STATUS_LEN);
+#endif
+}
+
+/**
  * @brief Pack a storm32_gimbal_device_status message on a channel
  * @param system_id ID of this system
  * @param component_id ID of this component (e.g. 200 for IMU)
@@ -194,6 +252,20 @@ static inline uint16_t mavlink_msg_storm32_gimbal_device_status_encode(uint8_t s
 static inline uint16_t mavlink_msg_storm32_gimbal_device_status_encode_chan(uint8_t system_id, uint8_t component_id, uint8_t chan, mavlink_message_t* msg, const mavlink_storm32_gimbal_device_status_t* storm32_gimbal_device_status)
 {
     return mavlink_msg_storm32_gimbal_device_status_pack_chan(system_id, component_id, chan, msg, storm32_gimbal_device_status->target_system, storm32_gimbal_device_status->target_component, storm32_gimbal_device_status->time_boot_ms, storm32_gimbal_device_status->flags, storm32_gimbal_device_status->q, storm32_gimbal_device_status->angular_velocity_x, storm32_gimbal_device_status->angular_velocity_y, storm32_gimbal_device_status->angular_velocity_z, storm32_gimbal_device_status->yaw_absolute, storm32_gimbal_device_status->failure_flags);
+}
+
+/**
+ * @brief Encode a storm32_gimbal_device_status struct with provided status structure
+ *
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ * @param storm32_gimbal_device_status C-struct to read the message contents from
+ */
+static inline uint16_t mavlink_msg_storm32_gimbal_device_status_encode_status(uint8_t system_id, uint8_t component_id, mavlink_status_t* _status, mavlink_message_t* msg, const mavlink_storm32_gimbal_device_status_t* storm32_gimbal_device_status)
+{
+    return mavlink_msg_storm32_gimbal_device_status_pack_status(system_id, component_id, _status, msg,  storm32_gimbal_device_status->target_system, storm32_gimbal_device_status->target_component, storm32_gimbal_device_status->time_boot_ms, storm32_gimbal_device_status->flags, storm32_gimbal_device_status->q, storm32_gimbal_device_status->angular_velocity_x, storm32_gimbal_device_status->angular_velocity_y, storm32_gimbal_device_status->angular_velocity_z, storm32_gimbal_device_status->yaw_absolute, storm32_gimbal_device_status->failure_flags);
 }
 
 /**

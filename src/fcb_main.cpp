@@ -1003,7 +1003,7 @@ void CFCBMain::OnACK (const int& acknowledged_cmd, const int& result, const std:
         break;
     }
 
-    if (result !=MAV_CMD_ACK_OK)
+    if (result !=MAV_RESULT_ACCEPTED)
     {
         // dont annoy the user if everything is OK.
         m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_3DR, sevirity, result_msg);
