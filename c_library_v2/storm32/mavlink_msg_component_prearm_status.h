@@ -82,6 +82,48 @@ static inline uint16_t mavlink_msg_component_prearm_status_pack(uint8_t system_i
 }
 
 /**
+ * @brief Pack a component_prearm_status message
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ *
+ * @param target_system  System ID
+ * @param target_component  Component ID
+ * @param enabled_flags  Currently enabled prearm checks. 0 means no checks are being performed, UINT32_MAX means not known.
+ * @param fail_flags  Currently not passed prearm checks. 0 means all checks have been passed.
+ * @return length of the message in bytes (excluding serial stream start sign)
+ */
+static inline uint16_t mavlink_msg_component_prearm_status_pack_status(uint8_t system_id, uint8_t component_id, mavlink_status_t *_status, mavlink_message_t* msg,
+                               uint8_t target_system, uint8_t target_component, uint32_t enabled_flags, uint32_t fail_flags)
+{
+#if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
+    char buf[MAVLINK_MSG_ID_COMPONENT_PREARM_STATUS_LEN];
+    _mav_put_uint32_t(buf, 0, enabled_flags);
+    _mav_put_uint32_t(buf, 4, fail_flags);
+    _mav_put_uint8_t(buf, 8, target_system);
+    _mav_put_uint8_t(buf, 9, target_component);
+
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_COMPONENT_PREARM_STATUS_LEN);
+#else
+    mavlink_component_prearm_status_t packet;
+    packet.enabled_flags = enabled_flags;
+    packet.fail_flags = fail_flags;
+    packet.target_system = target_system;
+    packet.target_component = target_component;
+
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_COMPONENT_PREARM_STATUS_LEN);
+#endif
+
+    msg->msgid = MAVLINK_MSG_ID_COMPONENT_PREARM_STATUS;
+#if MAVLINK_CRC_EXTRA
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_COMPONENT_PREARM_STATUS_MIN_LEN, MAVLINK_MSG_ID_COMPONENT_PREARM_STATUS_LEN, MAVLINK_MSG_ID_COMPONENT_PREARM_STATUS_CRC);
+#else
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_COMPONENT_PREARM_STATUS_MIN_LEN, MAVLINK_MSG_ID_COMPONENT_PREARM_STATUS_LEN);
+#endif
+}
+
+/**
  * @brief Pack a component_prearm_status message on a channel
  * @param system_id ID of this system
  * @param component_id ID of this component (e.g. 200 for IMU)
@@ -144,6 +186,20 @@ static inline uint16_t mavlink_msg_component_prearm_status_encode(uint8_t system
 static inline uint16_t mavlink_msg_component_prearm_status_encode_chan(uint8_t system_id, uint8_t component_id, uint8_t chan, mavlink_message_t* msg, const mavlink_component_prearm_status_t* component_prearm_status)
 {
     return mavlink_msg_component_prearm_status_pack_chan(system_id, component_id, chan, msg, component_prearm_status->target_system, component_prearm_status->target_component, component_prearm_status->enabled_flags, component_prearm_status->fail_flags);
+}
+
+/**
+ * @brief Encode a component_prearm_status struct with provided status structure
+ *
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ * @param component_prearm_status C-struct to read the message contents from
+ */
+static inline uint16_t mavlink_msg_component_prearm_status_encode_status(uint8_t system_id, uint8_t component_id, mavlink_status_t* _status, mavlink_message_t* msg, const mavlink_component_prearm_status_t* component_prearm_status)
+{
+    return mavlink_msg_component_prearm_status_pack_status(system_id, component_id, _status, msg,  component_prearm_status->target_system, component_prearm_status->target_component, component_prearm_status->enabled_flags, component_prearm_status->fail_flags);
 }
 
 /**

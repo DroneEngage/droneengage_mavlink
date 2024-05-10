@@ -105,6 +105,58 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_profile_pack(uint8_t s
 }
 
 /**
+ * @brief Pack a storm32_gimbal_manager_profile message
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ *
+ * @param target_system  System ID
+ * @param target_component  Component ID
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param profile  Profile to be applied (0 = default).
+ * @param priorities  Priorities for custom profile.
+ * @param profile_flags  Profile flags for custom profile (0 = default).
+ * @param rc_timeout  Rc timeouts for custom profile (0 = infinite, in uints of 100 ms).
+ * @param timeouts  Timeouts for custom profile (0 = infinite, in uints of 100 ms).
+ * @return length of the message in bytes (excluding serial stream start sign)
+ */
+static inline uint16_t mavlink_msg_storm32_gimbal_manager_profile_pack_status(uint8_t system_id, uint8_t component_id, mavlink_status_t *_status, mavlink_message_t* msg,
+                               uint8_t target_system, uint8_t target_component, uint8_t gimbal_id, uint8_t profile, const uint8_t *priorities, uint8_t profile_flags, uint8_t rc_timeout, const uint8_t *timeouts)
+{
+#if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
+    char buf[MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_PROFILE_LEN];
+    _mav_put_uint8_t(buf, 0, target_system);
+    _mav_put_uint8_t(buf, 1, target_component);
+    _mav_put_uint8_t(buf, 2, gimbal_id);
+    _mav_put_uint8_t(buf, 3, profile);
+    _mav_put_uint8_t(buf, 12, profile_flags);
+    _mav_put_uint8_t(buf, 13, rc_timeout);
+    _mav_put_uint8_t_array(buf, 4, priorities, 8);
+    _mav_put_uint8_t_array(buf, 14, timeouts, 8);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_PROFILE_LEN);
+#else
+    mavlink_storm32_gimbal_manager_profile_t packet;
+    packet.target_system = target_system;
+    packet.target_component = target_component;
+    packet.gimbal_id = gimbal_id;
+    packet.profile = profile;
+    packet.profile_flags = profile_flags;
+    packet.rc_timeout = rc_timeout;
+    mav_array_memcpy(packet.priorities, priorities, sizeof(uint8_t)*8);
+    mav_array_memcpy(packet.timeouts, timeouts, sizeof(uint8_t)*8);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_PROFILE_LEN);
+#endif
+
+    msg->msgid = MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_PROFILE;
+#if MAVLINK_CRC_EXTRA
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_PROFILE_MIN_LEN, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_PROFILE_LEN, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_PROFILE_CRC);
+#else
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_PROFILE_MIN_LEN, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_PROFILE_LEN);
+#endif
+}
+
+/**
  * @brief Pack a storm32_gimbal_manager_profile message on a channel
  * @param system_id ID of this system
  * @param component_id ID of this component (e.g. 200 for IMU)
@@ -177,6 +229,20 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_profile_encode(uint8_t
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_profile_encode_chan(uint8_t system_id, uint8_t component_id, uint8_t chan, mavlink_message_t* msg, const mavlink_storm32_gimbal_manager_profile_t* storm32_gimbal_manager_profile)
 {
     return mavlink_msg_storm32_gimbal_manager_profile_pack_chan(system_id, component_id, chan, msg, storm32_gimbal_manager_profile->target_system, storm32_gimbal_manager_profile->target_component, storm32_gimbal_manager_profile->gimbal_id, storm32_gimbal_manager_profile->profile, storm32_gimbal_manager_profile->priorities, storm32_gimbal_manager_profile->profile_flags, storm32_gimbal_manager_profile->rc_timeout, storm32_gimbal_manager_profile->timeouts);
+}
+
+/**
+ * @brief Encode a storm32_gimbal_manager_profile struct with provided status structure
+ *
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ * @param storm32_gimbal_manager_profile C-struct to read the message contents from
+ */
+static inline uint16_t mavlink_msg_storm32_gimbal_manager_profile_encode_status(uint8_t system_id, uint8_t component_id, mavlink_status_t* _status, mavlink_message_t* msg, const mavlink_storm32_gimbal_manager_profile_t* storm32_gimbal_manager_profile)
+{
+    return mavlink_msg_storm32_gimbal_manager_profile_pack_status(system_id, component_id, _status, msg,  storm32_gimbal_manager_profile->target_system, storm32_gimbal_manager_profile->target_component, storm32_gimbal_manager_profile->gimbal_id, storm32_gimbal_manager_profile->profile, storm32_gimbal_manager_profile->priorities, storm32_gimbal_manager_profile->profile_flags, storm32_gimbal_manager_profile->rc_timeout, storm32_gimbal_manager_profile->timeouts);
 }
 
 /**

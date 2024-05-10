@@ -64,6 +64,39 @@ static inline uint16_t mavlink_msg_uavionix_adsb_out_cfg_flightid_pack(uint8_t s
 }
 
 /**
+ * @brief Pack a uavionix_adsb_out_cfg_flightid message
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ *
+ * @param flight_id  Flight Identification: 8 ASCII characters, '0' through '9', 'A' through 'Z' or space. Spaces (0x20) used as a trailing pad character, or when call sign is unavailable. Reflects Control message setting. This is null-terminated.
+ * @return length of the message in bytes (excluding serial stream start sign)
+ */
+static inline uint16_t mavlink_msg_uavionix_adsb_out_cfg_flightid_pack_status(uint8_t system_id, uint8_t component_id, mavlink_status_t *_status, mavlink_message_t* msg,
+                               const char *flight_id)
+{
+#if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
+    char buf[MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_FLIGHTID_LEN];
+
+    _mav_put_char_array(buf, 0, flight_id, 9);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_FLIGHTID_LEN);
+#else
+    mavlink_uavionix_adsb_out_cfg_flightid_t packet;
+
+    mav_array_memcpy(packet.flight_id, flight_id, sizeof(char)*9);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_FLIGHTID_LEN);
+#endif
+
+    msg->msgid = MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_FLIGHTID;
+#if MAVLINK_CRC_EXTRA
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_FLIGHTID_MIN_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_FLIGHTID_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_FLIGHTID_CRC);
+#else
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_FLIGHTID_MIN_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_FLIGHTID_LEN);
+#endif
+}
+
+/**
  * @brief Pack a uavionix_adsb_out_cfg_flightid message on a channel
  * @param system_id ID of this system
  * @param component_id ID of this component (e.g. 200 for IMU)
@@ -117,6 +150,20 @@ static inline uint16_t mavlink_msg_uavionix_adsb_out_cfg_flightid_encode(uint8_t
 static inline uint16_t mavlink_msg_uavionix_adsb_out_cfg_flightid_encode_chan(uint8_t system_id, uint8_t component_id, uint8_t chan, mavlink_message_t* msg, const mavlink_uavionix_adsb_out_cfg_flightid_t* uavionix_adsb_out_cfg_flightid)
 {
     return mavlink_msg_uavionix_adsb_out_cfg_flightid_pack_chan(system_id, component_id, chan, msg, uavionix_adsb_out_cfg_flightid->flight_id);
+}
+
+/**
+ * @brief Encode a uavionix_adsb_out_cfg_flightid struct with provided status structure
+ *
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ * @param uavionix_adsb_out_cfg_flightid C-struct to read the message contents from
+ */
+static inline uint16_t mavlink_msg_uavionix_adsb_out_cfg_flightid_encode_status(uint8_t system_id, uint8_t component_id, mavlink_status_t* _status, mavlink_message_t* msg, const mavlink_uavionix_adsb_out_cfg_flightid_t* uavionix_adsb_out_cfg_flightid)
+{
+    return mavlink_msg_uavionix_adsb_out_cfg_flightid_pack_status(system_id, component_id, _status, msg,  uavionix_adsb_out_cfg_flightid->flight_id);
 }
 
 /**

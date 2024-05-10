@@ -86,6 +86,49 @@ static inline uint16_t mavlink_msg_secure_command_reply_pack(uint8_t system_id, 
 }
 
 /**
+ * @brief Pack a secure_command_reply message
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ *
+ * @param sequence  Sequence ID from request.
+ * @param operation  Operation that was requested.
+ * @param result  Result of command.
+ * @param data_length  Data length.
+ * @param data  Reply data.
+ * @return length of the message in bytes (excluding serial stream start sign)
+ */
+static inline uint16_t mavlink_msg_secure_command_reply_pack_status(uint8_t system_id, uint8_t component_id, mavlink_status_t *_status, mavlink_message_t* msg,
+                               uint32_t sequence, uint32_t operation, uint8_t result, uint8_t data_length, const uint8_t *data)
+{
+#if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
+    char buf[MAVLINK_MSG_ID_SECURE_COMMAND_REPLY_LEN];
+    _mav_put_uint32_t(buf, 0, sequence);
+    _mav_put_uint32_t(buf, 4, operation);
+    _mav_put_uint8_t(buf, 8, result);
+    _mav_put_uint8_t(buf, 9, data_length);
+    _mav_put_uint8_t_array(buf, 10, data, 220);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_SECURE_COMMAND_REPLY_LEN);
+#else
+    mavlink_secure_command_reply_t packet;
+    packet.sequence = sequence;
+    packet.operation = operation;
+    packet.result = result;
+    packet.data_length = data_length;
+    mav_array_memcpy(packet.data, data, sizeof(uint8_t)*220);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_SECURE_COMMAND_REPLY_LEN);
+#endif
+
+    msg->msgid = MAVLINK_MSG_ID_SECURE_COMMAND_REPLY;
+#if MAVLINK_CRC_EXTRA
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_SECURE_COMMAND_REPLY_MIN_LEN, MAVLINK_MSG_ID_SECURE_COMMAND_REPLY_LEN, MAVLINK_MSG_ID_SECURE_COMMAND_REPLY_CRC);
+#else
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_SECURE_COMMAND_REPLY_MIN_LEN, MAVLINK_MSG_ID_SECURE_COMMAND_REPLY_LEN);
+#endif
+}
+
+/**
  * @brief Pack a secure_command_reply message on a channel
  * @param system_id ID of this system
  * @param component_id ID of this component (e.g. 200 for IMU)
@@ -149,6 +192,20 @@ static inline uint16_t mavlink_msg_secure_command_reply_encode(uint8_t system_id
 static inline uint16_t mavlink_msg_secure_command_reply_encode_chan(uint8_t system_id, uint8_t component_id, uint8_t chan, mavlink_message_t* msg, const mavlink_secure_command_reply_t* secure_command_reply)
 {
     return mavlink_msg_secure_command_reply_pack_chan(system_id, component_id, chan, msg, secure_command_reply->sequence, secure_command_reply->operation, secure_command_reply->result, secure_command_reply->data_length, secure_command_reply->data);
+}
+
+/**
+ * @brief Encode a secure_command_reply struct with provided status structure
+ *
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ * @param secure_command_reply C-struct to read the message contents from
+ */
+static inline uint16_t mavlink_msg_secure_command_reply_encode_status(uint8_t system_id, uint8_t component_id, mavlink_status_t* _status, mavlink_message_t* msg, const mavlink_secure_command_reply_t* secure_command_reply)
+{
+    return mavlink_msg_secure_command_reply_pack_status(system_id, component_id, _status, msg,  secure_command_reply->sequence, secure_command_reply->operation, secure_command_reply->result, secure_command_reply->data_length, secure_command_reply->data);
 }
 
 /**
