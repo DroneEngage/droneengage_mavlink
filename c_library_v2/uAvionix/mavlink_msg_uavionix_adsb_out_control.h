@@ -92,6 +92,52 @@ static inline uint16_t mavlink_msg_uavionix_adsb_out_control_pack(uint8_t system
 }
 
 /**
+ * @brief Pack a uavionix_adsb_out_control message
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ *
+ * @param state  ADS-B transponder control state flags
+ * @param baroAltMSL [mbar] Barometric pressure altitude (MSL) relative to a standard atmosphere of 1013.2 mBar and NOT bar corrected altitude (m * 1E-3). (up +ve). If unknown set to INT32_MAX
+ * @param squawk  Mode A code (typically 1200 [0x04B0] for VFR)
+ * @param emergencyStatus  Emergency status
+ * @param flight_id  Flight Identification: 8 ASCII characters, '0' through '9', 'A' through 'Z' or space. Spaces (0x20) used as a trailing pad character, or when call sign is unavailable.
+ * @param x_bit  X-Bit enable (military transponders only)
+ * @return length of the message in bytes (excluding serial stream start sign)
+ */
+static inline uint16_t mavlink_msg_uavionix_adsb_out_control_pack_status(uint8_t system_id, uint8_t component_id, mavlink_status_t *_status, mavlink_message_t* msg,
+                               uint8_t state, int32_t baroAltMSL, uint16_t squawk, uint8_t emergencyStatus, const char *flight_id, uint8_t x_bit)
+{
+#if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
+    char buf[MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CONTROL_LEN];
+    _mav_put_int32_t(buf, 0, baroAltMSL);
+    _mav_put_uint16_t(buf, 4, squawk);
+    _mav_put_uint8_t(buf, 6, state);
+    _mav_put_uint8_t(buf, 7, emergencyStatus);
+    _mav_put_uint8_t(buf, 16, x_bit);
+    _mav_put_char_array(buf, 8, flight_id, 8);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CONTROL_LEN);
+#else
+    mavlink_uavionix_adsb_out_control_t packet;
+    packet.baroAltMSL = baroAltMSL;
+    packet.squawk = squawk;
+    packet.state = state;
+    packet.emergencyStatus = emergencyStatus;
+    packet.x_bit = x_bit;
+    mav_array_memcpy(packet.flight_id, flight_id, sizeof(char)*8);
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CONTROL_LEN);
+#endif
+
+    msg->msgid = MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CONTROL;
+#if MAVLINK_CRC_EXTRA
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CONTROL_MIN_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CONTROL_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CONTROL_CRC);
+#else
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CONTROL_MIN_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CONTROL_LEN);
+#endif
+}
+
+/**
  * @brief Pack a uavionix_adsb_out_control message on a channel
  * @param system_id ID of this system
  * @param component_id ID of this component (e.g. 200 for IMU)
@@ -158,6 +204,20 @@ static inline uint16_t mavlink_msg_uavionix_adsb_out_control_encode(uint8_t syst
 static inline uint16_t mavlink_msg_uavionix_adsb_out_control_encode_chan(uint8_t system_id, uint8_t component_id, uint8_t chan, mavlink_message_t* msg, const mavlink_uavionix_adsb_out_control_t* uavionix_adsb_out_control)
 {
     return mavlink_msg_uavionix_adsb_out_control_pack_chan(system_id, component_id, chan, msg, uavionix_adsb_out_control->state, uavionix_adsb_out_control->baroAltMSL, uavionix_adsb_out_control->squawk, uavionix_adsb_out_control->emergencyStatus, uavionix_adsb_out_control->flight_id, uavionix_adsb_out_control->x_bit);
+}
+
+/**
+ * @brief Encode a uavionix_adsb_out_control struct with provided status structure
+ *
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ * @param uavionix_adsb_out_control C-struct to read the message contents from
+ */
+static inline uint16_t mavlink_msg_uavionix_adsb_out_control_encode_status(uint8_t system_id, uint8_t component_id, mavlink_status_t* _status, mavlink_message_t* msg, const mavlink_uavionix_adsb_out_control_t* uavionix_adsb_out_control)
+{
+    return mavlink_msg_uavionix_adsb_out_control_pack_status(system_id, component_id, _status, msg,  uavionix_adsb_out_control->state, uavionix_adsb_out_control->baroAltMSL, uavionix_adsb_out_control->squawk, uavionix_adsb_out_control->emergencyStatus, uavionix_adsb_out_control->flight_id, uavionix_adsb_out_control->x_bit);
 }
 
 /**
