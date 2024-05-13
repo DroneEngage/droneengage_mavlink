@@ -66,7 +66,7 @@ namespace comm
                  Json_de message_filter
             );
             
-            bool init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort);
+            bool init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort, int chunkSize) ;
             bool uninit ();
             
 

@@ -15,9 +15,9 @@ using Json_de = nlohmann::json;
 #define MAXLINE 0xffff 
 #endif
 
-#define MAX_UDP_DATABUS_PACKET_SIZE 8192
 
-const int chunkSize = MAX_UDP_DATABUS_PACKET_SIZE; 
+
+
 
 uavos::comm::CUDPClient::~CUDPClient ()
 {
@@ -56,13 +56,20 @@ uavos::comm::CUDPClient::~CUDPClient ()
  * @param host uavos-module listening ips default is 0.0.0.0
  * @param listenningPort uavos-module listerning port.
  */
-void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort)
+void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort, int chunkSize)
 {
 
     // pthread initialization
 	m_thread = pthread_self(); // get pthread ID
 	pthread_setschedprio(m_thread, SCHED_FIFO); // setting priority
 
+    if (m_chunkSize >= MAX_UDP_DATABUS_PACKET_SIZE)
+    {
+        perror("invalid udp packet size."); 
+        exit(EXIT_FAILURE); 
+    }
+
+    m_chunkSize = chunkSize;
 
     // Creating socket file descriptor 
     if ( (m_SocketFD = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
@@ -95,6 +102,9 @@ void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, co
     std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDP Listener at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     std::cout << _LOG_CONSOLE_TEXT_BOLD_<< "Expected Comm Server at " <<  _INFO_CONSOLE_TEXT << targetIP << ":" <<  broadcatsPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDP Max Packet Size " << _INFO_CONSOLE_TEXT << chunkSize <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+
 }
 
 void uavos::comm::CUDPClient::start()
@@ -300,12 +310,11 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
     {
         int remainingLength = length;
         int offset = 0;
-        uint16_t chunk_number = 0;
+        int chunk_number = 0;
 
         while (remainingLength > 0)
         {
-            // TODO: BUG HERE WHEN PACKET = chunkSize
-            int chunkLength = std::min(chunkSize, remainingLength);
+            int chunkLength = std::min(m_chunkSize, remainingLength);
             remainingLength -= chunkLength;
             
             // Create a new message with the chunk size + sizeof(uint8_t)

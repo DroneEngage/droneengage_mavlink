@@ -9,6 +9,10 @@
 #define MAXLINE 65507 
 #endif
 
+
+#define MAX_UDP_DATABUS_PACKET_SIZE 0xffff
+#define DEFAULT_UDP_DATABUS_PACKET_SIZE 8160
+
 namespace uavos
 {
 namespace comm
@@ -34,7 +38,7 @@ class CUDPClient
         
         ~CUDPClient ();
         
-        void init(const char * targetIP, int broadcatsPort, const char * host, int listenningPort);
+        void init(const char * targetIP, int broadcatsPort, const char * host, int listenningPort, int chunkSize);
         void start();
         void stop();
         void setJsonId (std::string jsonID);
@@ -66,7 +70,7 @@ class CUDPClient
         std::mutex m_lock2;  
  
         char buffer[MAXLINE]; 
-
+        int m_chunkSize;
         
 };
 }

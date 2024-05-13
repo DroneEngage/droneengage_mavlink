@@ -24,10 +24,10 @@ void uavos::comm::CModule::defineModule (
 }
 
 
-bool uavos::comm::CModule::init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort)
+bool uavos::comm::CModule::init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort,  int chunkSize)
 {
     // UDP Server
-    cUDPClient.init(targetIP.c_str(), broadcatsPort, host.c_str() ,listenningPort);
+    cUDPClient.init(targetIP.c_str(), broadcatsPort, host.c_str() ,listenningPort, chunkSize);
     
     createJSONID(true);
     cUDPClient.start();
@@ -203,17 +203,32 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
     {
         /* code */
         Json_de jMsg = Json_de::parse(message);
-        const int messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+        
+        #ifdef DDEBUG
+        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: jMsg" << jMsg.dump() <<   _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
 
+        if (!jMsg.contains(ANDRUAV_PROTOCOL_MESSAGE_TYPE)) return ;
+        
+        if (!jMsg.contains(INTERMODULE_ROUTING_TYPE)) return ;
+        
+        
         if (std::strcmp(jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().c_str(),CMD_TYPE_INTERMODULE)==0)
         {
+            if (!jMsg.contains(ANDRUAV_PROTOCOL_MESSAGE_CMD)) return ;
+            
             const Json_de cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
             
 
+            const int messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
             switch (messageType)
             {
             case TYPE_AndruavModule_ID:
                 {
+                    if (!cmd.contains("f")) return ;
+                    if (!moduleID.contains(ANDRUAV_PROTOCOL_SENDER)) return ;
+                    if (!moduleID.contains(ANDRUAV_PROTOCOL_GROUP_ID)) return ;
+            
                     const Json_de moduleID = cmd ["f"];
                     m_party_id = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
                     m_group_id = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
