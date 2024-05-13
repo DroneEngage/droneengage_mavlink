@@ -179,7 +179,7 @@ bool CFCBMain::init ()
     {
         uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
                 
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Udp Proxy: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Enabled" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
+        std::cout << _LOG_CONSOLE_BOLD_TEXT<< "Udp Proxy: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Enabled" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
         PLOG(plog::info) << "Udp Proxy Enabled";
         
         u_int16_t udp_proxy_fixed_port = cLocalConfigFile.getNumericField("udp_proxy_fixed_port");
@@ -201,7 +201,7 @@ bool CFCBMain::init ()
         
 
         if (m_udp_telemetry_fixed_port!=0)
-        {   std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Udp Proxy fixed port is:" << _INFO_CONSOLE_TEXT << m_udp_telemetry_fixed_port << _NORMAL_CONSOLE_TEXT_ << std::endl; 
+        {   std::cout << _LOG_CONSOLE_BOLD_TEXT<< "Udp Proxy fixed port is:" << _INFO_CONSOLE_TEXT << m_udp_telemetry_fixed_port << _NORMAL_CONSOLE_TEXT_ << std::endl; 
             PLOG(plog::info) << "Udp Proxy fixed port is:" << m_udp_telemetry_fixed_port;
         }
         else
@@ -211,7 +211,7 @@ bool CFCBMain::init ()
     }
     else
     {
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Udp Proxy:" << _ERROR_CONSOLE_BOLD_TEXT_ << "Disabled" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
+        std::cout << _LOG_CONSOLE_BOLD_TEXT<< "Udp Proxy:" << _ERROR_CONSOLE_BOLD_TEXT_ << "Disabled" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
         PLOG(plog::info) << "Udp Proxy Disabled";
     }
     
@@ -266,7 +266,7 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
 
         if (display)
         {
-            std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "RC Blocking is " << _ERROR_CONSOLE_BOLD_TEXT_ << "enabled " << _LOG_CONSOLE_TEXT_BOLD_ << "at channel: "<< _INFO_CONSOLE_BOLD_TEXT << std::to_string(m_andruav_vehicle_info.rc_block_channel) << _ERROR_CONSOLE_BOLD_TEXT_ << " - IMPORTANT" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << _LOG_CONSOLE_BOLD_TEXT<< "RC Blocking is " << _ERROR_CONSOLE_BOLD_TEXT_ << "enabled " << _INFO_CONSOLE_BOLD_TEXT<< "at channel: "<< _INFO_CONSOLE_BOLD_TEXT << std::to_string(m_andruav_vehicle_info.rc_block_channel) << _ERROR_CONSOLE_BOLD_TEXT_ << " - IMPORTANT" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
         }
         
         

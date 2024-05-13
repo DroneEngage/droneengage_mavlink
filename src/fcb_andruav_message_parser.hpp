@@ -4,7 +4,7 @@
 #include <mavlink_command.h>
 #include <mavlink_sdk.h>
 
-#include "./helpers/json.hpp"
+#include "./helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 #include "./mission/missions.hpp"

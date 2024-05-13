@@ -8,7 +8,7 @@
        #include <netdb.h>
 
 #include "../helpers/colors.hpp"
-#include "../helpers/json.hpp"
+#include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 #include "udpProxy.hpp"
@@ -91,7 +91,7 @@ bool uavos::comm::CUDPProxy::init (const char * target_address, int targetPort, 
         std::cout << _ERROR_CONSOLE_TEXT_ << "UDPProxy: Cannot connect udp proxy " << _INFO_CONSOLE_TEXT << target_address  << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return false;
     }
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_<< "UDPProxy: Trasnlate " <<  _INFO_CONSOLE_TEXT << target_address << " into " <<  target_ip << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "UDPProxy: Trasnlate " <<  _INFO_CONSOLE_TEXT << target_address << " into " <<  target_ip << _NORMAL_CONSOLE_TEXT_ << std::endl;  
     // Communication Server (IP - PORT) 
     m_udpProxyServer->sin_family = AF_INET; 
     m_udpProxyServer->sin_port = htons(targetPort); 
@@ -100,13 +100,13 @@ bool uavos::comm::CUDPProxy::init (const char * target_address, int targetPort, 
     // Bind the socket with the server address 
     if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in)) > 0) 
     { 
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDPProxy: Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return false ;
     } 
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDPProxy: Drone Created UDP Socket at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Drone Created UDP Socket at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_<< "UDPProxy: Expected UdpProxy at " <<  _INFO_CONSOLE_TEXT << target_ip << ":" <<  targetPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+    std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Expected UdpProxy at " <<  _INFO_CONSOLE_TEXT << target_ip << ":" <<  targetPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
     
     m_stopped_called = false;
     

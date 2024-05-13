@@ -225,11 +225,12 @@ void uavos::comm::CModule::onReceive (const char * message, int len)
             {
             case TYPE_AndruavModule_ID:
                 {
+                    const Json_de moduleID = cmd ["f"];
+                    
                     if (!cmd.contains("f")) return ;
                     if (!moduleID.contains(ANDRUAV_PROTOCOL_SENDER)) return ;
                     if (!moduleID.contains(ANDRUAV_PROTOCOL_GROUP_ID)) return ;
             
-                    const Json_de moduleID = cmd ["f"];
                     m_party_id = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
                     m_group_id = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
                     

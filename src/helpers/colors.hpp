@@ -9,7 +9,7 @@
 #define _INFO_CONSOLE_BOLD_TEXT      "\033[1;33m"  // Yellow
 #define _INFO_CONSOLE_TEXT           "\033[0;33m"  // Yellow
 #define _LOG_CONSOLE_TEXT            "\033[0;34m"  // Blue
-#define _LOG_CONSOLE_TEXT_BOLD_      "\033[1;34m"  // Blue
+#define _LOG_CONSOLE_BOLD_TEXT       "\033[1;34m"  // Blue
 #define _TEXT_BOLD_HIGHTLITED_       "\033[1;37m"  // WHITE
 #define _BOLD_CONSOLE_TEXT_          "\033[1m" // Restore normal console colour
 #define _NORMAL_CONSOLE_TEXT_        "\033[0m" // Restore normal console colour

@@ -224,7 +224,7 @@ void initLogger()
     
     if ((jsonConfig.contains("logger_enabled") == false) || (jsonConfig["logger_enabled"].get<bool>()==false))
     {
-        std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging is " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT<< "Logging is " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         return ;
     }
@@ -236,7 +236,7 @@ void initLogger()
         debug_log = jsonConfig["logger_debug"].get<bool>();
     }
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging is " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT<< "Logging is " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
 
         
 
@@ -246,7 +246,7 @@ void initLogger()
     log_filename_final <<  "./logs/log_" << std::put_time(&tm, "%d-%m-%Y_%H-%M-%S") << ".log";
     mkdir("./logs/",0777);
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to folder: " << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_TEXT_BOLD_ << " filename:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT<< "Logging to folder: " << _INFO_CONSOLE_TEXT << log_filename << _INFO_CONSOLE_BOLD_TEXT<< " filename:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
     auto log_level = debug_log==true?plog::debug:plog::info;
 
     plog::init(log_level, log_filename_final.str().c_str()); 
@@ -372,7 +372,7 @@ void init (int argc, char *argv[])
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING PLUGIN ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     _version();
 
-    std::cout << _INFO_CONSOLE_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _LOG_CONSOLE_TEXT_BOLD_ << " seconds since the Epoch" << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _INFO_CONSOLE_BOLD_TEXT<< " seconds since the Epoch" << std::endl;
     
     cConfigFile.initConfigFile (configName.c_str());
     cLocalConfigFile.InitConfigFile (localConfigName.c_str());

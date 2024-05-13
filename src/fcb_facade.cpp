@@ -2,7 +2,7 @@
 #include <memory>
 #include <thread>
 #include <mutex>
-#include "./helpers/json.hpp"
+#include "./helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 #include "helpers/helpers.hpp"
 #include "./uavos_common/messages.hpp"
