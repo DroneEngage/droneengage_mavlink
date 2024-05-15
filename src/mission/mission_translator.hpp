@@ -6,7 +6,7 @@
 
 #include "missions.hpp"
 
-namespace uavos
+namespace de
 {
 namespace fcb
 {

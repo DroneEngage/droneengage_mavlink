@@ -8,9 +8,9 @@
 #include <mavlink_command.h>
 #include <mavlink_events.h>
 
-#include "./uavos_common/messages.hpp"
-#include "./uavos_common/uavos_module.hpp"
-#include "./uavos_common/udpProxy.hpp"
+#include "./de_common/messages.hpp"
+#include "./de_common/de_module.hpp"
+#include "./de_common/udpProxy.hpp"
 #include "./mission/missions.hpp"
 #include "fcb_traffic_optimizer.hpp"
 
@@ -22,7 +22,7 @@ using Json_de = nlohmann::json;
 
 
 #define EVENT_TIME_DIVIDER      5
-namespace uavos
+namespace de
 {
 namespace fcb
 {
@@ -43,7 +43,7 @@ namespace fcb
         int udp_port2;
         bool enabled = false;
         bool paused = true;
-        uavos::comm::CUDPProxy udp_client;
+        de::comm::CUDPProxy udp_client;
     } ANDRUAV_UDP_PROXY;
 
     /**
@@ -52,7 +52,7 @@ namespace fcb
      * It also communicates with physical FCB using mavlinksdk library.
      * 
      */
-    class CFCBMain: public mavlinksdk::CMavlinkEvents, uavos::comm::CCallBack_UdpProxy
+    class CFCBMain: public mavlinksdk::CMavlinkEvents, de::comm::CCallBack_UdpProxy
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -99,7 +99,7 @@ namespace fcb
 
             void loopScheduler();
 
-            /* cannot connect to uavos comm*/
+            /* cannot connect to de comm*/
             void alertDroneEngageOffline ();
             
             const ANDRUAV_VEHICLE_INFO& getAndruavVehicleInfo ()
@@ -107,7 +107,7 @@ namespace fcb
                 return m_andruav_vehicle_info;
             }
 
-            uavos::fcb::mission::ANDRUAV_UNIT_MISSION& getAndruavMission()
+            de::fcb::mission::ANDRUAV_UNIT_MISSION& getAndruavMission()
             {
                 return m_andruav_missions;      
             } 
@@ -244,24 +244,24 @@ namespace fcb
             void OnConnectionStatusChangedWithAndruavServer (const int status) ;
         
         
-        // Events implementation of uavos::comm::CCallBack_UdpProxy
+        // Events implementation of de::comm::CCallBack_UdpProxy
         public:
-            void OnMessageReceived (const uavos::comm::CUDPProxy * udp_proxy, const char *, int len) override;
+            void OnMessageReceived (const de::comm::CUDPProxy * udp_proxy, const char *, int len) override;
 
         private: 
             void initVehicleChannelLimits(const bool display);
      
         private:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-            uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
-            uavos::fcb::CMavlinkTrafficOptimizer& m_mavlink_optimizer = uavos::fcb::CMavlinkTrafficOptimizer::getInstance();
+            de::fcb::CFCBFacade& m_fcb_facade = de::fcb::CFCBFacade::getInstance();
+            de::fcb::CMavlinkTrafficOptimizer& m_mavlink_optimizer = de::fcb::CMavlinkTrafficOptimizer::getInstance();
             
         private:
             int getConnectionType () const; 
             bool connectToFCB ();
             
             void updateGeoFenceHitStatus();
-            void takeActionOnFenceViolation(uavos::fcb::geofence::CGeoFenceBase * geo_fence);
+            void takeActionOnFenceViolation(de::fcb::geofence::CGeoFenceBase * geo_fence);
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
             void update_rcmap_info();
             void checkBlockedStatus();
@@ -287,7 +287,7 @@ namespace fcb
             std::vector<int>  m_event_received_from_others;
             int m_event_waiting_for;
             ANDRUAV_VEHICLE_INFO m_andruav_vehicle_info;
-            uavos::fcb::mission::ANDRUAV_UNIT_MISSION m_andruav_missions;      
+            de::fcb::mission::ANDRUAV_UNIT_MISSION m_andruav_missions;      
 
             RCMAP_CHANNELS_MAP_INFO_STRUCT m_rcmap_channels_info;
 
@@ -295,7 +295,7 @@ namespace fcb
              * @brief Andruav units subscribed in telemetry streaming.
              * 
              */
-            std::vector<std::unique_ptr<uavos::fcb::ANDRUAV_UNIT_STRUCT>> m_TelemetryUnits;
+            std::vector<std::unique_ptr<de::fcb::ANDRUAV_UNIT_STRUCT>> m_TelemetryUnits;
             
 
             bool m_exit_thread = true;

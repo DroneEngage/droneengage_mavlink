@@ -1,26 +1,26 @@
-#ifndef CLOCALCONFIGFILE_H
+#ifndef CCONFIGFILE_H
 
-#define CLOCALCONFIGFILE_H
+#define CCONFIGFILE_H
 
 #include <sstream>
 #include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
-namespace uavos
+namespace de
 {
-    class CLocalConfigFile 
+    class CConfigFile 
     {
 
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
-            static CLocalConfigFile& getInstance()
+            static CConfigFile& getInstance()
             {
-                static CLocalConfigFile    instance; // Guaranteed to be destroyed.
+                static CConfigFile    instance; // Guaranteed to be destroyed.
                                                 // Instantiated on first use.
                 return instance;
             }
-            CLocalConfigFile(CLocalConfigFile const&)        = delete;
-            void operator=(CLocalConfigFile const&)          = delete;
+            CConfigFile(CConfigFile const&)             = delete;
+            void operator=(CConfigFile const&)          = delete;
 
             // Note: Scott Meyers mentions in his Effective Modern
             //       C++ book, that deleted functions should generally
@@ -28,7 +28,7 @@ namespace uavos
             //       due to the compilers behavior to check accessibility
             //       before deleted status
         private:
-            CLocalConfigFile() {}                    // Constructor? (the {} brackets) are needed here.
+            CConfigFile() {}                    // Constructor? (the {} brackets) are needed here.
 
             // C++ 11
             // =======
@@ -37,25 +37,18 @@ namespace uavos
             
 
         public:
-            void InitConfigFile (const char* fileURL);
+            void initConfigFile (const char* fileURL);
+            void reloadFile ();
             const Json_de& GetConfigJSON();
-            void clearFile();
-            void apply();
+            std::string getFileName () const {return m_file_url;};
             
-            std::string getStringField(const char * field) const;
-            void addStringField(const char * field, const char * value);
-            
-            const u_int32_t getNumericField(const char * field) const ;
-            void addNumericField(const char * field, const u_int32_t & value);
-
         protected:
             void ReadFile (const char * fileURL);
-            void WriteFile (const char * fileURL);
-            bool ParseData (std::string jsonString);
+            void ParseData (std::string jsonString);
             
 
         private:
-            std::string m_fileURL;
+            std::string m_file_url;
             std::stringstream m_fileContents;
             Json_de m_ConfigJSON;
         

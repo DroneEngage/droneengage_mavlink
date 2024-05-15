@@ -7,7 +7,7 @@
 
 #include "../geofence/fcb_geo_fence_base.hpp"
 
-namespace uavos
+namespace de
 {
 namespace fcb
 {
@@ -34,7 +34,7 @@ namespace geofence
      */
     typedef struct 
     {
-        std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> geoFence;
+        std::unique_ptr<de::fcb::geofence::CGeoFenceBase> geoFence;
         std::vector<std::unique_ptr<GEO_FENCE_PARTY_STATUS>> parties;
         int local_index;
     } GEO_FENCE_STRUCT;
@@ -66,7 +66,7 @@ namespace geofence
 
                 CGeoFenceManager() 
                 {
-                   m_geo_fences = std::unique_ptr <std::map<std::string,std::unique_ptr<uavos::fcb::geofence::GEO_FENCE_STRUCT>>>(new std::map<std::string,std::unique_ptr<uavos::fcb::geofence::GEO_FENCE_STRUCT>>);
+                   m_geo_fences = std::unique_ptr <std::map<std::string,std::unique_ptr<de::fcb::geofence::GEO_FENCE_STRUCT>>>(new std::map<std::string,std::unique_ptr<de::fcb::geofence::GEO_FENCE_STRUCT>>);
                 }
 
                 
@@ -81,7 +81,7 @@ namespace geofence
             
             public:
 
-                void addFence (std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> geo_fence);
+                void addFence (std::unique_ptr<de::fcb::geofence::CGeoFenceBase> geo_fence);
                 void attachToGeoFence (const std::string& party_id, const std::string& geo_fence_name);
                 void attachToGeoFence (const std::string party_id, GEO_FENCE_STRUCT *geo_fence_struct);
                 

@@ -6,21 +6,21 @@
 #include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
-#include "../uavos_common/messages.hpp"
+#include "../de_common/messages.hpp"
 
 #include <all/mavlink.h>
 #include "mission_translator.hpp"
 extern std::vector<std::string> split_string_by_newline(const std::string& str);
 extern std::vector<std::string> split_string_by_delimeter(const std::string& str, const char& delimeter);
 
-using namespace uavos::fcb::mission;
+using namespace de::fcb::mission;
 
 std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTranslator::translateQGCFormat (const std::string& mission_text)
 {
     try
     {
         std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> mission_items = std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> (new std::map <int, std::unique_ptr<CMissionItem>>);
-        //std::unique_ptr <uavos::fcb::mission::ANDRUAV_UNIT_MISSION> andruav_mission = std::unique_ptr<uavos::fcb::mission::ANDRUAV_UNIT_MISSION> ();
+        //std::unique_ptr <de::fcb::mission::ANDRUAV_UNIT_MISSION> andruav_mission = std::unique_ptr<de::fcb::mission::ANDRUAV_UNIT_MISSION> ();
 
         Json_de mission = Json_de::parse(mission_text);
         if (std::string(mission["fileType"]).find("Plan") != std::string::npos)
@@ -53,11 +53,11 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
             mavlink_mission_item.y = homePosition[1].get<double>() * 10000000;
             mavlink_mission_item.z = homePosition[2].get<int>();
 
-            uavos::fcb::mission::CMissionItem *mission_item = uavos::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mavlink_mission_item);
+            de::fcb::mission::CMissionItem *mission_item = de::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mavlink_mission_item);
             if (mission_item != nullptr)
             {
                 mission_item->decodeMavlink (mavlink_mission_item);
-                mission_items.get()->insert(std::make_pair( mavlink_mission_item.seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(mission_item)));
+                mission_items.get()->insert(std::make_pair( mavlink_mission_item.seq, std::unique_ptr<de::fcb::mission::CMissionItem>(mission_item)));
             }
 
             // remaining messages
@@ -90,11 +90,11 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
                 mavlink_mission_item.y = param[5] * 10000000;
                 mavlink_mission_item.z = param[6];
 
-                uavos::fcb::mission::CMissionItem *mission_item = uavos::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mavlink_mission_item);
+                de::fcb::mission::CMissionItem *mission_item = de::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mavlink_mission_item);
                 if (mission_item != nullptr)
                 {
                     mission_item->decodeMavlink (mavlink_mission_item);
-                    mission_items.get()->insert(std::make_pair( mavlink_mission_item.seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(mission_item)));
+                    mission_items.get()->insert(std::make_pair( mavlink_mission_item.seq, std::unique_ptr<de::fcb::mission::CMissionItem>(mission_item)));
                 }
                     
                 #ifdef DEBUG
@@ -118,7 +118,7 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
 std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTranslator::translateMPFormat (const std::string& mission_text)
 {
     std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> mission_items = std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> (new std::map <int, std::unique_ptr<CMissionItem>>);
-    //std::unique_ptr <uavos::fcb::mission::ANDRUAV_UNIT_MISSION> andruav_mission = std::unique_ptr<uavos::fcb::mission::ANDRUAV_UNIT_MISSION> ();
+    //std::unique_ptr <de::fcb::mission::ANDRUAV_UNIT_MISSION> andruav_mission = std::unique_ptr<de::fcb::mission::ANDRUAV_UNIT_MISSION> ();
 
     /**************
     // Mission Planner File Format
@@ -177,11 +177,11 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
             mavlink_mission_item.z = std::stod(task[10]);
             mavlink_mission_item.mission_type = MAV_MISSION_TYPE_MISSION;
 
-            uavos::fcb::mission::CMissionItem *mission_item = uavos::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mavlink_mission_item);
+            de::fcb::mission::CMissionItem *mission_item = de::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mavlink_mission_item);
             if (mission_item != nullptr)
             {
                 mission_item->decodeMavlink (mavlink_mission_item);
-                mission_items.get()->insert(std::make_pair( mavlink_mission_item.seq, std::unique_ptr<uavos::fcb::mission::CMissionItem>(mission_item)));
+                mission_items.get()->insert(std::make_pair( mavlink_mission_item.seq, std::unique_ptr<de::fcb::mission::CMissionItem>(mission_item)));
             }
                     
         }

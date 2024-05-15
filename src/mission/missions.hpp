@@ -9,7 +9,7 @@
 #include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
-namespace uavos
+namespace de
 {
 namespace fcb
 {

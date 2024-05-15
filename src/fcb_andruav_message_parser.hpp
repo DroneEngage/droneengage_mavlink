@@ -14,7 +14,7 @@ using Json_de = nlohmann::json;
 #include "fcb_main.hpp"
 
 
-namespace uavos
+namespace de
 {
 namespace fcb
 {
@@ -42,10 +42,10 @@ namespace fcb
    
 
         private:
-            uavos::fcb::CFCBMain&  m_fcbMain = uavos::fcb::CFCBMain::getInstance();
+            de::fcb::CFCBMain&  m_fcbMain = de::fcb::CFCBMain::getInstance();
             mavlinksdk::CMavlinkSDK& m_mavlinksdk = mavlinksdk::CMavlinkSDK::getInstance();
-            uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
-            uavos::fcb::swarm::CSwarmManager& m_fcb_swarm_manager = uavos::fcb::swarm::CSwarmManager::getInstance();
+            de::fcb::CFCBFacade& m_fcb_facade = de::fcb::CFCBFacade::getInstance();
+            de::fcb::swarm::CSwarmManager& m_fcb_swarm_manager = de::fcb::swarm::CSwarmManager::getInstance();
     };
 
 }

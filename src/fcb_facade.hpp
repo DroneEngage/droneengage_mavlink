@@ -7,8 +7,8 @@
 
 #include "global.hpp"
 #include "defines.hpp"
-#include "./uavos_common/uavos_module.hpp"
-#include "./uavos_common/udpProxy.hpp"
+#include "./de_common/de_module.hpp"
+#include "./de_common/udpProxy.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 
@@ -31,7 +31,7 @@ typedef void (*SEND_MREMSG_CALLBACK)(const int& );
 
 
 
-namespace uavos
+namespace de
 {
 namespace fcb
 {
@@ -127,7 +127,7 @@ namespace fcb
             // Inter Module Remote Execute Commands - commands executed by other modules in droneengage.
             void callModule_reloadSavedTasks (const int& inter_module_command);
             void internalCommand_takeImage () const;
-            void sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, uavos::comm::CUDPProxy& udp_client) const;
+            void sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, de::comm::CUDPProxy& udp_client) const;
                  
 
         public:
@@ -138,7 +138,7 @@ namespace fcb
         private:
             mavlinksdk::CVehicle&    m_vehicle      =  mavlinksdk::CVehicle::getInstance();
 
-            uavos::comm::CModule &m_module = uavos::comm::CModule::getInstance();            
+            de::comm::CModule &m_module = de::comm::CModule::getInstance();            
     };
 }
 }

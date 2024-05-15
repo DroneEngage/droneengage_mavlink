@@ -8,7 +8,7 @@
 
 
 
-using namespace uavos::fcb::geofence;
+using namespace de::fcb::geofence;
 
 
 CGeoFenceBase::CGeoFenceBase() 
@@ -229,27 +229,27 @@ double CGeoFenceLine::isInside(double lat, double lng, double alt) const
 
 //******************************** FACTORY
 
-std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> CGeoFenceFactory::getGeoFenceObject (const Json_de& message) const
+std::unique_ptr<de::fcb::geofence::CGeoFenceBase> CGeoFenceFactory::getGeoFenceObject (const Json_de& message) const
 {
-    std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> cGeoFenceBase  (new uavos::fcb::geofence::CGeoFenceLine());
+    std::unique_ptr<de::fcb::geofence::CGeoFenceBase> cGeoFenceBase  (new de::fcb::geofence::CGeoFenceLine());
 
     int m_geofence_type = message["t"].get<int>();
     switch (m_geofence_type)
     {
         case ENUM_GEOFENCE_TYPE::LinearFence:
-            cGeoFenceBase = std::make_unique<uavos::fcb::geofence::CGeoFenceBase> ( uavos::fcb::geofence::CGeoFenceLine());
+            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceBase> ( de::fcb::geofence::CGeoFenceLine());
         break;
 
         case ENUM_GEOFENCE_TYPE::PolygonFence:
-            cGeoFenceBase = std::make_unique<uavos::fcb::geofence::CGeoFenceBase> ( uavos::fcb::geofence::CGeoFencePolygon());
+            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceBase> ( de::fcb::geofence::CGeoFencePolygon());
         break;
 
         case ENUM_GEOFENCE_TYPE::CylindersFence:
-            cGeoFenceBase = std::make_unique<uavos::fcb::geofence::CGeoFenceBase> ( uavos::fcb::geofence::CGeoFenceCylinder());
+            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceBase> ( de::fcb::geofence::CGeoFenceCylinder());
         break;
 
         default:
-            cGeoFenceBase = std::make_unique<uavos::fcb::geofence::CGeoFenceBase> ( uavos::fcb::geofence::CGeoFenceBase());
+            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceBase> ( de::fcb::geofence::CGeoFenceBase());
         break;
 
     }

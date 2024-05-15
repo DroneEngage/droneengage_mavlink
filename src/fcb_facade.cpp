@@ -5,7 +5,7 @@
 #include "./helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 #include "helpers/helpers.hpp"
-#include "./uavos_common/messages.hpp"
+#include "./de_common/messages.hpp"
 
 #include "./mission/missions.hpp"
 #include "fcb_traffic_optimizer.hpp"
@@ -15,7 +15,7 @@ using Json_de = nlohmann::json;
 
 
 
-using namespace uavos::fcb;
+using namespace de::fcb;
 
 /**
 /// @brief This is an internal command that communicator will extend i.e. will add extra fields to this messages.
@@ -165,7 +165,7 @@ void CFCBFacade::sendHighLatencyInfo(const std::string&target_party_id) const
             high_latency2.altitude = gpos.alt;
             high_latency2.heading = vfr_hud.heading;
             high_latency2.battery = battery_status.battery_remaining;
-            high_latency2.wp_num = uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().current_waypoint;
+            high_latency2.wp_num = de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().current_waypoint;
             high_latency2.target_distance = nav_controller.wp_dist;
             mavlink_msg_high_latency2_encode(sys_id, comp_id, &mavlink_message, &high_latency2);
 
@@ -184,7 +184,7 @@ void CFCBFacade::sendHighLatencyInfo(const std::string&target_party_id) const
             high_latency.gps_fix_type = gps.fix_type;
             high_latency.battery_remaining = battery_status.battery_remaining;
             high_latency.wp_distance = nav_controller.wp_dist;
-            high_latency.wp_num = uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().current_waypoint;
+            high_latency.wp_num = de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().current_waypoint;
             high_latency.roll = attitude.roll;
             high_latency.pitch = attitude.pitch;
             
@@ -641,7 +641,7 @@ void CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
 /**
 * @brief Send points of destination guided point or swarm location or similar destination points.
 * @details This function sends destination points after confirmed from FCB.
-* GCS sends these points to uavos and then oavos sends it to FCB then uavos should send it back to gcs as a confirmation.
+* GCS sends these points to de and then oavos sends it to FCB then de should send it back to gcs as a confirmation.
 */
 void CFCBFacade::sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude, const int &target_type) const
 {
@@ -737,7 +737,7 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
     return ;
 }
 
-void CFCBFacade::sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, uavos::comm::CUDPProxy& udp_client) const
+void CFCBFacade::sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, de::comm::CUDPProxy& udp_client) const
 {
 
      char buf[300];
@@ -907,7 +907,7 @@ void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_par
     
     if (fence_name.empty()==true)
     {   //walk through all fences.
-        std::vector<geofence::GEO_FENCE_STRUCT*> geo_fence_struct_list = geofence::CGeoFenceManager::getInstance().getFencesOfParty(uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id);
+        std::vector<geofence::GEO_FENCE_STRUCT*> geo_fence_struct_list = geofence::CGeoFenceManager::getInstance().getFencesOfParty(de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id);
         
         const std::size_t size = geo_fence_struct_list.size();
 
@@ -930,7 +930,7 @@ void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_par
                 };
                 
         geofence::GEO_FENCE_STRUCT * geo_fence_struct = geofence::CGeoFenceManager::getInstance().getFenceByName(fence_name);
-        message["a"] = ((geo_fence_struct != nullptr) && (geofence::CGeoFenceManager::getInstance().getIndexOfPartyInGeoFence(uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct)>=0));
+        message["a"] = ((geo_fence_struct != nullptr) && (geofence::CGeoFenceManager::getInstance().getIndexOfPartyInGeoFence(de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct)>=0));
         
         m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFenceAttachStatus, false);
     }
@@ -949,7 +949,7 @@ void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_par
  */
 void CFCBFacade::sendGeoFenceToTarget(const std::string&target_party_id, const geofence::GEO_FENCE_STRUCT * geo_fenct_struct) const
 {
-    uavos::fcb::geofence::CGeoFenceBase* geo_fence_base = geo_fenct_struct->geoFence.get();
+    de::fcb::geofence::CGeoFenceBase* geo_fence_base = geo_fenct_struct->geoFence.get();
 
     if (geo_fence_base == nullptr) return ;
     
@@ -1022,7 +1022,7 @@ void CFCBFacade::requestToFollowLeader(const std::string&target_party_id, const 
                 {"a", (int)SWARM_UPDATED},
                 {"b", follower_index},
                 {"c", target_party_id},
-                {"d", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
+                {"d", de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
             };
                 
     m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_UpdateSwarm, false);
@@ -1047,7 +1047,7 @@ void CFCBFacade::requestUnFollowLeader(const std::string&target_party_id) const
             {
                 {"a", (int)SWARM_DELETE},
                 {"c", target_party_id},
-                {"d", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
+                {"d", de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
             };
                 
     m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_UpdateSwarm, false);
@@ -1067,7 +1067,7 @@ void CFCBFacade::requestFromUnitToFollowMe(const std::string&target_party_id, co
     Json_de message =
             {   
                 {"a", follower_index },
-                {"b", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
+                {"b", de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
                 {"c", target_party_id},
                 {"d", fcb_swarm_manager.getFormationAsLeader()},
                 {"f", SWARM_FOLLOW}
@@ -1086,7 +1086,7 @@ void CFCBFacade::requestFromUnitToUnFollowMe(const std::string&target_party_id) 
     */
     Json_de message =
             {
-                {"b", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
+                {"b", de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
                 {"c", target_party_id},
                 {"f", SWARM_UNFOLLOW}
             };

@@ -10,7 +10,7 @@ using Json_de = nlohmann::json;
 
 
 
-namespace uavos
+namespace de
 {
 namespace fcb
 {
@@ -213,7 +213,7 @@ namespace geofence
 
             public:
 
-                std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> getGeoFenceObject (const Json_de& message) const;
+                std::unique_ptr<de::fcb::geofence::CGeoFenceBase> getGeoFenceObject (const Json_de& message) const;
             
 
     };

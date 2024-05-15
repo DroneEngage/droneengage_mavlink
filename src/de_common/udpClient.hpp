@@ -13,7 +13,7 @@
 #define MAX_UDP_DATABUS_PACKET_SIZE 0xffff
 #define DEFAULT_UDP_DATABUS_PACKET_SIZE 8160
 
-namespace uavos
+namespace de
 {
 namespace comm
 {

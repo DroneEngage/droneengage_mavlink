@@ -7,7 +7,7 @@
 #include "../helpers/helpers.hpp"
 
 
-using namespace uavos::fcb::swarm;
+using namespace de::fcb::swarm;
 
 
 /**

@@ -5,8 +5,8 @@
 
 #include "./helpers/helpers.hpp"
 #include "./helpers/colors.hpp"
-#include "./uavos_common/messages.hpp"
-#include "./uavos_common/localConfigFile.hpp"
+#include "./de_common/messages.hpp"
+#include "./de_common/localConfigFile.hpp"
 #include "fcb_modes.hpp"
 #include "./swarm/fcb_swarm_follower.hpp"
 #include "fcb_andruav_message_parser.hpp"
@@ -14,7 +14,7 @@
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 
-using namespace uavos::fcb;
+using namespace de::fcb;
 
 
 
@@ -595,7 +595,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                 }
 
                 const std::string leader_sender = andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
-                uavos::fcb::swarm::CSwarmFollower& swarm_follower = uavos::fcb::swarm::CSwarmFollower::getInstance();
+                de::fcb::swarm::CSwarmFollower& swarm_follower = de::fcb::swarm::CSwarmFollower::getInstance();
                 swarm_follower.handle_leader_traffic(leader_sender, full_message, full_message_length);
             }
             break;
@@ -700,7 +700,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
 
                 const int formation = cmd["a"].get<int>();
 
-                m_fcb_swarm_manager.makeSwarm((uavos::fcb::swarm::ANDRUAV_SWARM_FORMATION)formation);
+                m_fcb_swarm_manager.makeSwarm((de::fcb::swarm::ANDRUAV_SWARM_FORMATION)formation);
             }
             break;
 
@@ -1121,7 +1121,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
                 uint32_t udp_proxy_fixed_port = cmd["P"].get<int>();
                 if (udp_proxy_fixed_port >= 0xffff) break;
                 
-                uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+                de::CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
                 cLocalConfigFile.addNumericField("udp_proxy_fixed_port",udp_proxy_fixed_port);
                 cLocalConfigFile.apply();
 

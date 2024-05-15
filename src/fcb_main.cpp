@@ -13,8 +13,8 @@
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
 
-#include "./uavos_common/configFile.hpp"
-#include "./uavos_common/localConfigFile.hpp"
+#include "./de_common/configFile.hpp"
+#include "./de_common/localConfigFile.hpp"
 
 #include "fcb_modes.hpp"
 #include "fcb_facade.hpp"
@@ -26,7 +26,7 @@
 #include "./geofence/fcb_geo_fence_manager.hpp"
 #include "./swarm/fcb_swarm_leader.hpp"
 
-using namespace uavos::fcb;
+using namespace de::fcb;
 
 #define UDP_PROXY_TIMEOUT 5000000
 
@@ -37,7 +37,7 @@ using namespace uavos::fcb;
  * @param message 
  * @param len 
  */
-void CFCBMain::OnMessageReceived (const uavos::comm::CUDPProxy * udp_proxy, const char *message, int len)
+void CFCBMain::OnMessageReceived (const de::comm::CUDPProxy * udp_proxy, const char *message, int len)
 {
     // Execute messages received by MP or QGC by forwarding it to FCB.
 
@@ -147,7 +147,7 @@ bool CFCBMain::init ()
 
     // Define module features
     
-    uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
+    de::CConfigFile& cConfigFile = CConfigFile::getInstance();
     m_jsonConfig = cConfigFile.GetConfigJSON();
     
     initVehicleChannelLimits(true);
@@ -177,7 +177,7 @@ bool CFCBMain::init ()
                
     if (m_enable_udp_telemetry_in_config==true)
     {
-        uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+        de::CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
                 
         std::cout << _LOG_CONSOLE_BOLD_TEXT<< "Udp Proxy: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Enabled" << _NORMAL_CONSOLE_TEXT_ << std::endl; 
         PLOG(plog::info) << "Udp Proxy Enabled";
@@ -256,7 +256,7 @@ bool CFCBMain::uninit ()
 
 void CFCBMain::initVehicleChannelLimits(const bool display)
 {
-    uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
+    de::CConfigFile& cConfigFile = CConfigFile::getInstance();
     cConfigFile.reloadFile();
     m_jsonConfig = cConfigFile.GetConfigJSON();
     
@@ -1680,7 +1680,7 @@ void CFCBMain::setStreamingLevel (const std::string& target_party_id, const int&
 // }
 
 
-void CFCBMain::takeActionOnFenceViolation(uavos::fcb::geofence::CGeoFenceBase * geo_fence)
+void CFCBMain::takeActionOnFenceViolation(de::fcb::geofence::CGeoFenceBase * geo_fence)
 {
     const int fence_action = geo_fence->hardFenceAction();
     switch (fence_action)
@@ -1741,8 +1741,8 @@ void CFCBMain::updateGeoFenceHitStatus()
     // test each fence and check if inside or not.
     for(int i = 0; i < size; i++)
     {
-        uavos::fcb::geofence::GEO_FENCE_STRUCT * g = geo_fence_struct_list[i];
-        uavos::fcb::geofence::CGeoFenceBase * geo_fence = g->geoFence.get();
+        de::fcb::geofence::GEO_FENCE_STRUCT * g = geo_fence_struct_list[i];
+        de::fcb::geofence::CGeoFenceBase * geo_fence = g->geoFence.get();
         const int local_index = geo_fence_struct_list[i]->local_index;
         double in_zone_new = geo_fence->isInside(gpos.lat / 10000000.0f, gpos.lon / 10000000.0f, gpos.alt);
         double in_zone = g->parties[local_index].get()->in_zone;

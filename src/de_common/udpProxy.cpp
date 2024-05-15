@@ -18,7 +18,7 @@ using Json_de = nlohmann::json;
 
 
     
-uavos::comm::CUDPProxy::~CUDPProxy ()
+de::comm::CUDPProxy::~CUDPProxy ()
 {
     
     #ifdef DEBUG
@@ -52,10 +52,10 @@ uavos::comm::CUDPProxy::~CUDPProxy ()
  * 
  * @param targetIP communication server ip
  * @param targetPort communication server port
- * @param host uavos-module listening ips default is 0.0.0.0
- * @param listenningPort uavos-module listerning port.
+ * @param host de-module listening ips default is 0.0.0.0
+ * @param listenningPort de-module listerning port.
  */
-bool uavos::comm::CUDPProxy::init (const char * target_address, int targetPort, const char * host, int listenningPort)
+bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, const char * host, int listenningPort)
 {
 
     // pthread initialization
@@ -113,7 +113,7 @@ bool uavos::comm::CUDPProxy::init (const char * target_address, int targetPort, 
     return true;
 }
 
-void uavos::comm::CUDPProxy::start()
+void de::comm::CUDPProxy::start()
 {
     // call directly as we are already in a thread.
     if (m_starrted == true)
@@ -124,13 +124,13 @@ void uavos::comm::CUDPProxy::start()
 }
 
 
-void uavos::comm::CUDPProxy::startReceiver ()
+void de::comm::CUDPProxy::startReceiver ()
 {
     m_threadCreateUDPSocket = std::thread {[&](){ InternalReceiverEntry(); }};
 }
 
 
-void uavos::comm::CUDPProxy::stop()
+void de::comm::CUDPProxy::stop()
 {
 
     #ifdef DEBUG
@@ -179,7 +179,7 @@ void uavos::comm::CUDPProxy::stop()
     
 }
 
-void uavos::comm::CUDPProxy::InternalReceiverEntry()
+void de::comm::CUDPProxy::InternalReceiverEntry()
 {
     #ifdef DEBUG
 	std::cout << "CUDPProxy::InternalReceiverEntry called" << std::endl; 
@@ -216,7 +216,7 @@ void uavos::comm::CUDPProxy::InternalReceiverEntry()
 /**
  * Sends binary to Communicator
  **/
-void uavos::comm::CUDPProxy::sendMSG (const char * msg, const int length)
+void de::comm::CUDPProxy::sendMSG (const char * msg, const int length)
 {
     
     try

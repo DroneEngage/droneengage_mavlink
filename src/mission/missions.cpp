@@ -1,12 +1,12 @@
 #include <mavlink_sdk.h>
-#include "../uavos_common/messages.hpp"
+#include "../de_common/messages.hpp"
 
 
 #include "../helpers/colors.hpp"
 #include "../mission/missions.hpp"
 
 
-using namespace uavos::fcb::mission;
+using namespace de::fcb::mission;
 
 
 

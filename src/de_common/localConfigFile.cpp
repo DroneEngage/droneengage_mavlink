@@ -10,7 +10,7 @@
 
 #include "localConfigFile.hpp"
 
-using namespace uavos;
+using namespace de;
 
 
 const Json_de& CLocalConfigFile::GetConfigJSON()

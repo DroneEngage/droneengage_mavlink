@@ -19,7 +19,7 @@ using Json_de = nlohmann::json;
 
 
 
-uavos::comm::CUDPClient::~CUDPClient ()
+de::comm::CUDPClient::~CUDPClient ()
 {
     
     #ifdef DEBUG
@@ -53,10 +53,10 @@ uavos::comm::CUDPClient::~CUDPClient ()
  * 
  * @param targetIP communication server ip
  * @param broadcatsPort communication server port
- * @param host uavos-module listening ips default is 0.0.0.0
- * @param listenningPort uavos-module listerning port.
+ * @param host de-module listening ips default is 0.0.0.0
+ * @param listenningPort de-module listerning port.
  */
-void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort, int chunkSize)
+void de::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort, int chunkSize)
 {
 
     // pthread initialization
@@ -107,7 +107,7 @@ void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, co
 
 }
 
-void uavos::comm::CUDPClient::start()
+void de::comm::CUDPClient::start()
 {
     // call directly as we are already in a thread.
     if (m_starrted == true)
@@ -120,19 +120,19 @@ void uavos::comm::CUDPClient::start()
 }
 
 
-void uavos::comm::CUDPClient::startReceiver ()
+void de::comm::CUDPClient::startReceiver ()
 {
     m_threadCreateUDPSocket = std::thread {[&](){ InternalReceiverEntry(); }};
 }
 
 
-void uavos::comm::CUDPClient::startSenderID ()
+void de::comm::CUDPClient::startSenderID ()
 {
     m_threadSenderID = std::thread {[&](){ InternelSenderIDEntry(); }};
 }
 
 
-void uavos::comm::CUDPClient::stop()
+void de::comm::CUDPClient::stop()
 {
 
     #ifdef DEBUG
@@ -184,7 +184,7 @@ void uavos::comm::CUDPClient::stop()
     
 }
 
-void uavos::comm::CUDPClient::InternalReceiverEntry()
+void de::comm::CUDPClient::InternalReceiverEntry()
 {
     #ifdef DEBUG
     std::cout << "CUDPClient::InternalReceiverEntry called" << std::endl;
@@ -263,7 +263,7 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
 /**
  * Store ID Card in JSON
  */
-void uavos::comm::CUDPClient::setJsonId (std::string jsonID)
+void de::comm::CUDPClient::setJsonId (std::string jsonID)
 {
     m_JsonID = jsonID;
 }
@@ -271,7 +271,7 @@ void uavos::comm::CUDPClient::setJsonId (std::string jsonID)
 /**
  * Sending ID Periodically
  **/
-void uavos::comm::CUDPClient::InternelSenderIDEntry()
+void de::comm::CUDPClient::InternelSenderIDEntry()
 {
 
     #ifdef DEBUG
@@ -301,7 +301,7 @@ void uavos::comm::CUDPClient::InternelSenderIDEntry()
 /**
  * Sends binary to Communicator
  **/
-void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
+void de::comm::CUDPClient::sendMSG (const char * msg, const int length)
 {
     
     std::lock_guard<std::mutex> lock(m_lock);

@@ -6,7 +6,7 @@
 #include "../helpers/helpers.hpp"
 
 
-using namespace uavos::fcb::swarm;
+using namespace de::fcb::swarm;
 
 
 /**
@@ -41,7 +41,7 @@ void CSwarmManager::followLeader(const std::string& leader_party_id, const int f
         // so send to my current leader informing that I am unfollowing it first
 
         std::cout << "UnFollow " << m_leader_party_id << " requested by: " << party_id_request << std::endl;
-        unFollowLeader(m_leader_party_id, uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id);
+        unFollowLeader(m_leader_party_id, de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id);
     }
 
     // now copy new leader info.
@@ -57,17 +57,17 @@ void CSwarmManager::followLeader(const std::string& leader_party_id, const int f
         << _INFO_CONSOLE_TEXT << " m_formation_as_follower:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << m_formation_as_follower 
         << _INFO_CONSOLE_TEXT<< " requested by: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_request << std::endl;
     
-    uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, event);
+    de::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, event);
 
     if ((!party_id_request.empty()) && (party_id_request!=leader_party_id))
     { // if the requestor is not the leader then I need to ask the leader. and then the leader will call back followLeader() again.
-        uavos::fcb::CFCBFacade::getInstance().requestToFollowLeader (m_leader_party_id, m_follower_index);
+        de::fcb::CFCBFacade::getInstance().requestToFollowLeader (m_leader_party_id, m_follower_index);
     }
 
     //NOTE: MAYBE IN FUTURE WE SPLIT THIS INTO TWO MESSAGES.
     // REQUEST_TO_FOLLOW & DO_FOLLOW
     
-    uavos::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
+    de::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
 }
 
 
@@ -98,7 +98,7 @@ void CSwarmManager::unFollowLeader(const std::string& party_id_leader_to_unfollo
         std::cout << std::endl << _INFO_CONSOLE_TEXT << "Unfollow " << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_leader_to_unfollow
             << _INFO_CONSOLE_TEXT << " but I am not following it" << std::endl;
         
-        //uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, event);
+        //de::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_ERROR, event);
 
         return ;
     }
@@ -113,9 +113,9 @@ void CSwarmManager::unFollowLeader(const std::string& party_id_leader_to_unfollo
         std::cout << std::endl << _INFO_CONSOLE_TEXT << "Unfollow:" << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_leader_to_unfollow 
             << _INFO_CONSOLE_TEXT << " . Tell it that I am not following it anymore." << std::endl;
         
-        uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, event);
+        de::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, event);
         
-        uavos::fcb::CFCBFacade::getInstance().requestUnFollowLeader (m_leader_party_id);
+        de::fcb::CFCBFacade::getInstance().requestUnFollowLeader (m_leader_party_id);
     }
                     
     
@@ -128,9 +128,9 @@ void CSwarmManager::unFollowLeader(const std::string& party_id_leader_to_unfollo
         << _INFO_CONSOLE_TEXT << " requested by: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_request 
         << _INFO_CONSOLE_TEXT << " DONE." << std::endl;
 
-    uavos::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, event);
+    de::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, event);
         
-    uavos::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
+    de::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
 }
             
 ANDRUAV_SWARM_FORMATION CSwarmManager::getFormationAsFollower() const
@@ -175,7 +175,7 @@ void CSwarmManager::makeSwarm(const ANDRUAV_SWARM_FORMATION formation)
 
     }
 
-    uavos::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
+    de::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
 }
 
 
@@ -250,8 +250,8 @@ void CSwarmManager::addFollower (const std::string& party_id, const int follower
         //TODO: send a rejection message.
         return ;
     }
-    uavos::fcb::CFCBFacade::getInstance().requestFromUnitToFollowMe (party_id, follower_idx);
-    uavos::fcb::CFCBFacade::getInstance().API_IC_P2P_accessMac(party_id);
+    de::fcb::CFCBFacade::getInstance().requestFromUnitToFollowMe (party_id, follower_idx);
+    de::fcb::CFCBFacade::getInstance().API_IC_P2P_accessMac(party_id);
 }
 
 void CSwarmManager::releaseFollowers ()
@@ -261,7 +261,7 @@ void CSwarmManager::releaseFollowers ()
         // Inform follower.
         // Follower will not send back because the requester is the leader.
         std::cout << _INFO_CONSOLE_TEXT << "Release Follower: " <<  item.party_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
-	    uavos::fcb::CFCBFacade::getInstance().requestFromUnitToUnFollowMe (item.party_id);
+	    de::fcb::CFCBFacade::getInstance().requestFromUnitToUnFollowMe (item.party_id);
     }
 
         
@@ -284,7 +284,7 @@ void CSwarmManager::releaseSingleFollower (const std::string& party_id)
     if (it != m_follower_units.end()) {
         // erase the element at the iterator
         std::cout << _INFO_CONSOLE_TEXT << "SWARM: " << "Release Follower: " <<  it->party_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
-	    uavos::fcb::CFCBFacade::getInstance().requestFromUnitToUnFollowMe (it->party_id);
+	    de::fcb::CFCBFacade::getInstance().requestFromUnitToUnFollowMe (it->party_id);
         m_follower_units.erase(it);
     }
 }

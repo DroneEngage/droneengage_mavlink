@@ -4,7 +4,7 @@
 #include "defines.hpp"
 #include <all/mavlink.h>
 
-namespace uavos
+namespace de
 {
 namespace fcb
 {

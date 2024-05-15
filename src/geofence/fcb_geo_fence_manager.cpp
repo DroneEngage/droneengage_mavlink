@@ -1,4 +1,4 @@
-#include "../uavos_common/messages.hpp"
+#include "../de_common/messages.hpp"
 #include "../geofence/fcb_geo_fence_manager.hpp"
 #include "../fcb_traffic_optimizer.hpp"
 #include "../mission/missions.hpp"
@@ -6,12 +6,12 @@
 #include "../fcb_main.hpp"
 
 
-using namespace uavos::fcb::geofence;
+using namespace de::fcb::geofence;
 
-void CGeoFenceManager::addFence (std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> geo_fence)
+void CGeoFenceManager::addFence (std::unique_ptr<de::fcb::geofence::CGeoFenceBase> geo_fence)
 {
     std::string geo_fence_name = geo_fence.get()->getName();
-    std::unique_ptr<uavos::fcb::geofence::GEO_FENCE_STRUCT> fence_sturct = std::unique_ptr<uavos::fcb::geofence::GEO_FENCE_STRUCT>(new uavos::fcb::geofence::GEO_FENCE_STRUCT);
+    std::unique_ptr<de::fcb::geofence::GEO_FENCE_STRUCT> fence_sturct = std::unique_ptr<de::fcb::geofence::GEO_FENCE_STRUCT>(new de::fcb::geofence::GEO_FENCE_STRUCT);
     fence_sturct.get()->geoFence = std::move(geo_fence);
     m_geo_fences.get()->insert(std::make_pair(geo_fence_name, std::move(fence_sturct)));
 }
@@ -36,16 +36,16 @@ void CGeoFenceManager::attachToGeoFence (const std::string party_id, GEO_FENCE_S
 {
     if (party_id.empty()) return ;
 
-    std::unique_ptr<uavos::fcb::geofence::GEO_FENCE_PARTY_STATUS> geo_fence_party_status = std::unique_ptr<uavos::fcb::geofence::GEO_FENCE_PARTY_STATUS>(new uavos::fcb::geofence::GEO_FENCE_PARTY_STATUS);
+    std::unique_ptr<de::fcb::geofence::GEO_FENCE_PARTY_STATUS> geo_fence_party_status = std::unique_ptr<de::fcb::geofence::GEO_FENCE_PARTY_STATUS>(new de::fcb::geofence::GEO_FENCE_PARTY_STATUS);
     geo_fence_party_status.get()->party_id = party_id;
     geo_fence_struct->parties.push_back(std::move(geo_fence_party_status));
-    geo_fence_struct->local_index = getIndexOfPartyInGeoFence(uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct);
+    geo_fence_struct->local_index = getIndexOfPartyInGeoFence(de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct);
     //TODO: Test if inzone or violates 
     //TODO: send fence
     //TODO: send Hit Status
 
     // inform I am attached to fence.
-    uavos::fcb::CFCBFacade::getInstance().sendGeoFenceAttachedStatusToTarget(std::string(""), geo_fence_struct->geoFence.get()->getName());
+    de::fcb::CFCBFacade::getInstance().sendGeoFenceAttachedStatusToTarget(std::string(""), geo_fence_struct->geoFence.get()->getName());
 }
 
 
@@ -64,7 +64,7 @@ void CGeoFenceManager::detachFromGeoFence (const std::string& party_id, GEO_FENC
         if(geo_fence_struct->parties[i].get()->party_id.find(party_id)!=std::string::npos)
         {
             geo_fence_struct->parties.erase(geo_fence_struct->parties.begin() + i);
-            geo_fence_struct->local_index = getIndexOfPartyInGeoFence(uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct);
+            geo_fence_struct->local_index = getIndexOfPartyInGeoFence(de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct);
             return ;
         }
     }
@@ -81,7 +81,7 @@ GEO_FENCE_STRUCT * CGeoFenceManager::getFenceByName (const std::string& geo_fenc
 {
     if (geo_fence_name.empty()) return nullptr;
 
-    std::map<std::string,std::unique_ptr<uavos::fcb::geofence::GEO_FENCE_STRUCT>>::iterator it;
+    std::map<std::string,std::unique_ptr<de::fcb::geofence::GEO_FENCE_STRUCT>>::iterator it;
                 
     for (it = m_geo_fences.get()->begin(); it != m_geo_fences.get()->end(); it++)
     {
@@ -105,7 +105,7 @@ std::vector<GEO_FENCE_STRUCT*> CGeoFenceManager::getFencesOfParty (const std::st
     std::vector<GEO_FENCE_STRUCT*> fence_list;
     if (party_id.empty()) return fence_list;
 
-    std::map<std::string,std::unique_ptr<uavos::fcb::geofence::GEO_FENCE_STRUCT>>::iterator it;
+    std::map<std::string,std::unique_ptr<de::fcb::geofence::GEO_FENCE_STRUCT>>::iterator it;
                 
     for (it = m_geo_fences.get()->begin(); it != m_geo_fences.get()->end(); it++)
     {
@@ -153,7 +153,7 @@ int CGeoFenceManager::getIndexOfPartyInGeoFence (const std::string& party_id, co
 void CGeoFenceManager::clearGeoFences (const std::string& geo_fence_name)
 {
 
-   std::map<std::string,std::unique_ptr<uavos::fcb::geofence::GEO_FENCE_STRUCT>>::iterator it;
+   std::map<std::string,std::unique_ptr<de::fcb::geofence::GEO_FENCE_STRUCT>>::iterator it;
                 
     for (it = m_geo_fences.get()->begin(); it != m_geo_fences.get()->end(); it++)
     {

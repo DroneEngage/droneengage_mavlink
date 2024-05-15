@@ -10,11 +10,11 @@
 #include "./helpers/helpers.hpp"
 #include "./helpers/util_rpi.hpp"
 #include "./helpers/getopt_cpp.hpp"
-#include "./uavos_common/messages.hpp"
-#include "./uavos_common/configFile.hpp"
-#include "./uavos_common/localConfigFile.hpp"
-#include "./uavos_common/udpClient.hpp"
-#include "./uavos_common/uavos_module.hpp"
+#include "./de_common/messages.hpp"
+#include "./de_common/configFile.hpp"
+#include "./de_common/localConfigFile.hpp"
+#include "./de_common/udpClient.hpp"
+#include "./de_common/de_module.hpp"
 #include "./swarm/fcb_swarm_manager.hpp"
 #include "./mission/missions.hpp"
 #include "fcb_facade.hpp"
@@ -23,7 +23,7 @@
 #include "fcb_main.hpp"
 #include "fcb_andruav_message_parser.hpp"
 
-using namespace uavos;
+using namespace de;
 
 #define MESSAGE_FILTER {TYPE_AndruavMessage_RemoteExecute,\
                         TYPE_AndruavMessage_FlightControl,\
@@ -64,21 +64,21 @@ std::time_t instance_time_stamp;
 
 bool exit_me = false;
 
-// UAVOS Current PartyID read from communicator
+// DroneEngage Current PartyID read from communicator
 std::string  PartyID;
-// UAVOS Current GroupID read from communicator
+// DroneEngage Current GroupID read from communicator
 std::string  GroupID;
 std::string  ModuleID;
 std::string  ModuleKey;
 int AndruavServerConnectionStatus = SOCKET_STATUS_FREASH;
 
-uavos::comm::CModule& cModule= uavos::comm::CModule::getInstance();
+de::comm::CModule& cModule= de::comm::CModule::getInstance();
 
-uavos::fcb::CFCBMain& cFCBMain = uavos::fcb::CFCBMain::getInstance();
-uavos::fcb::CFCBAndruavMessageParser cAndruavResalaParser = uavos::fcb::CFCBAndruavMessageParser();
+de::fcb::CFCBMain& cFCBMain = de::fcb::CFCBMain::getInstance();
+de::fcb::CFCBAndruavMessageParser cAndruavResalaParser = de::fcb::CFCBAndruavMessageParser();
 
-uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
-uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+de::CConfigFile& cConfigFile = CConfigFile::getInstance();
+de::CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
 
 
 /**
@@ -202,7 +202,7 @@ void onReceive (const char * message, int len, Json_de jMsg)
         if (messageType == TYPE_AndruavMessage_SWARM_MAVLINK)
             {
                 const std::string leader_sender = jMsg[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
-                uavos::fcb::swarm::CSwarmFollower& swarm_follower = uavos::fcb::swarm::CSwarmFollower::getInstance();
+                de::fcb::swarm::CSwarmFollower& swarm_follower = de::fcb::swarm::CSwarmFollower::getInstance();
                 swarm_follower.handle_leader_traffic(leader_sender, message, len);
             
                 return ;
@@ -314,7 +314,7 @@ void initArguments (int argc, char *argv[])
 void initUavosModule(int argc, char *argv[])
 {
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
-    CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+    CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
         
     cModule.defineModule(
         MODULE_CLASS_FCB,
