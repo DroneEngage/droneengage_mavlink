@@ -335,9 +335,9 @@ void initUavosModule(int argc, char *argv[])
     
     int udp_chunk_size = DEFAULT_UDP_DATABUS_PACKET_SIZE;
     
-    if (validateField(jsonConfig, "s2s_udp_packet_size",Json_de::value_t::number_unsigned)) 
+    if (validateField(jsonConfig, "s2s_udp_packet_size",Json_de::value_t::string)) 
     {
-        udp_chunk_size = jsonConfig["s2s_udp_packet_size"].get<int>();
+        udp_chunk_size = std::stoi(jsonConfig["s2s_udp_packet_size"].get<std::string>());
     }
     else
     {
