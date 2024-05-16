@@ -4,10 +4,10 @@
 #include <iostream>
 
 #include <mavlink_sdk.h>
-
 #include "global.hpp"
 #include "defines.hpp"
-#include "./de_common/de_module.hpp"
+
+#include "./de_common/de_facade_base.hpp"
 #include "./de_common/udpProxy.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
@@ -40,7 +40,7 @@ namespace fcb
      * and sends it to communicator and server.
      * 
      */
-    class CFCBFacade
+    class CFCBFacade : public de::comm::CFacade_Base
     {
 
         public:
@@ -82,9 +82,7 @@ namespace fcb
         public:
 
             void API_IC_sendID(const std::string&target_party_id) const;
-            void requestID(const std::string&target_party_id) const;
             void sendTelemetryPanic(const std::string&target_party_id) const;
-            void sendErrorMessage(const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const;
             void sendHighLatencyInfo(const std::string&target_party_id) const;
             void sendEKFInfo(const std::string&target_party_id) const;
             void sendVibrationInfo(const std::string&target_party_id) const;
@@ -138,7 +136,7 @@ namespace fcb
         private:
             mavlinksdk::CVehicle&    m_vehicle      =  mavlinksdk::CVehicle::getInstance();
 
-            de::comm::CModule &m_module = de::comm::CModule::getInstance();            
+            
     };
 }
 }
