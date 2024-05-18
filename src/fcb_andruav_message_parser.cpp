@@ -843,7 +843,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
             }
             break;
 
-            case TYPE_AndruavSystem_UdpProxy:
+            case TYPE_AndruavSystem_UDPProxy:
             {   
                 /*
                     Received from communication_server that created a udp socket me.

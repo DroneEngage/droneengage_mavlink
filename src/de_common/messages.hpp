@@ -95,7 +95,7 @@
 #define TYPE_AndruavSystem_Ping                 9005
 #define TYPE_AndruavSystem_LogoutCommServer     9006
 #define TYPE_AndruavSystem_ConnectedCommServer  9007
-#define TYPE_AndruavSystem_UdpProxy             9008
+#define TYPE_AndruavSystem_UDPProxy             9008
 
 // Inter Module Commands
 #define TYPE_AndruavModule_ID                   9100

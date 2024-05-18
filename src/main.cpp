@@ -25,6 +25,7 @@
 
 using namespace de;
 
+//TODO: CREATE NEW COMMAND TYPE_AndruavMessage_ACTION to collect all Drone commands.
 #define MESSAGE_FILTER {TYPE_AndruavMessage_RemoteExecute,\
                         TYPE_AndruavMessage_FlightControl,\
                         TYPE_AndruavMessage_GeoFence,\
@@ -54,7 +55,7 @@ using namespace de;
                         TYPE_AndruavMessage_FollowMe_Guided, \
                         TYPE_AndruavMessage_UpdateSwarm, \
                         TYPE_AndruavMessage_UDPProxy_Info, \
-                        TYPE_AndruavSystem_UdpProxy, \
+                        TYPE_AndruavSystem_UDPProxy, \
                         TYPE_AndruavMessage_P2P_ACTION, \
                         TYPE_AndruavMessage_P2P_STATUS, \
                         TYPE_AndruavMessage_DUMMY}

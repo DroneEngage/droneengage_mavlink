@@ -1125,7 +1125,7 @@ void CFCBFacade::requestUdpProxyTelemetry(const bool enable, const std::string&u
                 {"socket2",  address2}          // socket2
             };
             
-    m_module.sendSYSMSG (message, TYPE_AndruavSystem_UdpProxy);
+    m_module.sendSYSMSG (message, TYPE_AndruavSystem_UDPProxy);
 }
 
 

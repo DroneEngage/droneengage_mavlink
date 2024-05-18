@@ -170,7 +170,7 @@ namespace fcb
             };
 
             /**
-             * @brief called when receive {@link TYPE_AndruavSystem_UdpProxy @endlink} to 
+             * @brief called when receive {@link TYPE_AndruavSystem_UDPProxy @endlink} to 
              * add update udpProxy database and creates a UDP socket. 
              * 
              * @param enabled 
