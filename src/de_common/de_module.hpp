@@ -22,9 +22,12 @@ typedef enum {
 #define MODULE_FEATURE_CAPTURE_VIDEO            "V"
 
 
+#define MODULE_CLASS_COMM                       "comm"
 #define MODULE_CLASS_FCB                        "fcb"
 #define MODULE_CLASS_VIDEO                      "camera"
+#define MODULE_CLASS_P2P                        "p2p"
 #define MODULE_CLASS_GENERIC                    "gen"
+
 
 
 namespace de
