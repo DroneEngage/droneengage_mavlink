@@ -75,7 +75,7 @@ int AndruavServerConnectionStatus = SOCKET_STATUS_FREASH;
 de::comm::CModule& cModule= de::comm::CModule::getInstance();
 
 de::fcb::CFCBMain& cFCBMain = de::fcb::CFCBMain::getInstance();
-de::fcb::CFCBAndruavMessageParser cAndruavResalaParser = de::fcb::CFCBAndruavMessageParser();
+de::fcb::CFCBAndruavMessageParser& cAndruavResalaParser = de::fcb::CFCBAndruavMessageParser::getInstance();
 
 de::CConfigFile& cConfigFile = CConfigFile::getInstance();
 de::CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();

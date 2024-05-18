@@ -29,12 +29,32 @@ namespace fcb
     {
         public:
 
-        CFCBAndruavMessageParser()
-        {
+            static CFCBAndruavMessageParser& getInstance()
+            {
+                static CFCBAndruavMessageParser instance;
 
-        };
+                return instance;
+            }
 
+            CFCBAndruavMessageParser(CFCBAndruavMessageParser const&)           = delete;
+            void operator=(CFCBAndruavMessageParser const&)                     = delete;
 
+        
+        private:
+
+            CFCBAndruavMessageParser() 
+            {
+
+            }
+
+            
+        public:
+            
+            ~CFCBAndruavMessageParser ()
+            {
+
+            }
+        
         public:
 
             void parseMessage (Json_de &andruav_message, const char * message, const int & message_length);
