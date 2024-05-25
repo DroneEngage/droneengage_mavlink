@@ -63,15 +63,12 @@ const int mavlinksdk::comm::CMavlinkCommunicator::send_message (const mavlink_me
  */
 void mavlinksdk::comm::CMavlinkCommunicator::readThread ()
 {
-    m_reading_status = true;
-
+    
 	while ( ! m_time_to_exit )
 	{
 		read_messages();
 		wait_time_nsec(1,0); // Read batches at 10Hz
 	}
-
-	m_reading_status = false;
 
 	return;
 }

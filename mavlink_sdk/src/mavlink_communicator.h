@@ -47,7 +47,6 @@ namespace comm
             pthread_t m_read_tid;
 	        pthread_t m_write_tid;
             bool m_time_to_exit = false;
-            bool m_reading_status = false;
             bool m_writing_status = false;
             bool m_connected = false;
             CCallBack_Communicator* m_callback_communicator;

@@ -104,7 +104,7 @@ bool CFCBMain::connectToFCB ()
     
     switch (m_connection_type)
     {
-
+        //TODO Add Checks here for JSON fields.
         case CONNECTION_TYPE_SERIAL:
         {
             bool dynamic = false;
