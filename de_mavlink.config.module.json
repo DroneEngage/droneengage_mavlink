@@ -1,7 +1,6 @@
 { 
   // A name and GUID for this module as multiple modules sometimes can be added.
   "module_id": "FCB_CTRL", 
-  "module_key": "E289FEE7-F4AD-44EF-A257-C9A361316BE7", 
   
   // IP & Port Communication Module is listening to.
   "s2s_udp_target_ip": "127.0.0.1",
