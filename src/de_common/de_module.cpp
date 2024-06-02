@@ -181,8 +181,9 @@ void de::comm::CModule::sendMREMSG(const int& command_type)
 {
     Json_de json_msg;        
         
-    json_msg[INTERMODULE_ROUTING_TYPE] =  CMD_TYPE_INTERMODULE;
-    json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_RemoteExecute;
+    json_msg[INTERMODULE_MODULE_KEY]            = m_module_key;    
+    json_msg[INTERMODULE_ROUTING_TYPE]          = CMD_TYPE_INTERMODULE;
+    json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE]     = TYPE_AndruavModule_RemoteExecute;
     Json_de ms;
     ms["C"] = command_type;
     json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
