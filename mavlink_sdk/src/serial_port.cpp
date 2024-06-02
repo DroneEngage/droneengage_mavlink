@@ -208,7 +208,7 @@ write_message(const mavlink_message_t &message)
 	unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, &message);
 
 	// Write buffer to serial port, locks port while writing
-	int bytesWritten = _write_port(buf,len);
+	const int bytesWritten = _write_port(buf,len);
 
 	return bytesWritten;
 }

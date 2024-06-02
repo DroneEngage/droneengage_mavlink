@@ -55,7 +55,7 @@ void CMavlinkWayPointManager::saveWayPoints (std::map <int, mavlink_mission_item
 
 void CMavlinkWayPointManager::handle_mission_ack (const mavlink_mission_ack_t& mission_ack)
 {
-	#ifdef DEBUG
+	#ifdef DDEBUG
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handle_mission_ack "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     switch (m_state)
