@@ -818,7 +818,7 @@ void CFCBFacade::sendSWARM_M(const std::string&target_party_id, const mavlink_me
 		return ;
 	}
 
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_SWARM_MAVLINK, false, Json_de());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_SWARM_MAVLINK, true, Json_de());
     
     return ;
 }
