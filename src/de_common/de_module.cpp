@@ -71,8 +71,10 @@ void de::comm::CModule::sendSYSMSG (const Json_de& jmsg, const int& andruav_mess
  * @param andruav_message_id 
  * @param internal_message if true @link INTERMODULE_MODULE_KEY @endlink equaqls to Module key
  */
-void de::comm::CModule::sendJMSG (const std::string& targetPartyID, const Json_de& jmsg, const int& andruav_message_id, const bool& internal_message)
+void de::comm::CModule::sendJMSG (const std::string targetPartyID, const Json_de jmsg, const int andruav_message_id, const bool internal_message)
 {
+    std::lock_guard<std::mutex> lock(m_lock);
+                
     Json_de fullMessage;
 
     /**
@@ -101,8 +103,8 @@ void de::comm::CModule::sendJMSG (const std::string& targetPartyID, const Json_d
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE]      = andruav_message_id;
     fullMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]       = jmsg;
     const std::string& msg = fullMessage.dump();
-    #ifdef DEBUG
-        //std::cout << "sendJMSG:" << msg.c_str() << std::endl;
+    #ifdef DDEBUG
+        std::cout << "sendJMSG:" << msg.c_str() << std::endl;
     #endif
     sendMSG(msg.c_str(), msg.length());
 }
@@ -121,6 +123,8 @@ void de::comm::CModule::sendJMSG (const std::string& targetPartyID, const Json_d
  */
 void de::comm::CModule::sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message, const Json_de& message_cmd)
 {
+    std::lock_guard<std::mutex> lock(m_lock);
+                
     Json_de fullMessage;
 
     std::string msg_routing_type = CMD_COMM_GROUP;
@@ -179,16 +183,35 @@ void de::comm::CModule::sendBMSG (const std::string& targetPartyID, const char *
 */
 void de::comm::CModule::sendMREMSG(const int& command_type)
 {
+    std::lock_guard<std::mutex> lock(m_lock);
+                
     Json_de json_msg;        
         
-    json_msg[INTERMODULE_MODULE_KEY]            = m_module_key;    
-    json_msg[INTERMODULE_ROUTING_TYPE]          = CMD_TYPE_INTERMODULE;
-    json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE]     = TYPE_AndruavModule_RemoteExecute;
+    json_msg[INTERMODULE_MODULE_KEY]        = m_module_key;
+    json_msg[INTERMODULE_ROUTING_TYPE]      =  CMD_TYPE_INTERMODULE;
+    json_msg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_RemoteExecute;
+    
+
     Json_de ms;
     ms["C"] = command_type;
-    json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
+    json_msg[ANDRUAV_PROTOCOL_MESSAGE_CMD]          = ms;
+    
+    
     const std::string msg = json_msg.dump();
     sendMSG(msg.c_str(), msg.length());         
+}
+
+
+/**
+ * @brief forward a message received from another channel.
+ * example: P@P module receives a messages from telemetry and wants to forward it on DE databus.
+ * 
+ * @param message 
+ * @param datalength 
+ */
+void de::comm::CModule::forwardMSG (const char * message, const std::size_t datalength)
+{
+    sendMSG(message, datalength);
 }
 
 

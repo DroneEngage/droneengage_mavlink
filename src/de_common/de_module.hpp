@@ -29,7 +29,6 @@ typedef enum {
 #define MODULE_CLASS_GENERIC                    "gen"
 
 
-
 namespace de
 {
 
@@ -78,10 +77,10 @@ namespace comm
         public:
 
             void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message, const Json_de& message_cmd);
-            void sendJMSG (const std::string& targetPartyID, const Json_de& jmsg, const int& andruav_message_id, const bool& internal_message);
+            void sendJMSG (const std::string targetPartyID, const Json_de jmsg, const int andruav_message_id, const bool internal_message);
             void sendSYSMSG (const Json_de& jmsg, const int& andruav_message_id);
-            void sendMREMSG(const int& command_type);
-
+            void sendMREMSG (const int& command_type);
+            void forwardMSG (const char * message, const std::size_t datalength);
 
         public:
 
@@ -256,7 +255,8 @@ namespace comm
             Json_de m_message_filter;
 
             void (*m_OnReceive)(const char *, int len, Json_de jMsg) = nullptr;
-
+            
+            std::mutex m_lock;
     };
 };
 };
