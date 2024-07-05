@@ -17,6 +17,7 @@
 #define JSON_INTERMODULE_MODULE_MESSAGES_LIST   "c"
 #define JSON_INTERMODULE_MODULE_FEATURES        "d"
 #define JSON_INTERMODULE_MODULE_KEY             "e"
+#define JSON_INTERMODULE_PARTY_RECORD           "f"
 #define JSON_INTERMODULE_HARDWARE_ID            "s"
 #define JSON_INTERMODULE_HARDWARE_TYPE          "t"
 #define JSON_INTERMODULE_VERSION                "v"

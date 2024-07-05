@@ -249,14 +249,14 @@ void de::comm::CModule::onReceive (const char * message, int len)
             {
             case TYPE_AndruavModule_ID:
                 {
-                    const Json_de moduleID = cmd ["f"];
+                    if (!cmd.contains(JSON_INTERMODULE_PARTY_RECORD)) return ;
                     
-                    if (!cmd.contains("f")) return ;
-                    if (!moduleID.contains(ANDRUAV_PROTOCOL_SENDER)) return ;
-                    if (!moduleID.contains(ANDRUAV_PROTOCOL_GROUP_ID)) return ;
+                    const Json_de unit_ids = cmd [JSON_INTERMODULE_PARTY_RECORD];
+                    if (!unit_ids.contains(ANDRUAV_PROTOCOL_SENDER)) return ;
+                    if (!unit_ids.contains(ANDRUAV_PROTOCOL_GROUP_ID)) return ;
             
-                    m_party_id = std::string(moduleID[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
-                    m_group_id = std::string(moduleID[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
+                    m_party_id = std::string(unit_ids[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+                    m_group_id = std::string(unit_ids[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
                     
                     if (!bFirstReceived)
                     { 
