@@ -272,7 +272,7 @@ void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
     }
     
     
-    sendMavlinkData_M (target_party_id, mavlink_message, i);
+    sendMavlinkData_Packed (target_party_id, mavlink_message, i);
 
     return ;
 }
@@ -433,7 +433,7 @@ void CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
     // airpeed - groundspeed - heading - throttle - alt - climb
     mavlink_msg_vfr_hud_encode(sys_id, comp_id, &mavlink_message[2], &vfr_hud);
 
-    sendMavlinkData_M (target_party_id, mavlink_message, 3);
+    sendMavlinkData_Packed (target_party_id, mavlink_message, 3);
     
     return ;
 }
@@ -538,7 +538,7 @@ void CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
     }
 
 
-    sendMavlinkData_M(target_party_id, mavlink_message, i);
+    sendMavlinkData_Packed(target_party_id, mavlink_message, i);
     
     return ;
 }
@@ -568,7 +568,7 @@ void CFCBFacade::sendMissionCurrent(const std::string&target_party_id) const
     mavlink_msg_mission_count_encode(sys_id, comp_id, &mavlink_message[1], &mission_count);
     
 
-    sendMavlinkData_M(target_party_id, mavlink_message, 2);
+    sendMavlinkData_Packed(target_party_id, mavlink_message, 2);
     
 }
 
@@ -770,7 +770,7 @@ void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavl
 }
 
 
-void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const
+void CFCBFacade::sendMavlinkData_Packed(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const
 {
     if (count==0) return ;
 
