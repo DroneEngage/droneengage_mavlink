@@ -44,7 +44,6 @@ namespace geofence
         public:
 
             
-            //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
             static CGeoFenceManager& getInstance()
             {
                 static CGeoFenceManager instance;
@@ -56,12 +55,6 @@ namespace geofence
             void operator=(CGeoFenceManager const&)              = delete;
 
         
-            // Note: Scott Meyers mentions in his Effective Modern
-            //       C++ book, that deleted functions should generally
-            //       be public as it results in better error messages
-            //       due to the compilers behavior to check accessibility
-            //       before deleted status
-
             private:
 
                 CGeoFenceManager() 
@@ -78,7 +71,7 @@ namespace geofence
                 }
 
 
-            
+
             public:
 
                 void addFence (std::unique_ptr<de::fcb::geofence::CGeoFenceBase> geo_fence);
@@ -91,8 +84,10 @@ namespace geofence
                 std::vector<GEO_FENCE_STRUCT*> getFencesOfParty (const std::string& party_id);
                 int getIndexOfPartyInGeoFence (const std::string& party_id, const GEO_FENCE_STRUCT *geo_fence_struct) const;
                 
-                
+            public:
             
+                void uploadFencesIntoSystem (const std::string& mission_text);
+
             protected:
 
                 std::unique_ptr <std::map<std::string,std::unique_ptr<GEO_FENCE_STRUCT>>>  m_geo_fences;

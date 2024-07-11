@@ -229,35 +229,30 @@ double CGeoFenceLine::isInside(double lat, double lng, double alt) const
 
 //******************************** FACTORY
 
-std::unique_ptr<de::fcb::geofence::CGeoFenceBase> CGeoFenceFactory::getGeoFenceObject (const Json_de& message) const
+std::unique_ptr<de::fcb::geofence::CGeoFenceBase> CGeoFenceFactory::getGeoFenceObject(const Json_de& message) const
 {
-    std::unique_ptr<de::fcb::geofence::CGeoFenceBase> cGeoFenceBase  (new de::fcb::geofence::CGeoFenceLine());
+    std::unique_ptr<de::fcb::geofence::CGeoFenceBase> cGeoFenceBase;
 
     int m_geofence_type = message["t"].get<int>();
     switch (m_geofence_type)
     {
         case ENUM_GEOFENCE_TYPE::LinearFence:
-            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceBase> ( de::fcb::geofence::CGeoFenceLine());
-        break;
+            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceLine>();
+            break;
 
         case ENUM_GEOFENCE_TYPE::PolygonFence:
-            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceBase> ( de::fcb::geofence::CGeoFencePolygon());
-        break;
+            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFencePolygon>();
+            break;
 
         case ENUM_GEOFENCE_TYPE::CylindersFence:
-            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceBase> ( de::fcb::geofence::CGeoFenceCylinder());
-        break;
+            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceCylinder>();
+            break;
 
         default:
-            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceBase> ( de::fcb::geofence::CGeoFenceBase());
-        break;
-
+            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceBase>();
+            break;
     }
 
-    cGeoFenceBase.get()->parse(message);
-    
-                
-            
-    return std::move(cGeoFenceBase);
-
+    cGeoFenceBase->parse(message);
+    return cGeoFenceBase;
 }

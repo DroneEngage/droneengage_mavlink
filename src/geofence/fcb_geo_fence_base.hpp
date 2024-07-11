@@ -34,8 +34,13 @@ namespace geofence
 
         public:
             virtual void parse (const Json_de& message);
-            virtual double isInside(double lat, double lng, double alt) const { };
-
+            virtual double isInside(double lat, double lng, double alt) const {
+                // Provide a default implementation here
+                // This can be a simple implementation that always returns 0.0
+                // or a more complex implementation that throws an exception
+                return 0.0;
+            }
+            
         public:
 
             virtual Json_de getMessage();

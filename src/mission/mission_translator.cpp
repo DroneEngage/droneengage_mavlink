@@ -3,6 +3,7 @@
 #include <all/mavlink.h>
 
 #include "../helpers/colors.hpp"
+#include "../helpers/helpers.hpp"
 #include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
@@ -192,9 +193,48 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>   CMissionTransla
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';
+        return std::move(mission_items);
     }
 
 }
+
+
+std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> CMissionTranslator::translateDEFormat (const std::string& mission_text)
+{
+    std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> mission_items = std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> (new std::map <int, std::unique_ptr<CMissionItem>>);
+        
+    try
+    {
+        Json_de plan = Json_de::parse(mission_text);
+        if (std::string(plan["fileType"]).find("de_plan") != std::string::npos)
+        {
+            if (plan.contains("fences"))
+            {
+                // there is a fence data.
+                Json_de fences = plan["fences"];
+                // Iterate through the array
+                for (const auto& fence : fences) {
+                    // Access individual elements of the fence object
+                    std::cout << "Fence property: " << fence << std::endl;
+                }
+            }
+
+            if (plan.contains("wp"))
+            {
+                // there is a waypoint data
+                Json_de waypoints = plan["wp"];
+            }
+            
+        }
+        return std::move(mission_items);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+
+}
+
 
 std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>  CMissionTranslator::translateMissionText (const std::string& mission_text)
 {
@@ -207,7 +247,19 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>>  CMissionTranslat
     else 
     {
         Json_de mission = Json_de::parse(mission_text);
-        return translateQGCFormat (mission_text);
+        if (validateField(mission, "fileType",Json_de::value_t::string)) 
+        {
+            if (mission["fileType"].get<std::string>() == "de_plan")
+            {
+                return translateDEFormat (mission_text);
+            }
+            else
+            {
+                return translateQGCFormat (mission_text);
+            }
+        }
+    
+
         
     }
 }

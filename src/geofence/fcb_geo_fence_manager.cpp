@@ -43,7 +43,9 @@ void CGeoFenceManager::attachToGeoFence (const std::string party_id, GEO_FENCE_S
     //TODO: Test if inzone or violates 
     //TODO: send fence
     //TODO: send Hit Status
-
+    #ifdef DEBUG
+        std::cout << geo_fence_struct->geoFence.get()->getName() << std::endl;
+    #endif
     // inform I am attached to fence.
     de::fcb::CFCBFacade::getInstance().sendGeoFenceAttachedStatusToTarget(std::string(""), geo_fence_struct->geoFence.get()->getName());
 }
@@ -176,3 +178,37 @@ void CGeoFenceManager::clearGeoFences (const std::string& geo_fence_name)
         m_geo_fences.get()->clear();
     }
 }
+
+
+void CGeoFenceManager::uploadFencesIntoSystem (const std::string& mission_text)
+{
+    try
+    {
+        auto fence_items = std::make_unique<std::map<int, std::unique_ptr<de::fcb::geofence::CGeoFenceBase>>>();
+        Json_de plan = Json_de::parse(mission_text);
+        if (std::string(plan["fileType"]).find("de_plan") != std::string::npos)
+        {
+            if (plan.contains("fences"))
+            {
+                // there is a fence data.
+                Json_de json_fences = plan["fences"];
+                // Iterate through the array
+                de::fcb::CFCBMain&  fcbMain = de::fcb::CFCBMain::getInstance();
+                for (const auto& json_fence : json_fences) {
+                    // Access individual elements of the fence object
+                    std::cout << "Fence property: " << json_fence << std::endl;
+                    std::unique_ptr<geofence::CGeoFenceBase> fence = geofence::CGeoFenceFactory::getInstance().getGeoFenceObject(json_fence);
+                    addFence(std::move(fence));
+                    std::cout << fcbMain.getAndruavVehicleInfo().party_id << std::endl;
+                    attachToGeoFence(fcbMain.getAndruavVehicleInfo().party_id, json_fence["n"].get<std::string>());
+                }
+            }
+       }
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+}
+
+

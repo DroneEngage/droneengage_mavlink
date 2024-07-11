@@ -10,7 +10,7 @@
 #include "fcb_modes.hpp"
 #include "./swarm/fcb_swarm_follower.hpp"
 #include "fcb_andruav_message_parser.hpp"
-#include "./mission/mission_translator.hpp"
+#include "./mission/mission_manager.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 
@@ -309,7 +309,8 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                     std::cout << _INFO_CONSOLE_BOLD_TEXT << "UploadWayPoints: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
                     break;
                 }
-                //TODO: you should allow multiple messages to allow large file to be received.
+                
+                // UDP communication for de_databus should allow any size of waypoints.
                 // !UDP packet has maximum size.
                 
                 /*
@@ -322,31 +323,12 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                     break ;
                 }
 
-                std::string mission = cmd ["a"];
-                mission::CMissionTranslator cMissionTranslator;
+                std::string plan_text = cmd ["a"];
+    
+                geofence::CGeoFenceManager::getInstance().uploadFencesIntoSystem(plan_text);
+                mission::CMissionManager::getInstance().uploadMissionIntoSystem(plan_text);
                 
-                std::unique_ptr<std::map <int, std::unique_ptr<mission::CMissionItem>>> new_mission_items = cMissionTranslator.translateMissionText(mission);
-                if (new_mission_items == std::nullptr_t())
-                {
-                    CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
-
-                    break ;
-                }
-                m_fcbMain.clearWayPoints();
-                mission::ANDRUAV_UNIT_MISSION& andruav_missions = m_fcbMain.getAndruavMission();                
                 
-             
-                std::map<int, std::unique_ptr<mission::CMissionItem>>::iterator it;
-                for (it = new_mission_items->begin(); it != new_mission_items->end(); it++)
-                {
-                    int seq = it->first;
-                    
-                    andruav_missions.mission_items.insert(std::make_pair( seq, std::move(it->second)));
-                }
-
-                new_mission_items->clear();
-                
-                m_fcbMain.saveWayPointsToFCB();
                 
             }
             break;
