@@ -661,7 +661,8 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
         return ;
     }
 
-    #define MAX_WAYPOINT_CHUNK  2
+    //Note: you can put any  number here. as UDP connection now in de_common handles chunks implicitly.
+    #define MAX_WAYPOINT_CHUNK  20
 
     for (int i=0; i< length; i+=MAX_WAYPOINT_CHUNK)
     {
@@ -892,6 +893,10 @@ void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_par
         geofence::GEO_FENCE_STRUCT * geo_fence_struct = geofence::CGeoFenceManager::getInstance().getFenceByName(fence_name);
         message["a"] = ((geo_fence_struct != nullptr) && (geofence::CGeoFenceManager::getInstance().getIndexOfPartyInGeoFence(de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct)>=0));
         
+        #ifdef DDEBUG
+            std::cout << message.dump() << std::endl;
+        #endif
+
         m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFenceAttachStatus, false);
     }
 
