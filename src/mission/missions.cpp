@@ -22,6 +22,16 @@ void CMissionItem::decodeMavlink (const mavlink_mission_item_int_t& mission_item
     m_valid = true;
 }
 
+   
+/**
+ * @brief return value may not be valid .... call isValid() first.
+ * 
+ * @return * mavlink_mission_item_int_t 
+ */
+mavlink_mission_item_int_t CMissionItem::getArdupilotMission ()
+{
+    return m_original_mission;
+}
 
 //***********************************Delay_Step
 

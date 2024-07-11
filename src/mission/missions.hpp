@@ -25,23 +25,53 @@ typedef enum ANDRUAV_MISSION_TYPE
 
 
 
-
+/**
+ * @brief this is the base class of all Andruav mission items.
+ * It is used by Andruav & WebClient. It includes the mavlink_mission_item_int_t 
+ * 
+ */
 class CMissionItem 
 {
 
 
     public:
+
+        /**
+         * @brief fill fields of MissionItem using mavlink_mission_item_int_t based on its type.
+         * 
+         * @param mission_item_int 
+         */
         virtual void decodeMavlink (const mavlink_mission_item_int_t& mission_item_int);
+
+        /**
+         * @brief Get the Andruav Mission object. This is NOT mavlink_mission_item_int_t
+         * it is subset of it or how Andruav Mission interprets it.
+         * 
+         * @return Json_de 
+         */
         virtual Json_de getAndruavMission   ()=0;
-        virtual mavlink_mission_item_int_t getArdupilotMission ()=0;
+
+        /**
+         * @brief Get the mavlink_mission_item_int_t original mission item.
+         * 
+         * @return mavlink_mission_item_int_t 
+         */
+        virtual mavlink_mission_item_int_t getArdupilotMission ();
+
 
     public:
-        int m_sequence;
-        int m_mission_command;
-        int m_frame = MAV_FRAME_GLOBAL_RELATIVE_ALT;
+        inline bool isValid()
+        {
+            return m_valid;
+        }
+
+    public:
+        int  m_sequence;
+        int  m_mission_command;
+        int  m_frame = MAV_FRAME_GLOBAL_RELATIVE_ALT;
         bool m_auto_continue;
         bool m_current = false;
-        bool  m_valid = false;
+        bool m_valid = false;
         mavlink_mission_item_int_t m_original_mission;
         
 
@@ -635,6 +665,12 @@ class CWayPoint_Step : public CMissionItem
 };
 
 
+/**
+ * @brief the purpose of mapping mavlink mission items to AndruavMission item is to 
+ * be able to include it in higher level logic -only those selected to be mapped- and for
+ * plotting purpose on map.
+ * 
+ */
 class CMissionItemBuilder
 {
     public:
