@@ -4,6 +4,7 @@
 
 #include <map>
 #include <vector>
+#include <mavlink_sdk.h>
 
 #include "../geofence/fcb_geo_fence_base.hpp"
 
@@ -87,6 +88,15 @@ namespace geofence
             public:
             
                 void uploadFencesIntoSystem (const std::string& mission_text);
+                
+                void updateGeoFenceHitStatus();
+                
+            protected:
+
+                void handleFenceViolation(geofence::CGeoFenceBase* geo_fence);
+                void handleFenceEntry(geofence::CGeoFenceBase* geo_fence);
+                void takeActionOnFenceViolation(de::fcb::geofence::CGeoFenceBase * geo_fence);
+            
 
             protected:
 

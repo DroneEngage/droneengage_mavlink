@@ -207,7 +207,7 @@ Json_de CGeoFenceLine::getMessage()
 
 double CGeoFenceLine::isInside(double lat, double lng, double alt) const
 {
-    #ifdef DEBUG
+    #ifdef DDEBUG
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: lat " << std::to_string(lat) << " lng " << std::to_string(lng) << " alt " << std::to_string(alt) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     const std::size_t size = m_vertex.size();

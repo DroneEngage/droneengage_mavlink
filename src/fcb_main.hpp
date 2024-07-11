@@ -260,8 +260,7 @@ namespace fcb
             int getConnectionType () const; 
             bool connectToFCB ();
             
-            void updateGeoFenceHitStatus();
-            void takeActionOnFenceViolation(de::fcb::geofence::CGeoFenceBase * geo_fence);
+            
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
             void update_rcmap_info();
             void checkBlockedStatus();

@@ -26,6 +26,11 @@
 #include "./geofence/fcb_geo_fence_manager.hpp"
 #include "./swarm/fcb_swarm_leader.hpp"
 
+
+#include "./geofence/fcb_geo_fence_base.hpp"
+#include "./geofence/fcb_geo_fence_manager.hpp"
+
+
 using namespace de::fcb;
 
 #define UDP_PROXY_TIMEOUT 5000000
@@ -508,7 +513,7 @@ void CFCBMain::loopScheduler ()
         if (m_counter%50 == 0)
         {
             m_fcb_facade.sendNavInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-            updateGeoFenceHitStatus();
+            geofence::CGeoFenceManager::getInstance().updateGeoFenceHitStatus();
 
             // called each second group #1
             m_fcb_facade.sendGPSInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
@@ -1680,119 +1685,6 @@ void CFCBMain::setStreamingLevel (const std::string& target_party_id, const int&
 // }
 
 
-void CFCBMain::takeActionOnFenceViolation(de::fcb::geofence::CGeoFenceBase * geo_fence)
-{
-    const int fence_action = geo_fence->hardFenceAction();
-    switch (fence_action)
-    {
-        case CONST_FENCE_ACTION_SOFT:
-        {
-            return ;
-        }
-        break;
-
-        case CONST_FENCE_ACTION_RTL:
-        case CONST_FENCE_ACTION_LAND:
-        case CONST_FENCE_ACTION_LOITER:
-        case CONST_FENCE_ACTION_BRAKE:
-        case CONST_FENCE_ACTION_SMART_RTL:
-        {
-            uint32_t ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode;
-            //TODO: fence_action mode should be generalized to work on different autopilot types.
-            CFCBModes::getArduPilotMode(fence_action, m_andruav_vehicle_info.vehicle_type, ardupilot_mode , ardupilot_custom_mode, ardupilot_custom_sub_mode);
-            if (ardupilot_mode == E_UNDEFINED_MODE)
-            {   
-                //TODO: Send Error Message
-                return ;
-            }
-
-            mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
-            return ;
-        }
-        break;
-
-    }
-}
-            
-/**
- * @brief review status of each attached geo fence
- * 
- * @details each attached geo fence is called isInside() and based on result global fence status is calculated.
- * also status is sent to other parties using update hit status. Actions is taken when hard fences are violated.
- * 
- */
-void CFCBMain::updateGeoFenceHitStatus()
-{
-    /* 
-	    bit 0: out of green zone
-		bit 1: in bad zone
-		bit 2: in good zone
-	*/
-	int total_violation = 0b000;
-
-    std::vector<geofence::GEO_FENCE_STRUCT*> geo_fence_struct_list = geofence::CGeoFenceManager::getInstance().getFencesOfParty(getAndruavVehicleInfo().party_id);
-        
-    const std::size_t size = geo_fence_struct_list.size();
-
-    mavlinksdk::CVehicle&  vehicle =  mavlinksdk::CVehicle::getInstance();
-
-    const mavlink_global_position_int_t&  gpos = vehicle.getMsgGlobalPositionInt();
-
-    // test each fence and check if inside or not.
-    for(int i = 0; i < size; i++)
-    {
-        de::fcb::geofence::GEO_FENCE_STRUCT * g = geo_fence_struct_list[i];
-        de::fcb::geofence::CGeoFenceBase * geo_fence = g->geoFence.get();
-        const int local_index = geo_fence_struct_list[i]->local_index;
-        double in_zone_new = geo_fence->isInside(gpos.lat / 10000000.0f, gpos.lon / 10000000.0f, gpos.alt);
-        double in_zone = g->parties[local_index].get()->in_zone;
-        
-        if ((in_zone == -INFINITY) || (signum(in_zone_new) != signum(in_zone)))
-        {
-            // change status
-            //TODO: Alert & Act
-            std::cout << "in_zone_new" << std::to_string(in_zone_new) << std::endl;
-            g->parties[local_index].get()->in_zone = in_zone_new;
-            if ((in_zone_new<=0) && geo_fence->shouldKeepOutside()) 
-            {
-                // violate should be OUTSIDE
-                total_violation = total_violation | 0b010; //bad 
-
-                std::string error_str = "violate fence " + std::string(geo_fence->getName());
-                m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_GEO_FENCE_ERROR, NOTIFICATION_TYPE_ERROR, error_str);
-
-                // Note that action is taken once when state changes.
-                // This is important to allow user to reverse action or take other actions.
-                // For example if you break you need a mechanize to land or take drone out ...etc.
-                takeActionOnFenceViolation(geo_fence);
-            }
-            else if ((in_zone_new>0) && !geo_fence->shouldKeepOutside()) 
-            {
-                // multiple allowed fences may exist so a viuolation for one is not a violation.
-                // a safe green fence but I am not inside it.
-                // unless this is the only one.
-                total_violation = total_violation | 0b001; // not in greed zone  
-
-            }
-            else if  ((in_zone_new<=0) && !geo_fence->shouldKeepOutside()) 
-            {
-                // green fence and I am in.
-                total_violation = total_violation | 0b100; // good
-            
-                std::string error_str = "safe fence " + std::string(geo_fence->getName());
-                m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_GEO_FENCE_ERROR, NOTIFICATION_TYPE_NOTICE, error_str);
-            }
-            
-            
-            m_fcb_facade.sendGeoFenceHit(std::string(""), 
-                                        geo_fence->getName(),
-                                        in_zone_new, 
-                                        in_zone_new<=0,
-                                        geo_fence->shouldKeepOutside());
-        }
-
-    }
-}
 
 
 /**
