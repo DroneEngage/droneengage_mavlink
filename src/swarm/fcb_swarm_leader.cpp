@@ -8,7 +8,10 @@ using namespace de::fcb::swarm;
 #define DEF_SWARM_LEADER_LOCATION_UPDATE_RATE 1000000
 
 
-
+/**
+ * @brief Send target location for followers that forming thread formation.
+ * 
+ */
 void CSwarmLeader::updateFollowersThreadFormation()
 {
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
