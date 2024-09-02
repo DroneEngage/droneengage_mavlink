@@ -12,7 +12,10 @@ using namespace de::fcb::swarm;
 
 /**
  * @brief Logic of thread formation for follower in implemented here.
- * 
+ * Leadder sends it own location, and I know the formation is Thread-Formation and my index into it 
+ * and I generate my position accordingly.
+ * Note that another formation my receive exact location of the unit. 
+ * The logic varies from a formation to another.
  */
 void CSwarmFollower::updateFollowerInThreadFormation()
 {

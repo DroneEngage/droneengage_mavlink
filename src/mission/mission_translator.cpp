@@ -208,10 +208,10 @@ std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> CMissionTranslato
         Json_de plan = Json_de::parse(mission_text);
         if (std::string(plan["fileType"]).find("de_plan") != std::string::npos)
         {
-            if (plan.contains("fences"))
+            if (plan.contains("geoFence"))
             {
                 // there is a fence data.
-                Json_de fences = plan["fences"];
+                Json_de fences = plan["geoFence"];
                 // Iterate through the array
                 for (const auto& fence : fences) {
                     // Access individual elements of the fence object
