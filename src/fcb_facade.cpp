@@ -398,7 +398,7 @@ void CFCBFacade::sendLocationInfo () const
         // {"ws", windspeed}   
     };
 
-    m_module.sendJMSG ("", message, TYPE_AndruavModule_Location_Info, true);
+    m_module.sendJMSG ("", message, TYPE_AndruavModule_Location_Info, false);
     
     
 }
@@ -963,7 +963,7 @@ void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int even
                 {"a", event_id}
             };
                 
-    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, true);
    
 }
 
