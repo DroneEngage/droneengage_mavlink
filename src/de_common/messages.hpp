@@ -179,19 +179,43 @@
 */
 #define TYPE_AndruavMessage_Unit_Name                   1072
 
+/**
+ * @brief used to ping a unit name.
+ * This message works in two ways:
+ * * 1- send a ping to a unit to tell it that I am alive via p2p.
+ * * 2- This is similar to send RemoteExecute (TYPE_AndruavMessage_ID)
+ *      But in this case target unit does not need to reply with TYPE_AndruavMessage_ID
+ *      It can reply with same TYPE_AndruavMessage_Ping_Unit
+ *  Note that 1 & 2 can be done in a single message.
+ * 
+ * params:
+ *      [a]: sender_party_id : drone_engage party id. case: #1
+ *      [k]: 1 - request ack.                         case: #2
+ */
+#define TYPE_AndruavMessage_Ping_Unit                   1073
+
+/**
+ * @brief used to upload DroneEngage Mission File.
+ * 
+ * params:
+ *      [a]: p_textMission,
+ *      [e]: p_eraseFirst
+ */
+#define TYPE_AndruavMessage_Upload_DE_Mission           1075
+
 // Binary Messages 
 
 //deprecated telemetry technology
 #define TYPE_AndruavMessage_LightTelemetry              2022
 
-// New JSON Messages 
-#define TYPE_AndruavMessage_ServoChannel                6001
 
+/**********************************************************************
+                        New Andruav Messages 2019
+**********************************************************************/
+#define TYPE_AndruavMessage_ServoChannel                    6001
 
-// New Binary Messages 
-#define TYPE_AndruavMessage_ServoOutput                 6501
-#define TYPE_AndruavMessage_MAVLINK                     6502
-#define TYPE_AndruavMessage_SWARM_MAVLINK               6503
+#define TYPE_AndruavMessage_MAVLINK                         6502
+#define TYPE_AndruavMessage_SWARM_MAVLINK                   6503
 
 /**
  * Used by other modules to exchange mavlink information
@@ -199,15 +223,47 @@
  * This allows custom implementation for sharing mavlink info 
  * between mavlink module and other modules.
 */
-#define TYPE_AndruavMessage_INTERNAL_MAVLINK            6504
-
-#define TYPE_AndruavMessage_P2P_ACTION                  6505
-#define TYPE_AndruavMessage_P2P_STATUS                  6506
+#define TYPE_AndruavMessage_INTERNAL_MAVLINK                6504
 
 
-#define TYPE_AndruavMessage_DUMMY                       9999
-#define TYPE_AndruavMessage_USER_RANGE_START            80000
-#define TYPE_AndruavMessage_USER_RANGE_END              90000
+#define TYPE_AndruavMessage_P2P_ACTION                      6505
+#define TYPE_AndruavMessage_P2P_STATUS                      6506
+
+#define TYPE_AndruavMessage_P2P_InRange_BSSID               6507
+#define TYPE_AndruavMessage_P2P_InRange_Node                6508
+
+
+/**
+ * @brief used to set communication channels on/off
+ * current fields are:
+ * [p2p]: for turning p2p on/off or leave as is.
+ * [ws]: for turning communication server websocket on/off or leave as is.
+ * 
+ */
+#define TYPE_AndruavMessage_Communication_Line_Set          6509
+
+#define TYPE_AndruavMessage_Communication_Line_Status       6510
+
+
+#define TYPE_AndruavMessage_SOUND_TEXT_TO_SPEECH            6511
+#define TYPE_AndruavMessage_SOUND_PLAY_FILE                 6512
+
+#define TYPE_AndruavMessage_SDR_INFO                        6513
+#define TYPE_AndruavMessage_SDR_ACTION                      6514
+#define TYPE_AndruavMessage_SDR_STATUS                      6515
+#define TYPE_AndruavMessage_SDR_SPECTRUM                    6516
+
+
+#define TYPE_AndruavMessage_P2P_INFO                        6517
+
+/**********************************************************************
+                        EOF Andruav Messages 2019
+**********************************************************************/
+
+
+#define TYPE_AndruavMessage_DUMMY                           9999
+#define TYPE_AndruavMessage_USER_RANGE_START                80000
+#define TYPE_AndruavMessage_USER_RANGE_END                  90000
 
 // Andruav Mission Types
 #define TYPE_CMissionItem                                    0
