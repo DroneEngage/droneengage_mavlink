@@ -970,7 +970,7 @@ void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int even
 
 
 
-void sendSyncEvent2(const std::string&target_party_id, const std::string event_sid ) const
+void CFCBFacade::sendSyncEvent2(const std::string&target_party_id, const std::string event_sid ) const
 {
     Json_de message =
             {
