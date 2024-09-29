@@ -4,13 +4,15 @@
 #include <iostream>
 
 
+#include "../de_general_mission_planner/mission_manager_base.hpp"
+
 namespace de
 {
 namespace fcb
 {
 namespace mission
 {
-    class CMissionManager
+    class CMissionManager : public de::mission::CMissionManagerBase
     {
         public:
 
@@ -22,13 +24,13 @@ namespace mission
                 return instance;
             }
 
-            CMissionManager(CMissionManager const&)            = delete;
+            CMissionManager(CMissionManager const&)             = delete;
             void operator=(CMissionManager const&)              = delete;
 
         
             private:
 
-                CMissionManager() 
+                CMissionManager()
                 {
                    
                 }
@@ -46,7 +48,32 @@ namespace mission
             public:
 
                 void uploadMissionIntoSystem(const std::string& plan_text);
+                
+                void uploadMissionIntoSystem2(const Json_de& plan);
 
+                void extractPlanMavlinkMission (const Json_de& plan);
+
+            public:
+            
+                inline void clearMissionItems ()
+                {
+                    m_mission_items.clear();
+                }
+                
+                
+
+            protected:
+
+                inline void addMissionItem(int id, std::unique_ptr<CMissionItem> item) {
+                    // Move the unique_ptr into the map
+                    m_mission_items[id] = std::move(item);
+                    
+                }
+
+        
+            private:
+
+                std::map <int, std::unique_ptr<CMissionItem>> m_mission_items;
     };
 }
 }

@@ -272,7 +272,7 @@ void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
     }
     
     
-    sendMavlinkData_Packed (target_party_id, mavlink_message, i);
+    sendMavlinkData_Packed (target_party_id, mavlink_message, i, false);
 
     return ;
 }
@@ -433,7 +433,7 @@ void CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
     // airpeed - groundspeed - heading - throttle - alt - climb
     mavlink_msg_vfr_hud_encode(sys_id, comp_id, &mavlink_message[2], &vfr_hud);
 
-    sendMavlinkData_Packed (target_party_id, mavlink_message, 3);
+    sendMavlinkData_Packed (target_party_id, mavlink_message, 3, false);
     
     return ;
 }
@@ -538,7 +538,7 @@ void CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
     }
 
 
-    sendMavlinkData_Packed(target_party_id, mavlink_message, i);
+    sendMavlinkData_Packed(target_party_id, mavlink_message, i, false);
     
     return ;
 }
@@ -567,9 +567,10 @@ void CFCBFacade::sendMissionCurrent(const std::string&target_party_id) const
     const mavlink_mission_count_t mission_count = mavlinksdk::CMavlinkWayPointManager::getInstance().getMissionCount();
     mavlink_msg_mission_count_encode(sys_id, comp_id, &mavlink_message[1], &mission_count);
     
+    // send current mission + mission count.
+    sendMavlinkData_Packed(target_party_id, mavlink_message, 2, false);
 
-    sendMavlinkData_Packed(target_party_id, mavlink_message, 2);
-    
+    sendSyncEvent("", mission_current.seq);
 }
 
 
@@ -771,7 +772,7 @@ void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavl
 }
 
 
-void CFCBFacade::sendMavlinkData_Packed(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const
+void CFCBFacade::sendMavlinkData_Packed(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count, const bool& internal_message)  const
 {
     if (count==0) return ;
 
@@ -792,7 +793,7 @@ void CFCBFacade::sendMavlinkData_Packed(const std::string&target_party_id, const
 		return ;
 	}
 
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json_de());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, internal_message, Json_de());
     
     return ;
 }
@@ -961,6 +962,19 @@ void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int even
     Json_de message =
             {
                 {"a", event_id}
+            };
+                
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, true);
+   
+}
+
+
+
+void sendSyncEvent2(const std::string&target_party_id, const std::string event_sid ) const
+{
+    Json_de message =
+            {
+                {"d", event_sid}
             };
                 
     m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, true);

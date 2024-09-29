@@ -31,7 +31,6 @@
 
 
 
-
 // Communication Commands
 /**
  * @brief Group boradcast
@@ -67,6 +66,9 @@
 #define ANDRUAV_PROTOCOL_MESSAGE_PERMISSION     "p"
 #define INTERMODULE_ROUTING_TYPE                "ty"
 #define INTERMODULE_MODULE_KEY                  "GU"
+#define WAITING_EVENT                           "ew"
+#define FIRE_EVENT                              "ef"
+#define LINKED_TO_STEP                          "ls"
 
 // Reserved Target Values
 #define ANDRUAV_PROTOCOL_SENDER_ALL_GCS         "_GCS_"

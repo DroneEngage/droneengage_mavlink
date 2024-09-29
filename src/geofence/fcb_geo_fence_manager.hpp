@@ -88,6 +88,7 @@ namespace geofence
             public:
             
                 void uploadFencesIntoSystem (const std::string& mission_text);
+                void uploadFencesIntoSystem (const Json_de& plan_object);
                 
                 void updateGeoFenceHitStatus();
                 

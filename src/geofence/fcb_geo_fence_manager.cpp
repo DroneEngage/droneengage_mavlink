@@ -165,7 +165,9 @@ int CGeoFenceManager::getIndexOfPartyInGeoFence (const std::string& party_id, co
 void CGeoFenceManager::clearGeoFences (const std::string& geo_fence_name)
 {
 
-   std::map<std::string,std::unique_ptr<de::fcb::geofence::GEO_FENCE_STRUCT>>::iterator it;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "clearGeoFences "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    
+    std::map<std::string,std::unique_ptr<de::fcb::geofence::GEO_FENCE_STRUCT>>::iterator it;
                 
     for (it = m_geo_fences.get()->begin(); it != m_geo_fences.get()->end(); it++)
     {
@@ -192,16 +194,21 @@ void CGeoFenceManager::clearGeoFences (const std::string& geo_fence_name)
 
 void CGeoFenceManager::uploadFencesIntoSystem (const std::string& mission_text)
 {
+    auto fence_items = std::make_unique<std::map<int, std::unique_ptr<de::fcb::geofence::CGeoFenceBase>>>();
+    Json_de plan = Json_de::parse(mission_text);
+    uploadFencesIntoSystem (plan);
+}
+
+void CGeoFenceManager::uploadFencesIntoSystem (const Json_de& plan_object)
+{
     try
     {
-        auto fence_items = std::make_unique<std::map<int, std::unique_ptr<de::fcb::geofence::CGeoFenceBase>>>();
-        Json_de plan = Json_de::parse(mission_text);
-        if (std::string(plan["fileType"]).find("de_plan") != std::string::npos)
+        if (std::string(plan_object["fileType"]).find("de_plan") != std::string::npos)
         {
-            if (plan.contains("fences"))
+            if (plan_object.contains("de_geoFence"))
             {
                 // there is a fence data.
-                Json_de json_fences = plan["fences"];
+                Json_de json_fences = plan_object["de_geoFence"];
                 // Iterate through the array
                 for (const auto& json_fence : json_fences) {
                     // Access individual elements of the fence object

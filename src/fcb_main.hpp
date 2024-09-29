@@ -144,7 +144,7 @@ namespace fcb
             }
 
             /**
-             * @brief Set the Event Channels used for Fire & Wait Events
+             * @brief Set (define) the Event Channels used for Fire & Wait Events
              * 
              * @param event_fire_channel 
              * @param event_wait_channel 
@@ -264,7 +264,8 @@ namespace fcb
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
             void update_rcmap_info();
             void checkBlockedStatus();
-
+            void readFiredEventFromFCB(const mavlink_servo_output_raw_t& servo_output_raw);
+            void readWaitingEventFromFCB(const mavlink_servo_output_raw_t& servo_output_raw);
             /**
              * @brief emulate a camera for ardupilot.
              * 

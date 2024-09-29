@@ -110,7 +110,7 @@
   
 
 // should be a channel from 1 to 8. when High all commands from GCS will be ignored including RC-Override.
-"rc_block_channel": 0,
+"rc_block_channel": -1,
 //"read_only_mode": true,
 //"ignore_loading_parameters": false,
 

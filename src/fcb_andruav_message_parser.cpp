@@ -311,7 +311,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                 }
                 
                 // UDP communication for de_databus should allow any size of waypoints.
-                // !UDP packet has maximum size.
+                
                 
                 /*
                     a : std::string serialized mission file
@@ -324,11 +324,48 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                 }
 
                 std::string plan_text = cmd ["a"];
-    
                 geofence::CGeoFenceManager::getInstance().uploadFencesIntoSystem(plan_text);
                 mission::CMissionManager::getInstance().uploadMissionIntoSystem(plan_text);
                 
                 
+                
+            }
+            break;
+
+            case TYPE_AndruavMessage_Upload_DE_Mission:
+            {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+                
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_WP_CONTROL) != PERMISSION_ALLOW_GCS_WP_CONTROL)) \
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "UploadWayPoints: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
+                // UDP communication for de_databus should allow any size of waypoints.
+                
+                
+                /*
+                    a : std::string serialized mission file
+                */
+                if (!validateField(cmd, "j", Json_de::value_t::object)) 
+                {
+                    CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
+
+                    break ;
+                }
+
+                if (validateField(cmd, "e", Json_de::value_t::boolean))
+                {
+                    geofence::CGeoFenceManager::getInstance().clearGeoFences("");
+                }
+
+                const Json_de plan_object = cmd ["j"];
+
+                //CMissionManager::getInstance().
+                geofence::CGeoFenceManager::getInstance().uploadFencesIntoSystem(plan_object);
+                
+                mission::CMissionManager::getInstance().uploadMissionIntoSystem2(plan_object);
                 
             }
             break;
@@ -408,10 +445,22 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
             break;
 
             case TYPE_AndruavMessage_Sync_EventFire:
-            {
-                if (!validateField(cmd, "a",Json_de::value_t::number_unsigned)) return ;
-                
-                m_fcbMain.insertIncommingEvent(cmd["a"].get<int>());
+            {   // This can be an event from remote unit or from anothe module.
+
+                if (validateField(cmd, "a", Json_de::value_t::number_unsigned)) 
+                {
+                    // numerical mavlink event.
+                    m_fcbMain.insertIncommingEvent(cmd["a"].get<int>());
+
+                    // this must called from internal event not external. because mission-id are not unique between units.
+                    mission::CMissionManager::getInstance().mavlinkMissionItemStartedEvent(cmd["a"].get<int>());
+                }
+
+                if (validateField(cmd, "d",Json_de::value_t::string)) 
+                {
+                    // string droneengage event format.
+                    mission::CMissionManager::getInstance().fireEvent(cmd["d"].get<std::string>());
+                }
             }
             break;
 

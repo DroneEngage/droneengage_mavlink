@@ -18,13 +18,14 @@ namespace mission
 
             std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> translateMissionText (const std::string& mission_text);
 
+            void extractPlanModule (const Json_de& plan);
+
+
         protected:
 
             std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> translateQGCFormat (const std::string& mission_text);
             std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> translateMPFormat (const std::string& mission_text);
-            std::unique_ptr<std::map <int, std::unique_ptr<CMissionItem>>> translateDEFormat (const std::string& mission_text);
-
-
+            
     };
 }
 }

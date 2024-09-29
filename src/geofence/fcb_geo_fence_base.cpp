@@ -51,6 +51,8 @@ CGeoFenceCylinder::~CGeoFenceCylinder()
 
 void CGeoFenceCylinder::parse (const Json_de& message)
 {
+    std::cout << "parse:" <<  message.dump() << std::endl;
+    
     CGeoFenceBase::parse(message);
     Json_de circle = message["0"];
     m_latitude = circle["a"].get<double>() ;  //E7 format to match mavlink gps data
@@ -106,6 +108,8 @@ CGeoFencePolygon::~CGeoFencePolygon()
 
 void CGeoFencePolygon::parse (const Json_de& message)
 {
+    std::cout << "parse:" <<  message.dump() << std::endl;
+    
     CGeoFenceBase::parse(message);
 
     m_vertex.clear();
@@ -173,6 +177,8 @@ CGeoFenceLine::~CGeoFenceLine()
 
 void CGeoFenceLine::parse (const Json_de& message)
 {
+    std::cout << "parse:" << message.dump() << std::endl;
+    
     CGeoFenceBase::parse(message);
 
     m_vertex.clear();
@@ -252,7 +258,9 @@ std::unique_ptr<de::fcb::geofence::CGeoFenceBase> CGeoFenceFactory::getGeoFenceO
             cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceBase>();
             break;
     }
-
+    
+    std::cout << "getGeoFenceObject: " << message << std::endl;
+                    
     cGeoFenceBase->parse(message);
     return cGeoFenceBase;
 }
