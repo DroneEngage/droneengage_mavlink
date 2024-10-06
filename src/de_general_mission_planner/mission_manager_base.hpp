@@ -50,16 +50,22 @@ namespace mission
 
             virtual void extractPlanModule (const Json_de& plan); 
         
-            virtual void fireEvent (const std::string fire_event);
-
+            
             virtual void mavlinkMissionItemStartedEvent (const int mission_id);
-
+            virtual void deEventStartedEvent (const std::string de_event_sid);
         
         protected:
 
-            inline void addModuleMissionItem(std::string id, std::unique_ptr<Json_de> item) {
+            inline void addModuleMissionItem(std::string id, Json_de item) {
                 // Move the unique_ptr into the map
-                m_module_missions[id] = std::move(item);
+                m_module_missions[id] = item;
+                
+            }
+
+            
+            inline void addModuleMissionItemByEvent(std::string de_event_sid, Json_de item) {
+                // Move the unique_ptr into the map
+                m_module_missions_by_de_events[de_event_sid] = item;
                 
             }
 
@@ -72,13 +78,15 @@ namespace mission
                 inline void clearModuleMissionItems ()
                 {
                     m_module_missions.clear();
+                    m_module_missions_by_de_events.clear();
                 }
                 
                 
 
         protected:
 
-            std::map <std::string, std::unique_ptr<Json_de>> m_module_missions; // = std::map <int, std::unique_ptr<Json_de>> (new std::map <int, std::unique_ptr<Json_de>>);
+            std::map <std::string, Json_de> m_module_missions; // = std::map <int, std::unique_ptr<Json_de>> (new std::map <int, std::unique_ptr<Json_de>>);
+            std::map <std::string, Json_de> m_module_missions_by_de_events;
     };
 
 }

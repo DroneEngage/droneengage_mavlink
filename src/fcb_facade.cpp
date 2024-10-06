@@ -969,7 +969,12 @@ void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int even
 }
 
 
-
+/**
+ * @brief Fire DroneEngage Events.
+ * 
+ * @param target_party_id 
+ * @param event_sid 
+ */
 void CFCBFacade::sendSyncEvent2(const std::string&target_party_id, const std::string event_sid ) const
 {
     Json_de message =

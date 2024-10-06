@@ -459,7 +459,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                 if (validateField(cmd, "d",Json_de::value_t::string)) 
                 {
                     // string droneengage event format.
-                    mission::CMissionManager::getInstance().fireEvent(cmd["d"].get<std::string>());
+                    mission::CMissionManager::getInstance().deEventStartedEvent(cmd["d"].get<std::string>());
                 }
             }
             break;

@@ -39,13 +39,18 @@ try
                             // check if I am waiting for event.
                             if (validateField(module_mission_item,WAITING_EVENT,Json_de::value_t::string))
                             {
-                                module_mission_item_single_command[WAITING_EVENT] = module_mission_item[WAITING_EVENT].get<std::string>();
+                                std::string de_event_id = module_mission_item[WAITING_EVENT].get<std::string>();
+                                module_mission_item_single_command[WAITING_EVENT] = de_event_id;
+                                addModuleMissionItemByEvent (de_event_id, module_mission_item_single_command);
                             }
                             std::cout << "module_mission_item_single_command:" << module_mission_item_single_command.dump() << std::endl; 
 
-                            addModuleMissionItem(module_linked, std::make_unique<Json_de> (module_mission_item_single_command)); 
+                            addModuleMissionItem(module_linked, module_mission_item_single_command); 
                         }   
                     }
+
+
+                    std::cout << "m_module_missions:" << m_module_missions.size() << "  m_module_missions_by_de_events:" << m_module_missions_by_de_events.size() << std::endl;
                 }
             }
         }
@@ -58,12 +63,28 @@ try
 
 }
 
-void CMissionManagerBase::fireEvent (const std::string fire_event)
+void CMissionManagerBase::deEventStartedEvent (const std::string de_event_sid)
 {
+ 
 
+    if (m_module_missions_by_de_events.find(de_event_sid) != m_module_missions_by_de_events.end()) 
+    {
+        const Json_de cmd = m_module_missions_by_de_events[de_event_sid];
+        std::cout << "deEventStartedEvent:" << cmd.dump() << std::endl;
+    }
+
+    return ; 
 }
 
 void CMissionManagerBase::mavlinkMissionItemStartedEvent (const int mission_id)
 {
-    
+    std::string str_mission_id = std::to_string(mission_id);
+
+    if (m_module_missions.find(str_mission_id) != m_module_missions.end()) 
+    {
+        const Json_de cmd = m_module_missions[str_mission_id];
+        std::cout << "mavlinkMissionItemStartedEvent:" << cmd.dump() << std::endl;
+    }
+
+    return ; 
 }
