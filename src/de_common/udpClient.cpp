@@ -196,67 +196,74 @@ void de::comm::CUDPClient::InternalReceiverEntry()
     
     std::vector<std::vector<uint8_t>> receivedChunks; // Map to store received chunks
 
-
+    
     while (!m_stopped_called)
     {
-        n = recvfrom(m_SocketFD, (char*)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr*)&cliaddr, &sender_address_size);
-        #ifdef DDEBUG
-        std::cout << "CUDPClient::InternalReceiverEntry recvfrom" << std::endl;
-        #endif
+        try
+        {    
+            n = recvfrom(m_SocketFD, (char*)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr*)&cliaddr, &sender_address_size);
+            #ifdef DDEBUG
+            std::cout << "CUDPClient::InternalReceiverEntry recvfrom" << std::endl;
+            #endif
 
-        if (n > 0)
-        {
-            // First two bytes represent the chunk number
-            const uint16_t chunkNumber = (buffer[1] << 8) | buffer[0]; 
-            
-            if (chunkNumber==0)
+            if (n > 0)
             {
-                // clear any corrupted/incomplete packets
-                receivedChunks.clear();
-            }
-
-            // Last packet is always equal to 0xFFFF regardless of its actual number.
-            const bool end = chunkNumber == 0xFFFF;
-
-            // Store the received chunk in the map
-            receivedChunks.emplace_back(buffer + 2 * sizeof(uint8_t), buffer + n);
-
-            
-            // Check if we have received all the chunks
-            if (end)
-            {
-                // Sort the vector of chunks based on chunkNumber
-                //std::sort(receivedChunks.begin(), receivedChunks.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
-
-                // Concatenate the chunks in order
-                std::vector<uint8_t> concatenatedData;
-                for (auto& chunk : receivedChunks)
-                {
-                    concatenatedData.insert(concatenatedData.end(), chunk.begin(), chunk.end());
-                }
+                // First two bytes represent the chunk number
+                const uint16_t chunkNumber = (buffer[1] << 8) | buffer[0]; 
                 
-                // NOTICE WE DONT KNOW
-                // if this is a test message or text and binary
-                // so we inject null at the end
-                // it should be removed later if it is binary.
-                concatenatedData.push_back(0);
-                 
-                // Call the onReceive callback with the concatenated data
-                if (m_callback != nullptr)
+                if (chunkNumber==0)
                 {
-                    m_callback->onReceive((const char *) concatenatedData.data(), concatenatedData.size());
+                    // clear any corrupted/incomplete packets
+                    receivedChunks.clear();
                 }
 
-                // Clear the map for the next set of chunks
-                receivedChunks.clear();
+                // Last packet is always equal to 0xFFFF regardless of its actual number.
+                const bool end = chunkNumber == 0xFFFF;
+
+                // Store the received chunk in the map
+                receivedChunks.emplace_back(buffer + 2 * sizeof(uint8_t), buffer + n);
+
+                
+                // Check if we have received all the chunks
+                if (end)
+                {
+                    // Sort the vector of chunks based on chunkNumber
+                    //std::sort(receivedChunks.begin(), receivedChunks.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+                    // Concatenate the chunks in order
+                    std::vector<uint8_t> concatenatedData;
+                    for (auto& chunk : receivedChunks)
+                    {
+                        concatenatedData.insert(concatenatedData.end(), chunk.begin(), chunk.end());
+                    }
+                    
+                    // NOTICE WE DONT KNOW
+                    // if this is a test message or text and binary
+                    // so we inject null at the end
+                    // it should be removed later if it is binary.
+                    concatenatedData.push_back(0);
+                    
+                    // Call the onReceive callback with the concatenated data
+                    if (m_callback != nullptr)
+                    {
+                        m_callback->onReceive((const char *) concatenatedData.data(), concatenatedData.size());
+                    }
+
+                    // Clear the map for the next set of chunks
+                    receivedChunks.clear();
+                }
             }
         }
-    }
-
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
     #ifdef DDEBUG
         std::cout << __FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  " << _LOG_CONSOLE_TEXT
               << "DEBUG: InternalReceiverEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
+    }
+    
 }
 
 

@@ -162,7 +162,7 @@ void _onConnectionStatusChanged (const int status)
 }
 
 
-
+// called from: void de::comm::CModule::onReceive 
 void onReceive (const char * message, int len, Json_de jMsg)
 {
         
