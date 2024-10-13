@@ -15,6 +15,11 @@ namespace mavlinksdk
     #define HEART_BEAT_TIMEOUT 5000000l
     
  
+    /**
+     * @brief list of messages received from mavlink channel.
+     * This structure handles timing and processed flags for each message_id.
+     * 
+     */
     struct Time_Stamps
     {
         #define TIME_STAMP_MSG_LEN 1024
@@ -189,6 +194,10 @@ namespace mavlinksdk
                 return time_stamps.getProcessedFlag(message_id);
             }
 
+            /**
+             * @brief DETERMINES if the last message of type message_id from mavlink 
+             * has been processed or not.
+             */
             inline void setProcessedFlag(uint16_t message_id, uint16_t flags)
             {
                 return time_stamps.setProcessedFlag(message_id, flags);
