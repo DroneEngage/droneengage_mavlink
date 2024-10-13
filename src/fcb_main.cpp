@@ -27,6 +27,7 @@
 
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
+#include "./mission/mission_manager.hpp"
 
 using namespace de::fcb;
 
@@ -218,7 +219,7 @@ bool CFCBMain::init()
         m_mavlink_sdk.start(this);
     }
 
-    m_andruav_missions.clear();
+    de::fcb::mission::CMissionManager::getInstance().getAndruavMission().clear();
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_RELEASED;
 
     m_scheduler_thread = std::thread{[&]()
@@ -540,54 +541,10 @@ void CFCBMain::loopScheduler()
     return;
 }
 
-void CFCBMain::reloadWayPoints()
-{
-    m_andruav_missions.clear();
-    mavlinksdk::CMavlinkCommand::getInstance().reloadWayPoints();
 
-    return;
-}
 
-/**
- * @brief clear way points from andruav and fcb.
- * * In FCB it clears all types of maps.
- * * But in andruav geo fence is not affected by this command.
- *
- */
-void CFCBMain::clearWayPoints()
-{
-    m_andruav_missions.clear();
-    // m_fcb_facade.sendWayPoints(std::string());
-    mavlinksdk::CMavlinkCommand::getInstance().clearWayPoints();
-    return;
-}
 
-/**
- * @brief uploads mavlink mission items to FCB.
- *
- */
-void CFCBMain::saveWayPointsToFCB()
-{
-    // m_andruav_missions.clear();
-    // m_fcb_facade.sendWayPoints(std::string());
 
-    const std::size_t length = m_andruav_missions.mission_items.size();
-    if (length == 0)
-    {
-        // ignore
-        return;
-    }
-
-    std::map<int, mavlink_mission_item_int_t> mavlink_mission;
-    for (int i = 0; i < length; ++i)
-    {
-        mavlink_mission.insert(std::make_pair(i, m_andruav_missions.mission_items.at(i).get()->getArdupilotMission()));
-    }
-
-    mavlinksdk::CMavlinkWayPointManager::getInstance().saveWayPoints(mavlink_mission, MAV_MISSION_TYPE_MISSION);
-
-    return;
-}
 
 /**
  * @brief Message received from FCB
@@ -892,7 +849,7 @@ void CFCBMain::OnWayPointReceived(const mavlink_mission_item_int_t &mission_item
     {
         mission::CMissionItem *mission_item = mission::CMissionItemBuilder::getClassByMavlinkCMD(mission_item_int);
         mission_item->decodeMavlink(mission_item_int);
-        m_andruav_missions.mission_items.insert(std::make_pair(mission_item_int.seq, std::unique_ptr<mission::CMissionItem>(mission_item)));
+        de::fcb::mission::CMissionManager::getInstance().getAndruavMission().mission_items.insert(std::make_pair(mission_item_int.seq, std::unique_ptr<mission::CMissionItem>(mission_item)));
     }
 
     return;
@@ -930,6 +887,8 @@ void CFCBMain::OnMissionSaveFinished(const int &result, const int &mission_type,
 void CFCBMain::OnMissionCurrentChanged(const mavlink_mission_current_t &mission_current)
 {
     m_fcb_facade.sendMissionCurrent(std::string());
+
+    
 }
 
 void CFCBMain::OnACK(const int &acknowledged_cmd, const int &result, const std::string &result_msg)
@@ -988,83 +947,7 @@ void CFCBMain::OnHomePositionUpdated(const mavlink_home_position_t &home_positio
     return;
 }
 
-void CFCBMain::readFiredEventFromFCB(const mavlink_servo_output_raw_t &servo_output_raw)
-{
-    // no need to get here with every event.
-    int event_value;
-    switch (m_event_fire_channel)
-    {
-    case 11:
-        event_value = servo_output_raw.servo11_raw;
-        break;
-    case 12:
-        event_value = servo_output_raw.servo12_raw;
-        break;
-    case 13:
-        event_value = servo_output_raw.servo13_raw;
-        break;
-    case 14:
-        event_value = servo_output_raw.servo14_raw;
-        break;
-    case 15:
-        event_value = servo_output_raw.servo15_raw;
-        break;
-    case 16:
-        event_value = servo_output_raw.servo16_raw;
-        break;
-    default:
-        event_value = 0;
-        break;
-    }
 
-    if (std::find(m_event_fired_by_me.begin(), m_event_fired_by_me.end(), event_value) == m_event_fired_by_me.end())
-    { // event is not in the list ... i.e. has not been fired yet.
-        m_event_fired_by_me.push_back(event_value);
-        m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Trigger Event:") + std::to_string(event_value));
-        m_fcb_facade.sendSyncEvent(std::string(""), event_value);
-
-        std::cout << _INFO_CONSOLE_TEXT << "Event Triggered: " << std::to_string(event_value) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    }
-}
-
-
-void CFCBMain::readWaitingEventFromFCB(const mavlink_servo_output_raw_t &servo_output_raw)
-{
-    // Events that I am waiting for from other drones or modules.
-    int event_value;
-    switch (m_event_wait_channel)
-    {
-    case 11:
-        event_value = servo_output_raw.servo11_raw;
-        break;
-    case 12:
-        event_value = servo_output_raw.servo12_raw;
-        break;
-    case 13:
-        event_value = servo_output_raw.servo13_raw;
-        break;
-    case 14:
-        event_value = servo_output_raw.servo14_raw;
-        break;
-    case 15:
-        event_value = servo_output_raw.servo15_raw;
-        break;
-    case 16:
-        event_value = servo_output_raw.servo16_raw;
-        break;
-    default:
-        event_value = 0;
-        break;
-    }
-
-    if (m_event_waiting_for != event_value)
-    {   // new event has been fired.
-        m_event_waiting_for = event_value;
-        m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Wait Event:") + std::to_string(m_event_waiting_for));
-
-        processIncommingEvent();
-    }
-}
 
 void CFCBMain::OnServoOutputRaw(const mavlink_servo_output_raw_t &servo_output_raw)
 {
@@ -1073,10 +956,10 @@ void CFCBMain::OnServoOutputRaw(const mavlink_servo_output_raw_t &servo_output_r
     m_event_time_divider = m_event_time_divider % EVENT_TIME_DIVIDER;
     if (m_event_time_divider == 0)
     {
-        readFiredEventFromFCB(servo_output_raw);
+        de::fcb::mission::CMissionManager::getInstance().readFiredEventFromFCB(servo_output_raw);
     }
 
-    readWaitingEventFromFCB(servo_output_raw);
+    de::fcb::mission::CMissionManager::getInstance().readWaitingEventFromFCB(servo_output_raw);
 
     return;
 }
@@ -1507,44 +1390,8 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
     }
 }
 
-void CFCBMain::insertIncommingEvent(const int16_t event_id)
-{
-    if (std::find(m_event_received_from_others.begin(), m_event_received_from_others.end(), event_id) == m_event_received_from_others.end())
-    {
-        m_event_received_from_others.push_back(event_id);
 
-        std::cout << _INFO_CONSOLE_TEXT << "Event Received (new): " << std::to_string(event_id) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    }
 
-    processIncommingEvent();
-}
-
-/**
- * @brief checks if there is an action depends on an event and resumes it.
- *
- */
-void CFCBMain::processIncommingEvent()
-{
-    std::vector<int>::iterator it = std::find(m_event_received_from_others.begin(), m_event_received_from_others.end(), m_event_waiting_for);
-
-    if (it != m_event_received_from_others.end())
-    { // event that is [m_event_waiting_for] is fired by another unit or module found 
-
-        if (getAndruavVehicleInfo().flying_mode == VEHICLE_MODE_AUTO)
-        {
-            // +3 because setServo & Delay does not appear in Mission Item Reached
-            //      - SetServo (WAIT FOR EVENT)
-            //      - MAV_CMD_NAV_DELAY()
-            //      - Next Mission.
-            // TODO: replace with break mode unless delay is used for timeout.
-            const int next_seq = m_andruav_vehicle_info.current_waypoint + 3;
-            if (m_andruav_missions.mission_items.size() >= next_seq + 1)
-                mavlinksdk::CMavlinkCommand::getInstance().setCurrentMission(next_seq);
-        }
-
-        m_event_received_from_others.erase(it);
-    }
-}
 
 void CFCBMain::setStreamingLevel(const std::string &target_party_id, const int &streaming_level)
 {

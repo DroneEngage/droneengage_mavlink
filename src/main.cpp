@@ -22,6 +22,7 @@
 #include "./swarm/fcb_swarm_follower.hpp"
 #include "fcb_main.hpp"
 #include "fcb_andruav_message_parser.hpp"
+#include "./mission/mission_manager.hpp"
 
 using namespace de;
 
@@ -394,7 +395,7 @@ void init (int argc, char *argv[])
 
     if (jsonConfig.contains("event_fire_channel") && jsonConfig.contains("event_wait_channel"))
     {
-        cFCBMain.setEventChannel(jsonConfig["event_fire_channel"].get<int>(), jsonConfig["event_wait_channel"].get<int>());
+        de::fcb::mission::CMissionManager::getInstance().setEventChannel(jsonConfig["event_fire_channel"].get<int>(), jsonConfig["event_wait_channel"].get<int>());
     }
     
     

@@ -205,6 +205,7 @@
  */
 #define TYPE_AndruavMessage_Upload_DE_Mission           1075
 
+
 // Binary Messages 
 
 //deprecated telemetry technology

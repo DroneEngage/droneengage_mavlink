@@ -51,9 +51,8 @@ namespace mission
             virtual void extractPlanModule (const Json_de& plan); 
         
             
-            virtual void mavlinkMissionItemStartedEvent (const int mission_id);
-            virtual void deEventStartedEvent (const std::string de_event_sid);
-        
+            virtual void deEventFiredExternally (const std::string de_event_sid);
+    
         protected:
 
             inline void addModuleMissionItem(std::string id, Json_de item) {

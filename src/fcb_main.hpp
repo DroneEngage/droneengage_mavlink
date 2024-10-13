@@ -77,8 +77,7 @@ namespace fcb
 
             CFCBMain()
             {
-                m_event_wait_channel = -1; // no event
-                m_event_fired_by_me.clear(); // nothing fired
+                
             };
 
         public:
@@ -107,18 +106,13 @@ namespace fcb
                 return m_andruav_vehicle_info;
             }
 
-            de::fcb::mission::ANDRUAV_UNIT_MISSION& getAndruavMission()
-            {
-                return m_andruav_missions;      
-            } 
+            
             
 
 
         public:
 
-            void clearWayPoints();
-            void reloadWayPoints();
-            void saveWayPointsToFCB();
+            
 
             void releaseRemoteControl();
             void updateRemoteControlChannels(const int16_t rc_channels[18]);
@@ -129,8 +123,6 @@ namespace fcb
             void freezeRemoteControl();
             void enableRemoteControl();
             void enableRemoteControlGuided();
-            void processIncommingEvent();
-            void insertIncommingEvent(const int16_t event_id);
             /**
              * @brief Set the PartyID & GroupID
              * 
@@ -143,17 +135,7 @@ namespace fcb
                 m_andruav_vehicle_info.group_id = group_id;
             }
 
-            /**
-             * @brief Set (define) the Event Channels used for Fire & Wait Events
-             * 
-             * @param event_fire_channel 
-             * @param event_wait_channel 
-             */
-            void setEventChannel (const int event_fire_channel, const int event_wait_channel)
-            {
-                m_event_fire_channel = event_fire_channel; 
-                m_event_wait_channel = event_wait_channel;
-            }
+            
 
             /**
              * @deprecated
@@ -168,6 +150,10 @@ namespace fcb
             {
                 return m_rcmap_channels_info;
             };
+
+            
+            
+                
 
             /**
              * @brief called when receive {@link TYPE_AndruavSystem_UDPProxy @endlink} to 
@@ -264,8 +250,6 @@ namespace fcb
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
             void update_rcmap_info();
             void checkBlockedStatus();
-            void readFiredEventFromFCB(const mavlink_servo_output_raw_t& servo_output_raw);
-            void readWaitingEventFromFCB(const mavlink_servo_output_raw_t& servo_output_raw);
             /**
              * @brief emulate a camera for ardupilot.
              * 
@@ -275,20 +259,10 @@ namespace fcb
         private:
             Json_de m_jsonConfig;
             int m_connection_type;
-            /**
-             * @brief servo channel used for sending events
-             * 
-             */
-            int m_event_fire_channel;
-            int m_event_wait_channel;
-            int m_event_time_divider=0; // wait
+            
 
-            std::vector<int>  m_event_fired_by_me;
-            std::vector<int>  m_event_received_from_others;
-            int m_event_waiting_for;
             ANDRUAV_VEHICLE_INFO m_andruav_vehicle_info;
-            de::fcb::mission::ANDRUAV_UNIT_MISSION m_andruav_missions;      
-
+            
             RCMAP_CHANNELS_MAP_INFO_STRUCT m_rcmap_channels_info;
 
             /**
@@ -310,7 +284,12 @@ namespace fcb
             uint64_t m_last_access_telemetry = 0;
             ANDRUAV_UDP_PROXY m_udp_proxy;
             
-
+            /**
+            * @brief servo channel used for sending events
+            * 
+            */
+            int m_event_time_divider=0; // wait
+    
     };
 }
 }

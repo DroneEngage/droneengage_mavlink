@@ -110,8 +110,8 @@ namespace fcb
             void sendGeoFenceAttachedStatusToTarget(const std::string&target_party_id, const std::string&fence_name) const;
             void sendGeoFenceToTarget(const std::string&target_party_id, const geofence::GEO_FENCE_STRUCT * geo_fenct_struct) const;
             void sendGeoFenceHit(const std::string&target_party_id, const std::string fence_name, const double distance, const bool in_zone, const bool should_keep_outside) const;
-            void sendSyncEvent(const std::string&target_party_id, const int event_id ) const;
-            void sendSyncEvent2(const std::string&target_party_id, const std::string event_sid ) const;
+
+            void sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid ) const;
             
             // SWARM API
             void requestToFollowLeader(const std::string&target_party_id, const int follower_index) const;

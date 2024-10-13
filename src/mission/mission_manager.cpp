@@ -8,6 +8,8 @@
 #include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
+#include <mavlink_waypoint_manager.h>
+
 #include "../de_common/messages.hpp"
 
 #include "mission_translator.hpp"
@@ -25,8 +27,6 @@ using namespace de::fcb::mission;
  */
 void CMissionManager::uploadMissionIntoSystem(const std::string& plan_text)
 {
-    de::fcb::CFCBMain&  fcb_main = de::fcb::CFCBMain::getInstance();
-            
     CMissionTranslator cMissionTranslator;
 
     std::unique_ptr<std::map <int, std::unique_ptr<mission::CMissionItem>>> new_mission_items = cMissionTranslator.translateMissionText(plan_text);
@@ -37,8 +37,8 @@ void CMissionManager::uploadMissionIntoSystem(const std::string& plan_text)
         return ;
     }
     
-    fcb_main.clearWayPoints();
-    mission::ANDRUAV_UNIT_MISSION& andruav_missions = fcb_main.getAndruavMission();                
+    clearWayPoints();
+    mission::ANDRUAV_UNIT_MISSION& andruav_missions = de::fcb::mission::CMissionManager::getInstance().getAndruavMission();                
                 
              
     std::map<int, std::unique_ptr<mission::CMissionItem>>::iterator it;
@@ -51,8 +51,46 @@ void CMissionManager::uploadMissionIntoSystem(const std::string& plan_text)
 
     new_mission_items->clear();
                 
-    fcb_main.saveWayPointsToFCB();                
+    saveWayPointsToFCB();                
 }
+
+
+/**
+ * @brief clear way points from andruav and fcb.
+ * * In FCB it clears all types of maps.
+ * * But in andruav geo fence is not affected by this command.
+ *
+ */
+void CMissionManager::clearWayPoints()
+{
+    m_andruav_missions.clear();
+    // m_fcb_facade.sendWayPoints(std::string());
+    mavlinksdk::CMavlinkCommand::getInstance().clearWayPoints();
+    clearMissionItems();
+    
+    return;
+}
+
+/**
+ * @brief Clear Mission from DroneEngage NOT Ardupilot Flight Controller.
+ */
+void CMissionManager::clearMissionItems ()
+{
+    m_event_waiting_for = "";
+    m_event_waiting_for_processed = true;
+
+    m_mission_items.clear();
+
+    if (m_event_fire_channel != AP_EVENT_DISABLED)
+    {
+        mavlinksdk::CMavlinkCommand::getInstance().setServo (m_event_fire_channel, AP_EVENT_DISABLED);
+        mavlinksdk::CMavlinkCommand::getInstance().setServo (m_event_wait_channel, AP_EVENT_DISABLED);
+    }
+    
+    m_event_fire_channel = AP_EVENT_DISABLED;
+    m_event_fired_by_me.clear(); // nothing fired
+}
+
 
 /**
  * @brief Upload mission for DE Mission File
@@ -61,8 +99,6 @@ void CMissionManager::uploadMissionIntoSystem(const std::string& plan_text)
  */
 void CMissionManager::uploadMissionIntoSystem2(const Json_de& plan)
 {
-    de::fcb::CFCBMain&  fcb_main = de::fcb::CFCBMain::getInstance();
-            
     extractPlanMavlinkMission(plan);
 
     extractPlanModule(plan);
@@ -73,8 +109,7 @@ void CMissionManager::uploadMissionIntoSystem2(const Json_de& plan)
         return ;
     }
 
-    fcb_main.clearWayPoints();
-    mission::ANDRUAV_UNIT_MISSION& andruav_missions = fcb_main.getAndruavMission();                
+    mission::ANDRUAV_UNIT_MISSION& andruav_missions = de::fcb::mission::CMissionManager::getInstance().getAndruavMission();                
 
     std::map<int, std::unique_ptr<mission::CMissionItem>>::iterator it;
     for (it = m_mission_items.begin(); it != m_mission_items.end(); it++)
@@ -84,7 +119,7 @@ void CMissionManager::uploadMissionIntoSystem2(const Json_de& plan)
         andruav_missions.mission_items.insert(std::make_pair( seq, std::move(it->second)));
     }
 
-    fcb_main.saveWayPointsToFCB();       
+    saveWayPointsToFCB();       
 }
 
 void CMissionManager::extractPlanMavlinkMission (const Json_de& plan)
@@ -170,4 +205,229 @@ try
     {
         std::cerr << e.what() << '\n';
     }
+}
+
+
+/**
+ * @brief
+ *  add mission-id event to event list.
+ *  dependent paused mission should be fired as a response.
+ * 
+ * @see CMissionManager::processMyWaitingEvent
+ */
+void CMissionManager::deEventFiredExternally(const std::string de_event_sid) 
+{
+    //TODO:: In future you may determine if the event will be used or not, so unneeded events dont need to be stored.
+    if (std::find(m_event_received_from_others.begin(), m_event_received_from_others.end(), de_event_sid) == m_event_received_from_others.end())
+    {
+        m_event_received_from_others.push_back(de_event_sid);
+
+        std::cout << _INFO_CONSOLE_TEXT << "Event Received (new): " << de_event_sid << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    }
+
+    // processMyWaitingEvent is called elsewhere and it will use this stored event to resume missions if needed.
+}
+
+void CMissionManager::deEventFiredInternally(const std::string de_event_sid) 
+{
+    deEventFiredExternally (de_event_sid);
+}
+
+
+
+/**
+ * @brief checks if there is an action depends on an event and resumes it.
+ *  This is the executor function where a waiting mission way-point resumes.
+ * 
+ */
+void CMissionManager::processMyWaitingEvent()
+{
+    if (m_event_waiting_for_processed) return ;
+
+    std::vector<std::string>::iterator it = std::find(m_event_received_from_others.begin(), m_event_received_from_others.end(), m_event_waiting_for);
+
+    if (it != m_event_received_from_others.end())
+    { // event that is [m_event_waiting_for] is fired by another unit or module found 
+        
+        std::cout << "event: " << m_event_waiting_for << " : found" << std::endl;
+
+        if (de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().flying_mode == VEHICLE_MODE_AUTO)
+        {
+            // +3 because setServo & Delay does not appear in Mission Item Reached
+            //      - SetServo (WAIT FOR EVENT)
+            //      - MAV_CMD_NAV_DELAY()
+            //      - Next Mission.
+            // TODO: replace with break mode unless delay is used for timeout.
+            const ANDRUAV_VEHICLE_INFO& andruav_vehicle_info = de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo();
+            
+            // Iterating using range-based for loop
+            for (const auto& pair : m_andruav_missions.mission_items) {
+                const int key = pair.first;
+                
+                // Skip early missions.
+                // remember the logic is: we are waiting for a single event to continue... 
+                // .. not trigerringdifferent missions based on events.
+                if (key < andruav_vehicle_info.current_waypoint) continue;
+                
+                const CMissionItem* item = pair.second.get();
+                
+                if (item->m_mission_command == MAV_CMD_DO_SET_SERVO)
+                {
+                    mavlink_mission_item_int_t cmd = item->getArdupilotMission();
+                    if (cmd.param1 !=  m_event_wait_channel) 
+                    {
+                        // Not a SYNC Event
+                        continue;
+                    }
+                    
+                    if (cmd.param2 !=  std::stof(m_event_waiting_for)) 
+                    {   // not the event we are looking for.
+                        continue;
+                    }
+                    
+                    m_event_waiting_for_processed = true;
+                
+                    mavlinksdk::CMavlinkCommand::getInstance().setCurrentMission(item->m_sequence+2);
+                    
+                    std::cout << "Continue from task Key: " << key << std::endl ;
+
+                    // erase it 
+                    m_event_received_from_others.erase(it);
+
+                    return;
+                }
+                
+                std::cout << "mission3: skip" << key << std::endl;
+                
+            }
+
+            
+        }
+    }
+}
+
+
+
+/**
+ * @brief Process RCOut signals to extract SYNC Event sent by Ardupilot.
+ *  This event is FIRED by the board to other modules and units.
+ */
+void CMissionManager::readFiredEventFromFCB(const mavlink_servo_output_raw_t &servo_output_raw)
+{
+    // no need to get here with every event.
+    int event_value;
+    switch (m_event_fire_channel)
+    {
+    case 11:
+        event_value = servo_output_raw.servo11_raw;
+        break;
+    case 12:
+        event_value = servo_output_raw.servo12_raw;
+        break;
+    case 13:
+        event_value = servo_output_raw.servo13_raw;
+        break;
+    case 14:
+        event_value = servo_output_raw.servo14_raw;
+        break;
+    case 15:
+        event_value = servo_output_raw.servo15_raw;
+        break;
+    case 16:
+        event_value = servo_output_raw.servo16_raw;
+        break;
+    default:
+        // Waiting event is disabled.
+        return ;
+    }
+
+    if (std::find(m_event_fired_by_me.begin(), m_event_fired_by_me.end(), event_value) == m_event_fired_by_me.end())
+    { // event is not in the list ... i.e. has not been fired yet.
+        m_event_fired_by_me.push_back(event_value);
+        CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Trigger Event:") + std::to_string(event_value));
+        const std::string de_event_sid = std::to_string(event_value);
+        CFCBFacade::getInstance().sendSyncFireEvent(std::string(""), de_event_sid);
+        de::fcb::mission::CMissionManager::getInstance().deEventFiredInternally(de_event_sid);
+        std::cout << _INFO_CONSOLE_TEXT << "Event Triggered: " << std::to_string(event_value) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    }
+}
+
+
+/**
+ * @brief Process RCOut signals to extract SYNC Event sent by Ardupilot.
+ * The board is WAITING from other modules or units.
+ */
+void CMissionManager::readWaitingEventFromFCB(const mavlink_servo_output_raw_t &servo_output_raw)
+{
+    // Events that I am waiting for from other drones or modules.
+    int event_value;
+    switch (m_event_wait_channel)
+    {
+    case 11:
+        event_value = servo_output_raw.servo11_raw;
+        break;
+    case 12:
+        event_value = servo_output_raw.servo12_raw;
+        break;
+    case 13:
+        event_value = servo_output_raw.servo13_raw;
+        break;
+    case 14:
+        event_value = servo_output_raw.servo14_raw;
+        break;
+    case 15:
+        event_value = servo_output_raw.servo15_raw;
+        break;
+    case 16:
+        event_value = servo_output_raw.servo16_raw;
+        break;
+    default:
+        return ;
+    }
+
+    if (m_mavlink_event_waiting_for != event_value)
+    {   // new event has been fired.
+        m_mavlink_event_waiting_for = event_value;
+        de::fcb::mission::CMissionManager::getInstance().setCurrentWaitingEvent(std::to_string(event_value));
+        CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Wait Event:") + std::to_string(m_mavlink_event_waiting_for));
+    }
+    
+    de::fcb::mission::CMissionManager::getInstance().processMyWaitingEvent();
+}
+
+
+/**
+ * @brief uploads mavlink mission items to FCB.
+ *
+ */
+void CMissionManager::saveWayPointsToFCB()
+{
+    // m_andruav_missions.clear();
+    // m_fcb_facade.sendWayPoints(std::string());
+
+    const std::size_t length = m_andruav_missions.mission_items.size();
+    if (length == 0)
+    {
+        // ignore
+        return;
+    }
+
+    std::map<int, mavlink_mission_item_int_t> mavlink_mission;
+    for (int i = 0; i < length; ++i)
+    {
+        mavlink_mission.insert(std::make_pair(i, m_andruav_missions.mission_items.at(i).get()->getArdupilotMission()));
+    }
+
+    mavlinksdk::CMavlinkWayPointManager::getInstance().saveWayPoints(mavlink_mission, MAV_MISSION_TYPE_MISSION);
+
+    return;
+}
+
+
+void CMissionManager::reloadWayPoints()
+{
+    m_andruav_missions.clear();
+    mavlinksdk::CMavlinkCommand::getInstance().reloadWayPoints();
+
+    return;
 }

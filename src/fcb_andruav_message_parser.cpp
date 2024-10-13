@@ -10,7 +10,6 @@
 #include "fcb_modes.hpp"
 #include "./swarm/fcb_swarm_follower.hpp"
 #include "fcb_andruav_message_parser.hpp"
-#include "./mission/mission_manager.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 
@@ -325,7 +324,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
 
                 std::string plan_text = cmd ["a"];
                 geofence::CGeoFenceManager::getInstance().uploadFencesIntoSystem(plan_text);
-                mission::CMissionManager::getInstance().uploadMissionIntoSystem(plan_text);
+                m_mission_manager.uploadMissionIntoSystem(plan_text);
                 
                 
                 
@@ -365,7 +364,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                 //CMissionManager::getInstance().
                 geofence::CGeoFenceManager::getInstance().uploadFencesIntoSystem(plan_object);
                 
-                mission::CMissionManager::getInstance().uploadMissionIntoSystem2(plan_object);
+                m_mission_manager.uploadMissionIntoSystem2(plan_object);
                 
             }
             break;
@@ -447,19 +446,17 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
             case TYPE_AndruavMessage_Sync_EventFire:
             {   // This can be an event from remote unit or from anothe module.
 
-                if (validateField(cmd, "a", Json_de::value_t::number_unsigned)) 
-                {
-                    // numerical mavlink event.
-                    m_fcbMain.insertIncommingEvent(cmd["a"].get<int>());
-
-                    // this must called from internal event not external. because mission-id are not unique between units.
-                    mission::CMissionManager::getInstance().mavlinkMissionItemStartedEvent(cmd["a"].get<int>());
-                }
+                // if (validateField(cmd, "a", Json_de::value_t::number_unsigned)) 
+                // {
+                //     // add mission-id event to event list.
+                //     // dependent paused mission should be fired as a response.
+                //     m_mission_manager.mavlinkMissionItemStartedEvent(cmd["a"].get<int>());
+                // }
 
                 if (validateField(cmd, "d",Json_de::value_t::string)) 
                 {
                     // string droneengage event format.
-                    // mission::CMissionManager::getInstance().deEventStartedEvent(cmd["d"].get<std::string>());
+                    m_mission_manager.deEventFiredExternally(cmd["d"].get<std::string>());
                 }
             }
             break;
@@ -977,7 +974,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
         case RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB:
             if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
             
-            m_fcbMain.reloadWayPoints();
+            m_mission_manager.reloadWayPoints();
         break;
 
         case RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB:
@@ -989,7 +986,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
                 break;
             }
                 
-            m_fcbMain.clearWayPoints();
+            m_mission_manager.clearWayPoints();
         break;
         
 

@@ -14,7 +14,7 @@ using Json_de = nlohmann::json;
 #include "fcb_facade.hpp"
 #include "fcb_traffic_optimizer.hpp"
 #include "fcb_main.hpp"
-
+#include "./mission/mission_manager.hpp"
 
 namespace de
 {
@@ -65,6 +65,7 @@ namespace fcb
 
         private:
             de::fcb::CFCBMain&  m_fcbMain = de::fcb::CFCBMain::getInstance();
+            mission::CMissionManager& m_mission_manager = mission::CMissionManager::getInstance();
             mavlinksdk::CMavlinkSDK& m_mavlinksdk = mavlinksdk::CMavlinkSDK::getInstance();
             de::fcb::CFCBFacade& m_fcb_facade = de::fcb::CFCBFacade::getInstance();
             de::fcb::swarm::CSwarmManager& m_fcb_swarm_manager = de::fcb::swarm::CSwarmManager::getInstance();

@@ -13,8 +13,6 @@ void CMissionManagerBase::extractPlanModule (const Json_de& plan)
 
 try
     {
-        clearModuleMissionItems();
-        
         if (std::string(plan["fileType"]).find("de_plan") != std::string::npos)
         {
             if (plan.contains("de_mission"))
@@ -63,27 +61,12 @@ try
 
 }
 
-void CMissionManagerBase::deEventStartedEvent (const std::string de_event_sid)
+void CMissionManagerBase::deEventFiredExternally (const std::string de_event_sid)
 {
- 
-
     if (m_module_missions_by_de_events.find(de_event_sid) != m_module_missions_by_de_events.end()) 
     {
         const Json_de cmd = m_module_missions_by_de_events[de_event_sid];
-        std::cout << "deEventStartedEvent:" << cmd.dump() << std::endl;
-    }
-
-    return ; 
-}
-
-void CMissionManagerBase::mavlinkMissionItemStartedEvent (const int mission_id)
-{
-    std::string str_mission_id = std::to_string(mission_id);
-
-    if (m_module_missions.find(str_mission_id) != m_module_missions.end()) 
-    {
-        const Json_de cmd = m_module_missions[str_mission_id];
-        std::cout << "mavlinkMissionItemStartedEvent:" << cmd.dump() << std::endl;
+        std::cout << "deEventFiredExternally:" << cmd.dump() << std::endl;
     }
 
     return ; 

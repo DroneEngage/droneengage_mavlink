@@ -56,7 +56,7 @@ class CMissionItem
          * 
          * @return mavlink_mission_item_int_t 
          */
-        virtual mavlink_mission_item_int_t getArdupilotMission ();
+        virtual mavlink_mission_item_int_t getArdupilotMission () const;
 
 
     public:
@@ -97,7 +97,7 @@ class CDummy_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission ()  const override;
 
     
 };
@@ -121,7 +121,7 @@ class CDelay_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission ()  const override;
 
     public:
         /**
@@ -166,7 +166,7 @@ class CDelay_State_Machine_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
     public:
         /**
@@ -197,7 +197,7 @@ class CGuided_Enabled_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
     public:
         /**
@@ -223,7 +223,7 @@ class CCameraControl_Step: public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
     public:
        
@@ -249,7 +249,7 @@ class CCameraTrigger_Step: public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
     public:
        
@@ -275,7 +275,7 @@ class CChange_Altitude_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
     public:
        
@@ -303,7 +303,7 @@ class CContinue_And_Change_Altitude_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
     public:
        
@@ -337,7 +337,7 @@ class CChange_Speed_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
     public:
        
@@ -388,7 +388,7 @@ class CChange_Heading_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
     public:
        
@@ -433,7 +433,7 @@ class CLoiter_Turns_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
         /**
          * @brief  Number of turns. min 0
@@ -494,7 +494,7 @@ class CRTL_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
 };
 
@@ -512,7 +512,7 @@ class CTakeOff_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
     public:
 
@@ -561,7 +561,7 @@ class CLand_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
     public:
 
@@ -616,7 +616,7 @@ class CWayPoint_Step : public CMissionItem
 
     public:
         Json_de getAndruavMission   () override;
-        mavlink_mission_item_int_t getArdupilotMission () override;
+        mavlink_mission_item_int_t getArdupilotMission () const override;
 
     public:
 

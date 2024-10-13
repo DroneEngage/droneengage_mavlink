@@ -12,7 +12,7 @@ using Json_de = nlohmann::json;
 #include "./swarm/fcb_swarm_manager.hpp"
 #include "fcb_facade.hpp"
 #include "fcb_main.hpp"
-
+#include "./mission/mission_manager.hpp"
 
 
 using namespace de::fcb;
@@ -558,7 +558,7 @@ void CFCBFacade::sendMissionCurrent(const std::string&target_party_id) const
     
     const mavlink_mission_current_t mission_current = mavlinksdk::CMavlinkWayPointManager::getInstance().getMissionCurrent();
 
-    // you do not need to do thefollowing check as you can resent this message to different GCS once then become online.
+    // you do not need to do the following check as you can resent this message to different GCS once then become online.
     // there is no obsolete message here.
     //if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_MISSION_COUNT) == MESSAGE_UNPROCESSED) 
     m_vehicle.setProcessedFlag(MAVLINK_MSG_ID_MISSION_COUNT,MESSAGE_PROCESSED);
@@ -570,7 +570,6 @@ void CFCBFacade::sendMissionCurrent(const std::string&target_party_id) const
     // send current mission + mission count.
     sendMavlinkData_Packed(target_party_id, mavlink_message, 2, false);
 
-    sendSyncEvent("", mission_current.seq);
 }
 
 
@@ -645,8 +644,7 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
     
     std::lock_guard<std::mutex> guard(g_pages_mutex);
     
-    CFCBMain&  fcbMain = CFCBMain::getInstance();
-    const mission::ANDRUAV_UNIT_MISSION& andruav_missions = fcbMain.getAndruavMission(); 
+    const mission::ANDRUAV_UNIT_MISSION& andruav_missions = de::fcb::mission::CMissionManager::getInstance().getAndruavMission(); 
     const std::size_t length = andruav_missions.mission_items.size();
     
 
@@ -951,38 +949,25 @@ void CFCBFacade::sendGeoFenceHit(const std::string&target_party_id, const std::s
 }
 
 
-/**
- * @brief sends SYNC Event
- * 
- * @param target_party_id 
- * @param event_id 
- */
-void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int event_id ) const
-{
-    Json_de message =
-            {
-                {"a", event_id}
-            };
-                
-    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, true);
-   
-}
 
 
 /**
  * @brief Fire DroneEngage Events.
+ * This is message is forwarded to other modules, and to Communication Server as well 
+ * because this is a unique ID. User-Planner should make sure that this is a unique ID 
+ * or based on business scenario.
  * 
  * @param target_party_id 
  * @param event_sid 
  */
-void CFCBFacade::sendSyncEvent2(const std::string&target_party_id, const std::string event_sid ) const
+void CFCBFacade::sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid ) const
 {
     Json_de message =
-            {
-                {"d", event_sid}
-            };
+    {
+        {"d", event_sid}
+    };
                 
-    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, true);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, false);
    
 }
 
