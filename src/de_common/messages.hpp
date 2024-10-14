@@ -259,6 +259,8 @@
 
 #define TYPE_AndruavMessage_P2P_INFO                        6517
 
+#define TYPE_AndruavMessage_Mission_Item_Sequence           6518
+
 /**********************************************************************
                         EOF Andruav Messages 2019
 **********************************************************************/
