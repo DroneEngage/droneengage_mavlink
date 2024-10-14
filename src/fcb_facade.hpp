@@ -111,7 +111,7 @@ namespace fcb
             void sendGeoFenceToTarget(const std::string&target_party_id, const geofence::GEO_FENCE_STRUCT * geo_fenct_struct) const;
             void sendGeoFenceHit(const std::string&target_party_id, const std::string fence_name, const double distance, const bool in_zone, const bool should_keep_outside) const;
 
-            void sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid ) const;
+            void sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid, const bool internal_only) const;
             
             // SWARM API
             void requestToFollowLeader(const std::string&target_party_id, const int follower_index) const;
@@ -127,8 +127,8 @@ namespace fcb
             void callModule_reloadSavedTasks (const int& inter_module_command);
             void internalCommand_takeImage () const;
             void sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, de::comm::CUDPProxy& udp_client) const;
-                 
-
+            void sendMissionItemSequence(const std::string event_sid) const;
+            
         public:
 
             void API_IC_P2P_connectToMeshOnMac (const std::string& target_party_id) const;

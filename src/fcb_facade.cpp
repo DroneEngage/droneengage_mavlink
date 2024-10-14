@@ -960,14 +960,30 @@ void CFCBFacade::sendGeoFenceHit(const std::string&target_party_id, const std::s
  * @param target_party_id 
  * @param event_sid 
  */
-void CFCBFacade::sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid ) const
+void CFCBFacade::sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid, const bool internal_only) const
 {
     Json_de message =
     {
         {"d", event_sid}
     };
                 
-    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, internal_only);
+   
+}
+
+
+/**
+ * This is an INTERMODULE Message ONLY used to tell communicator about the current mission item so that
+ * it can trigger related module mission items.
+ */
+void CFCBFacade::sendMissionItemSequence(const std::string event_sid) const
+{
+    Json_de message =
+    {
+        {"s", event_sid}
+    };
+                
+    m_module.sendJMSG (std::string(""), message, TYPE_AndruavMessage_Mission_Item_Sequence, true);
    
 }
 
