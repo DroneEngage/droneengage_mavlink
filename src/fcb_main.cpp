@@ -531,6 +531,9 @@ void CFCBMain::loopScheduler()
             m_fcb_facade.API_IC_sendID(std::string());
             m_fcb_facade.sendDistanceSensorInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             m_fcb_facade.sendMissionCurrent(std::string());
+
+            const mavlink_mission_current_t mission_current = mavlinksdk::CMavlinkWayPointManager::getInstance().getMissionCurrent();
+            m_fcb_facade.sendMissionItemSequence(std::to_string(mission_current.seq));
         }
 
         if (m_counter % 1500 == 0)
@@ -888,7 +891,12 @@ void CFCBMain::OnMissionCurrentChanged(const mavlink_mission_current_t &mission_
 {
     m_fcb_facade.sendMissionCurrent(std::string());
 
-    
+    // IMPORTANT: This is an internal only event and cannot be broadcasted to communication-server.
+    // if you want to broadcast ato communication-server you need to fire event from servo channels.
+    // IMPORTANT: here we sent a local event of every mission item. this mission item can be ANYTHING
+    // it is just a SYNC with other modules that has waiting events linked to waypoints mission-items using.
+    // so instead of Filtering message I have chosen to sent.
+    m_fcb_facade.sendMissionItemSequence(std::to_string(mission_current.seq));
 }
 
 void CFCBMain::OnACK(const int &acknowledged_cmd, const int &result, const std::string &result_msg)
@@ -1393,7 +1401,7 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
 
 
 
-void CFCBMain::setStreamingLevel(const std::string &target_party_id, const int &streaming_level)
+void CFCBMain::setStreamingLevel(const int &streaming_level)
 {
     if (streaming_level != -1)
     {

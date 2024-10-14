@@ -136,13 +136,8 @@ namespace fcb
             }
 
             
-
-            /**
-             * @deprecated
-             */
-            //void toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level);
             
-            void setStreamingLevel (const std::string& target_party_id, const int& streaming_level);
+            void setStreamingLevel (const int& streaming_level);
 
             bool isFCBConnected () const { return m_fcb_connected;}; 
             
