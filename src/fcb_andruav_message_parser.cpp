@@ -944,11 +944,18 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
     UNUSED (permission);
     
     bool is_system = false;
-     
+    bool is_inter_module = false;
+
     if ((validateField(andruav_message, ANDRUAV_PROTOCOL_SENDER, Json_de::value_t::string)) && (andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(SPECIAL_NAME_SYS_NAME)==0))
     {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
         is_system = true;
     }
+    
+    if ((validateField(andruav_message, INTERMODULE_ROUTING_TYPE, Json_de::value_t::string)) && (andruav_message[INTERMODULE_ROUTING_TYPE].get<std::string>().compare(CMD_TYPE_INTERMODULE)==0))
+    {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
+        is_inter_module = true;
+    }
+    
     const int remoteCommand = cmd["C"].get<int>();
     std::cout << "cmd: " << remoteCommand << std::endl;
     switch (remoteCommand)
@@ -1091,7 +1098,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
         case RemoteCommand_TELEMETRYCTRL:
         {
             if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
-            if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) != PERMISSION_ALLOW_GCS_FULL_CONTROL))
+            if ((!is_inter_module) && (!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) != PERMISSION_ALLOW_GCS_FULL_CONTROL))
             {
                 std::cout << _INFO_CONSOLE_BOLD_TEXT << "TELEMETRYCTRL: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
                 break;
@@ -1123,7 +1130,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
                 return ;
             }
             
-            m_fcbMain.setStreamingLevel(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), streaming_level);
+            m_fcbMain.setStreamingLevel(streaming_level);
         }
         break;
 
