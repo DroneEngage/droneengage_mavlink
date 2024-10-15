@@ -71,3 +71,9 @@ void CMissionManagerBase::deEventFiredExternally (const std::string de_event_sid
 
     return ; 
 }
+
+
+void CMissionManagerBase::processMyWaitingEvent()
+{
+    return ;
+}

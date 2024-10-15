@@ -84,10 +84,13 @@ void CMissionManager::clearMissionItems ()
     if (m_event_fire_channel != AP_EVENT_DISABLED)
     {
         mavlinksdk::CMavlinkCommand::getInstance().setServo (m_event_fire_channel, AP_EVENT_DISABLED);
+    }
+    
+    if (m_event_wait_channel != AP_EVENT_DISABLED)
+    {
         mavlinksdk::CMavlinkCommand::getInstance().setServo (m_event_wait_channel, AP_EVENT_DISABLED);
     }
     
-    m_event_fire_channel = AP_EVENT_DISABLED;
     m_event_fired_by_me.clear(); // nothing fired
 }
 
@@ -208,6 +211,11 @@ try
 }
 
 
+void CMissionManager::extractPlanModule (const Json_de& plan) 
+{
+    // do nothing.
+}
+                
 /**
  * @brief
  *  add mission-id event to event list.
@@ -346,7 +354,10 @@ void CMissionManager::readFiredEventFromFCB(const mavlink_servo_output_raw_t &se
         m_event_fired_by_me.push_back(event_value);
         CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Trigger Event:") + std::to_string(event_value));
         const std::string de_event_sid = std::to_string(event_value);
-        CFCBFacade::getInstance().sendSyncFireEvent(std::string(""), de_event_sid);
+
+        //IMPORTANT: this is a event from servo channel. You need to broadcast it globally.
+        CFCBFacade::getInstance().sendSyncFireEvent(std::string(""), de_event_sid, false);
+        
         de::fcb::mission::CMissionManager::getInstance().deEventFiredInternally(de_event_sid);
         std::cout << _INFO_CONSOLE_TEXT << "Event Triggered: " << std::to_string(event_value) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     }
@@ -392,6 +403,8 @@ void CMissionManager::readWaitingEventFromFCB(const mavlink_servo_output_raw_t &
         CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Wait Event:") + std::to_string(m_mavlink_event_waiting_for));
     }
     
+    // Adding fired event to the list of fired events waiting to be processed
+    // when fcb fire the correspondent waiting event.
     de::fcb::mission::CMissionManager::getInstance().processMyWaitingEvent();
 }
 

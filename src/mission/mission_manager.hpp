@@ -59,7 +59,8 @@ namespace mission
                 void uploadMissionIntoSystem2(const Json_de& plan);
 
                 void extractPlanMavlinkMission (const Json_de& plan);
-
+                
+                void extractPlanModule (const Json_de& plan) override;
                 void deEventFiredExternally (const std::string de_event_sid) override;
                 void deEventFiredInternally (const std::string de_event_sid);
             

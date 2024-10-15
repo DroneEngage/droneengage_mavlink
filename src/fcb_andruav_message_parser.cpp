@@ -39,6 +39,12 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
         is_system = true;
     }
 
+    bool is_inter_module = false;
+    if ((validateField(andruav_message, INTERMODULE_ROUTING_TYPE, Json_de::value_t::string)) && (andruav_message[INTERMODULE_ROUTING_TYPE].get<std::string>().compare(CMD_TYPE_INTERMODULE)==0))
+    {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
+        is_inter_module = true;
+    }
+    
     if (messageType == TYPE_AndruavMessage_RemoteExecute)
     {
         parseRemoteExecute(andruav_message);
@@ -796,7 +802,13 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                         follower_formation = (swarm::ANDRUAV_SWARM_FORMATION) cmd["d"].get<int>();
                     }
                     
-                    m_fcb_swarm_manager.followLeader(leader_party_id, follower_index, follower_formation, andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+                    std::string sender = "";
+                    if (!is_inter_module)
+                    {
+                        sender = andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
+                    }
+                    
+                    m_fcb_swarm_manager.followLeader(leader_party_id, follower_index, follower_formation, sender);
                     break;
                 }
             }
@@ -944,13 +956,13 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
     UNUSED (permission);
     
     bool is_system = false;
-    bool is_inter_module = false;
-
+    
     if ((validateField(andruav_message, ANDRUAV_PROTOCOL_SENDER, Json_de::value_t::string)) && (andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(SPECIAL_NAME_SYS_NAME)==0))
     {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
         is_system = true;
     }
     
+    bool is_inter_module = false;
     if ((validateField(andruav_message, INTERMODULE_ROUTING_TYPE, Json_de::value_t::string)) && (andruav_message[INTERMODULE_ROUTING_TYPE].get<std::string>().compare(CMD_TYPE_INTERMODULE)==0))
     {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
         is_inter_module = true;
@@ -1131,6 +1143,11 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
             }
             
             m_fcbMain.setStreamingLevel(streaming_level);
+            
+            if (is_inter_module == true)
+            {
+                m_fcbMain.sendUdpProxyStatus(std::string(""));
+            }
         }
         break;
 

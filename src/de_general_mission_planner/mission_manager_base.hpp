@@ -53,6 +53,8 @@ namespace mission
             
             virtual void deEventFiredExternally (const std::string de_event_sid);
     
+            virtual void processMyWaitingEvent();
+
         protected:
 
             inline void addModuleMissionItem(std::string id, Json_de item) {
