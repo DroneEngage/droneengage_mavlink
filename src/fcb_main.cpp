@@ -61,15 +61,7 @@ void CFCBMain::OnMessageReceived(const de::comm::CUDPProxy *udp_proxy, const cha
         }
     }
 }
-// void SchedulerThread(void * This) {
-// 	((CFCBMain *)This)->loopScheduler();
 
-//     #ifdef DEBUG
-//         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Exit SchedulerThread" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-//     #endif
-
-//     return ;
-// }
 
 /**
  * @brief get connection type UDP or serial based on config file.
@@ -587,22 +579,7 @@ void CFCBMain::OnMessageReceived(const mavlink_message_t &mavlink_message)
                 m_fcb_facade.sendUdpProxyMavlink(mavlink_message, m_udp_proxy.udp_client);
             }
         }
-
-        // OBSOLETE
-        // // Normal Andruav Telemetry using WebPlugin
-        // std::vector<std::unique_ptr<ANDRUAV_UNIT_STRUCT>> ::iterator it;
-        // for(it=m_TelemetryUnits.begin(); it!=m_TelemetryUnits.end(); it++)
-        // {
-        //     ANDRUAV_UNIT_STRUCT *unit_ptr = it->get();
-
-        //     if (unit_ptr->is_online == true)
-        //     {
-        //         #ifdef DEBUG_2
-        //             std::cout << "send to " << unit_ptr->party_id << std::endl;
-        //         #endif
-        //         m_fcb_facade.sendTelemetryData (unit_ptr->party_id, mavlink_message);
-        //     }
-        // }
+        
     }
 
     return;

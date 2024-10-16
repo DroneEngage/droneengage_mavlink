@@ -576,10 +576,7 @@ void CFCBFacade::sendMissionCurrent(const std::string&target_party_id) const
 void CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
 {
     
-    
-    
-    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
-    const mavlink_home_position_t& home = vehicle.getMsgHomePosition();
+    const mavlink_home_position_t& home = m_vehicle.getMsgHomePosition();
     
     /*
         T : latitude in xx.xxxxx
