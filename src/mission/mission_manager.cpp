@@ -127,7 +127,7 @@ void CMissionManager::uploadMissionIntoSystem2(const Json_de& plan)
 
 void CMissionManager::extractPlanMavlinkMission (const Json_de& plan)
 {
-try
+    try
     {
         clearMissionItems();
         
@@ -141,12 +141,12 @@ try
 
                     if (validateField(unit, "home",Json_de::value_t::object))
                     {
+
                         const Json_de home = unit["home"];
 
                         // mission zero is home position
                         mavlink_mission_item_int_t mavlink_mission_item;
                         mavlink_mission_item.seq = 0; // message zero is home
-                        mavlink_mission_item.frame = MAV_FRAME_GLOBAL_RELATIVE_ALT;
                         mavlink_mission_item.autocontinue = 1;
                         mavlink_mission_item.current = false;
                         mavlink_mission_item.command = MAV_CMD_NAV_WAYPOINT;
@@ -154,16 +154,33 @@ try
                         mavlink_mission_item.param2 = 0;
                         mavlink_mission_item.param3 = 0;
                         mavlink_mission_item.param4 = 0;
-                        mavlink_mission_item.x = home["lat"].get<double>() * 10000000;
-                        mavlink_mission_item.y = home["lng"].get<double>() * 10000000;
-                        mavlink_mission_item.z = home["alt"].get<int>();
-
+                        if (home.contains("lat")
+                            && home.contains("lng")
+                            && home.contains("alt"))
+                        {
+                            mavlink_mission_item.frame = MAV_FRAME_GLOBAL_RELATIVE_ALT;
+                            mavlink_mission_item.x = home["lat"].get<double>() * 10000000;
+                            mavlink_mission_item.y = home["lng"].get<double>() * 10000000;
+                            mavlink_mission_item.z = home["alt"].get<int>();
+                        }
+                        else
+                        {
+                            mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
+                            const mavlink_home_position_t& home_pos = vehicle.getMsgHomePosition();
+        
+                            mavlink_mission_item.frame = MAV_FRAME_GLOBAL_RELATIVE_ALT;
+                            mavlink_mission_item.x = home_pos.latitude * 10000000;
+                            mavlink_mission_item.y = home_pos.longitude * 10000000;
+                            mavlink_mission_item.z = home_pos.altitude;
+                        }
+                            
                         de::fcb::mission::CMissionItem *mission_item = de::fcb::mission::CMissionItemBuilder::getClassByMavlinkCMD(mavlink_mission_item);
                         if (mission_item != nullptr)
                         {
                             mission_item->decodeMavlink (mavlink_mission_item);
                             addMissionItem(mavlink_mission_item.seq, std::unique_ptr<de::fcb::mission::CMissionItem>(mission_item));
                         }
+
                     }
                 }
                 // there is a waypoint data
@@ -202,7 +219,6 @@ try
                 }
             }
         }
-        return ;
     }
     catch(const std::exception& e)
     {
@@ -220,7 +236,10 @@ void CMissionManager::extractPlanModule (const Json_de& plan)
  * @brief
  *  add mission-id event to event list.
  *  dependent paused mission should be fired as a response.
- * 
+ *  Important: Waiting events are created as mission items, so they are not listed
+ *  here since the beginning of the mission.
+ *  What we store ares the fired events that we keep test them to resume a waiting event.
+ *  This is the OPPOSITE of Communication Module logic where DE events are pre-initialized.
  * @see CMissionManager::processMyWaitingEvent
  */
 void CMissionManager::deEventFiredExternally(const std::string de_event_sid) 
