@@ -807,6 +807,10 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                     {
                         sender = andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
                     }
+                    else
+                    {
+                        sender = de::comm::CModule::getInstance().getPartyId();
+                    }
                     
                     m_fcb_swarm_manager.followLeader(leader_party_id, follower_index, follower_formation, sender);
                     break;

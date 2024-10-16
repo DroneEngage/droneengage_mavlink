@@ -375,7 +375,7 @@ void CMissionManager::readFiredEventFromFCB(const mavlink_servo_output_raw_t &se
         const std::string de_event_sid = std::to_string(event_value);
 
         //IMPORTANT: this is a event from servo channel. You need to broadcast it globally.
-        CFCBFacade::getInstance().sendSyncFireEvent(std::string(""), de_event_sid, false);
+        CFCBFacade::getInstance().sendSyncFireEvent(ANDRUAV_PROTOCOL_SENDER_ALL_AGENTS, de_event_sid, false);
         
         de::fcb::mission::CMissionManager::getInstance().deEventFiredInternally(de_event_sid);
         std::cout << _INFO_CONSOLE_TEXT << "Event Triggered: " << std::to_string(event_value) << _NORMAL_CONSOLE_TEXT_ << std::endl;
