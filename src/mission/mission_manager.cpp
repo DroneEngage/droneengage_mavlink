@@ -63,10 +63,10 @@ void CMissionManager::uploadMissionIntoSystem(const std::string& plan_text)
  */
 void CMissionManager::clearWayPoints()
 {
-    m_andruav_missions.clear();
-    // m_fcb_facade.sendWayPoints(std::string());
-    mavlinksdk::CMavlinkCommand::getInstance().clearWayPoints();
+    
     clearMissionItems();
+    m_andruav_missions.clear();
+    mavlinksdk::CMavlinkCommand::getInstance().clearWayPoints();
     
     return;
 }
@@ -78,6 +78,7 @@ void CMissionManager::clearMissionItems ()
 {
     m_event_waiting_for = "";
     m_event_waiting_for_processed = true;
+    m_mavlink_event_waiting_for = 0;
 
     m_mission_items.clear();
 
@@ -327,8 +328,6 @@ void CMissionManager::processMyWaitingEvent()
                 std::cout << "mission3: skip" << key << std::endl;
                 
             }
-
-            
         }
     }
 }
