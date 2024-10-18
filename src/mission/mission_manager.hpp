@@ -80,7 +80,7 @@ namespace mission
                 inline void setCurrentWaitingEvent(const std::string event_id)
                 {
                     m_event_waiting_for = event_id;
-                    m_event_waiting_for_processed = false;
+                    m_event_waiting_for_has_processed = false;
                 }
 
                 void clearMissionItems ();
@@ -115,7 +115,7 @@ namespace mission
             private:
 
                 std::string m_event_waiting_for;
-                bool m_event_waiting_for_processed;
+                bool m_event_waiting_for_has_processed;
                 std::map <int, std::unique_ptr<CMissionItem>> m_mission_items;
                 de::fcb::mission::ANDRUAV_UNIT_MISSION m_andruav_missions;      
 
@@ -124,7 +124,7 @@ namespace mission
             
                 //event sent from Ardupilot-Board (RCOUT) to indicate that it is waiting for it.
                 int m_mavlink_event_waiting_for;
-                std::vector<int>  m_event_fired_by_me;   
+                int m_event_fired_by_me;   
 
 
             private:

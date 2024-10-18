@@ -234,21 +234,23 @@ int CSwarmManager::insertFollowerinSwarmFormation(const std::string& party_id) {
  */
 void CSwarmManager::addFollower (const std::string& party_id, const int follower_index)
 {
-    if (followerExist(party_id) != -1) 
+    int follower_idx = followerExist(party_id);
+    if ( follower_idx == -1) 
     {
-        #ifdef DEBUG        
-            std::cout << _INFO_CONSOLE_TEXT << "addFollower: " << party_id << " is already added." _NORMAL_CONSOLE_TEXT_ << std::endl;
-        #endif
-        return ;
-    }
+        // #ifdef DEBUG        
+        //     std::cout << _INFO_CONSOLE_TEXT << "addFollower: " << party_id << " is already added." _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // #endif
+        // return ;
+   
 
     
-    int follower_idx = insertFollowerinSwarmFormation (party_id);
-    if (follower_idx==-1)
-    {
-        // rejected;
-        //TODO: send a rejection message.
-        return ;
+        follower_idx = insertFollowerinSwarmFormation (party_id);
+        if (follower_idx==-1)
+        {
+            // rejected;
+            //TODO: send a rejection message.
+            return ;
+        }
     }
     de::fcb::CFCBFacade::getInstance().requestFromUnitToFollowMe (party_id, follower_idx);
     de::fcb::CFCBFacade::getInstance().API_IC_P2P_accessMac(party_id);

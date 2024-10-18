@@ -77,7 +77,7 @@ void CMissionManager::clearWayPoints()
 void CMissionManager::clearMissionItems ()
 {
     m_event_waiting_for = "";
-    m_event_waiting_for_processed = true;
+    m_event_waiting_for_has_processed = true;
     m_mavlink_event_waiting_for = 0;
 
     m_mission_items.clear();
@@ -92,7 +92,7 @@ void CMissionManager::clearMissionItems ()
         mavlinksdk::CMavlinkCommand::getInstance().setServo (m_event_wait_channel, AP_EVENT_DISABLED);
     }
     
-    m_event_fired_by_me.clear(); // nothing fired
+    m_event_fired_by_me = -1; // nothing fired
 }
 
 
@@ -270,7 +270,7 @@ void CMissionManager::deEventFiredInternally(const std::string de_event_sid)
  */
 void CMissionManager::processMyWaitingEvent()
 {
-    if (m_event_waiting_for_processed) return ;
+    if (m_event_waiting_for_has_processed) return ;
 
     std::vector<std::string>::iterator it = std::find(m_event_received_from_others.begin(), m_event_received_from_others.end(), m_event_waiting_for);
 
@@ -313,7 +313,7 @@ void CMissionManager::processMyWaitingEvent()
                         continue;
                     }
                     
-                    m_event_waiting_for_processed = true;
+                    m_event_waiting_for_has_processed = true;
                 
                     mavlinksdk::CMavlinkCommand::getInstance().setCurrentMission(item->m_sequence+2);
                     
@@ -367,9 +367,9 @@ void CMissionManager::readFiredEventFromFCB(const mavlink_servo_output_raw_t &se
         return ;
     }
 
-    if (std::find(m_event_fired_by_me.begin(), m_event_fired_by_me.end(), event_value) == m_event_fired_by_me.end())
+    if (m_event_fired_by_me != event_value)
     { // event is not in the list ... i.e. has not been fired yet.
-        m_event_fired_by_me.push_back(event_value);
+        m_event_fired_by_me = event_value;
         CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Trigger Event:") + std::to_string(event_value));
         const std::string de_event_sid = std::to_string(event_value);
 
