@@ -79,6 +79,7 @@ void CMissionManager::clearMissionItems ()
     m_event_waiting_for = "";
     m_event_waiting_for_has_processed = true;
     m_mavlink_event_waiting_for = 0;
+    m_mavlink_mission_item_last_seq =0;
 
     m_mission_items.clear();
 
@@ -368,7 +369,7 @@ void CMissionManager::readFiredEventFromFCB(const mavlink_servo_output_raw_t &se
     }
 
     if (m_event_fired_by_me != event_value)
-    { // event is not in the list ... i.e. has not been fired yet.
+    {   // event is not in the list ... i.e. has not been fired yet....
         m_event_fired_by_me = event_value;
         CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, std::string("Trigger Event:") + std::to_string(event_value));
         const std::string de_event_sid = std::to_string(event_value);
@@ -381,6 +382,22 @@ void CMissionManager::readFiredEventFromFCB(const mavlink_servo_output_raw_t &se
     }
 }
 
+
+void CMissionManager::handleMissionCurrentCount(const mavlink_mission_current_t &mission_current)
+{
+    // IMPORTANT: Ardupilot sends seq of mission items not mission commands.
+    
+    const uint16_t seq = mission_current.seq ;
+    if (m_mavlink_mission_item_last_seq < seq)
+    {
+        for (uint16_t i=m_mavlink_mission_item_last_seq; i<= seq; ++i)
+        {
+            CFCBFacade::getInstance().sendMissionItemSequence(std::to_string(i));
+        }
+
+        m_mavlink_mission_item_last_seq = seq;
+    }
+}
 
 /**
  * @brief Process RCOut signals to extract SYNC Event sent by Ardupilot.

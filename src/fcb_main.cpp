@@ -870,10 +870,14 @@ void CFCBMain::OnMissionCurrentChanged(const mavlink_mission_current_t &mission_
 
     // IMPORTANT: This is an internal only event and cannot be broadcasted to communication-server.
     // if you want to broadcast ato communication-server you need to fire event from servo channels.
+    
     // IMPORTANT: here we sent a local event of every mission item. this mission item can be ANYTHING
     // it is just a SYNC with other modules that has waiting events linked to waypoints mission-items using.
     // so instead of Filtering message I have chosen to sent.
-    m_fcb_facade.sendMissionItemSequence(std::to_string(mission_current.seq));
+
+    // IMPORTANT: Ardupilot sends seq of mission items not mission commands.
+    de::fcb::mission::CMissionManager::getInstance().handleMissionCurrentCount(mission_current);
+    
 }
 
 void CFCBMain::OnACK(const int &acknowledged_cmd, const int &result, const std::string &result_msg)

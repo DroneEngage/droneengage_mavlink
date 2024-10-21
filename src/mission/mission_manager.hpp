@@ -63,7 +63,8 @@ namespace mission
                 void extractPlanModule (const Json_de& plan) override;
                 void deEventFiredExternally (const std::string de_event_sid) override;
                 void deEventFiredInternally (const std::string de_event_sid);
-            
+                
+
             public:
 
                 void processMyWaitingEvent();
@@ -74,6 +75,7 @@ namespace mission
             public:
                 void readWaitingEventFromFCB(const mavlink_servo_output_raw_t &servo_output_raw);
                 void readFiredEventFromFCB(const mavlink_servo_output_raw_t &servo_output_raw);
+                void handleMissionCurrentCount(const mavlink_mission_current_t &mission_current);
 
             public:
 
@@ -125,7 +127,7 @@ namespace mission
                 //event sent from Ardupilot-Board (RCOUT) to indicate that it is waiting for it.
                 int m_mavlink_event_waiting_for;
                 int m_event_fired_by_me;   
-
+                uint16_t m_mavlink_mission_item_last_seq;
 
             private:
                 /**
