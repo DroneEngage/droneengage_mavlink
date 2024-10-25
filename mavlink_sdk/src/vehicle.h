@@ -22,7 +22,7 @@ namespace mavlinksdk
      */
     struct Time_Stamps
     {
-        #define TIME_STAMP_MSG_LEN 1024
+        #define TIME_STAMP_MSG_LEN 0xFFFF
         #define MESSAGE_UNPROCESSED     0
         #define MESSAGE_PROCESSED       1
 
