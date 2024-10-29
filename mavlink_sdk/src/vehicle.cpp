@@ -285,28 +285,23 @@ void mavlinksdk::CVehicle::handle_vibration_report(const mavlink_vibration_t& vi
 void mavlinksdk::CVehicle::handle_distance_sensor (const mavlink_distance_sensor_t& distance_sensor)
 {
 	
-	if (distance_sensor.orientation<=40)
+	if (distance_sensor.orientation<=MAV_SENSOR_ROTATION_ROLL_90_PITCH_315)
 	{
 		mavlink_distance_sensor_t old_distance_sensor = m_distance_sensors[distance_sensor.orientation];
 		
-		m_distance_sensors[distance_sensor.orientation] = distance_sensor;
 		m_has_lidar_altitude = (distance_sensor.orientation ==  MAV_SENSOR_ORIENTATION::MAV_SENSOR_ROTATION_PITCH_270 );
-		if ((distance_sensor.max_distance > distance_sensor.current_distance)
-		&& (old_distance_sensor.max_distance >= old_distance_sensor.current_distance)
-		)
+		if ((old_distance_sensor.current_distance != distance_sensor.current_distance)
+		|| ((distance_sensor.time_boot_ms - old_distance_sensor.time_boot_ms) > DISTANCE_SENSOR_TIMEOUT))
 		{
 			// distance in range
+			m_distance_sensors[distance_sensor.orientation] = distance_sensor;
 			this->m_callback_vehicle->OnDistanceSensorChanged(distance_sensor);
 		}
-		else
-		if ((distance_sensor.max_distance <= distance_sensor.current_distance)
-		&& (old_distance_sensor.max_distance < old_distance_sensor.current_distance)
-		)
-		{
-			// distance out range
-			this->m_callback_vehicle->OnDistanceSensorChanged(distance_sensor);
-		}
-		
+	}
+	else
+	if (distance_sensor.orientation == MAV_SENSOR_ROTATION_CUSTOM)
+	{
+		//TODO: Handle Custom Orientation		
 	}
 	
 }

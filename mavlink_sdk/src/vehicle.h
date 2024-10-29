@@ -12,9 +12,9 @@
 namespace mavlinksdk
 {
     // 3 seconds
-    #define HEART_BEAT_TIMEOUT 5000000l
-    
- 
+    #define HEART_BEAT_TIMEOUT      5000000l
+    #define DISTANCE_SENSOR_TIMEOUT 5000 // ms
+
     /**
      * @brief list of messages received from mavlink channel.
      * This structure handles timing and processed flags for each message_id.
@@ -427,7 +427,7 @@ namespace mavlinksdk
             * @brief store all MAV_SENSOR_ORIENTATION predefined directions.
             * Distance Sensors
             */
-            mavlink_distance_sensor_t m_distance_sensors[41];
+            mavlink_distance_sensor_t m_distance_sensors[MAV_SENSOR_ROTATION_ROLL_90_PITCH_315 + 1];
 
             // System Parameters?
 
