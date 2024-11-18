@@ -199,7 +199,7 @@ namespace fcb
             void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat) override;
             void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat) override ;
             void OnBoardRestarted () override;
-            void OnArmed (const bool& armed) override;
+            void OnArmed (const bool& armed, const bool& ready_to_arm) override;
             void OnFlying (const bool& isFlying) override;
             void OnStatusText (const std::uint8_t& severity, const std::string& status) override;
             void OnModeChanges(const uint32_t& custom_mode, const int& firmware_type, const MAV_AUTOPILOT& autopilot) override;

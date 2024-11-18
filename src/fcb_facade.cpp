@@ -51,6 +51,18 @@ void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
         
     const ANDRUAV_VEHICLE_INFO& andruav_vehicle_info = fcbMain.getAndruavVehicleInfo();
 
+    uint8_t arming_status = 0; // Initialize arm_status
+
+    // Set bit 0 if ready to arm
+    if (andruav_vehicle_info.is_ready_to_arm) {
+        arming_status |= (1 << 0); // Set bit 0
+    }
+
+    // Set bit 1 if armed
+    if (andruav_vehicle_info.is_armed) {
+        arming_status |= (1 << 1); // Set bit 1
+    }
+
     Json_de message =
         {
             {"VT", andruav_vehicle_info.vehicle_type},     
@@ -58,7 +70,7 @@ void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
             {"AP", andruav_vehicle_info.autopilot},
             {"GM", andruav_vehicle_info.gps_mode},
             {"FI", andruav_vehicle_info.use_fcb},
-            {"AR", andruav_vehicle_info.is_armed},
+            {"AR", arming_status},
             {"FL", andruav_vehicle_info.is_flying},
             {"TP", fcbMain.isFCBConnected()?TelemetryProtocol_DroneKit_Telemetry:TelemetryProtocol_No_Telemetry},
             //{"SD", false},

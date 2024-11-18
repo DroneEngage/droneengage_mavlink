@@ -3,6 +3,7 @@
 #include <string>
 #include <limits.h>
 
+#include "./global.hpp"
 #include "./helpers/colors.h"
 #include "./helpers/utils.h"
 #include "vehicle.h"
@@ -73,7 +74,7 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	if (m_armed != is_armed)
 	{
 		m_armed = is_armed;
-		m_callback_vehicle->OnArmed(m_armed);
+		m_callback_vehicle->OnArmed(m_armed, m_ready_to_arm);
 	}
 
 	if (heartbeat.autopilot != MAV_AUTOPILOT::MAV_AUTOPILOT_PX4)
@@ -97,6 +98,24 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	return true;
 }
 
+void mavlinksdk::CVehicle::handle_sys_status(const mavlink_sys_status_t& sys_status)
+{
+	const bool ready_to_arm = MAV_SYS_STATUS_PREARM_CHECK
+		& sys_status.onboard_control_sensors_enabled 
+		& sys_status.onboard_control_sensors_health;
+	const bool motor_enabled = MAV_SYS_STATUS_SENSOR_MOTOR_OUTPUTS 
+		& sys_status.onboard_control_sensors_enabled 
+		& sys_status.onboard_control_sensors_health;
+
+		UNUSED(motor_enabled);
+	
+	if (ready_to_arm != m_ready_to_arm)
+	{
+		m_ready_to_arm = ready_to_arm;
+		m_callback_vehicle->OnArmed(m_armed, m_ready_to_arm);
+	}
+	
+}
 
 void mavlinksdk::CVehicle::handle_extended_system_state (const mavlink_extended_sys_state_t& extended_system_state)
 {
@@ -411,8 +430,11 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 
         case MAVLINK_MSG_ID_SYS_STATUS:
 		{
-            mavlink_msg_sys_status_decode(&mavlink_message, &(m_sys_status));
-					
+            // handle ready to arm
+			mavlink_sys_status_t sys_status;
+			mavlink_msg_sys_status_decode(&mavlink_message, &sys_status);
+			
+			handle_sys_status(sys_status);		
         }
         break;
 

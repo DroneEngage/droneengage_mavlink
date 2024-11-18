@@ -663,12 +663,13 @@ void CFCBMain::OnBoardRestarted()
     return;
 }
 
-void CFCBMain::OnArmed(const bool &armed)
+void CFCBMain::OnArmed(const bool &armed, const bool& ready_to_arm)
 {
     std::cout << std::endl
-              << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnArmed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+              << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnArmed/ReadyToArm" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     m_andruav_vehicle_info.is_armed = armed;
+    m_andruav_vehicle_info.is_ready_to_arm = ready_to_arm;
 
     m_fcb_facade.API_IC_sendID(std::string());
 

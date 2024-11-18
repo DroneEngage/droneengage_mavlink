@@ -85,7 +85,7 @@ namespace mavlinksdk
         virtual void OnBoardRestarted ()                                                                                                {};
         virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)                                                           {};
         virtual void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)                                                         {};
-        virtual void OnArmed (const bool& armed)                                                                                        {};
+        virtual void OnArmed (const bool& armed, const bool& ready_to_arm)                                                              {};
         virtual void OnFlying (const bool& isFlying)                                                                                    {};
         virtual void OnACK (const int& acknowledged_cmd, const int& result, const std::string& result_msg)                              {};
         virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)                                             {};
@@ -161,6 +161,7 @@ namespace mavlinksdk
         protected:
 
             bool handle_heart_beat              (const mavlink_heartbeat_t& heartbeat);
+            void handle_sys_status              (const mavlink_sys_status_t& sys_status);
             void handle_extended_system_state   (const mavlink_extended_sys_state_t& extended_system_state);
             void handle_cmd_ack                 (const mavlink_command_ack_t& command_ack);
             void handle_status_text             (const mavlink_statustext_t& status_text);
@@ -203,9 +204,14 @@ namespace mavlinksdk
                 return time_stamps.setProcessedFlag(message_id, flags);
             }
 
-            inline const bool isArmed()
+            inline const bool isArmed() const
             {
                 return m_armed;
+            }
+
+            inline const bool isMotorEnabled() const 
+            {
+                return m_motor_enabled;
             }
             
             inline const bool isFlying() const
@@ -486,6 +492,12 @@ namespace mavlinksdk
             bool m_is_landing = false;
             
             bool m_has_lidar_altitude = false;
+
+            bool m_motor_enabled;
+
+            bool m_ready_to_arm = false;
+
+            uint16_t m_mainloop_load = 0;
 
             mavlink_message_t mavlink_message_temp;
 

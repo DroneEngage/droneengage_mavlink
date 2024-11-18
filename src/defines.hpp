@@ -111,6 +111,7 @@ typedef struct ANDRUAV_VEHICLE_INFO
     std::string         group_id                           = std::string("");
     bool                use_fcb                             = false;
     bool                is_armed                            = false;
+    bool                is_ready_to_arm                     = false;
     bool                is_flying                           = false;
     bool                is_tracking_mode                    = false;
     bool                is_gcs_blocked                      = false;
