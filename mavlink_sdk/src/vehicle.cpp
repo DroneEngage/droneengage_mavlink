@@ -74,7 +74,7 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	if (m_armed != is_armed)
 	{
 		m_armed = is_armed;
-		m_callback_vehicle->OnArmed(m_armed, m_ready_to_arm);
+		m_callback_vehicle->OnArmed(m_armed, isReadyToArm());
 	}
 
 	if (heartbeat.autopilot != MAV_AUTOPILOT::MAV_AUTOPILOT_PX4)
@@ -103,16 +103,21 @@ void mavlinksdk::CVehicle::handle_sys_status(const mavlink_sys_status_t& sys_sta
 	const bool ready_to_arm = MAV_SYS_STATUS_PREARM_CHECK
 		& sys_status.onboard_control_sensors_enabled 
 		& sys_status.onboard_control_sensors_health;
-	const bool motor_enabled = MAV_SYS_STATUS_SENSOR_MOTOR_OUTPUTS 
-		& sys_status.onboard_control_sensors_enabled 
-		& sys_status.onboard_control_sensors_health;
-
-		UNUSED(motor_enabled);
 	
-	if (ready_to_arm != m_ready_to_arm)
+	bool trigger_on_arm = false;
+	if (ready_to_arm != isReadyToArm())
 	{
-		m_ready_to_arm = ready_to_arm;
-		m_callback_vehicle->OnArmed(m_armed, m_ready_to_arm);
+		trigger_on_arm = true;
+	}
+
+
+	// Add more check here for sensors ...etc.
+
+	m_sys_status = sys_status;
+
+	if (trigger_on_arm)
+	{
+		m_callback_vehicle->OnArmed(m_armed, ready_to_arm);
 	}
 	
 }

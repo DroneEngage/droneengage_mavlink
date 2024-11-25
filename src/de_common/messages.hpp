@@ -174,6 +174,14 @@
 #define TYPE_AndruavMessage_UpdateSwarm                 1058
 #define TYPE_AndruavMessage_Sync_EventFire              1061
 #define TYPE_AndruavMessage_Prepherials                 1070
+/**
+ * @brief: sends information about UDP Proxy of the unit.
+ * a:  string - udp_ip_other
+ * p:  int - udp_port_other
+ * o:  int - optimization_level
+ * en: bool - enabled
+ * z: bool - paused
+ */
 #define TYPE_AndruavMessage_UDPProxy_Info               1071
 /**
  * Used to set unit name and description.

@@ -209,11 +209,6 @@ namespace mavlinksdk
                 return m_armed;
             }
 
-            inline const bool isMotorEnabled() const 
-            {
-                return m_motor_enabled;
-            }
-            
             inline const bool isFlying() const
             {
                 return m_is_flying;
@@ -234,6 +229,7 @@ namespace mavlinksdk
                 return m_sys_status;
             }
 
+            
             inline const mavlink_battery_status_t& getMsgBatteryStatus () const
             {
                 return m_battery_status;
@@ -364,6 +360,29 @@ namespace mavlinksdk
                 return m_status_text;
             }
 
+            /**
+             * True if prechecked all passed.
+             * info already exists in m_sys_status
+             */
+            inline const bool isReadyToArm() const 
+            {
+                return MAV_SYS_STATUS_PREARM_CHECK
+                    & m_sys_status.onboard_control_sensors_enabled 
+                    & m_sys_status.onboard_control_sensors_health;
+            }
+
+            /**
+             * Motor can be locked or enabled.
+             * info already exists in m_sys_status
+             */
+            inline const bool isMotorEnabled() const 
+            {
+                return MAV_SYS_STATUS_SENSOR_MOTOR_OUTPUTS
+                    & m_sys_status.onboard_control_sensors_enabled 
+                    & m_sys_status.onboard_control_sensors_health;
+            }
+
+
         // Class Members
         protected:
             mavlinksdk::CCallBack_Vehicle* m_callback_vehicle;
@@ -493,10 +512,8 @@ namespace mavlinksdk
             
             bool m_has_lidar_altitude = false;
 
-            bool m_motor_enabled;
-
-            bool m_ready_to_arm = false;
-
+            
+            
             uint16_t m_mainloop_load = 0;
 
             mavlink_message_t mavlink_message_temp;
