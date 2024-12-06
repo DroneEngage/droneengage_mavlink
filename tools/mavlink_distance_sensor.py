@@ -20,7 +20,7 @@
 # [constant]      : (Optional) Fixed distance value for all sensors (e.g., 100)
 #
 # Example:
-# python send_distance.py 127.0.0.1 14551 5 800 1.5 100
+# python mavlink_distance_sensor 127.0.0.1 14551 5 800 1.5 100
 #
 ################################################################################
 
