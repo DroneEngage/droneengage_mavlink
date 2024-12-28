@@ -68,6 +68,7 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	if ((now - time_stamps.getMessageTime(MAVLINK_MSG_ID_HEARTBEAT)) > HEART_BEAT_TIMEOUT)
 	{  // Notify when heart beat get live again.
 		m_callback_vehicle->OnHeartBeat_Resumed (heartbeat);
+		m_ready_to_arm_trigger_first_tick = false;
 	}
 
 	// Detect change in arm status
@@ -105,9 +106,10 @@ void mavlinksdk::CVehicle::handle_sys_status(const mavlink_sys_status_t& sys_sta
 		& sys_status.onboard_control_sensors_health;
 	
 	bool trigger_on_arm = false;
-	if (ready_to_arm != isReadyToArm())
+	if (!m_ready_to_arm_trigger_first_tick || (ready_to_arm != isReadyToArm()))
 	{
 		trigger_on_arm = true;
+		m_ready_to_arm_trigger_first_tick = true;
 	}
 
 

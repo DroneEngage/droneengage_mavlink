@@ -12,7 +12,7 @@
 namespace mavlinksdk
 {
     // 3 seconds
-    #define HEART_BEAT_TIMEOUT      5000000l
+    #define HEART_BEAT_TIMEOUT      3000000l
     #define DISTANCE_SENSOR_TIMEOUT 5000 // ms
 
     /**
@@ -512,7 +512,7 @@ namespace mavlinksdk
             
             bool m_has_lidar_altitude = false;
 
-            
+            bool m_ready_to_arm_trigger_first_tick = false;
             
             uint16_t m_mainloop_load = 0;
 
