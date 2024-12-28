@@ -24,8 +24,8 @@ import time
 from pymavlink import mavutil
 
 # Predefined array of distances for the sensors (current_distance, sensor_id, orientation)
-PREDEFINED_DISTANCES = [(100, 0, 0), (200, 2, 2),
-                        (300, 4, 4), (400, 6, 6)]
+PREDEFINED_DISTANCES = [(1, 0, 0), (10, 2, 2),
+                        (3, 4, 4), (4, 6, 6)]
 
 def send_distance_sensor_data(ts, the_connection):
     """
@@ -41,8 +41,8 @@ def send_distance_sensor_data(ts, the_connection):
         # Create the message using the encode method
         msg = the_connection.mav.distance_sensor_encode(
             time_boot_ms=time_boot_ms,
-            min_distance=5,  # Minimum distance
-            max_distance=800,  # Maximum distance
+            min_distance=1,  # Minimum distance
+            max_distance=20,  # Maximum distance
             current_distance=current_distance,
             type=0,  # Sensor type (0 for generic)
             id=sensor_id,
