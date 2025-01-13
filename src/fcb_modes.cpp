@@ -36,7 +36,6 @@ ANDRUAV_UNIT_TYPE CFCBModes::getAndruavVehicleType(const int mav_type)
         case MAV_TYPE_SUBMARINE: /* Submarine | */
             return ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_SUBMARINE;
 
-        case MAV_TYPE_FLAPPING_WING:  /* Flapping wing | */
         case MAV_TYPE_VTOL_DUOROTOR:  /* Two-rotor VTOL using control surfaces in vertical operation in addition. Tailsitter. | */
         case MAV_TYPE_VTOL_QUADROTOR: /* Quad-rotor VTOL using a V-shaped quad config in vertical operation. Tailsitter. | */
         case MAV_TYPE_VTOL_TILTROTOR: /* Tiltrotor VTOL | */
@@ -44,6 +43,8 @@ ANDRUAV_UNIT_TYPE CFCBModes::getAndruavVehicleType(const int mav_type)
         case MAV_TYPE_VTOL_RESERVED3: /* VTOL reserved 3 | */
         case MAV_TYPE_VTOL_RESERVED4: /* VTOL reserved 4 | */
         case MAV_TYPE_VTOL_RESERVED5: /* VTOL reserved 5 | */
+            return ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_VTOL;
+        case MAV_TYPE_FLAPPING_WING:  /* Flapping wing | */
         case MAV_TYPE_FIXED_WING:
             return ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_PLANE;
 

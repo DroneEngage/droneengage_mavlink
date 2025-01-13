@@ -35,6 +35,9 @@ typedef enum ANDRUAV_UNIT_TYPE
         VEHICLE_TYPE_SUBMARINE  = 12,
         // no used here ... only for refence
         VEHICLE_TYPE_GIMBAL     = 15,
+        // VTOL
+        VEHICLE_TYPE_VTOL       = 16,
+        
         VEHICLE_TYPE_GCS = 999
         // end of reference
 } ANDRUAV_UNIT_TYPE;
