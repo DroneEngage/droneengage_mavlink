@@ -75,6 +75,10 @@ ANDRUAV_UNIT_MODE CFCBModes::getAndruavMode(const uint32_t mode, const int andru
             return CFCBModes::getAndruavModeFromMavlinkPlaneMode(mode, autopilot_type);
             break;
 
+        case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_VTOL:
+            return CFCBModes::getAndruavModeFromMavlinkPlaneMode(mode, autopilot_type);
+            break;
+
         case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_ROVER:
         case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_BOAT:
             return CFCBModes::getAndruavModeFromMavlinkRoverMode(mode, autopilot_type);
