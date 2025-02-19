@@ -5,16 +5,15 @@
 
 #include "./helpers/helpers.hpp"
 #include "./helpers/colors.hpp"
-#include "./uavos_common/messages.hpp"
-#include "./uavos_common/localConfigFile.hpp"
+#include "./de_common/messages.hpp"
+#include "./de_common/localConfigFile.hpp"
 #include "fcb_modes.hpp"
 #include "./swarm/fcb_swarm_follower.hpp"
 #include "fcb_andruav_message_parser.hpp"
-#include "./mission/mission_translator.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 
-using namespace uavos::fcb;
+using namespace de::fcb;
 
 
 
@@ -40,6 +39,12 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
         is_system = true;
     }
 
+    bool is_inter_module = false;
+    if ((validateField(andruav_message, INTERMODULE_ROUTING_TYPE, Json_de::value_t::string)) && (andruav_message[INTERMODULE_ROUTING_TYPE].get<std::string>().compare(CMD_TYPE_INTERMODULE)==0))
+    {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
+        is_inter_module = true;
+    }
+    
     if (messageType == TYPE_AndruavMessage_RemoteExecute)
     {
         parseRemoteExecute(andruav_message);
@@ -309,8 +314,9 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                     std::cout << _INFO_CONSOLE_BOLD_TEXT << "UploadWayPoints: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
                     break;
                 }
-                //TODO: you should allow multiple messages to allow large file to be received.
-                // !UDP packet has maximum size.
+                
+                // UDP communication for de_databus should allow any size of waypoints.
+                
                 
                 /*
                     a : std::string serialized mission file
@@ -322,31 +328,49 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                     break ;
                 }
 
-                std::string mission = cmd ["a"];
-                mission::CMissionTranslator cMissionTranslator;
+                std::string plan_text = cmd ["a"];
+                geofence::CGeoFenceManager::getInstance().uploadFencesIntoSystem(plan_text);
+                m_mission_manager.uploadMissionIntoSystem(plan_text);
                 
-                std::unique_ptr<std::map <int, std::unique_ptr<mission::CMissionItem>>> new_mission_items = cMissionTranslator.translateMissionText(mission);
-                if (new_mission_items == std::nullptr_t())
+                
+                
+            }
+            break;
+
+            case TYPE_AndruavMessage_Upload_DE_Mission:
+            {
+                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+                
+                if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_WP_CONTROL) != PERMISSION_ALLOW_GCS_WP_CONTROL)) \
+                {
+                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "UploadWayPoints: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    break;
+                }
+                
+                // UDP communication for de_databus should allow any size of waypoints.
+                
+                
+                /*
+                    a : std::string serialized mission file
+                */
+                if (!validateField(cmd, "j", Json_de::value_t::object)) 
                 {
                     CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
 
                     break ;
                 }
-                m_fcbMain.clearWayPoints();
-                mission::ANDRUAV_UNIT_MISSION& andruav_missions = m_fcbMain.getAndruavMission();                
-                
-             
-                std::map<int, std::unique_ptr<mission::CMissionItem>>::iterator it;
-                for (it = new_mission_items->begin(); it != new_mission_items->end(); it++)
+
+                if (validateField(cmd, "e", Json_de::value_t::boolean))
                 {
-                    int seq = it->first;
-                    
-                    andruav_missions.mission_items.insert(std::make_pair( seq, std::move(it->second)));
+                    geofence::CGeoFenceManager::getInstance().clearGeoFences("");
                 }
 
-                new_mission_items->clear();
+                const Json_de plan_object = cmd ["j"];
+
+                //CMissionManager::getInstance().
+                geofence::CGeoFenceManager::getInstance().uploadFencesIntoSystem(plan_object);
                 
-                m_fcbMain.saveWayPointsToFCB();
+                m_mission_manager.uploadMissionIntoSystem2(plan_object);
                 
             }
             break;
@@ -426,10 +450,20 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
             break;
 
             case TYPE_AndruavMessage_Sync_EventFire:
-            {
-                if (!validateField(cmd, "a",Json_de::value_t::number_unsigned)) return ;
-                
-                m_fcbMain.insertIncommingEvent(cmd["a"].get<int>());
+            {   // This can be an event from remote unit or from anothe module.
+
+                // if (validateField(cmd, "a", Json_de::value_t::number_unsigned)) 
+                // {
+                //     // add mission-id event to event list.
+                //     // dependent paused mission should be fired as a response.
+                //     m_mission_manager.mavlinkMissionItemStartedEvent(cmd["a"].get<int>());
+                // }
+
+                if (validateField(cmd, "d",Json_de::value_t::string)) 
+                {
+                    // string droneengage event format.
+                    m_mission_manager.deEventFiredExternally(cmd["d"].get<std::string>());
+                }
             }
             break;
 
@@ -595,7 +629,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                 }
 
                 const std::string leader_sender = andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
-                uavos::fcb::swarm::CSwarmFollower& swarm_follower = uavos::fcb::swarm::CSwarmFollower::getInstance();
+                de::fcb::swarm::CSwarmFollower& swarm_follower = de::fcb::swarm::CSwarmFollower::getInstance();
                 swarm_follower.handle_leader_traffic(leader_sender, full_message, full_message_length);
             }
             break;
@@ -700,7 +734,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
 
                 const int formation = cmd["a"].get<int>();
 
-                m_fcb_swarm_manager.makeSwarm((uavos::fcb::swarm::ANDRUAV_SWARM_FORMATION)formation);
+                m_fcb_swarm_manager.makeSwarm((de::fcb::swarm::ANDRUAV_SWARM_FORMATION)formation);
             }
             break;
 
@@ -768,7 +802,17 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                         follower_formation = (swarm::ANDRUAV_SWARM_FORMATION) cmd["d"].get<int>();
                     }
                     
-                    m_fcb_swarm_manager.followLeader(leader_party_id, follower_index, follower_formation, andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+                    std::string sender = "";
+                    if (!is_inter_module)
+                    {
+                        sender = andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
+                    }
+                    else
+                    {
+                        sender = de::comm::CModule::getInstance().getPartyId();
+                    }
+                    
+                    m_fcb_swarm_manager.followLeader(leader_party_id, follower_index, follower_formation, sender);
                     break;
                 }
             }
@@ -843,7 +887,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
             }
             break;
 
-            case TYPE_AndruavSystem_UdpProxy:
+            case TYPE_AndruavSystem_UDPProxy:
             {   
                 /*
                     Received from communication_server that created a udp socket me.
@@ -916,11 +960,18 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
     UNUSED (permission);
     
     bool is_system = false;
-     
+    
     if ((validateField(andruav_message, ANDRUAV_PROTOCOL_SENDER, Json_de::value_t::string)) && (andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(SPECIAL_NAME_SYS_NAME)==0))
     {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
         is_system = true;
     }
+    
+    bool is_inter_module = false;
+    if ((validateField(andruav_message, INTERMODULE_ROUTING_TYPE, Json_de::value_t::string)) && (andruav_message[INTERMODULE_ROUTING_TYPE].get<std::string>().compare(CMD_TYPE_INTERMODULE)==0))
+    {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
+        is_inter_module = true;
+    }
+    
     const int remoteCommand = cmd["C"].get<int>();
     std::cout << "cmd: " << remoteCommand << std::endl;
     switch (remoteCommand)
@@ -946,7 +997,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
         case RemoteCommand_RELOAD_WAY_POINTS_FROM_FCB:
             if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
             
-            m_fcbMain.reloadWayPoints();
+            m_mission_manager.reloadWayPoints();
         break;
 
         case RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB:
@@ -958,7 +1009,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
                 break;
             }
                 
-            m_fcbMain.clearWayPoints();
+            m_mission_manager.clearWayPoints();
         break;
         
 
@@ -1063,7 +1114,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
         case RemoteCommand_TELEMETRYCTRL:
         {
             if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
-            if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) != PERMISSION_ALLOW_GCS_FULL_CONTROL))
+            if ((!is_inter_module) && (!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) != PERMISSION_ALLOW_GCS_FULL_CONTROL))
             {
                 std::cout << _INFO_CONSOLE_BOLD_TEXT << "TELEMETRYCTRL: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
                 break;
@@ -1095,7 +1146,12 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
                 return ;
             }
             
-            m_fcbMain.setStreamingLevel(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), streaming_level);
+            m_fcbMain.setStreamingLevel(streaming_level);
+            
+            if (is_inter_module == true)
+            {
+                m_fcbMain.sendUdpProxyStatus(std::string(""));
+            }
         }
         break;
 
@@ -1121,7 +1177,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
                 uint32_t udp_proxy_fixed_port = cmd["P"].get<int>();
                 if (udp_proxy_fixed_port >= 0xffff) break;
                 
-                uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+                de::CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
                 cLocalConfigFile.addNumericField("udp_proxy_fixed_port",udp_proxy_fixed_port);
                 cLocalConfigFile.apply();
 

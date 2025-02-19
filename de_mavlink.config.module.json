@@ -1,7 +1,6 @@
 { 
   // A name and GUID for this module as multiple modules sometimes can be added.
   "module_id": "FCB_CTRL", 
-  "module_key": "E289FEE7-F4AD-44EF-A257-C9A361316BE7", 
   
   // IP & Port Communication Module is listening to.
   "s2s_udp_target_ip": "127.0.0.1",
@@ -9,7 +8,7 @@
   // IP & Port of this module
   "s2s_udp_listening_ip": "127.0.0.1", 
   "s2s_udp_listening_port": "61003", 
-  
+  "s2s_udp_packet_size": "8192",
   
   // How to connect to Ardupilot board
   // Using udp connection
@@ -57,8 +56,8 @@
   // even if you deleted this field you are still 
   //"udp_proxy_fixed_port":15412,
 
-  //"event_fire_channel": 16,
-  //"event_wait_channel": 15,
+  "event_fire_channel": 16,
+  "event_wait_channel": 15,
   
   "read_only_mode": false,
   // you can ignore loading parameters but the R/C Gamepad will not work.
@@ -111,7 +110,7 @@
   
 
 // should be a channel from 1 to 8. when High all commands from GCS will be ignored including RC-Override.
-"rc_block_channel": 0,
+"rc_block_channel": -1,
 //"read_only_mode": true,
 //"ignore_loading_parameters": false,
 

@@ -7,12 +7,15 @@
 #include "../helpers/helpers.hpp"
 
 
-using namespace uavos::fcb::swarm;
+using namespace de::fcb::swarm;
 
 
 /**
  * @brief Logic of thread formation for follower in implemented here.
- * 
+ * Leadder sends it own location, and I know the formation is Thread-Formation and my index into it 
+ * and I generate my position accordingly.
+ * Note that another formation my receive exact location of the unit. 
+ * The logic varies from a formation to another.
  */
 void CSwarmFollower::updateFollowerInThreadFormation()
 {
@@ -56,7 +59,10 @@ void CSwarmFollower::updateFollowerInThreadFormation()
 
     POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, bearing_with_leader, (m_fcb_swarm_manager.getFollowerIndex()+1)*100);
 
+    // instruct follower to go to a targfet point.
     mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude , p.longitude , (m_leader_gpos_new.relative_alt + (m_fcb_swarm_manager.getFollowerIndex()+1) * 10000) / 1000.0);
+
+    // broadcast target location or this follower.
     CFCBFacade::getInstance().sendFCBTargetLocation("", p.latitude , p.longitude, (double) m_leader_gpos_new.relative_alt, DESTINATION_SWARM_MY_LOCATION);
     
     // store latest readings.

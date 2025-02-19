@@ -12,12 +12,17 @@
 namespace mavlinksdk
 {
     // 3 seconds
-    #define HEART_BEAT_TIMEOUT 5000000l
-    
- 
+    #define HEART_BEAT_TIMEOUT      3000000l
+    #define DISTANCE_SENSOR_TIMEOUT 5000 // ms
+
+    /**
+     * @brief list of messages received from mavlink channel.
+     * This structure handles timing and processed flags for each message_id.
+     * 
+     */
     struct Time_Stamps
     {
-        #define TIME_STAMP_MSG_LEN 1024
+        #define TIME_STAMP_MSG_LEN 0xFFFF
         #define MESSAGE_UNPROCESSED     0
         #define MESSAGE_PROCESSED       1
 
@@ -80,7 +85,7 @@ namespace mavlinksdk
         virtual void OnBoardRestarted ()                                                                                                {};
         virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)                                                           {};
         virtual void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)                                                         {};
-        virtual void OnArmed (const bool& armed)                                                                                        {};
+        virtual void OnArmed (const bool& armed, const bool& ready_to_arm)                                                              {};
         virtual void OnFlying (const bool& isFlying)                                                                                    {};
         virtual void OnACK (const int& acknowledged_cmd, const int& result, const std::string& result_msg)                              {};
         virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)                                             {};
@@ -156,6 +161,7 @@ namespace mavlinksdk
         protected:
 
             bool handle_heart_beat              (const mavlink_heartbeat_t& heartbeat);
+            void handle_sys_status              (const mavlink_sys_status_t& sys_status);
             void handle_extended_system_state   (const mavlink_extended_sys_state_t& extended_system_state);
             void handle_cmd_ack                 (const mavlink_command_ack_t& command_ack);
             void handle_status_text             (const mavlink_statustext_t& status_text);
@@ -189,16 +195,20 @@ namespace mavlinksdk
                 return time_stamps.getProcessedFlag(message_id);
             }
 
+            /**
+             * @brief DETERMINES if the last message of type message_id from mavlink 
+             * has been processed or not.
+             */
             inline void setProcessedFlag(uint16_t message_id, uint16_t flags)
             {
                 return time_stamps.setProcessedFlag(message_id, flags);
             }
 
-            inline const bool isArmed()
+            inline const bool isArmed() const
             {
                 return m_armed;
             }
-            
+
             inline const bool isFlying() const
             {
                 return m_is_flying;
@@ -219,6 +229,7 @@ namespace mavlinksdk
                 return m_sys_status;
             }
 
+            
             inline const mavlink_battery_status_t& getMsgBatteryStatus () const
             {
                 return m_battery_status;
@@ -349,6 +360,29 @@ namespace mavlinksdk
                 return m_status_text;
             }
 
+            /**
+             * True if prechecked all passed.
+             * info already exists in m_sys_status
+             */
+            inline const bool isReadyToArm() const 
+            {
+                return MAV_SYS_STATUS_PREARM_CHECK
+                    & m_sys_status.onboard_control_sensors_enabled 
+                    & m_sys_status.onboard_control_sensors_health;
+            }
+
+            /**
+             * Motor can be locked or enabled.
+             * info already exists in m_sys_status
+             */
+            inline const bool isMotorEnabled() const 
+            {
+                return MAV_SYS_STATUS_SENSOR_MOTOR_OUTPUTS
+                    & m_sys_status.onboard_control_sensors_enabled 
+                    & m_sys_status.onboard_control_sensors_health;
+            }
+
+
         // Class Members
         protected:
             mavlinksdk::CCallBack_Vehicle* m_callback_vehicle;
@@ -418,7 +452,7 @@ namespace mavlinksdk
             * @brief store all MAV_SENSOR_ORIENTATION predefined directions.
             * Distance Sensors
             */
-            mavlink_distance_sensor_t m_distance_sensors[41];
+            mavlink_distance_sensor_t m_distance_sensors[MAV_SENSOR_ROTATION_ROLL_90_PITCH_315 + 1];
 
             // System Parameters?
 
@@ -477,6 +511,10 @@ namespace mavlinksdk
             bool m_is_landing = false;
             
             bool m_has_lidar_altitude = false;
+
+            bool m_ready_to_arm_trigger_first_tick = false;
+            
+            uint16_t m_mainloop_load = 0;
 
             mavlink_message_t mavlink_message_temp;
 

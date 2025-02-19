@@ -8,13 +8,13 @@
 #include <mavlink_command.h>
 #include <mavlink_events.h>
 
-#include "./uavos_common/messages.hpp"
-#include "./uavos_common/uavos_module.hpp"
-#include "./uavos_common/udpProxy.hpp"
+#include "./de_common/messages.hpp"
+#include "./de_common/de_module.hpp"
+#include "./de_common/udpProxy.hpp"
 #include "./mission/missions.hpp"
 #include "fcb_traffic_optimizer.hpp"
 
-#include "./helpers/json.hpp"
+#include "./helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 
@@ -22,7 +22,7 @@ using Json_de = nlohmann::json;
 
 
 #define EVENT_TIME_DIVIDER      5
-namespace uavos
+namespace de
 {
 namespace fcb
 {
@@ -43,7 +43,7 @@ namespace fcb
         int udp_port2;
         bool enabled = false;
         bool paused = true;
-        uavos::comm::CUDPProxy udp_client;
+        de::comm::CUDPProxy udp_client;
     } ANDRUAV_UDP_PROXY;
 
     /**
@@ -52,7 +52,7 @@ namespace fcb
      * It also communicates with physical FCB using mavlinksdk library.
      * 
      */
-    class CFCBMain: public mavlinksdk::CMavlinkEvents, uavos::comm::CCallBack_UdpProxy
+    class CFCBMain: public mavlinksdk::CMavlinkEvents, de::comm::CCallBack_UdpProxy
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -77,8 +77,7 @@ namespace fcb
 
             CFCBMain()
             {
-                m_event_wait_channel = -1; // no event
-                m_event_fired_by_me.clear(); // nothing fired
+                
             };
 
         public:
@@ -99,7 +98,7 @@ namespace fcb
 
             void loopScheduler();
 
-            /* cannot connect to uavos comm*/
+            /* cannot connect to de comm*/
             void alertDroneEngageOffline ();
             
             const ANDRUAV_VEHICLE_INFO& getAndruavVehicleInfo ()
@@ -107,18 +106,13 @@ namespace fcb
                 return m_andruav_vehicle_info;
             }
 
-            uavos::fcb::mission::ANDRUAV_UNIT_MISSION& getAndruavMission()
-            {
-                return m_andruav_missions;      
-            } 
+            
             
 
 
         public:
 
-            void clearWayPoints();
-            void reloadWayPoints();
-            void saveWayPointsToFCB();
+            
 
             void releaseRemoteControl();
             void updateRemoteControlChannels(const int16_t rc_channels[18]);
@@ -129,8 +123,6 @@ namespace fcb
             void freezeRemoteControl();
             void enableRemoteControl();
             void enableRemoteControlGuided();
-            void processIncommingEvent();
-            void insertIncommingEvent(const int16_t event_id);
             /**
              * @brief Set the PartyID & GroupID
              * 
@@ -143,24 +135,9 @@ namespace fcb
                 m_andruav_vehicle_info.group_id = group_id;
             }
 
-            /**
-             * @brief Set the Event Channels used for Fire & Wait Events
-             * 
-             * @param event_fire_channel 
-             * @param event_wait_channel 
-             */
-            void setEventChannel (const int event_fire_channel, const int event_wait_channel)
-            {
-                m_event_fire_channel = event_fire_channel; 
-                m_event_wait_channel = event_wait_channel;
-            }
-
-            /**
-             * @deprecated
-             */
-            //void toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level);
             
-            void setStreamingLevel (const std::string& target_party_id, const int& streaming_level);
+            
+            void setStreamingLevel (const int& streaming_level);
 
             bool isFCBConnected () const { return m_fcb_connected;}; 
             
@@ -169,8 +146,12 @@ namespace fcb
                 return m_rcmap_channels_info;
             };
 
+            
+            
+                
+
             /**
-             * @brief called when receive {@link TYPE_AndruavSystem_UdpProxy @endlink} to 
+             * @brief called when receive {@link TYPE_AndruavSystem_UDPProxy @endlink} to 
              * add update udpProxy database and creates a UDP socket. 
              * 
              * @param enabled 
@@ -218,7 +199,7 @@ namespace fcb
             void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat) override;
             void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat) override ;
             void OnBoardRestarted () override;
-            void OnArmed (const bool& armed) override;
+            void OnArmed (const bool& armed, const bool& ready_to_arm) override;
             void OnFlying (const bool& isFlying) override;
             void OnStatusText (const std::uint8_t& severity, const std::string& status) override;
             void OnModeChanges(const uint32_t& custom_mode, const int& firmware_type, const MAV_AUTOPILOT& autopilot) override;
@@ -244,28 +225,26 @@ namespace fcb
             void OnConnectionStatusChangedWithAndruavServer (const int status) ;
         
         
-        // Events implementation of uavos::comm::CCallBack_UdpProxy
+        // Events implementation of de::comm::CCallBack_UdpProxy
         public:
-            void OnMessageReceived (const uavos::comm::CUDPProxy * udp_proxy, const char *, int len) override;
+            void OnMessageReceived (const de::comm::CUDPProxy * udp_proxy, const char *, int len) override;
 
         private: 
             void initVehicleChannelLimits(const bool display);
      
         private:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
-            uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
-            uavos::fcb::CMavlinkTrafficOptimizer& m_mavlink_optimizer = uavos::fcb::CMavlinkTrafficOptimizer::getInstance();
+            de::fcb::CFCBFacade& m_fcb_facade = de::fcb::CFCBFacade::getInstance();
+            de::fcb::CMavlinkTrafficOptimizer& m_mavlink_optimizer = de::fcb::CMavlinkTrafficOptimizer::getInstance();
             
         private:
             int getConnectionType () const; 
             bool connectToFCB ();
             
-            void updateGeoFenceHitStatus();
-            void takeActionOnFenceViolation(uavos::fcb::geofence::CGeoFenceBase * geo_fence);
+            
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
             void update_rcmap_info();
             void checkBlockedStatus();
-
             /**
              * @brief emulate a camera for ardupilot.
              * 
@@ -275,27 +254,17 @@ namespace fcb
         private:
             Json_de m_jsonConfig;
             int m_connection_type;
-            /**
-             * @brief servo channel used for sending events
-             * 
-             */
-            int m_event_fire_channel;
-            int m_event_wait_channel;
-            int m_event_time_divider=0; // wait
+            
 
-            std::vector<int>  m_event_fired_by_me;
-            std::vector<int>  m_event_received_from_others;
-            int m_event_waiting_for;
             ANDRUAV_VEHICLE_INFO m_andruav_vehicle_info;
-            uavos::fcb::mission::ANDRUAV_UNIT_MISSION m_andruav_missions;      
-
+            
             RCMAP_CHANNELS_MAP_INFO_STRUCT m_rcmap_channels_info;
 
             /**
              * @brief Andruav units subscribed in telemetry streaming.
              * 
              */
-            std::vector<std::unique_ptr<uavos::fcb::ANDRUAV_UNIT_STRUCT>> m_TelemetryUnits;
+            std::vector<std::unique_ptr<de::fcb::ANDRUAV_UNIT_STRUCT>> m_TelemetryUnits;
             
 
             bool m_exit_thread = true;
@@ -310,7 +279,12 @@ namespace fcb
             uint64_t m_last_access_telemetry = 0;
             ANDRUAV_UDP_PROXY m_udp_proxy;
             
-
+            /**
+            * @brief servo channel used for sending events
+            * 
+            */
+            int m_event_time_divider=0; // wait
+    
     };
 }
 }

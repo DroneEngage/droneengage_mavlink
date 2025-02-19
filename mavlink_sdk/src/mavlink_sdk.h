@@ -132,13 +132,14 @@ namespace mavlinksdk
             {
                 m_mavlink_events->OnHeartBeat_Resumed (heartbeat);
             };
-            inline void OnArmed (const bool& armed) override 
+            inline void OnArmed (const bool& armed, const bool& ready_to_arm) override 
             {
-                #ifdef DEBUG
+                #ifdef DDEBUG
                     std::cout << _INFO_CONSOLE_TEXT << "OnArmed " << std::to_string(armed) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+                    std::cout << _INFO_CONSOLE_TEXT << "Ready to Arm " << std::to_string(ready_to_arm) << _NORMAL_CONSOLE_TEXT_ << std::endl;    
                 #endif
 
-                m_mavlink_events->OnArmed (armed);
+                m_mavlink_events->OnArmed (armed, ready_to_arm);
 
             };
             inline void OnFlying (const bool& isFlying) override 

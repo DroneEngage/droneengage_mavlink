@@ -1,12 +1,12 @@
 #include <mavlink_sdk.h>
-#include "../uavos_common/messages.hpp"
+#include "../de_common/messages.hpp"
 
 
 #include "../helpers/colors.hpp"
 #include "../mission/missions.hpp"
 
 
-using namespace uavos::fcb::mission;
+using namespace de::fcb::mission;
 
 
 
@@ -22,6 +22,16 @@ void CMissionItem::decodeMavlink (const mavlink_mission_item_int_t& mission_item
     m_valid = true;
 }
 
+   
+/**
+ * @brief return value may not be valid .... call isValid() first.
+ * 
+ * @return * mavlink_mission_item_int_t 
+ */
+mavlink_mission_item_int_t CMissionItem::getArdupilotMission () const
+{
+    return m_original_mission;
+}
 
 //***********************************Delay_Step
 
@@ -46,7 +56,7 @@ Json_de CDummy_Step::getAndruavMission()
     return message;
 }
 
-mavlink_mission_item_int_t CDummy_Step::getArdupilotMission()
+mavlink_mission_item_int_t CDummy_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -101,7 +111,7 @@ Json_de CDelay_Step::getAndruavMission()
 }
 
 
-mavlink_mission_item_int_t CDelay_Step::getArdupilotMission()
+mavlink_mission_item_int_t CDelay_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -147,7 +157,7 @@ Json_de CDelay_State_Machine_Step::getAndruavMission()
     return message;
 }
 
-mavlink_mission_item_int_t CDelay_State_Machine_Step::getArdupilotMission()
+mavlink_mission_item_int_t CDelay_State_Machine_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -191,7 +201,7 @@ Json_de CGuided_Enabled_Step::getAndruavMission()
     return message;
 }
 
-mavlink_mission_item_int_t CGuided_Enabled_Step::getArdupilotMission()
+mavlink_mission_item_int_t CGuided_Enabled_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -235,7 +245,7 @@ Json_de CChange_Altitude_Step::getAndruavMission()
     return message;
 }
 
-mavlink_mission_item_int_t CChange_Altitude_Step::getArdupilotMission()
+mavlink_mission_item_int_t CChange_Altitude_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -281,7 +291,7 @@ Json_de CContinue_And_Change_Altitude_Step::getAndruavMission()
     return message;
 }
 
-mavlink_mission_item_int_t CContinue_And_Change_Altitude_Step::getArdupilotMission()
+mavlink_mission_item_int_t CContinue_And_Change_Altitude_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -318,7 +328,7 @@ Json_de CCameraTrigger_Step::getAndruavMission()
     return message;
 }
 
-mavlink_mission_item_int_t CCameraTrigger_Step::getArdupilotMission()
+mavlink_mission_item_int_t CCameraTrigger_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -352,7 +362,7 @@ Json_de CCameraControl_Step::getAndruavMission()
     return message;
 }
 
-mavlink_mission_item_int_t CCameraControl_Step::getArdupilotMission()
+mavlink_mission_item_int_t CCameraControl_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -406,7 +416,7 @@ Json_de CChange_Speed_Step::getAndruavMission()
     return message;
 }
 
-mavlink_mission_item_int_t CChange_Speed_Step::getArdupilotMission()
+mavlink_mission_item_int_t CChange_Speed_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -462,7 +472,7 @@ Json_de CChange_Heading_Step::getAndruavMission()
     return message;
 }
 
-mavlink_mission_item_int_t CChange_Heading_Step::getArdupilotMission()
+mavlink_mission_item_int_t CChange_Heading_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -524,7 +534,7 @@ Json_de CLoiter_Turns_Step::getAndruavMission()
     return message;
 }
 
-mavlink_mission_item_int_t CLoiter_Turns_Step::getArdupilotMission()
+mavlink_mission_item_int_t CLoiter_Turns_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -573,7 +583,7 @@ Json_de CRTL_Step::getAndruavMission()
     return message;
 }
 
-mavlink_mission_item_int_t CRTL_Step::getArdupilotMission()
+mavlink_mission_item_int_t CRTL_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -626,7 +636,7 @@ Json_de CTakeOff_Step::getAndruavMission()
 }
 
 
-mavlink_mission_item_int_t CTakeOff_Step::getArdupilotMission()
+mavlink_mission_item_int_t CTakeOff_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -685,7 +695,7 @@ Json_de CLand_Step::getAndruavMission()
 }
 
 
-mavlink_mission_item_int_t CLand_Step::getArdupilotMission()
+mavlink_mission_item_int_t CLand_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     
@@ -753,7 +763,7 @@ Json_de CWayPoint_Step::getAndruavMission()
 }
 
 
-mavlink_mission_item_int_t CWayPoint_Step::getArdupilotMission()
+mavlink_mission_item_int_t CWayPoint_Step::getArdupilotMission() const
 {
     if (m_valid == true) return m_original_mission;
     

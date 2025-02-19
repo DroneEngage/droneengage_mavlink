@@ -10,11 +10,11 @@
 #include "./helpers/helpers.hpp"
 #include "./helpers/util_rpi.hpp"
 #include "./helpers/getopt_cpp.hpp"
-#include "./uavos_common/messages.hpp"
-#include "./uavos_common/configFile.hpp"
-#include "./uavos_common/localConfigFile.hpp"
-#include "./uavos_common/udpClient.hpp"
-#include "./uavos_common/uavos_module.hpp"
+#include "./de_common/messages.hpp"
+#include "./de_common/configFile.hpp"
+#include "./de_common/localConfigFile.hpp"
+#include "./de_common/udpClient.hpp"
+#include "./de_common/de_module.hpp"
 #include "./swarm/fcb_swarm_manager.hpp"
 #include "./mission/missions.hpp"
 #include "fcb_facade.hpp"
@@ -22,9 +22,11 @@
 #include "./swarm/fcb_swarm_follower.hpp"
 #include "fcb_main.hpp"
 #include "fcb_andruav_message_parser.hpp"
+#include "./mission/mission_manager.hpp"
 
-using namespace uavos;
+using namespace de;
 
+//TODO: CREATE NEW COMMAND TYPE_AndruavMessage_ACTION to collect all Drone commands.
 #define MESSAGE_FILTER {TYPE_AndruavMessage_RemoteExecute,\
                         TYPE_AndruavMessage_FlightControl,\
                         TYPE_AndruavMessage_GeoFence,\
@@ -54,9 +56,10 @@ using namespace uavos;
                         TYPE_AndruavMessage_FollowMe_Guided, \
                         TYPE_AndruavMessage_UpdateSwarm, \
                         TYPE_AndruavMessage_UDPProxy_Info, \
-                        TYPE_AndruavSystem_UdpProxy, \
+                        TYPE_AndruavSystem_UDPProxy, \
                         TYPE_AndruavMessage_P2P_ACTION, \
                         TYPE_AndruavMessage_P2P_STATUS, \
+                        TYPE_AndruavMessage_Upload_DE_Mission, \
                         TYPE_AndruavMessage_DUMMY}
 
 // This is a timestamp used as instance unique number. if changed then communicator module knows module has restarted.
@@ -64,21 +67,21 @@ std::time_t instance_time_stamp;
 
 bool exit_me = false;
 
-// UAVOS Current PartyID read from communicator
+// DroneEngage Current PartyID read from communicator
 std::string  PartyID;
-// UAVOS Current GroupID read from communicator
+// DroneEngage Current GroupID read from communicator
 std::string  GroupID;
 std::string  ModuleID;
 std::string  ModuleKey;
 int AndruavServerConnectionStatus = SOCKET_STATUS_FREASH;
 
-uavos::comm::CModule& cModule= uavos::comm::CModule::getInstance();
+de::comm::CModule& cModule= de::comm::CModule::getInstance();
 
-uavos::fcb::CFCBMain& cFCBMain = uavos::fcb::CFCBMain::getInstance();
-uavos::fcb::CFCBAndruavMessageParser cAndruavResalaParser = uavos::fcb::CFCBAndruavMessageParser();
+de::fcb::CFCBMain& cFCBMain = de::fcb::CFCBMain::getInstance();
+de::fcb::CFCBAndruavMessageParser& cAndruavResalaParser = de::fcb::CFCBAndruavMessageParser::getInstance();
 
-uavos::CConfigFile& cConfigFile = CConfigFile::getInstance();
-uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+de::CConfigFile& cConfigFile = CConfigFile::getInstance();
+de::CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
 
 
 /**
@@ -160,7 +163,7 @@ void _onConnectionStatusChanged (const int status)
 }
 
 
-
+// called from: void de::comm::CModule::onReceive 
 void onReceive (const char * message, int len, Json_de jMsg)
 {
         
@@ -195,18 +198,18 @@ void onReceive (const char * message, int len, Json_de jMsg)
             
         }
 
-        /*
-        * Handles SWARM MESSAGE
-        * P2P Message SHOULD BE ENCAPSULATED
-        */
-        if (messageType == TYPE_AndruavMessage_SWARM_MAVLINK)
-            {
-                const std::string leader_sender = jMsg[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
-                uavos::fcb::swarm::CSwarmFollower& swarm_follower = uavos::fcb::swarm::CSwarmFollower::getInstance();
-                swarm_follower.handle_leader_traffic(leader_sender, message, len);
+        // /*
+        // * Handles SWARM MESSAGE
+        // * P2P Message SHOULD BE ENCAPSULATED
+        // */
+        // if (messageType == TYPE_AndruavMessage_SWARM_MAVLINK)
+        //     {
+        //         const std::string leader_sender = jMsg[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
+        //         de::fcb::swarm::CSwarmFollower& swarm_follower = de::fcb::swarm::CSwarmFollower::getInstance();
+        //         swarm_follower.handle_leader_traffic(leader_sender, message, len);
             
-                return ;
-            }
+        //         return ;
+        //     }
         cAndruavResalaParser.parseMessage(jMsg, message, len);
     
     }
@@ -224,7 +227,7 @@ void initLogger()
     
     if ((jsonConfig.contains("logger_enabled") == false) || (jsonConfig["logger_enabled"].get<bool>()==false))
     {
-        std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging is " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT<< "Logging is " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         return ;
     }
@@ -236,7 +239,7 @@ void initLogger()
         debug_log = jsonConfig["logger_debug"].get<bool>();
     }
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging is " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT<< "Logging is " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
 
         
 
@@ -246,7 +249,7 @@ void initLogger()
     log_filename_final <<  "./logs/log_" << std::put_time(&tm, "%d-%m-%Y_%H-%M-%S") << ".log";
     mkdir("./logs/",0777);
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to folder: " << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_TEXT_BOLD_ << " filename:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT<< "Logging to folder: " << _INFO_CONSOLE_TEXT << log_filename << _INFO_CONSOLE_BOLD_TEXT<< " filename:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
     auto log_level = debug_log==true?plog::debug:plog::info;
 
     plog::init(log_level, log_filename_final.str().c_str()); 
@@ -314,7 +317,7 @@ void initArguments (int argc, char *argv[])
 void initUavosModule(int argc, char *argv[])
 {
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
-    CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+    CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
         
     cModule.defineModule(
         MODULE_CLASS_FCB,
@@ -332,11 +335,24 @@ void initUavosModule(int argc, char *argv[])
 
     cModule.setMessageOnReceive (&onReceive);
     
+    
+    int udp_chunk_size = DEFAULT_UDP_DATABUS_PACKET_SIZE;
+    
+    if (validateField(jsonConfig, "s2s_udp_packet_size",Json_de::value_t::string)) 
+    {
+        udp_chunk_size = std::stoi(jsonConfig["s2s_udp_packet_size"].get<std::string>());
+    }
+    else
+    {
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "WARNING:" << _INFO_CONSOLE_TEXT << " MISSING FIELD " << _ERROR_CONSOLE_BOLD_TEXT_ << "s2s_udp_packet_size " <<  _INFO_CONSOLE_TEXT << "is missing in config file. default value " << _ERROR_CONSOLE_BOLD_TEXT_  << std::to_string(DEFAULT_UDP_DATABUS_PACKET_SIZE) <<  _INFO_CONSOLE_TEXT <<  " is used." << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+    }
+
     // UDP Server
     cModule.init(jsonConfig["s2s_udp_target_ip"].get<std::string>().c_str(),
             std::stoi(jsonConfig["s2s_udp_target_port"].get<std::string>().c_str()),
             jsonConfig["s2s_udp_listening_ip"].get<std::string>().c_str() ,
-            std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()));
+            std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()),
+            udp_chunk_size);
     
 }
 
@@ -359,7 +375,7 @@ void init (int argc, char *argv[])
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING PLUGIN ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     _version();
 
-    std::cout << _INFO_CONSOLE_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _LOG_CONSOLE_TEXT_BOLD_ << " seconds since the Epoch" << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _INFO_CONSOLE_BOLD_TEXT<< " seconds since the Epoch" << std::endl;
     
     cConfigFile.initConfigFile (configName.c_str());
     cLocalConfigFile.InitConfigFile (localConfigName.c_str());
@@ -379,7 +395,7 @@ void init (int argc, char *argv[])
 
     if (jsonConfig.contains("event_fire_channel") && jsonConfig.contains("event_wait_channel"))
     {
-        cFCBMain.setEventChannel(jsonConfig["event_fire_channel"].get<int>(), jsonConfig["event_wait_channel"].get<int>());
+        de::fcb::mission::CMissionManager::getInstance().setEventChannel(jsonConfig["event_fire_channel"].get<int>(), jsonConfig["event_wait_channel"].get<int>());
     }
     
     

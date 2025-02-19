@@ -4,11 +4,11 @@
 #include <iostream>
 
 #include <mavlink_sdk.h>
-
 #include "global.hpp"
 #include "defines.hpp"
-#include "./uavos_common/uavos_module.hpp"
-#include "./uavos_common/udpProxy.hpp"
+
+#include "./de_common/de_facade_base.hpp"
+#include "./de_common/udpProxy.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 
@@ -31,7 +31,7 @@ typedef void (*SEND_MREMSG_CALLBACK)(const int& );
 
 
 
-namespace uavos
+namespace de
 {
 namespace fcb
 {
@@ -40,7 +40,7 @@ namespace fcb
      * and sends it to communicator and server.
      * 
      */
-    class CFCBFacade
+    class CFCBFacade : public de::comm::CFacade_Base
     {
 
         public:
@@ -82,9 +82,7 @@ namespace fcb
         public:
 
             void API_IC_sendID(const std::string&target_party_id) const;
-            void requestID(const std::string&target_party_id) const;
             void sendTelemetryPanic(const std::string&target_party_id) const;
-            void sendErrorMessage(const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const;
             void sendHighLatencyInfo(const std::string&target_party_id) const;
             void sendEKFInfo(const std::string&target_party_id) const;
             void sendVibrationInfo(const std::string&target_party_id) const;
@@ -105,14 +103,15 @@ namespace fcb
             void sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message) const;
             void sendMavlinkData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const;
             void sendMavlinkData_3(const std::string&target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2, const mavlink_message_t& mavlink_message3)  const;
-            void sendMavlinkData_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const;
+            void sendMavlinkData_Packed(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count, const bool& internal_message)  const;
             void sendServoReadings(const std::string&target_party_id) const;
             void sendWayPointReached(const std::string&target_party_id, const int& mission_sequence) const;
             void sendMissionCurrent(const std::string&target_party_id) const;
             void sendGeoFenceAttachedStatusToTarget(const std::string&target_party_id, const std::string&fence_name) const;
             void sendGeoFenceToTarget(const std::string&target_party_id, const geofence::GEO_FENCE_STRUCT * geo_fenct_struct) const;
             void sendGeoFenceHit(const std::string&target_party_id, const std::string fence_name, const double distance, const bool in_zone, const bool should_keep_outside) const;
-            void sendSyncEvent(const std::string&target_party_id, const int event_id ) const;
+
+            void sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid, const bool internal_only) const;
             
             // SWARM API
             void requestToFollowLeader(const std::string&target_party_id, const int follower_index) const;
@@ -127,9 +126,9 @@ namespace fcb
             // Inter Module Remote Execute Commands - commands executed by other modules in droneengage.
             void callModule_reloadSavedTasks (const int& inter_module_command);
             void internalCommand_takeImage () const;
-            void sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, uavos::comm::CUDPProxy& udp_client) const;
-                 
-
+            void sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, de::comm::CUDPProxy& udp_client) const;
+            void sendMissionItemSequence(const std::string event_sid) const;
+            
         public:
 
             void API_IC_P2P_connectToMeshOnMac (const std::string& target_party_id) const;
@@ -138,7 +137,7 @@ namespace fcb
         private:
             mavlinksdk::CVehicle&    m_vehicle      =  mavlinksdk::CVehicle::getInstance();
 
-            uavos::comm::CModule &m_module = uavos::comm::CModule::getInstance();            
+            
     };
 }
 }

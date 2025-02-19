@@ -5,7 +5,7 @@
 #include <ctime>
 #include <iostream>
 
-#include "../helpers/json.hpp"
+#include "../helpers/json_nlohmann.hpp"
 #include "udpClient.hpp"
 #include "messages.hpp"
 using Json_de = nlohmann::json;
@@ -22,12 +22,14 @@ typedef enum {
 #define MODULE_FEATURE_CAPTURE_VIDEO            "V"
 
 
+#define MODULE_CLASS_COMM                       "comm"
 #define MODULE_CLASS_FCB                        "fcb"
 #define MODULE_CLASS_VIDEO                      "camera"
+#define MODULE_CLASS_P2P                        "p2p"
 #define MODULE_CLASS_GENERIC                    "gen"
 
 
-namespace uavos
+namespace de
 {
 
 namespace comm
@@ -66,7 +68,7 @@ namespace comm
                  Json_de message_filter
             );
             
-            bool init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort);
+            bool init (const std::string targetIP, int broadcatsPort, const std::string host, int listenningPort, int chunkSize) ;
             bool uninit ();
             
 
@@ -75,10 +77,10 @@ namespace comm
         public:
 
             void sendBMSG (const std::string& targetPartyID, const char * bmsg, const int bmsg_length, const int& andruav_message_id, const bool& internal_message, const Json_de& message_cmd);
-            void sendJMSG (const std::string& targetPartyID, const Json_de& jmsg, const int& andruav_message_id, const bool& internal_message);
+            void sendJMSG (const std::string targetPartyID, const Json_de jmsg, const int andruav_message_id, const bool internal_message);
             void sendSYSMSG (const Json_de& jmsg, const int& andruav_message_id);
-            void sendMREMSG(const int& command_type);
-
+            void sendMREMSG (const int& command_type);
+            void forwardMSG (const char * message, const std::size_t datalength);
 
         public:
 
@@ -240,12 +242,12 @@ namespace comm
             CUDPClient cUDPClient; 
 
             /**
-             * @brief UAVOS Current m_party_id read from communicator
+             * @brief DroneEngage Current m_party_id read from communicator
              * This is important communication part to identify myself and other senders.
              */
             std::string  m_party_id;
             /**
-             * @brief UAVOS Current m_group_id read from communicator
+             * @brief DroneEngage Current m_group_id read from communicator
              * This is important communication part to identify myself and other senders.
              */
             std::string  m_group_id;
@@ -253,7 +255,8 @@ namespace comm
             Json_de m_message_filter;
 
             void (*m_OnReceive)(const char *, int len, Json_de jMsg) = nullptr;
-
+            
+            std::mutex m_lock;
     };
 };
 };

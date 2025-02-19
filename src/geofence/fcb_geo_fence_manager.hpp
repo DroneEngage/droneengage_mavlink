@@ -4,10 +4,11 @@
 
 #include <map>
 #include <vector>
+#include <mavlink_sdk.h>
 
 #include "../geofence/fcb_geo_fence_base.hpp"
 
-namespace uavos
+namespace de
 {
 namespace fcb
 {
@@ -34,7 +35,7 @@ namespace geofence
      */
     typedef struct 
     {
-        std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> geoFence;
+        std::unique_ptr<de::fcb::geofence::CGeoFenceBase> geoFence;
         std::vector<std::unique_ptr<GEO_FENCE_PARTY_STATUS>> parties;
         int local_index;
     } GEO_FENCE_STRUCT;
@@ -44,7 +45,6 @@ namespace geofence
         public:
 
             
-            //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
             static CGeoFenceManager& getInstance()
             {
                 static CGeoFenceManager instance;
@@ -56,17 +56,11 @@ namespace geofence
             void operator=(CGeoFenceManager const&)              = delete;
 
         
-            // Note: Scott Meyers mentions in his Effective Modern
-            //       C++ book, that deleted functions should generally
-            //       be public as it results in better error messages
-            //       due to the compilers behavior to check accessibility
-            //       before deleted status
-
             private:
 
                 CGeoFenceManager() 
                 {
-                   m_geo_fences = std::unique_ptr <std::map<std::string,std::unique_ptr<uavos::fcb::geofence::GEO_FENCE_STRUCT>>>(new std::map<std::string,std::unique_ptr<uavos::fcb::geofence::GEO_FENCE_STRUCT>>);
+                   m_geo_fences = std::unique_ptr <std::map<std::string,std::unique_ptr<de::fcb::geofence::GEO_FENCE_STRUCT>>>(new std::map<std::string,std::unique_ptr<de::fcb::geofence::GEO_FENCE_STRUCT>>);
                 }
 
                 
@@ -78,10 +72,10 @@ namespace geofence
                 }
 
 
-            
+
             public:
 
-                void addFence (std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> geo_fence);
+                void addFence (std::unique_ptr<de::fcb::geofence::CGeoFenceBase> geo_fence);
                 void attachToGeoFence (const std::string& party_id, const std::string& geo_fence_name);
                 void attachToGeoFence (const std::string party_id, GEO_FENCE_STRUCT *geo_fence_struct);
                 
@@ -91,8 +85,20 @@ namespace geofence
                 std::vector<GEO_FENCE_STRUCT*> getFencesOfParty (const std::string& party_id);
                 int getIndexOfPartyInGeoFence (const std::string& party_id, const GEO_FENCE_STRUCT *geo_fence_struct) const;
                 
-                
+            public:
             
+                void uploadFencesIntoSystem (const std::string& mission_text);
+                void uploadFencesIntoSystem (const Json_de& plan_object);
+                
+                void updateGeoFenceHitStatus();
+                
+            protected:
+
+                void handleFenceViolation(geofence::CGeoFenceBase* geo_fence);
+                void handleFenceEntry(geofence::CGeoFenceBase* geo_fence);
+                void takeActionOnFenceViolation(de::fcb::geofence::CGeoFenceBase * geo_fence);
+            
+
             protected:
 
                 std::unique_ptr <std::map<std::string,std::unique_ptr<GEO_FENCE_STRUCT>>>  m_geo_fences;

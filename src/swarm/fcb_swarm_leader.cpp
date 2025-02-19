@@ -3,12 +3,15 @@
 #include "../fcb_facade.hpp"
 #include "../helpers/helpers.hpp"
 
-using namespace uavos::fcb::swarm; 
+using namespace de::fcb::swarm; 
 
 #define DEF_SWARM_LEADER_LOCATION_UPDATE_RATE 1000000
 
 
-
+/**
+ * @brief Send target location for followers that forming thread formation.
+ * 
+ */
 void CSwarmLeader::updateFollowersThreadFormation()
 {
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
@@ -32,7 +35,7 @@ void CSwarmLeader::updateFollowersThreadFormation()
         mavlink_msg_attitude_encode(sys_id, comp_id, &mavlink_message[1], &attitude);
             
         // forward info to followers.
-        uavos::fcb::CFCBFacade::getInstance().sendSWARM_M (item.party_id, mavlink_message, 2);
+        de::fcb::CFCBFacade::getInstance().sendSWARM_M (item.party_id, mavlink_message, 2);
     }
 } 
 

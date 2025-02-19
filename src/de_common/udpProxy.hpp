@@ -9,7 +9,7 @@
 #define MAXLINE 65507 
 #endif
 
-namespace uavos
+namespace de
 {
 namespace comm
 {
@@ -18,7 +18,7 @@ class CCallBack_UdpProxy
 {
     public:
 
-        virtual void OnMessageReceived (const uavos::comm::CUDPProxy * udp_proxy, const char * message, int len) {};
+        virtual void OnMessageReceived (const de::comm::CUDPProxy * udp_proxy, const char * message, int len) {};
         virtual void OnConnected (const bool& connected) {};
 };
 

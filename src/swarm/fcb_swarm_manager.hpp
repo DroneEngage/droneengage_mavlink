@@ -5,7 +5,7 @@
 #include <vector>
 #include <unordered_map>
 
-namespace uavos
+namespace de
 {
 namespace fcb
 {

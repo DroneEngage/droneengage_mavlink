@@ -4,17 +4,19 @@
 #include <mavlink_command.h>
 #include <mavlink_sdk.h>
 
-#include "./helpers/json.hpp"
+
+#include "./helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
+
 
 #include "./mission/missions.hpp"
 #include "./swarm/fcb_swarm_manager.hpp"
 #include "fcb_facade.hpp"
 #include "fcb_traffic_optimizer.hpp"
 #include "fcb_main.hpp"
+#include "./mission/mission_manager.hpp"
 
-
-namespace uavos
+namespace de
 {
 namespace fcb
 {
@@ -27,12 +29,32 @@ namespace fcb
     {
         public:
 
-        CFCBAndruavMessageParser()
-        {
+            static CFCBAndruavMessageParser& getInstance()
+            {
+                static CFCBAndruavMessageParser instance;
 
-        };
+                return instance;
+            }
 
+            CFCBAndruavMessageParser(CFCBAndruavMessageParser const&)           = delete;
+            void operator=(CFCBAndruavMessageParser const&)                     = delete;
 
+        
+        private:
+
+            CFCBAndruavMessageParser() 
+            {
+
+            }
+
+            
+        public:
+            
+            ~CFCBAndruavMessageParser ()
+            {
+
+            }
+        
         public:
 
             void parseMessage (Json_de &andruav_message, const char * message, const int & message_length);
@@ -42,10 +64,11 @@ namespace fcb
    
 
         private:
-            uavos::fcb::CFCBMain&  m_fcbMain = uavos::fcb::CFCBMain::getInstance();
+            de::fcb::CFCBMain&  m_fcbMain = de::fcb::CFCBMain::getInstance();
+            mission::CMissionManager& m_mission_manager = mission::CMissionManager::getInstance();
             mavlinksdk::CMavlinkSDK& m_mavlinksdk = mavlinksdk::CMavlinkSDK::getInstance();
-            uavos::fcb::CFCBFacade& m_fcb_facade = uavos::fcb::CFCBFacade::getInstance();
-            uavos::fcb::swarm::CSwarmManager& m_fcb_swarm_manager = uavos::fcb::swarm::CSwarmManager::getInstance();
+            de::fcb::CFCBFacade& m_fcb_facade = de::fcb::CFCBFacade::getInstance();
+            de::fcb::swarm::CSwarmManager& m_fcb_swarm_manager = de::fcb::swarm::CSwarmManager::getInstance();
     };
 
 }

@@ -8,7 +8,7 @@
        #include <netdb.h>
 
 #include "../helpers/colors.hpp"
-#include "../helpers/json.hpp"
+#include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 #include "udpProxy.hpp"
@@ -18,7 +18,7 @@ using Json_de = nlohmann::json;
 
 
     
-uavos::comm::CUDPProxy::~CUDPProxy ()
+de::comm::CUDPProxy::~CUDPProxy ()
 {
     
     #ifdef DEBUG
@@ -52,10 +52,10 @@ uavos::comm::CUDPProxy::~CUDPProxy ()
  * 
  * @param targetIP communication server ip
  * @param targetPort communication server port
- * @param host uavos-module listening ips default is 0.0.0.0
- * @param listenningPort uavos-module listerning port.
+ * @param host de-module listening ips default is 0.0.0.0
+ * @param listenningPort de-module listerning port.
  */
-bool uavos::comm::CUDPProxy::init (const char * target_address, int targetPort, const char * host, int listenningPort)
+bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, const char * host, int listenningPort)
 {
 
     // pthread initialization
@@ -91,7 +91,7 @@ bool uavos::comm::CUDPProxy::init (const char * target_address, int targetPort, 
         std::cout << _ERROR_CONSOLE_TEXT_ << "UDPProxy: Cannot connect udp proxy " << _INFO_CONSOLE_TEXT << target_address  << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return false;
     }
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_<< "UDPProxy: Trasnlate " <<  _INFO_CONSOLE_TEXT << target_address << " into " <<  target_ip << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "UDPProxy: Trasnlate " <<  _INFO_CONSOLE_TEXT << target_address << " into " <<  target_ip << _NORMAL_CONSOLE_TEXT_ << std::endl;  
     // Communication Server (IP - PORT) 
     m_udpProxyServer->sin_family = AF_INET; 
     m_udpProxyServer->sin_port = htons(targetPort); 
@@ -100,20 +100,20 @@ bool uavos::comm::CUDPProxy::init (const char * target_address, int targetPort, 
     // Bind the socket with the server address 
     if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in)) > 0) 
     { 
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDPProxy: Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return false ;
     } 
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDPProxy: Drone Created UDP Socket at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Drone Created UDP Socket at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_<< "UDPProxy: Expected UdpProxy at " <<  _INFO_CONSOLE_TEXT << target_ip << ":" <<  targetPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+    std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Expected UdpProxy at " <<  _INFO_CONSOLE_TEXT << target_ip << ":" <<  targetPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
     
     m_stopped_called = false;
     
     return true;
 }
 
-void uavos::comm::CUDPProxy::start()
+void de::comm::CUDPProxy::start()
 {
     // call directly as we are already in a thread.
     if (m_starrted == true)
@@ -124,13 +124,13 @@ void uavos::comm::CUDPProxy::start()
 }
 
 
-void uavos::comm::CUDPProxy::startReceiver ()
+void de::comm::CUDPProxy::startReceiver ()
 {
     m_threadCreateUDPSocket = std::thread {[&](){ InternalReceiverEntry(); }};
 }
 
 
-void uavos::comm::CUDPProxy::stop()
+void de::comm::CUDPProxy::stop()
 {
 
     #ifdef DEBUG
@@ -179,7 +179,7 @@ void uavos::comm::CUDPProxy::stop()
     
 }
 
-void uavos::comm::CUDPProxy::InternalReceiverEntry()
+void de::comm::CUDPProxy::InternalReceiverEntry()
 {
     #ifdef DEBUG
 	std::cout << "CUDPProxy::InternalReceiverEntry called" << std::endl; 
@@ -216,7 +216,7 @@ void uavos::comm::CUDPProxy::InternalReceiverEntry()
 /**
  * Sends binary to Communicator
  **/
-void uavos::comm::CUDPProxy::sendMSG (const char * msg, const int length)
+void de::comm::CUDPProxy::sendMSG (const char * msg, const int length)
 {
     
     try

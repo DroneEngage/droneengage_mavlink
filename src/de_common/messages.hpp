@@ -17,12 +17,12 @@
 #define JSON_INTERMODULE_MODULE_MESSAGES_LIST   "c"
 #define JSON_INTERMODULE_MODULE_FEATURES        "d"
 #define JSON_INTERMODULE_MODULE_KEY             "e"
+#define JSON_INTERMODULE_PARTY_RECORD           "f"
 #define JSON_INTERMODULE_HARDWARE_ID            "s"
 #define JSON_INTERMODULE_HARDWARE_TYPE          "t"
 #define JSON_INTERMODULE_VERSION                "v"
 #define JSON_INTERMODULE_TIMESTAMP_INSTANCE     "u"
 #define JSON_INTERMODULE_RESEND                 "z"
-
 
 
 
@@ -66,6 +66,9 @@
 #define ANDRUAV_PROTOCOL_MESSAGE_PERMISSION     "p"
 #define INTERMODULE_ROUTING_TYPE                "ty"
 #define INTERMODULE_MODULE_KEY                  "GU"
+#define WAITING_EVENT                           "ew"
+#define FIRE_EVENT                              "ef"
+#define LINKED_TO_STEP                          "ls"
 
 // Reserved Target Values
 #define ANDRUAV_PROTOCOL_SENDER_ALL_GCS         "_GCS_"
@@ -95,7 +98,7 @@
 #define TYPE_AndruavSystem_Ping                 9005
 #define TYPE_AndruavSystem_LogoutCommServer     9006
 #define TYPE_AndruavSystem_ConnectedCommServer  9007
-#define TYPE_AndruavSystem_UdpProxy             9008
+#define TYPE_AndruavSystem_UDPProxy             9008
 
 // Inter Module Commands
 #define TYPE_AndruavModule_ID                   9100
@@ -109,9 +112,11 @@
 #define TYPE_AndruavMessage_POWER                       1003
 #define TYPE_AndruavMessage_ID 	                        1004
 #define TYPE_AndruavMessage_RemoteExecute 		        1005     
+#define TYPE_AndruavMessage_IMG                         1006     
 #define TYPE_AndruavMessage_Error                       1008    
 #define TYPE_AndruavMessage_FlightControl               1010
 #define TYPE_AndruavMessage_DroneReport                 1020
+#define TYPE_AndruavMessage_Signaling                   1021
 #define TYPE_AndruavMessage_HomeLocation                1022
 #define TYPE_AndruavMessage_GeoFence                    1023
 #define TYPE_AndruavMessage_ExternalGeoFence            1024
@@ -169,6 +174,14 @@
 #define TYPE_AndruavMessage_UpdateSwarm                 1058
 #define TYPE_AndruavMessage_Sync_EventFire              1061
 #define TYPE_AndruavMessage_Prepherials                 1070
+/**
+ * @brief: sends information about UDP Proxy of the unit.
+ * a:  string - udp_ip_other
+ * p:  int - udp_port_other
+ * o:  int - optimization_level
+ * en: bool - enabled
+ * z: bool - paused
+ */
 #define TYPE_AndruavMessage_UDPProxy_Info               1071
 /**
  * Used to set unit name and description.
@@ -176,19 +189,44 @@
 */
 #define TYPE_AndruavMessage_Unit_Name                   1072
 
+/**
+ * @brief used to ping a unit name.
+ * This message works in two ways:
+ * * 1- send a ping to a unit to tell it that I am alive via p2p.
+ * * 2- This is similar to send RemoteExecute (TYPE_AndruavMessage_ID)
+ *      But in this case target unit does not need to reply with TYPE_AndruavMessage_ID
+ *      It can reply with same TYPE_AndruavMessage_Ping_Unit
+ *  Note that 1 & 2 can be done in a single message.
+ * 
+ * params:
+ *      [a]: sender_party_id : drone_engage party id. case: #1
+ *      [k]: 1 - request ack.                         case: #2
+ */
+#define TYPE_AndruavMessage_Ping_Unit                   1073
+
+/**
+ * @brief used to upload DroneEngage Mission File.
+ * 
+ * params:
+ *      [a]: p_textMission,
+ *      [e]: p_eraseFirst
+ */
+#define TYPE_AndruavMessage_Upload_DE_Mission           1075
+
+
 // Binary Messages 
 
 //deprecated telemetry technology
 #define TYPE_AndruavMessage_LightTelemetry              2022
 
-// New JSON Messages 
-#define TYPE_AndruavMessage_ServoChannel                6001
 
+/**********************************************************************
+                        New Andruav Messages 2019
+**********************************************************************/
+#define TYPE_AndruavMessage_ServoChannel                    6001
 
-// New Binary Messages 
-#define TYPE_AndruavMessage_ServoOutput                 6501
-#define TYPE_AndruavMessage_MAVLINK                     6502
-#define TYPE_AndruavMessage_SWARM_MAVLINK               6503
+#define TYPE_AndruavMessage_MAVLINK                         6502
+#define TYPE_AndruavMessage_SWARM_MAVLINK                   6503
 
 /**
  * Used by other modules to exchange mavlink information
@@ -196,15 +234,49 @@
  * This allows custom implementation for sharing mavlink info 
  * between mavlink module and other modules.
 */
-#define TYPE_AndruavMessage_INTERNAL_MAVLINK            6504
-
-#define TYPE_AndruavMessage_P2P_ACTION                  6505
-#define TYPE_AndruavMessage_P2P_STATUS                  6506
+#define TYPE_AndruavMessage_INTERNAL_MAVLINK                6504
 
 
-#define TYPE_AndruavMessage_DUMMY                       9999
+#define TYPE_AndruavMessage_P2P_ACTION                      6505
+#define TYPE_AndruavMessage_P2P_STATUS                      6506
+
+#define TYPE_AndruavMessage_P2P_InRange_BSSID               6507
+#define TYPE_AndruavMessage_P2P_InRange_Node                6508
 
 
+/**
+ * @brief used to set communication channels on/off
+ * current fields are:
+ * [p2p]: for turning p2p on/off or leave as is.
+ * [ws]: for turning communication server websocket on/off or leave as is.
+ * 
+ */
+#define TYPE_AndruavMessage_Communication_Line_Set          6509
+
+#define TYPE_AndruavMessage_Communication_Line_Status       6510
+
+
+#define TYPE_AndruavMessage_SOUND_TEXT_TO_SPEECH            6511
+#define TYPE_AndruavMessage_SOUND_PLAY_FILE                 6512
+
+#define TYPE_AndruavMessage_SDR_INFO                        6513
+#define TYPE_AndruavMessage_SDR_ACTION                      6514
+#define TYPE_AndruavMessage_SDR_STATUS                      6515
+#define TYPE_AndruavMessage_SDR_SPECTRUM                    6516
+
+
+#define TYPE_AndruavMessage_P2P_INFO                        6517
+
+#define TYPE_AndruavMessage_Mission_Item_Sequence           6518
+
+/**********************************************************************
+                        EOF Andruav Messages 2019
+**********************************************************************/
+
+
+#define TYPE_AndruavMessage_DUMMY                           9999
+#define TYPE_AndruavMessage_USER_RANGE_START                80000
+#define TYPE_AndruavMessage_USER_RANGE_END                  90000
 
 // Andruav Mission Types
 #define TYPE_CMissionItem                                    0
@@ -241,6 +313,18 @@
 
 #define P2P_STATUS_CONNECTED_TO_MAC                         0
 #define P2P_STATUS_DISCONNECTED_FROM_MAC                    1
+
+
+
+// CAMERA MODULE MESSAGES
+
+#define EXTERNAL_CAMERA_TYPE_UNKNOWN                        0
+#define EXTERNAL_CAMERA_TYPE_RTCWEBCAM                      2
+
+#define RemoteCommand_STREAMVIDEO 		                    110
+#define RemoteCommand_RECORDVIDEO 		                    111
+#define RemoteCommand_STREAMVIDEORESUME 	                112
+#define RemoteCommand_SWITCHCAM 			                114
 
 
 // // Remote Control Sub Actions
@@ -301,7 +385,7 @@
 
 
 #define GPS_MODE_AUTO                           0
-// .a.k.a mobile... i.e. gps info used bu uavos comm is not from the board
+// .a.k.a mobile... i.e. gps info used bu de comm is not from the board
 #define GPS_MODE_EXTERNAL                       1
 #define GPS_MODE_FCB                            2
 

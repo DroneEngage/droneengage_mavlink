@@ -496,10 +496,10 @@ void CMavlinkCommand::setCurrentMission (const int& mission_number) const
 	mission_current.seq = mission_number;
 
 	// Encode
-	mavlink_message_t mavlink_message;
-	mavlink_msg_mission_set_current_encode(GCS_SYSID,190, &mavlink_message, &mission_current);
-
-    m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+	
+	sendLongCommand (MAV_CMD_DO_SET_MISSION_CURRENT, true,
+		(float) mission_number,
+		(float) 1);
 
 	return ;
 }

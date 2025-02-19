@@ -10,7 +10,7 @@
 
 #include "configFile.hpp"
 
-using namespace uavos;
+using namespace de;
 
 
 const Json_de& CConfigFile::GetConfigJSON()
@@ -23,7 +23,7 @@ void CConfigFile::initConfigFile (const char* fileURL)
 {
     m_file_url = std::string(fileURL);
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Read config file: " << _INFO_CONSOLE_TEXT << fileURL << "\033[0m ...."  << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT<< "Read config file: " << _INFO_CONSOLE_TEXT << fileURL << "\033[0m ...."  << std::endl;
     
     CConfigFile::ReadFile (m_file_url.c_str());
     

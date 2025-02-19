@@ -2,20 +2,20 @@
 #include <memory>
 #include <thread>
 #include <mutex>
-#include "./helpers/json.hpp"
+#include "./helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 #include "helpers/helpers.hpp"
-#include "./uavos_common/messages.hpp"
+#include "./de_common/messages.hpp"
 
 #include "./mission/missions.hpp"
 #include "fcb_traffic_optimizer.hpp"
 #include "./swarm/fcb_swarm_manager.hpp"
 #include "fcb_facade.hpp"
 #include "fcb_main.hpp"
+#include "./mission/mission_manager.hpp"
 
 
-
-using namespace uavos::fcb;
+using namespace de::fcb;
 
 /**
 /// @brief This is an internal command that communicator will extend i.e. will add extra fields to this messages.
@@ -51,6 +51,18 @@ void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
         
     const ANDRUAV_VEHICLE_INFO& andruav_vehicle_info = fcbMain.getAndruavVehicleInfo();
 
+    uint8_t arming_status = 0; // Initialize arm_status
+
+    // Set bit 0 if ready to arm
+    if (andruav_vehicle_info.is_ready_to_arm) {
+        arming_status |= (1 << 0); // Set bit 0
+    }
+
+    // Set bit 1 if armed
+    if (andruav_vehicle_info.is_armed) {
+        arming_status |= (1 << 1); // Set bit 1
+    }
+
     Json_de message =
         {
             {"VT", andruav_vehicle_info.vehicle_type},     
@@ -58,7 +70,7 @@ void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
             {"AP", andruav_vehicle_info.autopilot},
             {"GM", andruav_vehicle_info.gps_mode},
             {"FI", andruav_vehicle_info.use_fcb},
-            {"AR", andruav_vehicle_info.is_armed},
+            {"AR", arming_status},
             {"FL", andruav_vehicle_info.is_flying},
             {"TP", fcbMain.isFCBConnected()?TelemetryProtocol_DroneKit_Telemetry:TelemetryProtocol_No_Telemetry},
             //{"SD", false},
@@ -81,46 +93,6 @@ void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
     return ;
 }
 
-
-void CFCBFacade::requestID(const std::string&target_party_id)  const
-{
-    
-    
-    Json_de message = 
-        {
-            {"C", TYPE_AndruavMessage_ID}
-        };
-        
-
-    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_RemoteExecute, true);
-    
-    return ;
-}
-
-void CFCBFacade::sendErrorMessage (const std::string&target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description)  const
-{
-    
-    
-    /*
-        EN : error number  "not currently processed".
-        IT : info type indicate what component is reporting the error.
-        NT : sevirity and com,pliant with ardupilot.
-        DS : description message.
-    */
-    Json_de message =
-        {
-            {"EN", error_number},
-            {"IT", info_type},
-            {"NT", notification_type},
-            {"DS", description}
-        };
-
-    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Error, false);
-    
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << " -- sendErrorMessage " << _NORMAL_CONSOLE_TEXT_ << description << std::endl;
-    
-    return ;
-}
 
 void CFCBFacade::sendTelemetryPanic(const std::string& target_party_id)  const
 {
@@ -165,7 +137,7 @@ void CFCBFacade::sendHighLatencyInfo(const std::string&target_party_id) const
             high_latency2.altitude = gpos.alt;
             high_latency2.heading = vfr_hud.heading;
             high_latency2.battery = battery_status.battery_remaining;
-            high_latency2.wp_num = uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().current_waypoint;
+            high_latency2.wp_num = de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().current_waypoint;
             high_latency2.target_distance = nav_controller.wp_dist;
             mavlink_msg_high_latency2_encode(sys_id, comp_id, &mavlink_message, &high_latency2);
 
@@ -184,7 +156,7 @@ void CFCBFacade::sendHighLatencyInfo(const std::string&target_party_id) const
             high_latency.gps_fix_type = gps.fix_type;
             high_latency.battery_remaining = battery_status.battery_remaining;
             high_latency.wp_distance = nav_controller.wp_dist;
-            high_latency.wp_num = uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().current_waypoint;
+            high_latency.wp_num = de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().current_waypoint;
             high_latency.roll = attitude.roll;
             high_latency.pitch = attitude.pitch;
             
@@ -312,7 +284,7 @@ void CFCBFacade::sendGPSInfo(const std::string&target_party_id)  const
     }
     
     
-    sendMavlinkData_M (target_party_id, mavlink_message, i);
+    sendMavlinkData_Packed (target_party_id, mavlink_message, i, false);
 
     return ;
 }
@@ -438,7 +410,7 @@ void CFCBFacade::sendLocationInfo () const
         // {"ws", windspeed}   
     };
 
-    m_module.sendJMSG ("", message, TYPE_AndruavModule_Location_Info, true);
+    m_module.sendJMSG ("", message, TYPE_AndruavModule_Location_Info, false);
     
     
 }
@@ -473,7 +445,7 @@ void CFCBFacade::sendNavInfo(const std::string&target_party_id)  const
     // airpeed - groundspeed - heading - throttle - alt - climb
     mavlink_msg_vfr_hud_encode(sys_id, comp_id, &mavlink_message[2], &vfr_hud);
 
-    sendMavlinkData_M (target_party_id, mavlink_message, 3);
+    sendMavlinkData_Packed (target_party_id, mavlink_message, 3, false);
     
     return ;
 }
@@ -578,7 +550,7 @@ void CFCBFacade::sendPowerInfo(const std::string&target_party_id)  const
     }
 
 
-    sendMavlinkData_M(target_party_id, mavlink_message, i);
+    sendMavlinkData_Packed(target_party_id, mavlink_message, i, false);
     
     return ;
 }
@@ -598,7 +570,7 @@ void CFCBFacade::sendMissionCurrent(const std::string&target_party_id) const
     
     const mavlink_mission_current_t mission_current = mavlinksdk::CMavlinkWayPointManager::getInstance().getMissionCurrent();
 
-    // you do not need to do thefollowing check as you can resent this message to different GCS once then become online.
+    // you do not need to do the following check as you can resent this message to different GCS once then become online.
     // there is no obsolete message here.
     //if (vehicle.getProcessedFlag(MAVLINK_MSG_ID_MISSION_COUNT) == MESSAGE_UNPROCESSED) 
     m_vehicle.setProcessedFlag(MAVLINK_MSG_ID_MISSION_COUNT,MESSAGE_PROCESSED);
@@ -607,19 +579,16 @@ void CFCBFacade::sendMissionCurrent(const std::string&target_party_id) const
     const mavlink_mission_count_t mission_count = mavlinksdk::CMavlinkWayPointManager::getInstance().getMissionCount();
     mavlink_msg_mission_count_encode(sys_id, comp_id, &mavlink_message[1], &mission_count);
     
+    // send current mission + mission count.
+    sendMavlinkData_Packed(target_party_id, mavlink_message, 2, false);
 
-    sendMavlinkData_M(target_party_id, mavlink_message, 2);
-    
 }
 
 
 void CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
 {
     
-    
-    
-    mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
-    const mavlink_home_position_t& home = vehicle.getMsgHomePosition();
+    const mavlink_home_position_t& home = m_vehicle.getMsgHomePosition();
     
     /*
         T : latitude in xx.xxxxx
@@ -641,7 +610,7 @@ void CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
 /**
 * @brief Send points of destination guided point or swarm location or similar destination points.
 * @details This function sends destination points after confirmed from FCB.
-* GCS sends these points to uavos and then oavos sends it to FCB then uavos should send it back to gcs as a confirmation.
+* GCS sends these points to de and then oavos sends it to FCB then de should send it back to gcs as a confirmation.
 */
 void CFCBFacade::sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude, const int &target_type) const
 {
@@ -684,8 +653,7 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
     
     std::lock_guard<std::mutex> guard(g_pages_mutex);
     
-    CFCBMain&  fcbMain = CFCBMain::getInstance();
-    const mission::ANDRUAV_UNIT_MISSION& andruav_missions = fcbMain.getAndruavMission(); 
+    const mission::ANDRUAV_UNIT_MISSION& andruav_missions = de::fcb::mission::CMissionManager::getInstance().getAndruavMission(); 
     const std::size_t length = andruav_missions.mission_items.size();
     
 
@@ -701,7 +669,8 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
         return ;
     }
 
-    #define MAX_WAYPOINT_CHUNK  2
+    //Note: you can put any  number here. as UDP connection now in de_common handles chunks implicitly.
+    #define MAX_WAYPOINT_CHUNK  20
 
     for (int i=0; i< length; i+=MAX_WAYPOINT_CHUNK)
     {
@@ -737,7 +706,7 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
     return ;
 }
 
-void CFCBFacade::sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, uavos::comm::CUDPProxy& udp_client) const
+void CFCBFacade::sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, de::comm::CUDPProxy& udp_client) const
 {
 
      char buf[300];
@@ -810,7 +779,7 @@ void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavl
 }
 
 
-void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const
+void CFCBFacade::sendMavlinkData_Packed(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count, const bool& internal_message)  const
 {
     if (count==0) return ;
 
@@ -831,7 +800,7 @@ void CFCBFacade::sendMavlinkData_M(const std::string&target_party_id, const mavl
 		return ;
 	}
 
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json_de());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, internal_message, Json_de());
     
     return ;
 }
@@ -858,7 +827,7 @@ void CFCBFacade::sendSWARM_M(const std::string&target_party_id, const mavlink_me
 		return ;
 	}
 
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_SWARM_MAVLINK, false, Json_de());
+    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_SWARM_MAVLINK, true, Json_de());
     
     return ;
 }
@@ -907,7 +876,7 @@ void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_par
     
     if (fence_name.empty()==true)
     {   //walk through all fences.
-        std::vector<geofence::GEO_FENCE_STRUCT*> geo_fence_struct_list = geofence::CGeoFenceManager::getInstance().getFencesOfParty(uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id);
+        std::vector<geofence::GEO_FENCE_STRUCT*> geo_fence_struct_list = geofence::CGeoFenceManager::getInstance().getFencesOfParty(de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id);
         
         const std::size_t size = geo_fence_struct_list.size();
 
@@ -930,8 +899,12 @@ void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_par
                 };
                 
         geofence::GEO_FENCE_STRUCT * geo_fence_struct = geofence::CGeoFenceManager::getInstance().getFenceByName(fence_name);
-        message["a"] = ((geo_fence_struct != nullptr) && (geofence::CGeoFenceManager::getInstance().getIndexOfPartyInGeoFence(uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct)>=0));
+        message["a"] = ((geo_fence_struct != nullptr) && (geofence::CGeoFenceManager::getInstance().getIndexOfPartyInGeoFence(de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id, geo_fence_struct)>=0));
         
+        #ifdef DDEBUG
+            std::cout << message.dump() << std::endl;
+        #endif
+
         m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_GeoFenceAttachStatus, false);
     }
 
@@ -949,7 +922,7 @@ void CFCBFacade::sendGeoFenceAttachedStatusToTarget(const std::string&target_par
  */
 void CFCBFacade::sendGeoFenceToTarget(const std::string&target_party_id, const geofence::GEO_FENCE_STRUCT * geo_fenct_struct) const
 {
-    uavos::fcb::geofence::CGeoFenceBase* geo_fence_base = geo_fenct_struct->geoFence.get();
+    de::fcb::geofence::CGeoFenceBase* geo_fence_base = geo_fenct_struct->geoFence.get();
 
     if (geo_fence_base == nullptr) return ;
     
@@ -985,20 +958,41 @@ void CFCBFacade::sendGeoFenceHit(const std::string&target_party_id, const std::s
 }
 
 
+
+
 /**
- * @brief sends SYNC Event
+ * @brief Fire DroneEngage Events.
+ * This is message is forwarded to other modules, and to Communication Server as well 
+ * because this is a unique ID. User-Planner should make sure that this is a unique ID 
+ * or based on business scenario.
  * 
  * @param target_party_id 
- * @param event_id 
+ * @param event_sid 
  */
-void CFCBFacade::sendSyncEvent(const std::string&target_party_id, const int event_id ) const
+void CFCBFacade::sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid, const bool internal_only) const
 {
     Json_de message =
-            {
-                {"a", event_id}
-            };
+    {
+        {"d", event_sid}
+    };
                 
-    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, false);
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, internal_only);
+   
+}
+
+
+/**
+ * This is an INTERMODULE Message ONLY used to tell communicator about the current mission item so that
+ * it can trigger related module mission items.
+ */
+void CFCBFacade::sendMissionItemSequence(const std::string event_sid) const
+{
+    Json_de message =
+    {
+        {"s", event_sid}
+    };
+                
+    m_module.sendJMSG (std::string(""), message, TYPE_AndruavMessage_Mission_Item_Sequence, true);
    
 }
 
@@ -1022,7 +1016,7 @@ void CFCBFacade::requestToFollowLeader(const std::string&target_party_id, const 
                 {"a", (int)SWARM_UPDATED},
                 {"b", follower_index},
                 {"c", target_party_id},
-                {"d", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
+                {"d", de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
             };
                 
     m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_UpdateSwarm, false);
@@ -1047,7 +1041,7 @@ void CFCBFacade::requestUnFollowLeader(const std::string&target_party_id) const
             {
                 {"a", (int)SWARM_DELETE},
                 {"c", target_party_id},
-                {"d", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
+                {"d", de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
             };
                 
     m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_UpdateSwarm, false);
@@ -1067,7 +1061,7 @@ void CFCBFacade::requestFromUnitToFollowMe(const std::string&target_party_id, co
     Json_de message =
             {   
                 {"a", follower_index },
-                {"b", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
+                {"b", de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
                 {"c", target_party_id},
                 {"d", fcb_swarm_manager.getFormationAsLeader()},
                 {"f", SWARM_FOLLOW}
@@ -1086,7 +1080,7 @@ void CFCBFacade::requestFromUnitToUnFollowMe(const std::string&target_party_id) 
     */
     Json_de message =
             {
-                {"b", uavos::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
+                {"b", de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
                 {"c", target_party_id},
                 {"f", SWARM_UNFOLLOW}
             };
@@ -1165,7 +1159,7 @@ void CFCBFacade::requestUdpProxyTelemetry(const bool enable, const std::string&u
                 {"socket2",  address2}          // socket2
             };
             
-    m_module.sendSYSMSG (message, TYPE_AndruavSystem_UdpProxy);
+    m_module.sendSYSMSG (message, TYPE_AndruavSystem_UDPProxy);
 }
 
 

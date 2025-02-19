@@ -95,16 +95,17 @@ file(GLOB folder_sdk "./mavlink_sdk/src/*.cpp")
 file(GLOB folder_sdk_helper "./mavlink_sdk/src/helpers/*.cpp")
 file(GLOB folder_src "./src/*.cpp")
 file(GLOB folder_helpers "./src/helpers/*.cpp")
-file(GLOB folder_uavos "./src/uavos_common/*.cpp")
+file(GLOB folder_uavos "./src/de_common/*.cpp")
 file(GLOB folder_mission "./src/mission/*.cpp")
 file(GLOB folder_geofence "./src/geofence/*.cpp")
+file(GLOB folder_general_mission_planner "./src/de_general_mission_planner/*.cpp")
 file(GLOB folder_swarm "./src/swarm/*.cpp")
 
 
 
 set(files ${folder_src} ${folder_uavos} ${folder_helpers}
  ${folder_mission} ${folder_geofence}  ${folder_swarm}
- ${folder_sdk} ${folder_sdk_helper})
+ ${folder_sdk} ${folder_sdk_helper} ${folder_general_mission_planner})
 
 include_directories(${PROJECT_SOURCE_DIR}/3rdparty)
 include_directories (${PROJECT_SOURCE_DIR}/mavlink_sdk/src)

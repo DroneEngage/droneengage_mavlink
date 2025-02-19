@@ -35,6 +35,9 @@ typedef enum ANDRUAV_UNIT_TYPE
         VEHICLE_TYPE_SUBMARINE  = 12,
         // no used here ... only for refence
         VEHICLE_TYPE_GIMBAL     = 15,
+        // VTOL
+        VEHICLE_TYPE_VTOL       = 16,
+        
         VEHICLE_TYPE_GCS = 999
         // end of reference
 } ANDRUAV_UNIT_TYPE;
@@ -111,6 +114,7 @@ typedef struct ANDRUAV_VEHICLE_INFO
     std::string         group_id                           = std::string("");
     bool                use_fcb                             = false;
     bool                is_armed                            = false;
+    bool                is_ready_to_arm                     = false;
     bool                is_flying                           = false;
     bool                is_tracking_mode                    = false;
     bool                is_gcs_blocked                      = false;

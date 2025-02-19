@@ -3,6 +3,7 @@
 #include <string>
 #include <limits.h>
 
+#include "./global.hpp"
 #include "./helpers/colors.h"
 #include "./helpers/utils.h"
 #include "vehicle.h"
@@ -67,13 +68,14 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	if ((now - time_stamps.getMessageTime(MAVLINK_MSG_ID_HEARTBEAT)) > HEART_BEAT_TIMEOUT)
 	{  // Notify when heart beat get live again.
 		m_callback_vehicle->OnHeartBeat_Resumed (heartbeat);
+		m_ready_to_arm_trigger_first_tick = false;
 	}
 
 	// Detect change in arm status
 	if (m_armed != is_armed)
 	{
 		m_armed = is_armed;
-		m_callback_vehicle->OnArmed(m_armed);
+		m_callback_vehicle->OnArmed(m_armed, isReadyToArm());
 	}
 
 	if (heartbeat.autopilot != MAV_AUTOPILOT::MAV_AUTOPILOT_PX4)
@@ -97,6 +99,30 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	return true;
 }
 
+void mavlinksdk::CVehicle::handle_sys_status(const mavlink_sys_status_t& sys_status)
+{
+	const bool ready_to_arm = MAV_SYS_STATUS_PREARM_CHECK
+		& sys_status.onboard_control_sensors_enabled 
+		& sys_status.onboard_control_sensors_health;
+	
+	bool trigger_on_arm = false;
+	if (!m_ready_to_arm_trigger_first_tick || (ready_to_arm != isReadyToArm()))
+	{
+		trigger_on_arm = true;
+		m_ready_to_arm_trigger_first_tick = true;
+	}
+
+
+	// Add more check here for sensors ...etc.
+
+	m_sys_status = sys_status;
+
+	if (trigger_on_arm)
+	{
+		m_callback_vehicle->OnArmed(m_armed, ready_to_arm);
+	}
+	
+}
 
 void mavlinksdk::CVehicle::handle_extended_system_state (const mavlink_extended_sys_state_t& extended_system_state)
 {
@@ -285,28 +311,23 @@ void mavlinksdk::CVehicle::handle_vibration_report(const mavlink_vibration_t& vi
 void mavlinksdk::CVehicle::handle_distance_sensor (const mavlink_distance_sensor_t& distance_sensor)
 {
 	
-	if (distance_sensor.orientation<=40)
+	if (distance_sensor.orientation<=MAV_SENSOR_ROTATION_ROLL_90_PITCH_315)
 	{
 		mavlink_distance_sensor_t old_distance_sensor = m_distance_sensors[distance_sensor.orientation];
 		
-		m_distance_sensors[distance_sensor.orientation] = distance_sensor;
 		m_has_lidar_altitude = (distance_sensor.orientation ==  MAV_SENSOR_ORIENTATION::MAV_SENSOR_ROTATION_PITCH_270 );
-		if ((distance_sensor.max_distance > distance_sensor.current_distance)
-		&& (old_distance_sensor.max_distance >= old_distance_sensor.current_distance)
-		)
+		if ((old_distance_sensor.current_distance != distance_sensor.current_distance)
+		|| ((distance_sensor.time_boot_ms - old_distance_sensor.time_boot_ms) > DISTANCE_SENSOR_TIMEOUT))
 		{
 			// distance in range
+			m_distance_sensors[distance_sensor.orientation] = distance_sensor;
 			this->m_callback_vehicle->OnDistanceSensorChanged(distance_sensor);
 		}
-		else
-		if ((distance_sensor.max_distance <= distance_sensor.current_distance)
-		&& (old_distance_sensor.max_distance < old_distance_sensor.current_distance)
-		)
-		{
-			// distance out range
-			this->m_callback_vehicle->OnDistanceSensorChanged(distance_sensor);
-		}
-		
+	}
+	else
+	if (distance_sensor.orientation == MAV_SENSOR_ROTATION_CUSTOM)
+	{
+		//TODO: Handle Custom Orientation		
 	}
 	
 }
@@ -416,8 +437,11 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 
         case MAVLINK_MSG_ID_SYS_STATUS:
 		{
-            mavlink_msg_sys_status_decode(&mavlink_message, &(m_sys_status));
-					
+            // handle ready to arm
+			mavlink_sys_status_t sys_status;
+			mavlink_msg_sys_status_decode(&mavlink_message, &sys_status);
+			
+			handle_sys_status(sys_status);		
         }
         break;
 

@@ -4,12 +4,14 @@
 #include "fcb_modes.hpp"
 #include "px4_modes.h"
 
+using namespace de::fcb;
+
 /**
  * Converts Ardupilot unit type to Andruav vehicle type.
  * @param mav_type  mavlink_heartbeat_t.type (MAV_TYPE)
  * @param autopilot_type mavlink_heartbeat_t.autopilot (MAV_AUTOPILOT)
  **/
-ANDRUAV_UNIT_TYPE uavos::fcb::CFCBModes::getAndruavVehicleType(const int mav_type)
+ANDRUAV_UNIT_TYPE CFCBModes::getAndruavVehicleType(const int mav_type)
 {
     switch (mav_type)
     {
@@ -34,7 +36,6 @@ ANDRUAV_UNIT_TYPE uavos::fcb::CFCBModes::getAndruavVehicleType(const int mav_typ
         case MAV_TYPE_SUBMARINE: /* Submarine | */
             return ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_SUBMARINE;
 
-        case MAV_TYPE_FLAPPING_WING:  /* Flapping wing | */
         case MAV_TYPE_VTOL_DUOROTOR:  /* Two-rotor VTOL using control surfaces in vertical operation in addition. Tailsitter. | */
         case MAV_TYPE_VTOL_QUADROTOR: /* Quad-rotor VTOL using a V-shaped quad config in vertical operation. Tailsitter. | */
         case MAV_TYPE_VTOL_TILTROTOR: /* Tiltrotor VTOL | */
@@ -42,6 +43,8 @@ ANDRUAV_UNIT_TYPE uavos::fcb::CFCBModes::getAndruavVehicleType(const int mav_typ
         case MAV_TYPE_VTOL_RESERVED3: /* VTOL reserved 3 | */
         case MAV_TYPE_VTOL_RESERVED4: /* VTOL reserved 4 | */
         case MAV_TYPE_VTOL_RESERVED5: /* VTOL reserved 5 | */
+            return ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_VTOL;
+        case MAV_TYPE_FLAPPING_WING:  /* Flapping wing | */
         case MAV_TYPE_FIXED_WING:
             return ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_PLANE;
 
@@ -57,7 +60,7 @@ ANDRUAV_UNIT_TYPE uavos::fcb::CFCBModes::getAndruavVehicleType(const int mav_typ
  * Andruav modes are flat i.e. it is not categoriezed by vehicles.
  * So same mode means the same accross all vehicles.
  * */
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavMode(const uint32_t mode, const int andruav_vehicle_type, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavMode(const uint32_t mode, const int andruav_vehicle_type, const MAV_AUTOPILOT autopilot_type)
 {
 
     switch (andruav_vehicle_type)
@@ -65,83 +68,87 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavMode(const uint32_t mode, con
         case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_QUAD:
         case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_TRI:
         case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_HELI:
-            return uavos::fcb::CFCBModes::getAndruavModeFromMavlinkCopterMode(mode, autopilot_type);
+            return CFCBModes::getAndruavModeFromMavlinkCopterMode(mode, autopilot_type);
             break;
 
         case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_PLANE:
-            return uavos::fcb::CFCBModes::getAndruavModeFromMavlinkPlaneMode(mode, autopilot_type);
+            return CFCBModes::getAndruavModeFromMavlinkPlaneMode(mode, autopilot_type);
+            break;
+
+        case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_VTOL:
+            return CFCBModes::getAndruavModeFromMavlinkPlaneMode(mode, autopilot_type);
             break;
 
         case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_ROVER:
         case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_BOAT:
-            return uavos::fcb::CFCBModes::getAndruavModeFromMavlinkRoverMode(mode, autopilot_type);
+            return CFCBModes::getAndruavModeFromMavlinkRoverMode(mode, autopilot_type);
             break;
 
         case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_SUBMARINE:
-            return uavos::fcb::CFCBModes::getAndruavModeFromMavlinkSubMode(mode, autopilot_type);
+            return CFCBModes::getAndruavModeFromMavlinkSubMode(mode, autopilot_type);
             break;
     }
 }
 
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromMavlinkPlaneMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromMavlinkPlaneMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
 {
     switch (autopilot_type)
     {
         case MAV_AUTOPILOT::MAV_AUTOPILOT_PX4:
-            return uavos::fcb::CFCBModes::getAndruavModeFromPX4PlaneMode(mode, autopilot_type);
+            return CFCBModes::getAndruavModeFromPX4PlaneMode(mode, autopilot_type);
 
         case MAV_AUTOPILOT::MAV_AUTOPILOT_GENERIC:
         default:
-            return uavos::fcb::CFCBModes::getAndruavModeFromArdupilotPlaneMode(mode, autopilot_type);
+            return CFCBModes::getAndruavModeFromArdupilotPlaneMode(mode, autopilot_type);
     };
 }
 
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromMavlinkCopterMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromMavlinkCopterMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
 {
     switch (autopilot_type)
     {
         case MAV_AUTOPILOT::MAV_AUTOPILOT_PX4:
-            return uavos::fcb::CFCBModes::getAndruavModeFromPX4CopterMode(mode, autopilot_type);
+            return CFCBModes::getAndruavModeFromPX4CopterMode(mode, autopilot_type);
 
         case MAV_AUTOPILOT::MAV_AUTOPILOT_GENERIC:
         default:
-            return uavos::fcb::CFCBModes::getAndruavModeFromArdupilotCopterMode(mode, autopilot_type);
+            return CFCBModes::getAndruavModeFromArdupilotCopterMode(mode, autopilot_type);
     };
 }
 
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromMavlinkRoverMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromMavlinkRoverMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
 {
     switch (autopilot_type)
     {
         case MAV_AUTOPILOT::MAV_AUTOPILOT_PX4:
-            return uavos::fcb::CFCBModes::getAndruavModeFromPX4RoverMode(mode, autopilot_type);
+            return CFCBModes::getAndruavModeFromPX4RoverMode(mode, autopilot_type);
 
         case MAV_AUTOPILOT::MAV_AUTOPILOT_GENERIC:
         default:
-            return uavos::fcb::CFCBModes::getAndruavModeFromArdupilotRoverMode(mode, autopilot_type);
+            return CFCBModes::getAndruavModeFromArdupilotRoverMode(mode, autopilot_type);
     };
 }
 
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromMavlinkSubMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromMavlinkSubMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
 {
     switch (autopilot_type)
     {
         case MAV_AUTOPILOT::MAV_AUTOPILOT_PX4:
-            return uavos::fcb::CFCBModes::getAndruavModeFromPX4SubMode(mode, autopilot_type);
+            return CFCBModes::getAndruavModeFromPX4SubMode(mode, autopilot_type);
 
         case MAV_AUTOPILOT::MAV_AUTOPILOT_GENERIC:
         default:
-            return uavos::fcb::CFCBModes::getAndruavModeFromArdupilotSubMode(mode, autopilot_type);
+            return CFCBModes::getAndruavModeFromArdupilotSubMode(mode, autopilot_type);
     };
 }
 
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromPX4PlaneMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromPX4PlaneMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
 {
 
     return VEHICLE_MODE_UNKNOWN;
 }
 
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotPlaneMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromArdupilotPlaneMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
 {
     switch (mode)
     {
@@ -197,7 +204,7 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotPlaneMode(co
     return VEHICLE_MODE_UNKNOWN;
 }
 
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromPX4CopterMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromPX4CopterMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
 {
     // see get_px4_custom_mode at https://github.com/PX4/PX4-Autopilot/blob/fb71e7587c76ac883928870a23789e6b182d46b9/src/modules/mavlink/mavlink_messages.cpp
     px4_custom_mode custom_mode;
@@ -261,7 +268,7 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromPX4CopterMode(const u
     return VEHICLE_MODE_UNKNOWN;
 }
 
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotCopterMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromArdupilotCopterMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
 {
     switch (mode)
     {
@@ -318,13 +325,13 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotCopterMode(c
     return VEHICLE_MODE_UNKNOWN;
 }
 
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromPX4RoverMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromPX4RoverMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
 {
 
     return VEHICLE_MODE_UNKNOWN;
 }
 
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotRoverMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromArdupilotRoverMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
 {
     switch (mode)
     {
@@ -362,13 +369,13 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotRoverMode(co
     return VEHICLE_MODE_UNKNOWN;
 }
 
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromPX4SubMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromPX4SubMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
 {
 
     return VEHICLE_MODE_UNKNOWN;
 }
 
-ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotSubMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
+ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromArdupilotSubMode(const uint32_t &mode, const MAV_AUTOPILOT autopilot_type)
 {
     
     switch (mode)
@@ -400,7 +407,7 @@ ANDRUAV_UNIT_MODE uavos::fcb::CFCBModes::getAndruavModeFromArdupilotSubMode(cons
 /**
  * Converts Andruav Modes to ArduPilot mode.
  * */
-void uavos::fcb::CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const int &andruav_unit_type, uint32_t &mode, uint32_t &custom_mode, uint32_t &custom_sub_mode)
+void CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const int &andruav_unit_type, uint32_t &mode, uint32_t &custom_mode, uint32_t &custom_sub_mode)
 {
     mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
     custom_sub_mode = 0;

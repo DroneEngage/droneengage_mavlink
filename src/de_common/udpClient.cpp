@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 #include "../helpers/colors.hpp"
-#include "../helpers/json.hpp"
+#include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 #include "udpClient.hpp"
@@ -15,11 +15,11 @@ using Json_de = nlohmann::json;
 #define MAXLINE 0xffff 
 #endif
 
-#define MAX_UDP_DATABUS_PACKET_SIZE 8192
 
-const int chunkSize = MAX_UDP_DATABUS_PACKET_SIZE; 
 
-uavos::comm::CUDPClient::~CUDPClient ()
+
+
+de::comm::CUDPClient::~CUDPClient ()
 {
     
     #ifdef DEBUG
@@ -53,16 +53,23 @@ uavos::comm::CUDPClient::~CUDPClient ()
  * 
  * @param targetIP communication server ip
  * @param broadcatsPort communication server port
- * @param host uavos-module listening ips default is 0.0.0.0
- * @param listenningPort uavos-module listerning port.
+ * @param host de-module listening ips default is 0.0.0.0
+ * @param listenningPort de-module listerning port.
  */
-void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort)
+void de::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort, int chunkSize)
 {
 
     // pthread initialization
 	m_thread = pthread_self(); // get pthread ID
 	pthread_setschedprio(m_thread, SCHED_FIFO); // setting priority
 
+    if (m_chunkSize >= MAX_UDP_DATABUS_PACKET_SIZE)
+    {
+        perror("invalid udp packet size."); 
+        exit(EXIT_FAILURE); 
+    }
+
+    m_chunkSize = chunkSize;
 
     // Creating socket file descriptor 
     if ( (m_SocketFD = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
@@ -88,16 +95,19 @@ void uavos::comm::CUDPClient::init (const char * targetIP, int broadcatsPort, co
     // Bind the socket with the server address 
     if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in))>0) 
     { 
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(-1) ;
     } 
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDP Listener at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "UDP Listener at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_<< "Expected Comm Server at " <<  _INFO_CONSOLE_TEXT << targetIP << ":" <<  broadcatsPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "Expected Comm Server at " <<  _INFO_CONSOLE_TEXT << targetIP << ":" <<  broadcatsPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "UDP Max Packet Size " << _INFO_CONSOLE_TEXT << chunkSize <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+
 }
 
-void uavos::comm::CUDPClient::start()
+void de::comm::CUDPClient::start()
 {
     // call directly as we are already in a thread.
     if (m_starrted == true)
@@ -110,19 +120,19 @@ void uavos::comm::CUDPClient::start()
 }
 
 
-void uavos::comm::CUDPClient::startReceiver ()
+void de::comm::CUDPClient::startReceiver ()
 {
     m_threadCreateUDPSocket = std::thread {[&](){ InternalReceiverEntry(); }};
 }
 
 
-void uavos::comm::CUDPClient::startSenderID ()
+void de::comm::CUDPClient::startSenderID ()
 {
     m_threadSenderID = std::thread {[&](){ InternelSenderIDEntry(); }};
 }
 
 
-void uavos::comm::CUDPClient::stop()
+void de::comm::CUDPClient::stop()
 {
 
     #ifdef DEBUG
@@ -174,7 +184,7 @@ void uavos::comm::CUDPClient::stop()
     
 }
 
-void uavos::comm::CUDPClient::InternalReceiverEntry()
+void de::comm::CUDPClient::InternalReceiverEntry()
 {
     #ifdef DEBUG
     std::cout << "CUDPClient::InternalReceiverEntry called" << std::endl;
@@ -186,74 +196,81 @@ void uavos::comm::CUDPClient::InternalReceiverEntry()
     
     std::vector<std::vector<uint8_t>> receivedChunks; // Map to store received chunks
 
-
+    
     while (!m_stopped_called)
     {
-        n = recvfrom(m_SocketFD, (char*)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr*)&cliaddr, &sender_address_size);
-        #ifdef DDEBUG
-        std::cout << "CUDPClient::InternalReceiverEntry recvfrom" << std::endl;
-        #endif
+        try
+        {    
+            n = recvfrom(m_SocketFD, (char*)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr*)&cliaddr, &sender_address_size);
+            #ifdef DDEBUG
+            std::cout << "CUDPClient::InternalReceiverEntry recvfrom" << std::endl;
+            #endif
 
-        if (n > 0)
-        {
-            // First two bytes represent the chunk number
-            const uint16_t chunkNumber = (buffer[1] << 8) | buffer[0]; 
-            
-            if (chunkNumber==0)
+            if (n > 0)
             {
-                // clear any corrupted/incomplete packets
-                receivedChunks.clear();
-            }
-
-            // Last packet is always equal to 0xFFFF regardless of its actual number.
-            const bool end = chunkNumber == 0xFFFF;
-
-            // Store the received chunk in the map
-            receivedChunks.emplace_back(buffer + 2 * sizeof(uint8_t), buffer + n);
-
-            
-            // Check if we have received all the chunks
-            if (end)
-            {
-                // Sort the vector of chunks based on chunkNumber
-                //std::sort(receivedChunks.begin(), receivedChunks.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
-
-                // Concatenate the chunks in order
-                std::vector<uint8_t> concatenatedData;
-                for (auto& chunk : receivedChunks)
-                {
-                    concatenatedData.insert(concatenatedData.end(), chunk.begin(), chunk.end());
-                }
+                // First two bytes represent the chunk number
+                const uint16_t chunkNumber = (buffer[1] << 8) | buffer[0]; 
                 
-                // NOTICE WE DONT KNOW
-                // if this is a test message or text and binary
-                // so we inject null at the end
-                // it should be removed later if it is binary.
-                concatenatedData.push_back(0);
-                 
-                // Call the onReceive callback with the concatenated data
-                if (m_callback != nullptr)
+                if (chunkNumber==0)
                 {
-                    m_callback->onReceive((const char *) concatenatedData.data(), concatenatedData.size());
+                    // clear any corrupted/incomplete packets
+                    receivedChunks.clear();
                 }
 
-                // Clear the map for the next set of chunks
-                receivedChunks.clear();
+                // Last packet is always equal to 0xFFFF regardless of its actual number.
+                const bool end = chunkNumber == 0xFFFF;
+
+                // Store the received chunk in the map
+                receivedChunks.emplace_back(buffer + 2 * sizeof(uint8_t), buffer + n);
+
+                
+                // Check if we have received all the chunks
+                if (end)
+                {
+                    // Sort the vector of chunks based on chunkNumber
+                    //std::sort(receivedChunks.begin(), receivedChunks.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+                    // Concatenate the chunks in order
+                    std::vector<uint8_t> concatenatedData;
+                    for (auto& chunk : receivedChunks)
+                    {
+                        concatenatedData.insert(concatenatedData.end(), chunk.begin(), chunk.end());
+                    }
+                    
+                    // NOTICE WE DONT KNOW
+                    // if this is a test message or text and binary
+                    // so we inject null at the end
+                    // it should be removed later if it is binary.
+                    concatenatedData.push_back(0);
+                    
+                    // Call the onReceive callback with the concatenated data
+                    if (m_callback != nullptr)
+                    {
+                        m_callback->onReceive((const char *) concatenatedData.data(), concatenatedData.size());
+                    }
+
+                    // Clear the map for the next set of chunks
+                    receivedChunks.clear();
+                }
             }
         }
-    }
-
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
     #ifdef DDEBUG
         std::cout << __FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  " << _LOG_CONSOLE_TEXT
               << "DEBUG: InternalReceiverEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
+    }
+    
 }
 
 
 /**
  * Store ID Card in JSON
  */
-void uavos::comm::CUDPClient::setJsonId (std::string jsonID)
+void de::comm::CUDPClient::setJsonId (std::string jsonID)
 {
     m_JsonID = jsonID;
 }
@@ -261,7 +278,7 @@ void uavos::comm::CUDPClient::setJsonId (std::string jsonID)
 /**
  * Sending ID Periodically
  **/
-void uavos::comm::CUDPClient::InternelSenderIDEntry()
+void de::comm::CUDPClient::InternelSenderIDEntry()
 {
 
     #ifdef DEBUG
@@ -291,7 +308,7 @@ void uavos::comm::CUDPClient::InternelSenderIDEntry()
 /**
  * Sends binary to Communicator
  **/
-void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
+void de::comm::CUDPClient::sendMSG (const char * msg, const int length)
 {
     
     std::lock_guard<std::mutex> lock(m_lock);
@@ -300,12 +317,11 @@ void uavos::comm::CUDPClient::sendMSG (const char * msg, const int length)
     {
         int remainingLength = length;
         int offset = 0;
-        uint16_t chunk_number = 0;
+        int chunk_number = 0;
 
         while (remainingLength > 0)
         {
-            // TODO: BUG HERE WHEN PACKET = chunkSize
-            int chunkLength = std::min(chunkSize, remainingLength);
+            int chunkLength = std::min(m_chunkSize, remainingLength);
             remainingLength -= chunkLength;
             
             // Create a new message with the chunk size + sizeof(uint8_t)

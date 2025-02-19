@@ -55,7 +55,7 @@ void CMavlinkWayPointManager::saveWayPoints (std::map <int, mavlink_mission_item
 
 void CMavlinkWayPointManager::handle_mission_ack (const mavlink_mission_ack_t& mission_ack)
 {
-	#ifdef DEBUG
+	#ifdef DDEBUG
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handle_mission_ack "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     switch (m_state)
@@ -144,7 +144,9 @@ void CMavlinkWayPointManager::handle_mission_current (const mavlink_mission_curr
     // handle_mission_item_reached detects changes
     const mavlink_mission_current_t last_mission_current = m_mission_current;
     m_mission_current = mission_current;
-    if (last_mission_current.seq != mission_current.seq)
+    if ((last_mission_current.seq != mission_current.seq)
+        || (last_mission_current.mission_state != mission_current.mission_state)
+        || (last_mission_current.mission_mode != mission_current.mission_mode))
     {
         m_callback_waypoint->OnMissionCurrentChanged(mission_current);
     }

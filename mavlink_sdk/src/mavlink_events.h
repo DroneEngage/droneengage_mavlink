@@ -20,7 +20,7 @@ namespace mavlinksdk
         virtual void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat)                                               {};
         virtual void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat)                                             {};
         virtual void OnBoardRestarted ()                                                                                    {};
-        virtual void OnArmed  (const bool& armed)                                                                           {};
+        virtual void OnArmed  (const bool& armed, const bool& ready_to_arm)                                                                           {};
         virtual void OnFlying (const bool& isFlying)                                                                        {};
         virtual void OnACK    (const int& acknowledged_cmd, const int& result, const std::string& result_msg)               {};
         virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)                                 {};

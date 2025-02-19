@@ -23,7 +23,7 @@ mavlink_control
 /bin/
 /build/
 /Debug/
-
+/tests/
 M*.txt
 doxygen_doc/
 

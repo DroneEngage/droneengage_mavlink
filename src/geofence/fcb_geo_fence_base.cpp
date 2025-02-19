@@ -8,7 +8,7 @@
 
 
 
-using namespace uavos::fcb::geofence;
+using namespace de::fcb::geofence;
 
 
 CGeoFenceBase::CGeoFenceBase() 
@@ -51,6 +51,8 @@ CGeoFenceCylinder::~CGeoFenceCylinder()
 
 void CGeoFenceCylinder::parse (const Json_de& message)
 {
+    std::cout << "parse:" <<  message.dump() << std::endl;
+    
     CGeoFenceBase::parse(message);
     Json_de circle = message["0"];
     m_latitude = circle["a"].get<double>() ;  //E7 format to match mavlink gps data
@@ -106,6 +108,8 @@ CGeoFencePolygon::~CGeoFencePolygon()
 
 void CGeoFencePolygon::parse (const Json_de& message)
 {
+    std::cout << "parse:" <<  message.dump() << std::endl;
+    
     CGeoFenceBase::parse(message);
 
     m_vertex.clear();
@@ -173,6 +177,8 @@ CGeoFenceLine::~CGeoFenceLine()
 
 void CGeoFenceLine::parse (const Json_de& message)
 {
+    std::cout << "parse:" << message.dump() << std::endl;
+    
     CGeoFenceBase::parse(message);
 
     m_vertex.clear();
@@ -207,7 +213,7 @@ Json_de CGeoFenceLine::getMessage()
 
 double CGeoFenceLine::isInside(double lat, double lng, double alt) const
 {
-    #ifdef DEBUG
+    #ifdef DDEBUG
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: lat " << std::to_string(lat) << " lng " << std::to_string(lng) << " alt " << std::to_string(alt) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     const std::size_t size = m_vertex.size();
@@ -229,35 +235,32 @@ double CGeoFenceLine::isInside(double lat, double lng, double alt) const
 
 //******************************** FACTORY
 
-std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> CGeoFenceFactory::getGeoFenceObject (const Json_de& message) const
+std::unique_ptr<de::fcb::geofence::CGeoFenceBase> CGeoFenceFactory::getGeoFenceObject(const Json_de& message) const
 {
-    std::unique_ptr<uavos::fcb::geofence::CGeoFenceBase> cGeoFenceBase  (new uavos::fcb::geofence::CGeoFenceLine());
+    std::unique_ptr<de::fcb::geofence::CGeoFenceBase> cGeoFenceBase;
 
     int m_geofence_type = message["t"].get<int>();
     switch (m_geofence_type)
     {
         case ENUM_GEOFENCE_TYPE::LinearFence:
-            cGeoFenceBase = std::make_unique<uavos::fcb::geofence::CGeoFenceBase> ( uavos::fcb::geofence::CGeoFenceLine());
-        break;
+            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceLine>();
+            break;
 
         case ENUM_GEOFENCE_TYPE::PolygonFence:
-            cGeoFenceBase = std::make_unique<uavos::fcb::geofence::CGeoFenceBase> ( uavos::fcb::geofence::CGeoFencePolygon());
-        break;
+            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFencePolygon>();
+            break;
 
         case ENUM_GEOFENCE_TYPE::CylindersFence:
-            cGeoFenceBase = std::make_unique<uavos::fcb::geofence::CGeoFenceBase> ( uavos::fcb::geofence::CGeoFenceCylinder());
-        break;
+            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceCylinder>();
+            break;
 
         default:
-            cGeoFenceBase = std::make_unique<uavos::fcb::geofence::CGeoFenceBase> ( uavos::fcb::geofence::CGeoFenceBase());
-        break;
-
+            cGeoFenceBase = std::make_unique<de::fcb::geofence::CGeoFenceBase>();
+            break;
     }
-
-    cGeoFenceBase.get()->parse(message);
     
-                
-            
-    return std::move(cGeoFenceBase);
-
+    std::cout << "getGeoFenceObject: " << message << std::endl;
+                    
+    cGeoFenceBase->parse(message);
+    return cGeoFenceBase;
 }

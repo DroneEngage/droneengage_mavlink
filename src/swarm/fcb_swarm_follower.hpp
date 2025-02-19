@@ -5,7 +5,7 @@
 #include <mavlink_sdk.h>
 #include "fcb_swarm_manager.hpp"
 
-namespace uavos
+namespace de
 {
 namespace fcb
 {
@@ -65,7 +65,7 @@ namespace swarm
 
         private:
             
-            uavos::fcb::swarm::CSwarmManager& m_fcb_swarm_manager = uavos::fcb::swarm::CSwarmManager::getInstance();
+            de::fcb::swarm::CSwarmManager& m_fcb_swarm_manager = de::fcb::swarm::CSwarmManager::getInstance();
         
     };
 }

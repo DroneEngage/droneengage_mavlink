@@ -278,8 +278,7 @@ void mavlinksdk::comm::UDPPort::stop()
 
 	if ( result )
 	{
-		//fprintf(stderr,"WARNING: Error on port close (%i)\n", result );
-		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WARNING: Error on port close (" << result << ")" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: Error on port close (" << result << ")" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 	}
 
 	is_open = false;
