@@ -198,18 +198,18 @@ void onReceive (const char * message, int len, Json_de jMsg)
             
         }
 
-        /*
-        * Handles SWARM MESSAGE
-        * P2P Message SHOULD BE ENCAPSULATED
-        */
-        if (messageType == TYPE_AndruavMessage_SWARM_MAVLINK)
-            {
-                const std::string leader_sender = jMsg[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
-                de::fcb::swarm::CSwarmFollower& swarm_follower = de::fcb::swarm::CSwarmFollower::getInstance();
-                swarm_follower.handle_leader_traffic(leader_sender, message, len);
+        // /*
+        // * Handles SWARM MESSAGE
+        // * P2P Message SHOULD BE ENCAPSULATED
+        // */
+        // if (messageType == TYPE_AndruavMessage_SWARM_MAVLINK)
+        //     {
+        //         const std::string leader_sender = jMsg[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
+        //         de::fcb::swarm::CSwarmFollower& swarm_follower = de::fcb::swarm::CSwarmFollower::getInstance();
+        //         swarm_follower.handle_leader_traffic(leader_sender, message, len);
             
-                return ;
-            }
+        //         return ;
+        //     }
         cAndruavResalaParser.parseMessage(jMsg, message, len);
     
     }
