@@ -1000,7 +1000,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
             m_mission_manager.reloadWayPoints();
         break;
 
-        case RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB:
+        case RemoteCommand_CLEAR_WAY_POINTS:
             if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
             
             if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_WP_CONTROL) != PERMISSION_ALLOW_GCS_WP_CONTROL))
