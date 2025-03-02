@@ -56,7 +56,8 @@ namespace swarm
 
             void updateFollower();
             void updateFollowerInThreadFormation();
-
+            void updateFollowerInVectorFormation();
+            
         private:
             
             mavlink_global_position_int_t m_leader_gpos_new;
