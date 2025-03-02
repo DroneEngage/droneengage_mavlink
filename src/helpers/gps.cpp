@@ -6,10 +6,13 @@
 
 #include "gps.hpp"
 
-#define PI 3.14159265358979323846
+#define PI 3.1415926535897932384626433832795
 #define RADIO_TERRESTRE 6372797.56085
-#define GRADOS_RADIANES PI / 180
-#define RADIANES_GRADOS 180 / PI
+#define GRADOS_RADIANES PI / 180.0f
+#define RADIANES_GRADOS 180.0f / PI
+#define NORMALIZE_ANGLE_DEGREES(radius) fmod((RADIANES_GRADOS(radius) + 360), 360) 
+
+
 using namespace std;
 
 
@@ -24,17 +27,17 @@ using namespace std;
  */
 double calcGPSDistance(const double& latitude_new, const double& longitude_new, const double& latitude_old, const double& longitude_old)
 {
-    double  lat_new = latitude_old * GRADOS_RADIANES;
-    double  lat_old = latitude_new * GRADOS_RADIANES;
-    double  lat_diff = (latitude_new-latitude_old) * GRADOS_RADIANES;
-    double  lng_diff = (longitude_new-longitude_old) * GRADOS_RADIANES;
+    const double  lat_new = latitude_old * GRADOS_RADIANES;
+    const double  lat_old = latitude_new * GRADOS_RADIANES;
+    const double  lat_diff = (latitude_new-latitude_old) * GRADOS_RADIANES;
+    const double  lng_diff = (longitude_new-longitude_old) * GRADOS_RADIANES;
 
-    double  a = sin(lat_diff/2) * sin(lat_diff/2) +
+    const double  a = sin(lat_diff/2) * sin(lat_diff/2) +
                 cos(lat_new) * cos(lat_old) *
                 sin(lng_diff/2) * sin(lng_diff/2);
-    double  c = 2 * atan2(sqrt(a), sqrt(1-a));
+    const double  c = 2 * atan2(sqrt(a), sqrt(1-a));
 
-    double  distance = RADIO_TERRESTRE * c;
+    const double  distance = RADIO_TERRESTRE * c;
     
     // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "
     // << "latitude_new:" << std::to_string(latitude_new)
@@ -58,14 +61,14 @@ double calcGPSDistance(const double& latitude_new, const double& longitude_new, 
 // Returns:
 //   A tuple of (latitude, longitude) of the point at the given bearing and distance.
 
-POINT_2D get_point_at_bearing(const double&  lat1, const double&  lon1, const double&  bearing_deg, const double&  distance_m) {
+POINT_2D get_point_at_bearing(const double&  lat1, const double&  lon1, const double&  bearing_rad, const double&  distance_m) {
 
     // Convert the latitude and longitude to radians.
-    double lat1_radians = lat1 * GRADOS_RADIANES;
-    double lon1_radians = lon1 * GRADOS_RADIANES;
+    const double lat1_radians = lat1 * GRADOS_RADIANES;
+    const double lon1_radians = lon1 * GRADOS_RADIANES;
 
     // Calculate the bearing in radians.
-    double bearing_radians = bearing_deg * GRADOS_RADIANES;
+    const double bearing_radians = bearing_rad;
 
     // Calculate the latitude and longitude of the new point.
     const double lat2 = asin(
@@ -76,8 +79,8 @@ POINT_2D get_point_at_bearing(const double&  lat1, const double&  lon1, const do
         cos(distance_m / RADIO_TERRESTRE) - sin(lat1_radians) * sin(lat2));
 
     // Convert the latitude and longitude to degrees.
-    double lat2_degrees = lat2 * RADIANES_GRADOS;
-    double lon2_degrees = lon2 * RADIANES_GRADOS;
+    const double lat2_degrees = lat2 * RADIANES_GRADOS;
+    const double lon2_degrees = lon2 * RADIANES_GRADOS;
 
     POINT_2D  closest;
     closest.latitude  = lat2_degrees;
@@ -93,32 +96,45 @@ POINT_2D get_point_at_bearing(const double&  lat1, const double&  lon1, const do
  * @param velocityY 
  * @param velocityX 
  * @return double 
+ * use NORMALIZE_ANGLE_DEGREES to normalize the angle and return Result in Degrees
  */
 double getBearingOfVector(double velocityX, double velocityY) {
+    // Normalize the velocity vector.
+    double velocityMagnitude = sqrt(velocityX * velocityX + velocityY * velocityY);
 
-  // Normalize the velocity vector.
-  double velocityMagnitude = sqrt(velocityX * velocityX + velocityY * velocityY);
-  double velocityUnitX = velocityX / velocityMagnitude;
-  double velocityUnitY = velocityY / velocityMagnitude;
+    // Handle the case where the magnitude is zero to avoid division by zero.
+    if (velocityMagnitude == 0) {
+        return 0.0; // Or any default bearing you prefer when velocity is zero
+    }
 
-  // Get the angle of the normalized velocity vector.
-  double angle = atan2(velocityUnitY, velocityUnitX);
+    double velocityUnitX = velocityX / velocityMagnitude;
+    double velocityUnitY = velocityY / velocityMagnitude;
 
-  // Convert the angle to degrees.
-  return fmod((angle * 180.0 / M_PI + 360),360);
+    // Get the angle of the normalized velocity vector (in radians).
+    double angle = atan2(velocityUnitY, velocityUnitX);
+
+    // Return the angle in radians.
+    return angle;
 }
 
-double calculateBearing(const double& lat1, const double& lon1, const double& lat2, const double& lon2)
-{
-    const double longitude1 = lon1;
-    const double longitude2 = lon2;
+
+
+/**
+ * @brief Calculate the bearing between two points.
+ * 
+ * * use NORMALIZE_ANGLE_DEGREES to normalize the angle and return Result in Degrees
+ */
+double calculateBearing(const double& lat1, const double& lon1, const double& lat2, const double& lon2) {
     const double latitude1 = lat1 * GRADOS_RADIANES;
     const double latitude2 = lat2 * GRADOS_RADIANES;
-    const double longDiff= (longitude2-longitude1) * GRADOS_RADIANES;
-    const double y= sin(longDiff) * cos(latitude2);
-    const double x= cos(latitude1) * sin(latitude2) - sin(latitude1) * cos(latitude2) * cos(longDiff);
-    
-    return fmod(((RADIANES_GRADOS *(atan2(y, x)))+360),360);
+    const double longitude1 = lon1 * GRADOS_RADIANES; // Corrected: Convert longitude to radians
+    const double longitude2 = lon2 * GRADOS_RADIANES; // Corrected: Convert longitude to radians
+
+    const double longDiff = longitude2 - longitude1;
+    const double y = sin(longDiff) * cos(latitude2);
+    const double x = cos(latitude1) * sin(latitude2) - sin(latitude1) * cos(latitude2) * cos(longDiff);
+
+    return atan2(y, x);
 }
 
 
