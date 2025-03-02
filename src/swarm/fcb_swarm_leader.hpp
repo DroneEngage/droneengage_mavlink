@@ -58,7 +58,7 @@ namespace swarm
 
             void updateFollowers();
             void updateFollowersThreadFormation();
-
+            void updateFollowerInVectorFormation();
 
         private:
             
