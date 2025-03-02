@@ -10,15 +10,19 @@
 using namespace de::fcb::swarm;
 
 
+
+
 /**
  * @brief Logic of thread formation for follower in implemented here.
- * Leadder sends it own location, and I know the formation is Thread-Formation and my index into it 
+ * Leader sends it own location, and I know the formation is Thread-Formation and my index into it 
  * and I generate my position accordingly.
  * Note that another formation my receive exact location of the unit. 
  * The logic varies from a formation to another.
  */
 void CSwarmFollower::updateFollowerInThreadFormation()
 {
+    const uint32_t KNODE_LENGTH = 100; 
+
     // get my own location
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
     const mavlink_global_position_int_t&  my_gpos = vehicle.getMsgGlobalPositionInt();
@@ -42,10 +46,14 @@ void CSwarmFollower::updateFollowerInThreadFormation()
     const double my_lat = my_gpos.lat / 10000000.0f;
     const double my_lon = my_gpos.lon / 10000000.0f;
 
+    const int follower_index = m_fcb_swarm_manager.getFollowerIndex();
+    const double base_distance = (follower_index + 1) * KNODE_LENGTH; // Base distance from leader
+
     // distance between me & leader
     const double distance_to_leader = calcGPSDistance(leader_lat,leader_lon, my_lat, my_lon);
 
-    if (distance_to_leader <  (m_fcb_swarm_manager.getFollowerIndex()+1)*100)  
+    // the rope effect ... ignore when distance is less than robe length. Rope has nodes and each node has a length. of KNODE_LENGTH
+    if (distance_to_leader <  base_distance)  
     {
         // rope effect ... ignore when distance is less than robe length.
         return ;
@@ -53,14 +61,14 @@ void CSwarmFollower::updateFollowerInThreadFormation()
 
     
                     
-    const double leader_vector_bearing = getBearingOfVector (m_leader_gpos_new.vx, m_leader_gpos_new.vy);
-    UNUSED(leader_vector_bearing);
-    const double bearing_with_leader = calculateBearing(leader_lat,leader_lon, my_lat, my_lon);
+    const double leader_velocity_vector_bearing = getBearingOfVector (m_leader_gpos_new.vx, m_leader_gpos_new.vy); // bearing of leader velocity vector.
+    UNUSED(leader_velocity_vector_bearing);
+    const double bearing_with_leader = calculateBearing(leader_lat,leader_lon, my_lat, my_lon); // bearing between me and leader.
 
-    POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, bearing_with_leader, (m_fcb_swarm_manager.getFollowerIndex()+1)*100);
+    POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, bearing_with_leader, base_distance);  // getpoint using bearing and distance.
 
-    // instruct follower to go to a targfet point.
-    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude , p.longitude , (m_leader_gpos_new.relative_alt + (m_fcb_swarm_manager.getFollowerIndex()+1) * 10000) / 1000.0);
+    // instruct follower to go to a target point.
+    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude , p.longitude , (m_leader_gpos_new.relative_alt + follower_index  * 10000) / 1000.0);
 
     // broadcast target location or this follower.
     CFCBFacade::getInstance().sendFCBTargetLocation("", p.latitude , p.longitude, (double) m_leader_gpos_new.relative_alt, DESTINATION_SWARM_MY_LOCATION);
