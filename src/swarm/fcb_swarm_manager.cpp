@@ -1,24 +1,24 @@
 
-#include "fcb_swarm_manager.hpp"
+
 #include "../fcb_facade.hpp"
 #include "../fcb_main.hpp"
 #include "../helpers/gps.hpp"
 #include "../helpers/helpers.hpp"
+#include "../fcb_main.hpp"
 
+#include "fcb_swarm_manager.hpp"
+#include "fcb_swarm_follower.hpp"
 
 using namespace de::fcb::swarm;
 
-
 /**
  * @brief: 
- * UnFollow Leader: The follower informs the leader that it will unfolllow it and that is all.
- * 
  * Follow Leader: Normally this request is called first by GCS. The drone is told to follow a leader.
  *                The follower can accept or reject. If it accepts it sends a request to the leader
  *                to ask it to join. The leader can accept or reject and send back location 
  *                and formation pattern to follower if accepted.
  * 
- *                The leader drone will call this function in the follwer drone directly or as 
+ *                The leader drone will call this function in the follower drone directly or as 
  *                a reply of requestToFollowLeader()
  * 
 */
@@ -61,7 +61,7 @@ void CSwarmManager::followLeader(const std::string& leader_party_id, const int f
 
     if ((!party_id_request.empty()) && (party_id_request!=leader_party_id))
     { // if the requestor is not the leader then I need to ask the leader. and then the leader will call back followLeader() again.
-        de::fcb::CFCBFacade::getInstance().requestToFollowLeader (m_leader_party_id, m_follower_index);
+        de::fcb::CFCBFacade::getInstance().requestToFollowLeader (m_leader_party_id);
     }
 
     //NOTE: MAYBE IN FUTURE WE SPLIT THIS INTO TWO MESSAGES.
@@ -145,15 +145,42 @@ ANDRUAV_SWARM_FORMATION CSwarmManager::getFormationAsLeader() const
 
 /**
  * @brief Leaders Activate/Deactivate Swarm Formation.
- * 
- * @param formation
+ * This function can do three things:
+ *  1- Activate Swarm Formation.
+ *  2- Deactivate Swarm Formation.
+ *  3- Change Swarm Formation.
+ *  
+ * @param formation 
  */
-void CSwarmManager::makeSwarm(const ANDRUAV_SWARM_FORMATION formation)
+void CSwarmManager::handleMakeSwarm(const Json_de& andruav_message, const char * full_message, const int & full_message_length)
 {
+    // Become a leader drone.
+    // a: formationID
+    // b: partyID
+    // if (b:partyID) is not me then treat it as an announcement.
+
+    const Json_de cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+    de::fcb::CFCBMain&  fcbMain = de::fcb::CFCBMain::getInstance();
+    
+
+    if (!cmd.contains("a") || !cmd["a"].is_number_integer()) return ;
+    if (!cmd.contains("b") || !cmd["b"].is_string()) return ;
+                
+    if (fcbMain.getAndruavVehicleInfo().party_id.compare( cmd["b"].get<std::string>())!=0)
+    {
+        // this is an announcement.
+        // other drone should handle this message.
+        // if this is my leader drone and it is being released then 
+        // I can release my self or wait for it to ell me to do so -which makes more sense-.
+        return ;
+    }
+
+    const int formation = cmd["a"].get<int>();
+
     if (m_formation_as_leader == formation) return ;
 
 
-    m_formation_as_leader = formation;
+    m_formation_as_leader = (ANDRUAV_SWARM_FORMATION)formation;
 
     if (formation == FORMATION_SERB_NO_SWARM)
     {
@@ -166,9 +193,23 @@ void CSwarmManager::makeSwarm(const ANDRUAV_SWARM_FORMATION formation)
     else
     {   
 
-        m_is_leader = true;
+        if (m_is_leader)
+        {
+            // already leader... then this is a change formation request.
+            // I need to inform all followers about the change.
+            
+            
+            for (const auto& follower : m_follower_units)
+            {
+                de::fcb::CFCBFacade::getInstance().requestFromUnitToChangeFormation(follower.party_id, follower.follower_index);
+            }  
+        }
+        else
+        {
+            m_is_leader = true;
+        }
 
-        std::cout << _INFO_CONSOLE_TEXT << std::endl << "Promoted to a Leader" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_TEXT << std::endl << "Promoted to a Leader with formation:" << m_formation_as_leader <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         //TODO: handle change formation for followers.
         //TODO: problems include formation transition, & max number of followers.
@@ -205,7 +246,7 @@ int CSwarmManager::followerExist(const std::string& party_id) const {
  * @param party_id 
  * @return int if you return (-1) then you reject adding.
  */
-int CSwarmManager::insertFollowerinSwarmFormation(const std::string& party_id) {
+int CSwarmManager::insertFollowerInSwarmFormation(const std::string& party_id) {
 
     int follower_idx = 0;
 
@@ -230,21 +271,20 @@ int CSwarmManager::insertFollowerinSwarmFormation(const std::string& party_id) {
  * @brief adds a vehicle as a follower -slave-.
  * @details adding a vehicle as a slave requires the leader that is (Me) to send it guides to follow (Me).
  * @param party_id 
- * @param follower_index index of the vehicle in the formation.
  */
-void CSwarmManager::addFollower (const std::string& party_id, const int follower_index)
+void CSwarmManager::addFollower (const std::string& party_id)
 {
     int follower_idx = followerExist(party_id);
     if ( follower_idx == -1) 
     {
-        // #ifdef DEBUG        
-        //     std::cout << _INFO_CONSOLE_TEXT << "addFollower: " << party_id << " is already added." _NORMAL_CONSOLE_TEXT_ << std::endl;
-        // #endif
-        // return ;
+        #ifdef DEBUG        
+            std::cout << _INFO_CONSOLE_TEXT << "addFollower: " << party_id << " is already added." _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
+        
    
 
     
-        follower_idx = insertFollowerinSwarmFormation (party_id);
+        follower_idx = insertFollowerInSwarmFormation (party_id);
         if (follower_idx==-1)
         {
             // rejected;
@@ -292,3 +332,152 @@ void CSwarmManager::releaseSingleFollower (const std::string& party_id)
 }
 
 
+/**
+ * @brief: This function is called by a GCS or leader and received by a follower.
+ * 
+ */
+void CSwarmManager::handleFollowHimRequest(const Json_de& andruav_message, const char * full_message, const int & full_message_length)
+{
+    Json_de cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+        
+    bool is_inter_module = false;
+    if ((validateField(andruav_message, INTERMODULE_ROUTING_TYPE, Json_de::value_t::string)) && (andruav_message[INTERMODULE_ROUTING_TYPE].get<std::string>().compare(CMD_TYPE_INTERMODULE)==0))
+    {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
+        is_inter_module = true;
+    }
+
+    // a: follower index -1 means any available location.   
+    // b: leader partyID 
+    // c: slave partyID
+    // d: formation_id
+    // f: SWARM_FOLLOW/SWARM_UNFOLLOW
+    // if (c:partyID) is not me then treat it as an announcement.
+                
+    if (!cmd.contains("f") || !cmd["f"].is_number_integer()) return ;
+    if (!cmd.contains("c") || !cmd["c"].is_string()) return ;
+                
+    de::fcb::CFCBMain&  fcbMain = de::fcb::CFCBMain::getInstance();
+            
+    if (fcbMain.getAndruavVehicleInfo().party_id.compare(cmd["c"].get<std::string>())!=0)
+    {   // I am not the follower in this message... This is just an info message.
+
+        std::cout << "FollowHim_Request announcement by: " << cmd["c"].get<std::string>() << std::endl;
+
+        // this is an announcement.
+        // other drone should handle this message.
+        return ;
+    }
+
+                
+    const int swarm_action = cmd["f"].get<int>();
+
+    std::string sender = "";
+    if (!is_inter_module)
+    {
+        sender = andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
+    }
+    else
+    {
+        sender = de::comm::CModule::getInstance().getPartyId();
+    }
+
+    switch (swarm_action)
+    {
+        case SWARM_UNFOLLOW:
+        {
+            // [b] can be null
+            std::string leader = getLeader();
+            if (cmd.contains("b") && cmd["b"].is_string()) 
+            {
+                leader = cmd["b"].get<std::string>();
+            }
+            unFollowLeader(leader, andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+        }
+        break;
+        case SWARM_FOLLOW:
+        {
+            // follow leader in [b]
+            if (!cmd.contains("a") || !cmd["a"].is_number_integer()) return ;
+            if (!cmd.contains("b") || !cmd["b"].is_string()) return ;
+                        
+                        
+            const int follower_index = cmd["a"].get<int>();
+            const std::string leader_party_id = cmd["b"].get<std::string>();
+            swarm::ANDRUAV_SWARM_FORMATION follower_formation = swarm::ANDRUAV_SWARM_FORMATION::FORMATION_NO_SWARM;
+            if (cmd.contains("d") && cmd["d"].is_number_integer()) 
+            {
+                follower_formation = (swarm::ANDRUAV_SWARM_FORMATION) cmd["d"].get<int>();
+            }
+                        
+            followLeader(leader_party_id, follower_index, follower_formation, sender);
+        }
+        return ;
+        case SWARM_CHANGE_FORMATION:
+        {
+            // this request should be from leader only.
+            if (sender!=getLeader()) return ;
+
+            if (!cmd.contains("d") || !cmd["d"].is_number_integer()) 
+            {
+                break ;
+            }
+            swarm::ANDRUAV_SWARM_FORMATION follower_formation = (swarm::ANDRUAV_SWARM_FORMATION) cmd["d"].get<int>();
+            m_formation_as_follower = follower_formation;
+            de::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
+        }
+        break;
+        default:
+        break;
+    }
+}
+
+void CSwarmManager::handleSwarmMavlink(const Json_de& andruav_message, const char * full_message, const int & full_message_length)
+{
+    const std::string leader_sender = andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
+    de::fcb::swarm::CSwarmFollower& swarm_follower = de::fcb::swarm::CSwarmFollower::getInstance();
+    swarm_follower.handle_leader_traffic(leader_sender, full_message, full_message_length);
+}
+
+
+void CSwarmManager::handleUpdateSwarm(const Json_de& andruav_message, const char * full_message, const int & full_message_length)
+{
+    /*
+        a: action [SWARM_UPDATED, SWARM_DELETE]
+        b: follower index [mandatory with SWARM_UPDATED]
+        c: leader id - if this is not me then consider it a notification.
+        d: slave party id 
+    */
+
+    const Json_de cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+    de::fcb::CFCBMain&  fcbMain = de::fcb::CFCBMain::getInstance();
+                
+    if (!cmd.contains("a") || !cmd["a"].is_number_integer()) return ;
+    if (!cmd.contains("c") || !cmd["c"].is_string()) return ;
+    if (!cmd.contains("d") || !cmd["d"].is_string()) return ;
+                
+
+    if (fcbMain.getAndruavVehicleInfo().party_id.compare(cmd["c"].get<std::string>())!=0)
+    {
+        // this is an announcement, other drone should handle this message.
+        return ;
+    }
+
+    const int action = cmd["a"].get<int>();
+    const std::string follower_party_id = cmd["d"].get<std::string>();
+                    
+    if (action == SWARM_ADD)
+    {   
+        // add or modify swarm member
+        addFollower(follower_party_id);
+
+        return ;     
+    }
+
+    if (action == SWARM_DELETE)
+    {
+        // remove a swarm member
+        releaseSingleFollower(follower_party_id);
+
+        return ;     
+    }
+}

@@ -51,7 +51,7 @@ using namespace de;
                         TYPE_AndruavMessage_Sync_EventFire, \
                         TYPE_AndruavMessage_MAVLINK, \
                         TYPE_AndruavMessage_SWARM_MAVLINK, \
-                        TYPE_AndruavMessage_MAKE_SWARM,  \
+                        TYPE_AndruavMessage_Make_Swarm,  \
                         TYPE_AndruavMessage_FollowHim_Request,  \
                         TYPE_AndruavMessage_FollowMe_Guided, \
                         TYPE_AndruavMessage_UpdateSwarm, \

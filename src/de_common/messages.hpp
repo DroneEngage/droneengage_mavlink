@@ -143,12 +143,16 @@
 /**
  * @brief tell a drone that another drone is in its team -a follower-.
  * @details 
- * This message can be sent from GCS or another Drone either a leader or not.
- * This message requests from the receiver "Drone" to send @ref TYPE_AndruavMessage_UpdateSwarm
- * to a third drone that is a LEADER requesting to join its swarm.
+ *  ------------------------------
+ *  | Sender | Receiver | Action |  
+ *  ------------------------------
+ *    (1,3)GCS       Drone(follower)      Ask this drone to be a follower/unfollow a leader
+ *    ANY       Drone(other)         This is just an announcement. No action is required.
+ *    (2) LEADER    Drone(follower)      Confirm that this drone is a follower. and gives index and formation. requires a confirmation from follower.
+*  (1) This message can be sent from GCS or another Drone either a leader or not.
+ * (2) This message requests from the receiver "Drone" to send @ref TYPE_AndruavMessage_UpdateSwarm to Leader Drone.
  * The receiver can refuse to send @ref TYPE_AndruavMessage_UpdateSwarm
  * and the third drone can also refuse the request to be followed by the receiver.
- * 
  * @note receiver should not assume it is a follower. It only should forward this request to the leader.
  */
 #define TYPE_AndruavMessage_FollowHim_Request           1054
@@ -165,7 +169,7 @@
  * @brief This command is sent to instruct a drone to be a leader with a swarm-formation.
  * A Formation FORMATION_SERB_NO_SWARM means there is no swarm mode anymore. 
  */
-#define TYPE_AndruavMessage_MAKE_SWARM                  1056
+#define TYPE_AndruavMessage_Make_Swarm                  1056
 #define TYPE_AndruavMessage_SwarmReport                 1057
 /**
  * @brief This message is sent to Leader Drone to add a slave drone in a swarm and in an index.
@@ -413,11 +417,12 @@
 
 
 // TYPE_AndruavMessage_UpdateSwarm actions
-#define SWARM_UPDATED                               1
+#define SWARM_ADD                                   1
 #define SWARM_DELETE                                2
 // TYPE_AndruavMessage_FollowHim_Request actions
 #define SWARM_FOLLOW                                1
 #define SWARM_UNFOLLOW                              2
+#define SWARM_CHANGE_FORMATION                      3
 
 #define TASHKEEL_SERB_NO_SWARM                      0
 #define TASHKEEL_SERB_THREAD                        1

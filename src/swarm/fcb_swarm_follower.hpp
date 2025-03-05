@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <mavlink_sdk.h>
-#include "fcb_swarm_manager.hpp"
 
 namespace de
 {
@@ -56,8 +55,8 @@ namespace swarm
 
             void updateFollower();
             void updateFollowerInThreadFormation();
-            void updateFollowerInVectorFormation();
-            
+            void updateFollowerInArrowFormation();
+
         private:
             
             mavlink_global_position_int_t m_leader_gpos_new;
@@ -66,7 +65,6 @@ namespace swarm
 
         private:
             
-            de::fcb::swarm::CSwarmManager& m_fcb_swarm_manager = de::fcb::swarm::CSwarmManager::getInstance();
         
     };
 }
