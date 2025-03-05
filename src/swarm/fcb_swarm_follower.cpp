@@ -81,7 +81,7 @@ void CSwarmFollower::updateFollowerInThreadFormation()
 }
 
 
-void CSwarmFollower::updateFollowerInArrowFormation ()
+void CSwarmFollower::updateFollowerInArrowFormation()
 {
     const uint32_t KNODE_LENGTH = 100;
 
@@ -106,7 +106,10 @@ void CSwarmFollower::updateFollowerInArrowFormation ()
     const double my_lon = my_gpos.lon / 10000000.0f;
 
     const int follower_index = fcb_swarm_manager.getFollowerIndex();
-    const double base_distance = (follower_index + 1) * KNODE_LENGTH; // Base distance from leader
+    const bool is_left_side = (follower_index % 2 == 0); // Determine if the follower is on the left side
+
+    // Adjust the base distance for symmetry
+    const double base_distance = ((follower_index / 2) + 1) * KNODE_LENGTH; // Base distance from leader
 
     // Distance between me & leader
     const double distance_to_leader = calcGPSDistance(leader_lat, leader_lon, my_lat, my_lon);
@@ -121,7 +124,7 @@ void CSwarmFollower::updateFollowerInArrowFormation ()
     UNUSED(bearing_with_leader);
 
     // Calculate the 45-degree offset for V formation
-    const double angle_offset = M_PI + ((follower_index % 2 == 0) ? -M_PI / 4 : M_PI / 4); // 45 degrees in radians
+    const double angle_offset = M_PI + (is_left_side ? -M_PI / 4 : M_PI / 4); // 45 degrees in radians
 
     // Calculate target point for V formation
     POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, leader_velocity_vector_bearing + angle_offset, base_distance);
