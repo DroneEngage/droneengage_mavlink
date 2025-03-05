@@ -1,10 +1,7 @@
-
-
+#include "../helpers/helpers.hpp"
 #include "../fcb_facade.hpp"
 #include "../fcb_main.hpp"
 #include "../helpers/gps.hpp"
-#include "../helpers/helpers.hpp"
-#include "../fcb_main.hpp"
 
 #include "fcb_swarm_manager.hpp"
 #include "fcb_swarm_follower.hpp"
@@ -441,12 +438,20 @@ void CSwarmManager::handleSwarmMavlink(const Json_de& andruav_message, const cha
 
 void CSwarmManager::handleUpdateSwarm(const Json_de& andruav_message, const char * full_message, const int & full_message_length)
 {
-    /*
-        a: action [SWARM_UPDATED, SWARM_DELETE]
-        b: follower index [mandatory with SWARM_UPDATED]
-        c: leader id - if this is not me then consider it a notification.
-        d: slave party id 
-    */
+    /**
+     * @brief Handles the update of the swarm configuration.
+     * This function processes messages related to updating the swarm, such as adding or removing followers.
+     * 
+     * @param andruav_message The JSON message containing the update information.
+     * @param full_message The full message as a C-string.
+     * @param full_message_length The length of the full message.
+     * 
+     * The JSON message should contain the following fields:
+     * - a: action [SWARM_UPDATED, SWARM_DELETE]
+     * - b: follower index [mandatory with SWARM_UPDATED]
+     * - c: leader id - if this is not me then consider it a notification.
+     * - d: slave party id 
+     */
 
     const Json_de cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
     de::fcb::CFCBMain&  fcbMain = de::fcb::CFCBMain::getInstance();
