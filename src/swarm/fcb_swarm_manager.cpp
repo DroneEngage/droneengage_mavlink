@@ -120,14 +120,15 @@ void CSwarmManager::unFollowLeader(const std::string& party_id_leader_to_unfollo
     m_follower_index = -1;
     m_formation_as_follower = ANDRUAV_SWARM_FORMATION::FORMATION_NO_SWARM;
 
+    de::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
+
     std::string event = "Unfollow " + party_id_leader_to_unfollow + " requested by: " + party_id_request + " DONE.";
     std::cout << std::endl << _INFO_CONSOLE_TEXT << "UnFollow " << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_leader_to_unfollow 
         << _INFO_CONSOLE_TEXT << " requested by: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_request 
         << _INFO_CONSOLE_TEXT << " DONE." << std::endl;
 
     de::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, event);
-        
-    de::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
+    
 }
             
 ANDRUAV_SWARM_FORMATION CSwarmManager::getFormationAsFollower() const
@@ -421,6 +422,10 @@ void CSwarmManager::handleFollowHimRequest(const Json_de& andruav_message, const
             swarm::ANDRUAV_SWARM_FORMATION follower_formation = (swarm::ANDRUAV_SWARM_FORMATION) cmd["d"].get<int>();
             m_formation_as_follower = follower_formation;
             de::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
+
+            std::string event= "SWAM Formation changed to " + std::to_string(follower_formation);
+            de::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, log);
+    
         }
         break;
         default:
