@@ -424,7 +424,7 @@ void CSwarmManager::handleFollowHimRequest(const Json_de& andruav_message, const
             de::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());
 
             std::string event= "SWAM Formation changed to " + std::to_string(follower_formation);
-            de::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, log);
+            de::fcb::CFCBFacade::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM, NOTIFICATION_TYPE_WARNING, event);
     
         }
         break;
