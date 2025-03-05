@@ -6,11 +6,13 @@
 #include "../helpers/gps.hpp"
 #include "../helpers/helpers.hpp"
 
+#include "fcb_swarm_manager.hpp"
 
 using namespace de::fcb::swarm;
 
 
-
+de::fcb::swarm::CSwarmManager& fcb_swarm_manager = de::fcb::swarm::CSwarmManager::getInstance();
+    
 
 /**
  * @brief Logic of thread formation for follower in implemented here.
@@ -46,7 +48,7 @@ void CSwarmFollower::updateFollowerInThreadFormation()
     const double my_lat = my_gpos.lat / 10000000.0f;
     const double my_lon = my_gpos.lon / 10000000.0f;
 
-    const int follower_index = m_fcb_swarm_manager.getFollowerIndex();
+    const int follower_index = fcb_swarm_manager.getFollowerIndex();
     const double base_distance = (follower_index + 1) * KNODE_LENGTH; // Base distance from leader
 
     // distance between me & leader
@@ -68,7 +70,7 @@ void CSwarmFollower::updateFollowerInThreadFormation()
     POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, bearing_with_leader, base_distance);  // getpoint using bearing and distance.
 
     // instruct follower to go to a target point.
-    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude , p.longitude , (m_leader_gpos_new.relative_alt + follower_index  * 10000) / 1000.0);
+    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude , p.longitude , (m_leader_gpos_new.relative_alt + (follower_index +1) * 10000) / 1000.0);
 
     // broadcast target location or this follower.
     CFCBFacade::getInstance().sendFCBTargetLocation("", p.latitude , p.longitude, (double) m_leader_gpos_new.relative_alt, DESTINATION_SWARM_MY_LOCATION);
@@ -79,7 +81,7 @@ void CSwarmFollower::updateFollowerInThreadFormation()
 }
 
 
-void CSwarmFollower::updateFollowerInVectorFormation ()
+void CSwarmFollower::updateFollowerInArrowFormation ()
 {
     const uint32_t KNODE_LENGTH = 100;
 
@@ -103,7 +105,7 @@ void CSwarmFollower::updateFollowerInVectorFormation ()
     const double my_lat = my_gpos.lat / 10000000.0f;
     const double my_lon = my_gpos.lon / 10000000.0f;
 
-    const int follower_index = m_fcb_swarm_manager.getFollowerIndex();
+    const int follower_index = fcb_swarm_manager.getFollowerIndex();
     const double base_distance = (follower_index + 1) * KNODE_LENGTH; // Base distance from leader
 
     // Distance between me & leader
@@ -125,7 +127,7 @@ void CSwarmFollower::updateFollowerInVectorFormation ()
     POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, leader_velocity_vector_bearing + angle_offset, base_distance);
 
     // Instruct follower to go to the target point
-    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude, p.longitude, (m_leader_gpos_new.relative_alt + (m_fcb_swarm_manager.getFollowerIndex() + 1) * 10000) / 1000.0);
+    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude, p.longitude, (m_leader_gpos_new.relative_alt + (follower_index + 1) * 10000) / 1000.0);
 
     // Broadcast target location for this follower
     CFCBFacade::getInstance().sendFCBTargetLocation("", p.latitude, p.longitude, (double)m_leader_gpos_new.relative_alt, DESTINATION_SWARM_MY_LOCATION);
@@ -148,15 +150,17 @@ void CSwarmFollower::updateFollowerInVectorFormation ()
  */
 void CSwarmFollower::updateFollower()
 {
-    switch (m_fcb_swarm_manager.getFormationAsFollower())
+    de::fcb::swarm::CSwarmManager& fcb_swarm_manager = de::fcb::swarm::CSwarmManager::getInstance();
+
+    switch (fcb_swarm_manager.getFormationAsFollower())
     {
         case FORMATION_THREAD:
             updateFollowerInThreadFormation();
             break;
-        case FORMATION_VECTOR:
-            updateFollowerInVectorFormation();
+        case FORMATION_ARROW:
+            updateFollowerInArrowFormation();
             break;
-        case FORMATION_VECTOR_180:
+        case FORMATION_VECTOR:
             break;
         
         default:
@@ -180,9 +184,10 @@ void CSwarmFollower::handle_leader_traffic(const std::string & leader_sender, co
 
     // suggest: send unfollow to it. but take care of message rate.
     // Not a follower
-    if (!m_fcb_swarm_manager.isFollower()) return ;
+    
+    if (!fcb_swarm_manager.isFollower()) return ;
     // This traffic is not from my leader.
-    if (!m_fcb_swarm_manager.isMyLeader(leader_sender)) return ;
+    if (!fcb_swarm_manager.isMyLeader(leader_sender)) return ;
 
 
     // this is a binary message

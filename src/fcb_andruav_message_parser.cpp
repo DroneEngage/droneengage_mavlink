@@ -8,7 +8,6 @@
 #include "./de_common/messages.hpp"
 #include "./de_common/localConfigFile.hpp"
 #include "fcb_modes.hpp"
-#include "./swarm/fcb_swarm_follower.hpp"
 #include "fcb_andruav_message_parser.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
@@ -54,7 +53,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
 
     else
     {
-        Json_de cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+        const Json_de cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
         
         switch (messageType)
         {
@@ -611,29 +610,6 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                 }
             }
 
-            case TYPE_AndruavMessage_SWARM_MAVLINK:
-            {
-                /**
-                 * @brief This message is mainly the TYPE_AndruavMessage_MAVLINK message.
-                 * It is just used as a separate channel to avoid routing messages wrongly between units.
-                 * Sender of this messages should have permission PERMISSION_ALLOW_SWARM 
-                 */
-                
-                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
-
-
-                if ((!is_system) && ((permission & PERMISSION_ALLOW_SWARM) != PERMISSION_ALLOW_SWARM)) 
-                {
-                    std::cout << _INFO_CONSOLE_BOLD_TEXT << "SWARM MAVLINK: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                    break;
-                }
-
-                const std::string leader_sender = andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
-                de::fcb::swarm::CSwarmFollower& swarm_follower = de::fcb::swarm::CSwarmFollower::getInstance();
-                swarm_follower.handle_leader_traffic(leader_sender, full_message, full_message_length);
-            }
-            break;
-
             /**
              * @brief P2P SECTION
              * This should be a generic P2P as much as possible.
@@ -690,11 +666,31 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
            }
            break;
 
-            /**
+           case TYPE_AndruavMessage_SWARM_MAVLINK:
+           {
+               /**
+                * @brief This message is mainly the TYPE_AndruavMessage_MAVLINK message.
+                * It is just used as a separate channel to avoid routing messages wrongly between units.
+                * Sender of this messages should have permission PERMISSION_ALLOW_SWARM 
+                */
+               
+               if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+
+
+               if ((!is_system) && ((permission & PERMISSION_ALLOW_SWARM) != PERMISSION_ALLOW_SWARM)) 
+               {
+                   std::cout << _INFO_CONSOLE_BOLD_TEXT << "SWARM MAVLINK: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                   break;
+               }
+               m_fcb_swarm_manager.handleSwarmMavlink(andruav_message, full_message, full_message_length);
+           }
+           break;
+           
+           /**
              * @brief SWARM SECTION
              * We have three messages here:
              * 
-             * 1- TYPE_AndruavMessage_MAKE_SWARM:
+             * 1- TYPE_AndruavMessage_Make_Swarm:
              *  sent from gcs to a drone to promote/demote a drone to leader
              * 
              * 2- TYPE_AndruavMessage_FollowHim_Request:
@@ -706,7 +702,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
              * it as a follower.
              * 
              */
-            case TYPE_AndruavMessage_MAKE_SWARM:
+            case TYPE_AndruavMessage_Make_Swarm:
             {   
                 /**
                 * @brief This message is received by Leader Units to activate or deactivate swarm formation.
@@ -715,33 +711,16 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
 
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
-                // Become a leader drone.
-                // a: formationID
-                // b: partyID
-                // if (b:partyID) is not me then treat it as an announcement.
-
-                if (!cmd.contains("a") || !cmd["a"].is_number_integer()) return ;
-                if (!cmd.contains("b") || !cmd["b"].is_string()) return ;
                 
-                if (m_fcbMain.getAndruavVehicleInfo().party_id.compare( cmd["b"].get<std::string>())!=0)
-                {
-                    // this is an announcement.
-                    // other drone should handle this message.
-                    // if this is my leader drone and it is being released then 
-                    // I can release my self or wait for it to ell me to do so -which makes more sense-.
-                    return ;
-                }
 
-                const int formation = cmd["a"].get<int>();
-
-                m_fcb_swarm_manager.makeSwarm((de::fcb::swarm::ANDRUAV_SWARM_FORMATION)formation);
+                m_fcb_swarm_manager.handleMakeSwarm(andruav_message, full_message, full_message_length);
             }
             break;
 
             case TYPE_AndruavMessage_FollowHim_Request:
             {
                 /**
-                 * @brief tell a drone that another drone is in its team -a slave-.
+                 * @brief Tell a drone to become a follower of a leader.
                  * @details 
                  * This message can be sent from GCS or another Drone either a leader or not.
                  * This message requests from the receiver "Drone" to send @ref TYPE_AndruavMessage_UpdateSwarm
@@ -752,69 +731,13 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                  * @note receiver should not assume it is a follower. It only should forward this request to the leader.
                  */
 
-                if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
 
-                // a: follower index -1 means any available location.   
-                // b: leader partyID 
-                // c: slave partyID
-                // d: formation_id
-                // f: SWARM_FOLLOW/SWARM_UNFOLLOW
-                // if (c:partyID) is not me then treat it as an announcement.
-                
-                //if (!validateField(message, "f",Json_de::value_t::number_integer)) return ;
-                if (!cmd.contains("f") || !cmd["f"].is_number_integer()) return ;
-                if (!cmd.contains("c") || !cmd["c"].is_string()) return ;
-                
-
-                if (m_fcbMain.getAndruavVehicleInfo().party_id.compare(cmd["c"].get<std::string>())!=0)
-                {
-                    std::cout << "FollowHim_Request announcement by: " << cmd["c"].get<std::string>() << std::endl;
-
-                    // this is an announcement.
-                    // other drone should handle this message.
-                    return ;
-                }
+                 m_fcb_swarm_manager.handleFollowHimRequest(andruav_message, full_message, full_message_length);
 
                 
-                const int swar_action = cmd["f"].get<int>();
-                if (swar_action==SWARM_UNFOLLOW)
-                { 
-                    // [b] can be null
-                    std::string leader = m_fcb_swarm_manager.getLeader();
-                    if (cmd.contains("b") && cmd["b"].is_string()) 
-                    {
-                        leader = cmd["b"].get<std::string>();
-                    }
-                    m_fcb_swarm_manager.unFollowLeader(leader, andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
-                    break;
-                }
-                else if (swar_action==SWARM_FOLLOW)
-                {   // follow leader in [b]
-                    if (!cmd.contains("a") || !cmd["a"].is_number_integer()) return ;
-                    if (!cmd.contains("b") || !cmd["b"].is_string()) return ;
-                    
-                    
-                    const int follower_index = cmd["a"].get<int>();
-                    const std::string leader_party_id = cmd["b"].get<std::string>();
-                    swarm::ANDRUAV_SWARM_FORMATION follower_formation = swarm::ANDRUAV_SWARM_FORMATION::FORMATION_NO_SWARM;
-                    if (cmd.contains("d") && cmd["d"].is_number_integer()) 
-                    {
-                        follower_formation = (swarm::ANDRUAV_SWARM_FORMATION) cmd["d"].get<int>();
-                    }
-                    
-                    std::string sender = "";
-                    if (!is_inter_module)
-                    {
-                        sender = andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
-                    }
-                    else
-                    {
-                        sender = de::comm::CModule::getInstance().getPartyId();
-                    }
-                    
-                    m_fcb_swarm_manager.followLeader(leader_party_id, follower_index, follower_formation, sender);
-                    break;
-                }
+
+                
             }
             break;
 
@@ -828,50 +751,11 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                 */
 
                 if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
-
-                /*
-                    a: action [SWARM_UPDATED, SWARM_DELETE]
-                    b: follower index [mandatory with SWARM_UPDATED]
-                    c: leader id - if this is not me then consider it a notification.
-                    d: slave party id 
-                */
-
-                //if (!validateField(message, "d",Json_de::value_t::string)) return ;
-                if (!cmd.contains("a") || !cmd["a"].is_number_integer()) return ;
-                if (!cmd.contains("c") || !cmd["c"].is_string()) return ;
-                if (!cmd.contains("d") || !cmd["d"].is_string()) return ;
-                
-
-                if (m_fcbMain.getAndruavVehicleInfo().party_id.compare(cmd["c"].get<std::string>())!=0)
-                {
-                    // this is an announcement.
-                    // other drone should handle this message.
-                    return ;
-                }
-
-                const int action = cmd["a"].get<int>();
-                const std::string follower_party_id = cmd["d"].get<std::string>();
-                    
-                if (action == SWARM_UPDATED)
-                {   
-                    // add or modify swarm member
-                    const int follower_index = cmd["b"].get<int>();
-                    m_fcb_swarm_manager.addFollower(follower_party_id, follower_index);
-
-                   return ;     
-                }
-
-                if (action == SWARM_DELETE)
-                {
-                    // remove a swarm member
-                    m_fcb_swarm_manager.releaseSingleFollower(follower_party_id);
-
-                    return ;     
-                }
+                m_fcb_swarm_manager.handleUpdateSwarm(andruav_message, full_message, full_message_length);
             }
             break;
 
-            //////////////////////SWARM-END
+            //SWARM-SECTION END
 
             case TYPE_AndruavMessage_UDPProxy_Info:
             {

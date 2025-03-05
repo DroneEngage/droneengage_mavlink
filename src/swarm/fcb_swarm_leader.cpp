@@ -40,7 +40,7 @@ void CSwarmLeader::updateFollowersThreadFormation()
 } 
 
 
-void CSwarmLeader::updateFollowerInVectorFormation()
+void CSwarmLeader::updateFollowerInArrowFormation()
 {
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
         
@@ -79,10 +79,10 @@ void CSwarmLeader::updateFollowers()
         case FORMATION_THREAD:
             updateFollowersThreadFormation();
             break;
-        case FORMATION_VECTOR:
-            updateFollowerInVectorFormation();
+        case FORMATION_ARROW:
+            updateFollowerInArrowFormation();
             break;
-        case FORMATION_VECTOR_180:
+        case FORMATION_VECTOR:
             break;
         
         default:

@@ -5,6 +5,11 @@
 #include <vector>
 #include <unordered_map>
 
+#include "../helpers/json_nlohmann.hpp"
+using Json_de = nlohmann::json;
+
+
+
 namespace de
 {
 namespace fcb
@@ -20,9 +25,9 @@ namespace swarm
     typedef enum
     {
         FORMATION_NO_SWARM      = 0, 
-        FORMATION_THREAD        = 1, 
-        FORMATION_VECTOR        = 2, 
-        FORMATION_VECTOR_180    = 3, 
+        FORMATION_THREAD        = 1,
+        FORMATION_ARROW         = 2, 
+        FORMATION_VECTOR        = 3, 
 
     } ANDRUAV_SWARM_FORMATION;
 
@@ -80,17 +85,24 @@ namespace swarm
             void unFollowLeader(const std::string& party_id_leader_to_unfollow, const std::string& party_id_request);
             ANDRUAV_SWARM_FORMATION getFormationAsLeader() const;
             ANDRUAV_SWARM_FORMATION getFormationAsFollower() const;
-            void makeSwarm(const ANDRUAV_SWARM_FORMATION formation);
-            void addFollower (const std::string& party_id, const int follower_index);
+            void addFollower (const std::string& party_id);
             void releaseSingleFollower (const std::string& party_id);
             void releaseFollowers ();
             int followerExist (const std::string& party_id) const;
-            int insertFollowerinSwarmFormation(const std::string& party_id);
+            int insertFollowerInSwarmFormation(const std::string& party_id);
+
 
         public:
 
             void handleSwarmsAsLeader();
             
+
+        public:
+            
+            void handleMakeSwarm(const Json_de& andruav_message, const char * full_message, const int & full_message_length);
+            void handleFollowHimRequest(const Json_de& andruav_message, const char * full_message, const int & full_message_length);
+            void handleSwarmMavlink(const Json_de& andruav_message, const char * full_message, const int & full_message_length);
+            void handleUpdateSwarm(const Json_de& andruav_message, const char * full_message, const int & full_message_length);
 
         public:
         
@@ -151,6 +163,8 @@ namespace swarm
             int m_follower_index=-1;
             ANDRUAV_SWARM_FORMATION m_formation_as_follower;
             
+            
+    
     } ;
 }// namespace
 }// namespace

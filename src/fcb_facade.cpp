@@ -998,12 +998,14 @@ void CFCBFacade::sendMissionItemSequence(const std::string event_sid) const
 
 /**
  * @brief Sends to a leader from GCS or a follower or an agent wants to be a follower
- * in order to add itself as a follower, or request to update location or release itself.
+ * in order to add itself as a follower, or request to release itself.
  * Leader should reply with an updated TYPE_AndruavMessage_FollowHim_Request with new infomration.
+ *      Sender: GCS or Follower
+ *      Receiver: Leader
+ *      Action:    Leader should reply with an updated TYPE_AndruavMessage_FollowHim_Request with new infomration.
  * @param target_party_id 
- * @param follower_index 
  */
-void CFCBFacade::requestToFollowLeader(const std::string&target_party_id, const int follower_index) const
+void CFCBFacade::requestToFollowLeader(const std::string&target_party_id) const
 {
     /*
         a: action
@@ -1013,8 +1015,7 @@ void CFCBFacade::requestToFollowLeader(const std::string&target_party_id, const 
     */
     Json_de message =
             {
-                {"a", (int)SWARM_UPDATED},
-                {"b", follower_index},
+                {"a", (int)SWARM_ADD},
                 {"c", target_party_id},
                 {"d", de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id}
             };
@@ -1048,6 +1049,29 @@ void CFCBFacade::requestUnFollowLeader(const std::string&target_party_id) const
 
 }
 
+
+void CFCBFacade::requestFromUnitToChangeFormation(const std::string&target_party_id, const int follower_index) const
+{
+    swarm::CSwarmManager& fcb_swarm_manager = swarm::CSwarmManager::getInstance();
+
+    /*
+        a: null
+        b: follower index
+        c: leader id
+    */
+    Json_de message =
+            {   
+                {"a", follower_index },
+                {"b", de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
+                {"c", target_party_id},
+                {"d", fcb_swarm_manager.getFormationAsLeader()},
+                {"f", SWARM_CHANGE_FORMATION}
+                
+            };
+                
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_FollowHim_Request, false);
+
+}
 
 void CFCBFacade::requestFromUnitToFollowMe(const std::string&target_party_id, const int follower_index) const
 {

@@ -114,9 +114,10 @@ namespace fcb
             void sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid, const bool internal_only) const;
             
             // SWARM API
-            void requestToFollowLeader(const std::string&target_party_id, const int follower_index) const;
+            void requestToFollowLeader(const std::string&target_party_id) const;
             void requestUnFollowLeader(const std::string&target_party_id) const;
             void requestFromUnitToFollowMe(const std::string&target_party_id, const int follower_index) const;
+            void requestFromUnitToChangeFormation(const std::string&target_party_id, const int follower_index) const;
             void requestFromUnitToUnFollowMe(const std::string&target_party_id) const;
             void sendSWARM_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const;
             // END SWARM API
