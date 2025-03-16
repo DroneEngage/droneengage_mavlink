@@ -722,22 +722,7 @@ void CFCBFacade::sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, d
     udp_client.sendMSG (buf, len);
 }
 
-[[deprecated("This function is deprecated. UDPProxy is used instead of webplugin")]]
-void CFCBFacade::sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
-{
-    char buf[300];
-    // Translate message to buffer
-	unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message);
-	if (len >= 300) 
-	{
-		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-		return ;
-	}
 
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_LightTelemetry, false, Json_de());
-    
-    return ;
-}
 
 void CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
 {
