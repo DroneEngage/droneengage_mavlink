@@ -100,7 +100,6 @@ namespace fcb
             void sendHomeLocation(const std::string&target_party_id) const;
             void sendFCBTargetLocation(const std::string&target_party_id, const double &latitude, const double &longitude, const double &altitude, const int &target_type) const;
             void sendWayPoints(const std::string&target_party_id) const;
-            void sendTelemetryData(const std::string&target_party_id, const mavlink_message_t& mavlink_message) const;
             void sendMavlinkData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const;
             void sendMavlinkData_3(const std::string&target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2, const mavlink_message_t& mavlink_message3)  const;
             void sendMavlinkData_Packed(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count, const bool& internal_message)  const;
