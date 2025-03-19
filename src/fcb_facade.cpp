@@ -726,95 +726,128 @@ void CFCBFacade::sendUdpProxyMavlink(const mavlink_message_t& mavlink_message, d
 
 void CFCBFacade::sendMavlinkData(const std::string&target_party_id, const mavlink_message_t& mavlink_message)  const
 {
-    char buf[300];
+    // Determine the maximum possible size of the MAVLink message (you may need to adjust this)
+    const size_t maxMessageSize = 400; // Example maximum size
+
+    // Dynamically allocate a buffer using std::vector
+    std::vector<uint8_t> buf(maxMessageSize);
+
     // Translate message to buffer
-	uint16_t len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message);
-	if (len >= 300) 
-	{
-		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-		return ;
-	}
-
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json_de());
-    
-    return ;
-}
+    uint16_t len = mavlink_msg_to_send_buffer(buf.data(), &mavlink_message);
 
 
-
-void CFCBFacade::sendMavlinkData_3(const std::string&target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2, const mavlink_message_t& mavlink_message3)  const
-{
-    char buf[600];
-    // Translate message to buffer
-    memset (buf,0,sizeof(buf));
-
-    uint16_t len = mavlink_msg_to_send_buffer((uint8_t*)buf, &mavlink_message1);
-	len += mavlink_msg_to_send_buffer((uint8_t*)(&buf[len]), &mavlink_message2);
-    len += mavlink_msg_to_send_buffer((uint8_t*)(&buf[len]), &mavlink_message3);
-    
-    if (len >= 600) 
-	{
-		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-		return ;
-	}
-
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, false, Json_de());
-    
-    return ;
-}
-
-
-void CFCBFacade::sendMavlinkData_Packed(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count, const bool& internal_message)  const
-{
-    if (count==0) return ;
-
-    char buf[600]; //BUG: Why this specific number ???
-    // Translate message to buffer
-    memset (buf,0,sizeof(buf));
-
-    uint16_t len=0;
-
-    for (int i=0;i<count;++i)
+	if (len > maxMessageSize)
     {
-        len += mavlink_msg_to_send_buffer((uint8_t*)(&buf[len]), &mavlink_message[i]);
+        std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: MAVLink message too large for allocated buffer. LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // Optionally, throw an exception here
+        return;
     }
 
-    if (len >= 600) 
-	{
-		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-		return ;
-	}
+    // Send the message
+    m_module.sendBMSG(target_party_id, reinterpret_cast<char*>(buf.data()), len, TYPE_AndruavMessage_MAVLINK, false, Json_de());
 
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_MAVLINK, internal_message, Json_de());
-    
     return ;
 }
 
 
-void CFCBFacade::sendSWARM_M(const std::string&target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count)  const
+
+void CFCBFacade::sendMavlinkData_3(const std::string& target_party_id, const mavlink_message_t& mavlink_message1, const mavlink_message_t& mavlink_message2, const mavlink_message_t& mavlink_message3) const
 {
-    if (count==0) return ;
+    // Determine the maximum possible size of the combined MAVLink messages
+    const size_t maxMessageSize = 900; // Adjust as needed, ensure it's larger than the sum of the maximum possible sizes of the 3 messages.
 
-    char buf[600]; //BUG: Why this specific number ???
-    // Translate message to buffer
-    memset (buf,0,sizeof(buf));
+    // Dynamically allocate a buffer using std::vector
+    std::vector<uint8_t> buf(maxMessageSize);
 
-    uint16_t len=0;
+    // Translate messages to buffer
+    memset(buf.data(), 0, maxMessageSize); // Zero out the buffer
 
-    for (int i=0;i<count;++i)
+    uint16_t len = mavlink_msg_to_send_buffer(buf.data(), &mavlink_message1);
+    len += mavlink_msg_to_send_buffer(buf.data() + len, &mavlink_message2);
+    len += mavlink_msg_to_send_buffer(buf.data() + len, &mavlink_message3);
+
+    // Check for buffer overflow
+    if (len > maxMessageSize)
     {
-        len += mavlink_msg_to_send_buffer((uint8_t*)(&buf[len]), &mavlink_message[i]);
+        std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: Combined MAVLink messages too large for allocated buffer. LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // Optionally, throw an exception here
+        return;
     }
 
-    if (len >= 600) 
-	{
-		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-		return ;
-	}
+    // Send the combined messages
+    m_module.sendBMSG(target_party_id, reinterpret_cast<char*>(buf.data()), len, TYPE_AndruavMessage_MAVLINK, false, Json_de());
 
-    m_module.sendBMSG (target_party_id, buf, len, TYPE_AndruavMessage_SWARM_MAVLINK, true, Json_de());
-    
-    return ;
+    return;
+}
+
+
+void CFCBFacade::sendMavlinkData_Packed(const std::string& target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count, const bool& internal_message) const
+{
+    if (count == 0) return;
+
+    // Determine the maximum possible size of the combined MAVLink messages
+    const size_t maxMessageSize = 400 * count; // Adjust as needed, ensure it's larger than the sum of the maximum possible sizes of all messages.
+
+    // Dynamically allocate a buffer using std::vector
+    std::vector<uint8_t> buf(maxMessageSize);
+
+    // Translate messages to buffer
+    memset(buf.data(), 0, maxMessageSize); // Zero out the buffer
+
+    uint16_t len = 0;
+
+    for (uint16_t i = 0; i < count; ++i)
+    {
+        len += mavlink_msg_to_send_buffer(buf.data() + len, &mavlink_message[i]);
+    }
+
+    // Check for buffer overflow
+    if (len > maxMessageSize)
+    {
+        std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: Combined MAVLink messages too large for allocated buffer. LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // Optionally, throw an exception here
+        return;
+    }
+
+    // Send the combined messages
+    m_module.sendBMSG(target_party_id, reinterpret_cast<char*>(buf.data()), len, TYPE_AndruavMessage_MAVLINK, internal_message, Json_de());
+
+    return;
+}
+
+
+void CFCBFacade::sendSWARM_M(const std::string& target_party_id, const mavlink_message_t* mavlink_message, const uint16_t count) const
+{
+    if (count == 0) return;
+
+    // Determine the maximum possible size of the combined MAVLink messages
+    const size_t maxMessageSize = count * 400; // Adjust as needed, ensure it's larger than the sum of the maximum possible sizes of all messages.
+
+    // Dynamically allocate a buffer using std::vector
+    std::vector<uint8_t> buf(maxMessageSize);
+
+    // Translate messages to buffer
+    memset(buf.data(), 0, maxMessageSize); // Zero out the buffer
+
+    uint16_t len = 0;
+
+    for (uint16_t i = 0; i < count; ++i)
+    {
+        len += mavlink_msg_to_send_buffer(buf.data() + len, &mavlink_message[i]);
+    }
+
+    // Check for buffer overflow
+    if (len > maxMessageSize)
+    {
+        std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: Combined MAVLink messages too large for allocated buffer. LEN = " << std::to_string(len) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // Optionally, throw an exception here
+        return;
+    }
+
+    // Send the combined messages
+    m_module.sendBMSG(target_party_id, reinterpret_cast<char*>(buf.data()), len, TYPE_AndruavMessage_SWARM_MAVLINK, true, Json_de());
+
+    return;
 }
 
 
