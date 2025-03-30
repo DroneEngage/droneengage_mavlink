@@ -30,7 +30,8 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 {
 
 	if ((heartbeat.type >=  MAV_TYPE::MAV_TYPE_GIMBAL)
-	|| (heartbeat.type ==  MAV_TYPE::MAV_TYPE_GCS))
+	|| (heartbeat.type ==  MAV_TYPE::MAV_TYPE_GCS)
+	|| (heartbeat.type ==  MAV_TYPE::MAV_TYPE_ONBOARD_CONTROLLER))
 	return false; // fix ADSB sensor.
 
 	m_sysid = mavlink_message_temp.sysid;
