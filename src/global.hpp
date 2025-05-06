@@ -1,3 +1,6 @@
+#ifndef GLOBAL_H_
+#define GLOBAL_H_
+
 #include <iostream>
 
 #include "./helpers/json_nlohmann.hpp"
@@ -9,3 +12,8 @@ using Json_de = nlohmann::json;
 #endif
 
 #define BIT(x) (1 << (x))
+
+
+
+#endif
+
