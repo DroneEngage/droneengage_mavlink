@@ -5,6 +5,7 @@
 
 #include "fcb_swarm_manager.hpp"
 #include "fcb_swarm_follower.hpp"
+#include "fcb_swarm_leader.hpp"
 
 using namespace de::fcb::swarm;
 
@@ -155,6 +156,8 @@ void CSwarmManager::handleMakeSwarm(const Json_de& andruav_message, const char *
     // Become a leader drone.
     // a: formationID
     // b: partyID
+    // h: min horizontal distance (optional)
+    // v: min vertical distance (optional)
     // if (b:partyID) is not me then treat it as an announcement.
 
     const Json_de cmd = andruav_message[ANDRUAV_PROTOCOL_MESSAGE_CMD];
@@ -174,7 +177,24 @@ void CSwarmManager::handleMakeSwarm(const Json_de& andruav_message, const char *
     }
 
     const int formation = cmd["a"].get<int>();
-
+    de::fcb::swarm::CSwarmLeader& swarmLeader = de::fcb::swarm::CSwarmLeader::getInstance();
+    if (cmd.contains("h") && cmd["h"].is_number_integer()) 
+    {
+        swarmLeader.setMinHorizontalDistance(cmd["h"].get<int>());
+    }
+    else
+    {
+        swarmLeader.setMinHorizontalDistance(KNODE_LENGTH);
+    }
+    if (cmd.contains("v") && cmd["v"].is_number_integer()) 
+    {
+        swarmLeader.setMinVerticalDistance(cmd["v"].get<int>());
+    }
+    else
+    {
+        swarmLeader.setMinVerticalDistance(KNODE_LENGTH);
+    }
+    
     if (m_formation_as_leader == formation) return ;
 
 
@@ -207,7 +227,10 @@ void CSwarmManager::handleMakeSwarm(const Json_de& andruav_message, const char *
             m_is_leader = true;
         }
 
-        std::cout << _INFO_CONSOLE_TEXT << std::endl << "Promoted to a Leader with formation:" << m_formation_as_leader <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_TEXT << std::endl << "Promoted to a Leader with formation:" << _INFO_CONSOLE_TEXT << m_formation_as_leader
+            << _LOG_CONSOLE_TEXT << "  H-spacing:" << _INFO_CONSOLE_TEXT << swarmLeader.getMinHorizontalDistance() 
+            << _LOG_CONSOLE_TEXT << "  V-spacing:" << _INFO_CONSOLE_TEXT << swarmLeader.getMinVerticalDistance() 
+            << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         //TODO: handle change formation for followers.
         //TODO: problems include formation transition, & max number of followers.
@@ -349,11 +372,31 @@ void CSwarmManager::handleFollowHimRequest(const Json_de& andruav_message, const
     // c: slave partyID
     // d: formation_id
     // f: SWARM_FOLLOW/SWARM_UNFOLLOW
+    // h: min horizontal distance (optional)
+    // v: min vertical distance (optional)
     // if (c:partyID) is not me then treat it as an announcement.
                 
     if (!cmd.contains("f") || !cmd["f"].is_number_integer()) return ;
     if (!cmd.contains("c") || !cmd["c"].is_string()) return ;
-                
+           
+    de::fcb::swarm::CSwarmFollower& swarm_follower = de::fcb::swarm::CSwarmFollower::getInstance();
+    if (cmd.contains("h") && cmd["h"].is_number_integer()) 
+    {
+        swarm_follower.setMinHorizontalDistance(cmd["h"].get<int>());
+    }
+    else
+    {
+        swarm_follower.setMinHorizontalDistance(KNODE_LENGTH);
+    }
+    if (cmd.contains("v") && cmd["v"].is_number_integer()) 
+    {
+        swarm_follower.setMinVerticalDistance(cmd["v"].get<int>());
+    }
+    else
+    {
+        swarm_follower.setMinVerticalDistance(KNODE_LENGTH);
+    }
+    
     de::fcb::CFCBMain&  fcbMain = de::fcb::CFCBMain::getInstance();
             
     if (fcbMain.getAndruavVehicleInfo().party_id.compare(cmd["c"].get<std::string>())!=0)
@@ -406,7 +449,25 @@ void CSwarmManager::handleFollowHimRequest(const Json_de& andruav_message, const
             {
                 follower_formation = (swarm::ANDRUAV_SWARM_FORMATION) cmd["d"].get<int>();
             }
-                        
+            
+            de::fcb::swarm::CSwarmFollower& swarm_follower = de::fcb::swarm::CSwarmFollower::getInstance();
+            if (cmd.contains("h") && cmd["h"].is_number_integer()) 
+            {
+                swarm_follower.setMinHorizontalDistance(cmd["h"].get<int>());
+            }
+            else
+            {
+                swarm_follower.setMinHorizontalDistance(KNODE_LENGTH);
+            }
+            if (cmd.contains("v") && cmd["v"].is_number_integer()) 
+            {
+                swarm_follower.setMinVerticalDistance(cmd["v"].get<int>());
+            }
+            else
+            {
+                swarm_follower.setMinVerticalDistance(KNODE_LENGTH);
+            }
+            
             followLeader(leader_party_id, follower_index, follower_formation, sender);
         }
         return ;
@@ -419,6 +480,7 @@ void CSwarmManager::handleFollowHimRequest(const Json_de& andruav_message, const
             {
                 break ;
             }
+
             swarm::ANDRUAV_SWARM_FORMATION follower_formation = (swarm::ANDRUAV_SWARM_FORMATION) cmd["d"].get<int>();
             m_formation_as_follower = follower_formation;
             de::fcb::CFCBFacade::getInstance().API_IC_sendID(std::string());

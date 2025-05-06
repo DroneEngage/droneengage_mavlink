@@ -8,6 +8,7 @@
 #include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
+const uint32_t KNODE_LENGTH = 100;
 
 
 namespace de
@@ -153,6 +154,7 @@ namespace swarm
         private:
             ANDRUAV_SWARM_FORMATION m_formation_as_leader;
             bool m_is_leader = false;
+            
             std::vector <ANDRUAV_UNIT_FOLLOWER> m_follower_units;
             
             std::string m_leader_party_id;
@@ -166,8 +168,8 @@ namespace swarm
             
     
     } ;
-}// namespace
-}// namespace
-}// namespace
+}
+}
+}
 
 #endif
