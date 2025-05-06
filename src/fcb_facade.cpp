@@ -7,11 +7,13 @@ using Json_de = nlohmann::json;
 #include "helpers/helpers.hpp"
 #include "./de_common/messages.hpp"
 
-#include "./mission/missions.hpp"
-#include "fcb_traffic_optimizer.hpp"
-#include "./swarm/fcb_swarm_manager.hpp"
 #include "fcb_facade.hpp"
 #include "fcb_main.hpp"
+#include "fcb_traffic_optimizer.hpp"
+#include "./mission/missions.hpp"
+#include "./swarm/fcb_swarm_manager.hpp"
+#include "./swarm/fcb_swarm_leader.hpp"
+#include "./swarm/fcb_swarm_follower.hpp"
 #include "./mission/mission_manager.hpp"
 
 
@@ -1071,6 +1073,7 @@ void CFCBFacade::requestUnFollowLeader(const std::string&target_party_id) const
 void CFCBFacade::requestFromUnitToChangeFormation(const std::string&target_party_id, const int follower_index) const
 {
     swarm::CSwarmManager& fcb_swarm_manager = swarm::CSwarmManager::getInstance();
+    swarm::CSwarmLeader& fcb_swarm_leader = swarm::CSwarmLeader::getInstance();
 
     /*
         a: null
@@ -1083,6 +1086,8 @@ void CFCBFacade::requestFromUnitToChangeFormation(const std::string&target_party
                 {"b", de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
                 {"c", target_party_id},
                 {"d", fcb_swarm_manager.getFormationAsLeader()},
+                {"h", fcb_swarm_leader.getMinHorizontalDistance()},
+                {"v", fcb_swarm_leader.getMinVerticalDistance()},
                 {"f", SWARM_CHANGE_FORMATION}
                 
             };
@@ -1094,6 +1099,7 @@ void CFCBFacade::requestFromUnitToChangeFormation(const std::string&target_party
 void CFCBFacade::requestFromUnitToFollowMe(const std::string&target_party_id, const int follower_index) const
 {
     swarm::CSwarmManager& fcb_swarm_manager = swarm::CSwarmManager::getInstance();
+    swarm::CSwarmLeader& fcb_swarm_leader = swarm::CSwarmLeader::getInstance();
 
     /*
         a: null
@@ -1106,6 +1112,8 @@ void CFCBFacade::requestFromUnitToFollowMe(const std::string&target_party_id, co
                 {"b", de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id},
                 {"c", target_party_id},
                 {"d", fcb_swarm_manager.getFormationAsLeader()},
+                {"h", fcb_swarm_leader.getMinHorizontalDistance()},
+                {"v", fcb_swarm_leader.getMinVerticalDistance()},
                 {"f", SWARM_FOLLOW}
                 
             };

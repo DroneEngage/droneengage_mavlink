@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <mavlink_sdk.h>
-
+#include "fcb_swarm_manager.hpp"
 namespace de
 {
 namespace fcb
@@ -51,6 +51,25 @@ namespace swarm
 
             void handle_leader_traffic(const std::string & leader_sender, const char * full_message, const int & full_message_length);
 
+        public: 
+
+            void setMinVerticalDistance (const int min_vertical_distance)
+            {
+                m_min_vertical_distance = min_vertical_distance;
+            };
+            void setMinHorizontalDistance (const int min_horizontal_distance)
+            {
+                m_min_horizontal_distance = min_horizontal_distance;
+            };
+            int getMinVerticalDistance ()
+            {
+                return m_min_vertical_distance;
+            };
+            int getMinHorizontalDistance ()
+            {
+                return m_min_horizontal_distance;
+            };
+
         private:
 
             void updateFollower();
@@ -65,7 +84,8 @@ namespace swarm
 
         private:
             
-        
+            int m_min_vertical_distance = KNODE_LENGTH;
+            int m_min_horizontal_distance = KNODE_LENGTH;
     };
 }
 }

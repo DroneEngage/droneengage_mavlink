@@ -1,6 +1,6 @@
 
-#ifndef FCB_SWARM_FOLLOWER_H_
-#define FCB_SWARM_FOLLOWER_H_
+#ifndef FCB_SWARM_LEADER_H_
+#define FCB_SWARM_LEADER_H_
 
 #include <iostream>
 #include <mavlink_sdk.h>
@@ -54,6 +54,25 @@ namespace swarm
             void handleSwarmsAsLeader();
 
 
+        public: 
+
+            void setMinVerticalDistance (const int min_vertical_distance)
+            {
+                m_min_vertical_distance = min_vertical_distance;
+            };
+            void setMinHorizontalDistance (const int min_horizontal_distance)
+            {
+                m_min_horizontal_distance = min_horizontal_distance;
+            };
+            int getMinVerticalDistance ()
+            {
+                return m_min_vertical_distance;
+            };
+            int getMinHorizontalDistance ()
+            {
+                return m_min_horizontal_distance;
+            };
+
         private:
 
             void updateFollowers();
@@ -68,7 +87,9 @@ namespace swarm
         private:
             
             de::fcb::swarm::CSwarmManager& m_fcb_swarm_manager = de::fcb::swarm::CSwarmManager::getInstance();
-
+          
+            int m_min_vertical_distance = KNODE_LENGTH;
+            int m_min_horizontal_distance = KNODE_LENGTH;
         
     };
 }

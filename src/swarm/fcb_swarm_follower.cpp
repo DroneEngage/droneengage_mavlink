@@ -1,12 +1,10 @@
 
 #include "fcb_swarm_follower.hpp"
-#include "fcb_swarm_manager.hpp"
 #include "../fcb_facade.hpp"
 #include "../fcb_main.hpp"
 #include "../helpers/gps.hpp"
 #include "../helpers/helpers.hpp"
 
-#include "fcb_swarm_manager.hpp"
 
 using namespace de::fcb::swarm;
 
@@ -23,8 +21,7 @@ de::fcb::swarm::CSwarmManager& fcb_swarm_manager = de::fcb::swarm::CSwarmManager
  */
 void CSwarmFollower::updateFollowerInThreadFormation()
 {
-    const uint32_t KNODE_LENGTH = 100; 
-
+    
     // get my own location
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
     const mavlink_global_position_int_t&  my_gpos = vehicle.getMsgGlobalPositionInt();
@@ -49,12 +46,12 @@ void CSwarmFollower::updateFollowerInThreadFormation()
     const double my_lon = my_gpos.lon / 10000000.0f;
 
     const int follower_index = fcb_swarm_manager.getFollowerIndex();
-    const double base_distance = (follower_index + 1) * KNODE_LENGTH; // Base distance from leader
+    const double base_distance = (follower_index + 1) * m_min_horizontal_distance; // Base distance from leader
 
     // distance between me & leader
     const double distance_to_leader = calcGPSDistance(leader_lat,leader_lon, my_lat, my_lon);
 
-    // the rope effect ... ignore when distance is less than robe length. Rope has nodes and each node has a length. of KNODE_LENGTH
+    // the rope effect ... ignore when distance is less than robe length. Rope has nodes and each node has a length. of m_min_horizontal_distance
     if (distance_to_leader <  base_distance)  
     {
         // rope effect ... ignore when distance is less than robe length.
@@ -70,7 +67,7 @@ void CSwarmFollower::updateFollowerInThreadFormation()
     POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, bearing_with_leader, base_distance);  // getpoint using bearing and distance.
 
     // instruct follower to go to a target point.
-    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude , p.longitude , (m_leader_gpos_new.relative_alt + (follower_index +1) * 10000) / 1000.0);
+    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude , p.longitude , (m_leader_gpos_new.relative_alt + (follower_index +1) * m_min_vertical_distance * 1000) / 1000.0f);
 
     // broadcast target location or this follower.
     CFCBFacade::getInstance().sendFCBTargetLocation("", p.latitude , p.longitude, (double) m_leader_gpos_new.relative_alt, DESTINATION_SWARM_MY_LOCATION);
@@ -83,8 +80,7 @@ void CSwarmFollower::updateFollowerInThreadFormation()
 
 void CSwarmFollower::updateFollowerInArrowFormation()
 {
-    const uint32_t KNODE_LENGTH = 100;
-
+    
     // Get my own location
     mavlinksdk::CVehicle &vehicle = mavlinksdk::CVehicle::getInstance();
     const mavlink_global_position_int_t &my_gpos = vehicle.getMsgGlobalPositionInt();
@@ -109,7 +105,7 @@ void CSwarmFollower::updateFollowerInArrowFormation()
     const bool is_left_side = (follower_index % 2 == 0); // Determine if the follower is on the left side
 
     // Adjust the base distance for symmetry
-    const double base_distance = ((follower_index / 2) + 1) * KNODE_LENGTH; // Base distance from leader
+    const double base_distance = ((follower_index / 2) + 1) * m_min_horizontal_distance; // Base distance from leader
 
     // Distance between me & leader
     const double distance_to_leader = calcGPSDistance(leader_lat, leader_lon, my_lat, my_lon);
@@ -130,7 +126,7 @@ void CSwarmFollower::updateFollowerInArrowFormation()
     POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, leader_velocity_vector_bearing + angle_offset, base_distance);
 
     // Instruct follower to go to the target point
-    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude, p.longitude, (m_leader_gpos_new.relative_alt + (follower_index + 1) * 10000) / 1000.0);
+    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude, p.longitude, (m_leader_gpos_new.relative_alt + (follower_index + 1) * m_min_vertical_distance * 1000) / 1000.0f);
 
     // Broadcast target location for this follower
     CFCBFacade::getInstance().sendFCBTargetLocation("", p.latitude, p.longitude, (double)m_leader_gpos_new.relative_alt, DESTINATION_SWARM_MY_LOCATION);
