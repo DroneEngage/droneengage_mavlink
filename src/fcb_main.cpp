@@ -249,8 +249,8 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
     if (m_jsonConfig.contains("rc_block_channel"))
     {
         m_andruav_vehicle_info.rc_block_channel = m_jsonConfig["rc_block_channel"].get<int>();
-
-        if (display)
+        
+        if (display && (m_andruav_vehicle_info.rc_block_channel >= 0))
         {
             std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Blocking is " << _ERROR_CONSOLE_BOLD_TEXT_ << "enabled " << _INFO_CONSOLE_BOLD_TEXT << "at channel: " << _INFO_CONSOLE_BOLD_TEXT << std::to_string(m_andruav_vehicle_info.rc_block_channel) << _ERROR_CONSOLE_BOLD_TEXT_ << " - IMPORTANT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         }
