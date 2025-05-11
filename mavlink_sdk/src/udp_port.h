@@ -136,7 +136,7 @@ namespace comm
 			const char *target_ip;
 			int rx_port;
 			int tx_port;
-			int sock;
+			int m_SocketFD;
 			bool is_open;
 			
 

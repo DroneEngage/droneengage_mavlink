@@ -100,7 +100,7 @@ initialize_defaults()
 	tx_port  = -1;
 	is_open = false;
 	debug = false;
-	sock = -1;
+	m_SocketFD = -1;
 
 	// Start mutex
 	int result = pthread_mutex_init(&lock, NULL);
@@ -229,8 +229,8 @@ void mavlinksdk::comm::UDPPort::start()
 	// --------------------------------------------------------------------------
 
 	/* Create socket */
-	sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (sock < 0)
+	m_SocketFD = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (m_SocketFD < 0)
 	{
 		perror("error socket failed");
 		throw EXIT_FAILURE;
@@ -243,11 +243,11 @@ void mavlinksdk::comm::UDPPort::start()
 	addr.sin_addr.s_addr = inet_addr(target_ip);
 	addr.sin_port = htons(rx_port);
 
-	if (bind(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr)))
+	if (bind(m_SocketFD, (struct sockaddr *) &addr, sizeof(struct sockaddr)))
 	{
 		perror("error bind failed");
-		close(sock);
-		sock = -1;
+		close(m_SocketFD);
+		m_SocketFD = -1;
 		throw EXIT_FAILURE;
 	}
 
@@ -273,8 +273,8 @@ void mavlinksdk::comm::UDPPort::stop()
 {
 	std::cout << _INFO_CONSOLE_TEXT << "Closing UDP Port" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
-	int result = close(sock);
-	sock = -1;
+	int result = close(m_SocketFD);
+	m_SocketFD = -1;
 
 	if ( result )
 	{
@@ -292,7 +292,7 @@ void mavlinksdk::comm::UDPPort::stop()
 int mavlinksdk::comm::UDPPort::_read_port(uint8_t &cp)
 {
 
-	socklen_t len;
+	socklen_t sender_address_size;
 
 	// Lock
 	pthread_mutex_lock(&lock);
@@ -303,10 +303,17 @@ int mavlinksdk::comm::UDPPort::_read_port(uint8_t &cp)
 		buff_ptr++;
 		result=1;
 	}else{
+		struct timeval tv;
+    	tv.tv_sec = 1; // timeout_in_seconds;
+    	tv.tv_usec = 0;
+    	setsockopt(m_SocketFD, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
 		struct sockaddr_in addr;
-		len = sizeof(struct sockaddr_in);
-		result = recvfrom(sock, &buff, BUFF_LEN, 0, (struct sockaddr *)&addr, &len);
-		if (result==-1)	 
+		sender_address_size = sizeof(struct sockaddr_in);
+		result = recvfrom(m_SocketFD, (char *)buff, BUFF_LEN,  
+                MSG_WAITALL, ( struct sockaddr *) &addr, &sender_address_size);
+        
+        if (result==-1)	 
 		{
 			pthread_mutex_unlock(&lock);
 			//std::this_thread::sleep_for(500);
@@ -358,8 +365,7 @@ _write_port(char *buf, unsigned len)
 		addr.sin_family = AF_INET;
 		addr.sin_addr.s_addr = inet_addr(target_ip);
 		addr.sin_port = htons(tx_port);
-		bytesWritten = sendto(sock, buf, len, 0, (struct sockaddr*)&addr, sizeof(struct sockaddr_in));
-		//printf("sendto: %i\n", bytesWritten);
+		bytesWritten = sendto(m_SocketFD, buf, len, 0, (struct sockaddr*)&addr, sizeof(struct sockaddr_in));
 	}else{
 		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: Sending before first packet received!" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 		bytesWritten = -1;
