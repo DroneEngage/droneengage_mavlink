@@ -322,11 +322,15 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
         }
         else
         {
-            m_rcmap_channels_info.use_smart_rc = true;
+            m_rcmap_channels_info.use_smart_rc = false;
+            
+            
         }
 
         if ((m_rcmap_channels_info.use_smart_rc == true) && (m_rcmap_channels_info.is_valid))
         {
+            std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Smart Channels are" << _SUCCESS_CONSOLE_BOLD_TEXT_ << " enabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
             // re-adjust rcmapped channels
             if (rc_channels["rc_smart_channels"].contains("rc_channel_limits_max"))
             {
@@ -358,7 +362,14 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
                 m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_yaw] = *it == 1 ? true : false;
             }
         }
+        
     }
+
+    if (m_rcmap_channels_info.use_smart_rc == false)
+    {
+        std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Smart Channels are" << _INFO_CONSOLE_BOLD_TEXT << " disabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    }
+            
 }
 
 /**
@@ -587,7 +598,6 @@ void CFCBMain::OnMessageReceived(const mavlink_message_t &mavlink_message)
 
 void CFCBMain::OnConnected(const bool &connected)
 {
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " -- OnConnected" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     if (m_andruav_vehicle_info.use_fcb != connected)
     {
         m_andruav_vehicle_info.use_fcb = connected;
