@@ -125,9 +125,7 @@ namespace comm
             
 
             
-            // called from main
-            void OnConnectionStatusChangedWithAndruavServer (const int status){};
-
+            
             /**
              * @brief Get the Module Features object
              *  module features i.e. can transmit, can recieve, needs stream ...etc.

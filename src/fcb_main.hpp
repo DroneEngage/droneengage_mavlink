@@ -13,7 +13,7 @@
 #include "./de_common/udpProxy.hpp"
 #include "./mission/missions.hpp"
 #include "fcb_traffic_optimizer.hpp"
-
+#include "./de_common/de_common_callback.hpp"
 #include "./helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
@@ -52,7 +52,7 @@ namespace fcb
      * It also communicates with physical FCB using mavlinksdk library.
      * 
      */
-    class CFCBMain: public mavlinksdk::CMavlinkEvents, de::comm::CCallBack_UdpProxy
+    class CFCBMain: public mavlinksdk::CMavlinkEvents, de::comm::CCallBack_UdpProxy, de::comm::CCommon_Callback
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -222,7 +222,7 @@ namespace fcb
             void OnDistanceSensorChanged (const mavlink_distance_sensor_t& distance_sensor);        
             
             // called from main
-            void OnConnectionStatusChangedWithAndruavServer (const int status) ;
+            void OnConnectionStatusChangedWithAndruavServer (const int status) override;
         
         
         // Events implementation of de::comm::CCallBack_UdpProxy

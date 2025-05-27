@@ -23,8 +23,6 @@ void CConfigFile::initConfigFile (const char* fileURL)
 {
     m_file_url = std::string(fileURL);
 
-    std::cout << _LOG_CONSOLE_BOLD_TEXT<< "Read config file: " << _INFO_CONSOLE_TEXT << fileURL << "\033[0m ...."  << std::endl;
-    
     CConfigFile::ReadFile (m_file_url.c_str());
     
     CConfigFile::ParseData (m_fileContents.str());
@@ -44,6 +42,8 @@ void CConfigFile::ReadFile (const char * fileURL)
 {
     std::ifstream stream;
     
+    std::cout << _LOG_CONSOLE_BOLD_TEXT<< "Read config file: " << _INFO_CONSOLE_TEXT << fileURL << "\033[0m ...." ;
+    
     stream.open (fileURL , std::ifstream::in);
     if (!stream) {
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "FATAL ERROR:" << _ERROR_CONSOLE_TEXT_ << " FAILED to read config file " << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -54,7 +54,8 @@ void CConfigFile::ReadFile (const char * fileURL)
     m_fileContents.str("");
     m_fileContents <<  stream.rdbuf();
     
-   
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << " succeeded "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
     
     return ;
 }
@@ -63,5 +64,7 @@ void CConfigFile::ParseData (std::string jsonString)
 {
 
     m_ConfigJSON = Json_de::parse(removeComments(jsonString));
+
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << " config file parsed successfully "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
 }
