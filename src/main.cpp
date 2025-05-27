@@ -154,7 +154,7 @@ void _displaySerial (void)
 
 /**
  * @brief called when connection with ANdruavServer changed.
- * 
+ *  !NOT CALLED
  * @param status 
  */
 void _onConnectionStatusChanged (const int status)
