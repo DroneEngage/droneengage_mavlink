@@ -42,6 +42,11 @@ SET(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(Threads REQUIRED)
 
+
+# Define an option for user control over DETAILED_DEBUG
+option(DDEBUG "Detailed Debug" OFF) # Default is OFF
+
+
 #define default build
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 SET(CMAKE_BUILD_TYPE DEBUG)
@@ -84,11 +89,6 @@ add_compile_definitions(
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-export-dynamic")
 
 
-SET(OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
-file(MAKE_DIRECTORY ${OUTPUT_DIRECTORY})
-SET(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIRECTORY})
-
-
 #add_subdirectory(src)
 
 file(GLOB folder_sdk "./mavlink_sdk/src/*.cpp")
@@ -111,19 +111,33 @@ include_directories(${PROJECT_SOURCE_DIR}/3rdparty)
 include_directories (${PROJECT_SOURCE_DIR}/mavlink_sdk/src)
 include_directories (${PROJECT_SOURCE_DIR}/c_library_v2)
 
-add_executable( OUTPUT_BINARY ${files})
+add_executable( de_mavlink ${files})
 
-set_target_properties( OUTPUT_BINARY 
+set_target_properties( de_mavlink 
                 PROPERTIES 
                     OUTPUT_NAME "de_ardupilot"
                     SUFFIX ".so"
                 )
 
 
-target_link_libraries(OUTPUT_BINARY  Threads::Threads)
+target_link_libraries(de_mavlink  Threads::Threads)
+
+# Conditionally define DDEBUG based on the DDEBUG option
+target_compile_definitions(de_mavlink PRIVATE
+    $<$<BOOL:${DDEBUG}>:DDEBUG>
+)
+
+SET(OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+file(MAKE_DIRECTORY ${OUTPUT_DIRECTORY})
+SET(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIRECTORY})
+
 
 configure_file(de_mavlink.config.module.json ${OUTPUT_DIRECTORY}/de_mavlink.config.module.json COPYONLY)
 
+# Highlight if DDEBUG or TEST_MODE_NO_HAILO_LINK are enabled
+if (DDEBUG)
+    message(STATUS "${Red}Option DDEBUG is ENABLED.${ColourReset}")
+endif()
 
 message ("${Yellow}=========================================================================${ColourReset}")
 
