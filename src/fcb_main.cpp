@@ -329,7 +329,9 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
 
         if ((m_rcmap_channels_info.use_smart_rc == true) && (m_rcmap_channels_info.is_valid))
         {
+            #ifdef DDEBUG
             std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Smart Channels are" << _SUCCESS_CONSOLE_BOLD_TEXT_ << " enabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            #endif
 
             // re-adjust rcmapped channels
             if (rc_channels["rc_smart_channels"].contains("rc_channel_limits_max"))
@@ -367,7 +369,9 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
 
     if (m_rcmap_channels_info.use_smart_rc == false)
     {
-        std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Smart Channels are" << _INFO_CONSOLE_BOLD_TEXT << " disabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #ifdef DDEBUG
+            std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Smart Channels are" << _INFO_CONSOLE_BOLD_TEXT << " disabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
     }
             
 }

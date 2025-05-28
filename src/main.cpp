@@ -454,6 +454,10 @@ void quit_handler( int sig )
 
 int main (int argc, char *argv[])
 {
+    #ifdef DDEBUG
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << " ========================== DDEBUG ENABLED =========================="   << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+	
     init (argc, argv);
 
     while (!exit_me)
