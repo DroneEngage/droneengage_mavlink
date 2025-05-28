@@ -36,6 +36,8 @@ eeprom.bin
 *.BIN
 *.sh
 !build.sh
+!build_ddebug.sh
+!build_release.sh
 *.parm
 LASTLOG.TXT
 
