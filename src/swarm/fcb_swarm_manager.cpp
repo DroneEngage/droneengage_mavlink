@@ -1,4 +1,5 @@
 #include "../helpers/helpers.hpp"
+#include "../helpers/colors.hpp"
 #include "../fcb_facade.hpp"
 #include "../fcb_main.hpp"
 #include "../helpers/gps.hpp"
@@ -38,7 +39,7 @@ void CSwarmManager::followLeader(const std::string& leader_party_id, const int f
         // I am following a leader but some one is asking be to switch leaders.
         // so send to my current leader informing that I am unfollowing it first
 
-        std::cout << "UnFollow " << m_leader_party_id << " requested by: " << party_id_request << std::endl;
+        std::cout << _INFO_CONSOLE_TEXT << "UnFollow " << _SUCCESS_CONSOLE_BOLD_TEXT_ << m_leader_party_id << _INFO_CONSOLE_TEXT << " requested by: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_request << _NORMAL_CONSOLE_TEXT_ << std::endl;
         unFollowLeader(m_leader_party_id, de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().party_id);
     }
 
@@ -83,7 +84,7 @@ void CSwarmManager::followLeader(const std::string& leader_party_id, const int f
  **/
 void CSwarmManager::unFollowLeader(const std::string& party_id_leader_to_unfollow, const std::string& party_id_request)
 {
-    std::cout << "UnFollow " << party_id_leader_to_unfollow << " requested by: " << party_id_request << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT << "UnFollow " << _SUCCESS_CONSOLE_BOLD_TEXT_ << party_id_leader_to_unfollow << _INFO_CONSOLE_TEXT<< " requested by: " << party_id_request << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     if ((!party_id_leader_to_unfollow.empty())
      && (party_id_leader_to_unfollow != m_leader_party_id))
