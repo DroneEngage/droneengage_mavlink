@@ -44,7 +44,7 @@ class CUDPClient
         void setJsonId (std::string jsonID);
         void sendMSG(const char * msg, const int length);
 
-        bool isStarted() const { return m_starrted;}
+        inline bool isStarted() const { return m_starrted;}
 
 
     protected:

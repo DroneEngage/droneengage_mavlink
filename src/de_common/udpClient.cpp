@@ -310,7 +310,8 @@ void de::comm::CUDPClient::InternelSenderIDEntry()
  **/
 void de::comm::CUDPClient::sendMSG (const char * msg, const int length)
 {
-    
+    assert(m_chunkSize > 0 && "m_chunkSize must be positive!");
+
     std::lock_guard<std::mutex> lock(m_lock);
 
     try
