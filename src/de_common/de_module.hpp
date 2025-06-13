@@ -5,6 +5,9 @@
 #include <ctime>
 #include <iostream>
 
+
+#include "../tracking/fcb_tracking_manager.hpp"
+
 #include "../helpers/json_nlohmann.hpp"
 #include "udpClient.hpp"
 #include "messages.hpp"
@@ -91,6 +94,7 @@ namespace comm
         
             void sendMSG (const char * msg, const int length)
                 {
+                    if (!cUDPClient.isStarted()) return ;
                     cUDPClient.sendMSG (msg, length);
                 }
 
@@ -255,6 +259,8 @@ namespace comm
             void (*m_OnReceive)(const char *, int len, Json_de jMsg) = nullptr;
             
             std::mutex m_lock;
+
+            de::fcb::tracking::CTrackingManager &m_tracking_manager = de::fcb::tracking::CTrackingManager::getInstance();
     };
 };
 };
