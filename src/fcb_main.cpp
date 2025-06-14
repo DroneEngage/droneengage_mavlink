@@ -17,7 +17,7 @@
 #include "./de_common/localConfigFile.hpp"
 
 #include "fcb_modes.hpp"
-#include "fcb_facade.hpp"
+
 
 #include "fcb_main.hpp"
 
@@ -1075,35 +1075,50 @@ void CFCBMain::alertDroneEngageOffline()
 }
 
 /**
- * @brief This function get PWM signal from Andruav [-500,500] value and afetr applying reverse, deadband & limites.
- * @param scaled_channels
+ * @brief This function get PWM signal from Andruav [0,1000] value and after applying reverse, deadband & limites.
+ * @param scaled_channels [0,1000]
  * @param ignode_dead_band
  * @callgraph
- * @return int16_t
+ * @return int16_t [1000,2000]
  */
 void CFCBMain::calculateChannels(const int16_t scaled_channels[18], const bool ignode_dead_band, int16_t *output)
 {
-
+	
     for (int i = 0; i < 18; ++i)
     {
         int scaled_channel = scaled_channels[i];
 
-        if (scaled_channel == -999)
+        // --- Stage 1: Handle Ignored/Disabled Channels ---
+        if ((scaled_channel == -999) || (!m_andruav_vehicle_info.rc_channels_enabled[i]))
         {
-            output[i] = 0;
+            // https://mavlink.io/en/messages/common.html#RC_CHANNELS_OVERRIDE
+            if (i<8)
+            {
+                output[i] = 0; // release RC Channel
+            }
+            else
+            {
+                output[i] = UINT16_MAX-1; // release RC Channel
+            }
             continue;
         }
 
-        if (!m_andruav_vehicle_info.rc_channels_enabled[i])
-        {
-            output[i] = 0;
-            continue;
-        }
-
-        scaled_channel = scaled_channel - 500; // range from [-500,500]
+       
+        // --- Stage 2: Convert Range, Apply Deadband, Apply Reverse ---
+        // convert range to [-500,500]
+        scaled_channel = scaled_channel - 500; 
+        // apply deadband
         if ((!ignode_dead_band) && (abs(scaled_channel) < 20))
         {
-            scaled_channel = 0;
+            // https://mavlink.io/en/messages/common.html#RC_CHANNELS_OVERRIDE
+            if (i<8)
+            {
+                scaled_channel = 0; // release RC Channel
+            }
+            else
+            {
+                scaled_channel = UINT16_MAX-1; // release RC Channel
+            }
         }
 
         // Apply Reverse
@@ -1112,7 +1127,7 @@ void CFCBMain::calculateChannels(const int16_t scaled_channels[18], const bool i
             scaled_channel = -scaled_channel;
         }
 
-        // Limit Min Max
+        // --- Stage 3: Limit Min Max and Scale ---
         if (scaled_channel <= 0)
         {
             const int min_value = 1500 - m_andruav_vehicle_info.rc_channels_min[i];
