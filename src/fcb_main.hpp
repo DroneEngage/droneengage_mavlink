@@ -7,7 +7,7 @@
 #include <mavlink_sdk.h>
 #include <mavlink_command.h>
 #include <mavlink_events.h>
-
+#include "fcb_facade.hpp"
 #include "./de_common/messages.hpp"
 #include "./de_common/de_module.hpp"
 #include "./de_common/udpProxy.hpp"

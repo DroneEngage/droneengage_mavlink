@@ -879,29 +879,30 @@ void CMavlinkCommand::sendRCChannels(const int16_t channels[MAX_RC_CHANNELS], in
 	}
 
 	
-	
+	// https://mavlink.io/en/messages/common.html#RC_CHANNELS_OVERRIDE
+
 	mavlink_rc_channels_override_t mavlink_rc_channels = {0};
 	mavlink_rc_channels.target_system    = m_vehicle.getSysId();
 	mavlink_rc_channels.target_component = m_vehicle.getCompId();
 	
-	mavlink_rc_channels.chan1_raw = channel_length>=1?channels[0]:UINT16_MAX;  			// apply or ignore
-    mavlink_rc_channels.chan2_raw = channel_length>=2?channels[1]:UINT16_MAX;  			// apply or ignore
-    mavlink_rc_channels.chan3_raw = channel_length>=3?channels[2]:UINT16_MAX;  			// apply or ignore
-	mavlink_rc_channels.chan4_raw = channel_length>=4?channels[3]:UINT16_MAX;  			// apply or ignore
-    mavlink_rc_channels.chan5_raw = channel_length>=5?channels[4]:UINT16_MAX;  			// apply or ignore
-    mavlink_rc_channels.chan6_raw = channel_length>=6?channels[5]:UINT16_MAX;  			// apply or ignore
-    mavlink_rc_channels.chan7_raw = channel_length>=7?channels[6]:UINT16_MAX;  			// apply or ignore
-    mavlink_rc_channels.chan8_raw = channel_length>=8?channels[7]:UINT16_MAX;  			// apply or ignore
-    mavlink_rc_channels.chan9_raw = channel_length>=9?channels[8]:UINT16_MAX;		   	// apply or ignore	
-    mavlink_rc_channels.chan10_raw = channel_length>=10?channels[9]:UINT16_MAX;  	   	// apply or ignore
-    mavlink_rc_channels.chan11_raw = channel_length>=11?channels[10]:UINT16_MAX;  	   	// apply or ignore
-    mavlink_rc_channels.chan12_raw = channel_length>=12?channels[11]:UINT16_MAX;  	   	// apply or ignore
-    mavlink_rc_channels.chan13_raw = channel_length>=13?channels[12]:UINT16_MAX;  	   	// apply or ignore
-    mavlink_rc_channels.chan14_raw = channel_length>=14?channels[13]:UINT16_MAX;  	   	// apply or ignore
-    mavlink_rc_channels.chan15_raw = channel_length>=15?channels[14]:UINT16_MAX;  	   	// apply or ignore
-    mavlink_rc_channels.chan16_raw = channel_length>=16?channels[15]:UINT16_MAX;  	   	// apply or ignore
-	mavlink_rc_channels.chan17_raw = channel_length>=17?channels[16]:UINT16_MAX;  	   	// apply or ignore
-    mavlink_rc_channels.chan18_raw = channel_length>=18?channels[17]:UINT16_MAX;  	   	// apply or ignore
+	mavlink_rc_channels.chan1_raw = channel_length>=1?channels[0]:0;  			// apply or ignore
+    mavlink_rc_channels.chan2_raw = channel_length>=2?channels[1]:0;  			// apply or ignore
+    mavlink_rc_channels.chan3_raw = channel_length>=3?channels[2]:0;  			// apply or ignore
+	mavlink_rc_channels.chan4_raw = channel_length>=4?channels[3]:0;  			// apply or ignore
+    mavlink_rc_channels.chan5_raw = channel_length>=5?channels[4]:0;  			// apply or ignore
+    mavlink_rc_channels.chan6_raw = channel_length>=6?channels[5]:0;  			// apply or ignore
+    mavlink_rc_channels.chan7_raw = channel_length>=7?channels[6]:0;  			// apply or ignore
+    mavlink_rc_channels.chan8_raw = channel_length>=8?channels[7]:0;  			// apply or ignore
+    mavlink_rc_channels.chan9_raw = channel_length>=9?channels[8]:UINT16_MAX-1;		   	// apply or ignore	
+    mavlink_rc_channels.chan10_raw = channel_length>=10?channels[9]:UINT16_MAX-1;  	   	// apply or ignore
+    mavlink_rc_channels.chan11_raw = channel_length>=11?channels[10]:UINT16_MAX-1;  	   	// apply or ignore
+    mavlink_rc_channels.chan12_raw = channel_length>=12?channels[11]:UINT16_MAX-1;  	   	// apply or ignore
+    mavlink_rc_channels.chan13_raw = channel_length>=13?channels[12]:UINT16_MAX-1;  	   	// apply or ignore
+    mavlink_rc_channels.chan14_raw = channel_length>=14?channels[13]:UINT16_MAX-1;  	   	// apply or ignore
+    mavlink_rc_channels.chan15_raw = channel_length>=15?channels[14]:UINT16_MAX-1;  	   	// apply or ignore
+    mavlink_rc_channels.chan16_raw = channel_length>=16?channels[15]:UINT16_MAX-1;  	   	// apply or ignore
+	mavlink_rc_channels.chan17_raw = channel_length>=17?channels[16]:UINT16_MAX-1;  	   	// apply or ignore
+    mavlink_rc_channels.chan18_raw = channel_length>=18?channels[17]:UINT16_MAX-1;  	   	// apply or ignore
 	
     mavlink_message_t mavlink_message;
 	mavlink_msg_rc_channels_override_encode (GCS_SYSID, 190, &mavlink_message, &mavlink_rc_channels);
