@@ -247,37 +247,84 @@ void de::comm::CModule::onReceive (const char * message, int len)
             const int messageType = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
             switch (messageType)
             {
-            case TYPE_AndruavModule_ID:
+                case TYPE_AndruavModule_ID:
                 {
-                    if (!cmd.contains(JSON_INTERMODULE_PARTY_RECORD)) return ;
-                    
-                    const Json_de unit_ids = cmd [JSON_INTERMODULE_PARTY_RECORD];
-                    if (!unit_ids.contains(ANDRUAV_PROTOCOL_SENDER)) return ;
-                    if (!unit_ids.contains(ANDRUAV_PROTOCOL_GROUP_ID)) return ;
-            
-                    m_party_id = std::string(unit_ids[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
-                    m_group_id = std::string(unit_ids[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
-                    
-                    if (!bFirstReceived)
-                    { 
-                        // tell server you dont need to send ID again.
-                        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": m_party_id(" << _INFO_CONSOLE_TEXT << m_party_id << _SUCCESS_CONSOLE_TEXT_ << ") m_group_id(" << _INFO_CONSOLE_TEXT << m_group_id << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-                        createJSONID(false);
-                        bFirstReceived = true;
-                    }
-                    
-                    if (m_OnReceive!= nullptr) m_OnReceive(message, len, jMsg);
-
-                    return ;
-                }
-                break;
-            
-            case TYPE_AndruavMessage_DUMMY:
-                {
-                    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " TYPE_AndruavMessage_DUMMY" << _SUCCESS_CONSOLE_TEXT_ << message <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                        if (!cmd.contains(JSON_INTERMODULE_PARTY_RECORD)) return ;
                         
+                        const Json_de unit_ids = cmd [JSON_INTERMODULE_PARTY_RECORD];
+                        if (!unit_ids.contains(ANDRUAV_PROTOCOL_SENDER)) return ;
+                        if (!unit_ids.contains(ANDRUAV_PROTOCOL_GROUP_ID)) return ;
+                
+                        m_party_id = std::string(unit_ids[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+                        m_group_id = std::string(unit_ids[ANDRUAV_PROTOCOL_GROUP_ID].get<std::string>());
+                        
+                        if (!bFirstReceived)
+                        { 
+                            // tell server you dont need to send ID again.
+                            std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " ** Communicator Server Found" << _SUCCESS_CONSOLE_TEXT_ << ": m_party_id(" << _INFO_CONSOLE_TEXT << m_party_id << _SUCCESS_CONSOLE_TEXT_ << ") m_group_id(" << _INFO_CONSOLE_TEXT << m_group_id << _SUCCESS_CONSOLE_TEXT_ << ")" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                            createJSONID(false);
+                            bFirstReceived = true;
+                        }
+                        
+                        if (m_OnReceive!= nullptr) m_OnReceive(message, len, jMsg);
+
+                        return ;
                 }
                 break;
+                
+
+                case TYPE_AndruavMessage_TrackingTargetLocation:
+                {
+
+                    if (!cmd["t"].is_array()) break;
+
+                    std::cout << cmd.dump() << std::endl;
+                    
+                    float x_ratio, yz_ratio;
+                    bool is_xy = true;
+                    for (const auto& target_item : cmd["t"])
+                    {
+                        x_ratio = target_item["x"].get<double>();
+                        
+                        if (target_item.contains("y"))
+                        {
+                            yz_ratio = target_item["y"].get<double>();
+                        }
+                        
+                        if (target_item.contains("z"))
+                        {
+                            is_xy = false;
+                            yz_ratio = target_item["z"].get<double>();
+                        }
+
+
+                    }
+                    m_tracking_manager.onTrack(x_ratio, yz_ratio, is_xy);
+                    
+                    #ifdef DEBUG
+                    std::cout << "TYPE_AndruavMessage_TrackingTargetLocation" << std::endl;
+                    #endif
+                    
+                }
+                break;
+
+                case TYPE_AndruavMessage_TargetTracking_STATUS:
+                {
+                    if (!cmd["a"].is_boolean()) break;
+
+                    const bool detected = cmd["a"].get<bool>();
+                    m_tracking_manager.onTargetAccuired(detected);
+                    std::cout << "TYPE_AndruavMessage_TargetTracking_STATUS" << std::endl;
+                    
+                }
+                break;
+
+                case TYPE_AndruavMessage_DUMMY:
+                    {
+                        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " TYPE_AndruavMessage_DUMMY" << _SUCCESS_CONSOLE_TEXT_ << message <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                            
+                    }
+                    break;
 
                 default:
                     break;

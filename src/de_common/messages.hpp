@@ -133,9 +133,9 @@
 #define TYPE_AndruavMessage_DistinationLocation         1037
 #define TYPE_AndruavMessage_ChangeSpeed                 1040
 #define TYPE_AndruavMessage_Ctrl_Cameras                1041
-#define TYPE_AndruavMessage_TrackingTarget              1042
+#define TYPE_AndruavMessage_TrackingTarget_ACTION       1042
 #define TYPE_AndruavMessage_TrackingTargetLocation      1043
-#define TYPE_AndruavMessage_TargetLost                  1044
+#define TYPE_AndruavMessage_TargetTracking_STATUS       1044
 #define TYPE_AndruavMessage_UploadWayPoints             1046
 #define TYPE_AndruavMessage_RemoteControlSettings	    1047
 #define TYPE_AndruavMessage_SET_HOME_LOCATION           1048
@@ -444,3 +444,12 @@
 // DistinationLocation Types
 #define DESTINATION_GUIDED_POINT            0
 #define DESTINATION_SWARM_MY_LOCATION       1
+
+// TYPE_AndruavMessage_TrackingTarget_ACTION
+#define TrackingTarget_ACTION_TRACKING_POINT    0
+#define TrackingTarget_ACTION_TRACKING_REGION   1
+#define TrackingTarget_ACTION_TRACKING_STOP     2
+
+// TYPE_AndruavMessage_TargetTracking_STATUS
+#define TrackingTarget_STATUS_TRACKING_LOST     0
+#define TrackingTarget_STATUS_TRACKING_DETECTED 1

@@ -39,9 +39,9 @@ using namespace de;
                         TYPE_AndruavMessage_DoYAW,\
                         TYPE_AndruavMessage_DistinationLocation, \
                         TYPE_AndruavMessage_ChangeSpeed, \
-                        TYPE_AndruavMessage_TrackingTarget, \
+                        TYPE_AndruavMessage_TrackingTarget_ACTION, \
                         TYPE_AndruavMessage_TrackingTargetLocation, \
-                        TYPE_AndruavMessage_TargetLost, \
+                        TYPE_AndruavMessage_TargetTracking_STATUS, \
                         TYPE_AndruavMessage_UploadWayPoints, \
                         TYPE_AndruavMessage_RemoteControlSettings, \
                         TYPE_AndruavMessage_SET_HOME_LOCATION, \
