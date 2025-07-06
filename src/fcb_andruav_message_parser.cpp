@@ -476,7 +476,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                     break;
                 }
                 
-                // value: [0,1000] IMPORTANT: -999 means channel release
+                // value: [0,1000] IMPORTANT: SKIP_RC_CHANNEL (-999) means channel release
                 // 'R': Rudder
                 // 'T': Throttle
                 // 'A': Aileron
@@ -490,7 +490,7 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                 if (!validateField(cmd, "A",Json_de::value_t::number_unsigned)) return ;
                 if (!validateField(cmd, "E",Json_de::value_t::number_unsigned)) return ;
                 
-                int16_t rc_channels[18] = {-999};
+                int16_t rc_channels[18] = {SKIP_RC_CHANNEL};
                 const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map = m_fcbMain.getRCChannelsMapInfo();
                 if ((rc_map.use_smart_rc) && (rc_map.is_valid))
                 {
@@ -506,10 +506,10 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                     rc_channels[2] = 1000 - cmd["T"].get<int>();
                     rc_channels[0] = 1000 - cmd["A"].get<int>(); // to be aligned with default settings of Ardu
                     rc_channels[1] = 1000 - cmd["E"].get<int>();
-                    rc_channels[4] = validateField(cmd, "w",Json_de::value_t::number_integer)?cmd["w"].get<int>():-999;
-                    rc_channels[5] = validateField(cmd, "x",Json_de::value_t::number_integer)?cmd["x"].get<int>():-999;
-                    rc_channels[6] = validateField(cmd, "y",Json_de::value_t::number_integer)?cmd["y"].get<int>():-999;
-                    rc_channels[7] = validateField(cmd, "z",Json_de::value_t::number_integer)?cmd["z"].get<int>():-999;
+                    rc_channels[4] = validateField(cmd, "w",Json_de::value_t::number_integer)?cmd["w"].get<int>():SKIP_RC_CHANNEL;
+                    rc_channels[5] = validateField(cmd, "x",Json_de::value_t::number_integer)?cmd["x"].get<int>():SKIP_RC_CHANNEL;
+                    rc_channels[6] = validateField(cmd, "y",Json_de::value_t::number_integer)?cmd["y"].get<int>():SKIP_RC_CHANNEL;
+                    rc_channels[7] = validateField(cmd, "z",Json_de::value_t::number_integer)?cmd["z"].get<int>():SKIP_RC_CHANNEL;
                 }
                 
                 

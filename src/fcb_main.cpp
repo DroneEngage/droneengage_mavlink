@@ -1089,7 +1089,7 @@ void CFCBMain::calculateChannels(const int16_t scaled_channels[18], const bool i
         int scaled_channel = scaled_channels[i];
 
         // --- Stage 1: Handle Ignored/Disabled Channels ---
-        if ((scaled_channel == -999) || (!m_andruav_vehicle_info.rc_channels_enabled[i]))
+        if ((scaled_channel == SKIP_RC_CHANNEL) || (!m_andruav_vehicle_info.rc_channels_enabled[i]))
         {
             // https://mavlink.io/en/messages/common.html#RC_CHANNELS_OVERRIDE
             if (i<8)
