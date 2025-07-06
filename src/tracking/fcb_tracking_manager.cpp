@@ -38,12 +38,12 @@ void CTrackingManager::onTrack(const double x, const double yz, const bool is_xy
 
     // values: [-0.5,0.5]
 
-    // value: [0,1000] IMPORTANT: -999 means channel release
+    // value: [0,1000] IMPORTANT: SKIP_RC_CHANNEL (-999) means channel release
     // 'R': Rudder
     // 'T': Throttle
     // 'A': Aileron
     // 'E': Elevator
-    int16_t rc_channels[18] = {-999};
+    int16_t rc_channels[18] = {SKIP_RC_CHANNEL};
     
     const int tracking_x  = static_cast<int>(x  * 1000 + 500);
     const int tracking_xy = static_cast<int>(yz * 1000 + 500);

@@ -13,7 +13,7 @@ using Json_de = nlohmann::json;
 
 #define BIT(x) (1 << (x))
 
-
+#define SKIP_RC_CHANNEL -999
 
 #endif
 
