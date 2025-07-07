@@ -310,12 +310,9 @@ void de::comm::CModule::onReceive (const char * message, int len)
 
                 case TYPE_AndruavMessage_TargetTracking_STATUS:
                 {
-                    if (!cmd["a"].is_boolean()) break;
+                    if (!cmd["a"].is_number_integer()) break;
 
-                    const bool detected = cmd["a"].get<bool>();
-                    m_tracking_manager.onTargetAccuired(detected);
-                    std::cout << "TYPE_AndruavMessage_TargetTracking_STATUS" << std::endl;
-                    
+                    m_tracking_manager.onStatusChanged(cmd["a"].get<int>());
                 }
                 break;
 

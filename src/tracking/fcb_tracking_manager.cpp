@@ -11,14 +11,36 @@ using namespace de::fcb::tracking;
 
 de::fcb::CFCBMain&  m_fcbMain2 = de::fcb::CFCBMain::getInstance();
 
-void CTrackingManager::enableTracking(const bool detected)
-{
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "onTrackStatusChanged:" << _LOG_CONSOLE_BOLD_TEXT << std::to_string(detected) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-}
 
-void CTrackingManager::onTargetAccuired(const bool detected)
+void CTrackingManager::onStatusChanged(const int status)
 {
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "onTargetAccuired:" << _LOG_CONSOLE_BOLD_TEXT << std::to_string(detected) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "onTrackStatusChanged:" << _LOG_CONSOLE_BOLD_TEXT << std::to_string(status) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+    switch (status)
+    {
+        case TrackingTarget_STATUS_TRACKING_LOST:
+            m_object_detected = false;
+            de::fcb::CFCBMain::getInstance().adjustRemoteJoystickByMode(RC_SUB_ACTION::RC_SUB_ACTION_RELEASED);
+            break;
+        
+        case TrackingTarget_STATUS_TRACKING_DETECTED:
+            m_object_detected = true;
+            de::fcb::CFCBMain::getInstance().adjustRemoteJoystickByMode(RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS);
+            break;
+        
+        case TrackingTarget_STATUS_TRACKING_ENABLED:
+            m_tracking_running = true;
+            
+            break;
+        
+        case TrackingTarget_STATUS_TRACKING_STOPPED:
+            m_tracking_running = false;
+            de::fcb::CFCBMain::getInstance().adjustRemoteJoystickByMode(RC_SUB_ACTION::RC_SUB_ACTION_RELEASED);
+            break;
+        
+        default:
+            break;
+    }
 }
                 
 
@@ -43,7 +65,7 @@ void CTrackingManager::onTrack(const double x, const double yz, const bool is_xy
     // 'T': Throttle
     // 'A': Aileron
     // 'E': Elevator
-    int16_t rc_channels[18] = {SKIP_RC_CHANNEL};
+    int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
     
     const int tracking_x  = static_cast<int>(x  * 1000 + 500);
     const int tracking_xy = static_cast<int>(yz * 1000 + 500);
