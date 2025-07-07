@@ -270,10 +270,10 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
         }
 
         m_rcmap_channels_info.use_smart_rc = true;
-        memset(m_andruav_vehicle_info.rc_channels_enabled, true, 18 * sizeof(bool));
-        memset(m_andruav_vehicle_info.rc_channels_reverse, false, 18 * sizeof(bool));
-        memset(m_andruav_vehicle_info.rc_channels_min, (int16_t)1000, 18 * sizeof(int16_t));
-        memset(m_andruav_vehicle_info.rc_channels_max, (int16_t)2000, 18 * sizeof(int16_t));
+        memset(m_andruav_vehicle_info.rc_channels_enabled, true, RC_CHANNELS_MAX * sizeof(bool));
+        memset(m_andruav_vehicle_info.rc_channels_reverse, false, RC_CHANNELS_MAX * sizeof(bool));
+        memset(m_andruav_vehicle_info.rc_channels_min, (int16_t)1000, RC_CHANNELS_MAX * sizeof(int16_t));
+        memset(m_andruav_vehicle_info.rc_channels_max, (int16_t)2000, RC_CHANNELS_MAX * sizeof(int16_t));
 
         return;
     }
@@ -398,14 +398,14 @@ void CFCBMain::remoteControlSignal()
     case RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS:
     {
         // should ignore these values.
-        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels, 18);
+        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels, RC_CHANNELS_MAX);
     }
     break;
 
     case RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS:
     {
         // should ignore these values.
-        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels, 18);
+        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels, RC_CHANNELS_MAX);
     }
     break;
 
@@ -435,7 +435,7 @@ void CFCBMain::remoteControlSignal()
             }
             return;
         }
-        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels, 18);
+        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels, RC_CHANNELS_MAX);
     }
     break;
 
@@ -458,8 +458,6 @@ void CFCBMain::remoteControlSignal()
             mavlinksdk::CMavlinkCommand::getInstance().doSetMode(ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
             return;
         }
-
-        // mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels,18);
     }
     break;
     }
@@ -930,6 +928,9 @@ void CFCBMain::OnACK(const int &acknowledged_cmd, const int &result, const std::
     return;
 }
 
+/**
+ * Called when ardupilot flying mode changes.
+ */
 void CFCBMain::OnModeChanges(const uint32_t &custom_mode, const int &firmware_type, const MAV_AUTOPILOT &autopilot)
 {
     // vehicle type is determined here
@@ -1144,7 +1145,7 @@ void CFCBMain::calculateChannels(const int16_t scaled_channels[18], const bool i
 }
 
 /**
- * @brief disable rcchennel override and sends zero to all 18 channels of ardupilot.
+ * @brief disable rcchennel override and sends zero to all RC_CHANNELS_MAX channels of ardupilot.
  * @callgraph
  */
 void CFCBMain::releaseRemoteControl()
@@ -1152,7 +1153,7 @@ void CFCBMain::releaseRemoteControl()
     if (m_andruav_vehicle_info.rc_sub_action == RC_SUB_ACTION::RC_SUB_ACTION_RELEASED)
         return;
 
-    memset(m_andruav_vehicle_info.rc_channels, 0, 18 * sizeof(int16_t));
+    memset(m_andruav_vehicle_info.rc_channels, 0, RC_CHANNELS_MAX * sizeof(int16_t));
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_RELEASED;
     m_andruav_vehicle_info.rc_command_active = false;
 
@@ -1176,7 +1177,7 @@ void CFCBMain::centerRemoteControl()
         return;
     }
 
-    memset(m_andruav_vehicle_info.rc_channels, 0, 18 * sizeof(int16_t));
+    memset(m_andruav_vehicle_info.rc_channels, 0, RC_CHANNELS_MAX * sizeof(int16_t));
     if ((m_rcmap_channels_info.use_smart_rc) && (m_rcmap_channels_info.is_valid))
     {
         m_andruav_vehicle_info.rc_channels[m_rcmap_channels_info.rcmap_pitch] = 1500;
@@ -1253,7 +1254,7 @@ void CFCBMain::enableRemoteControl()
     m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
     m_andruav_vehicle_info.rc_command_active = false; // remote control data will enable it
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS;
-    memset(m_andruav_vehicle_info.rc_channels, 0, 18 * sizeof(int16_t)); // zero values. RC channels will be sent later
+    memset(m_andruav_vehicle_info.rc_channels, 0, RC_CHANNELS_MAX * sizeof(int16_t)); // zero values. RC channels will be sent later
 
     m_fcb_facade.sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_RCCONTROL, NOTIFICATION_TYPE_WARNING, std::string("RX Joystick Mode"));
 }
@@ -1271,7 +1272,7 @@ void CFCBMain::enableRemoteControlGuided()
     m_andruav_vehicle_info.rc_command_active = false; // remote control data will enable it
 
     // release channels
-    memset(m_andruav_vehicle_info.rc_channels, 0, 18 * sizeof(int16_t));
+    memset(m_andruav_vehicle_info.rc_channels, 0, RC_CHANNELS_MAX * sizeof(int16_t));
     mavlinksdk::CMavlinkCommand::getInstance().releaseRCChannels();
 
     m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED;
@@ -1281,6 +1282,9 @@ void CFCBMain::enableRemoteControlGuided()
     return;
 }
 
+/**
+ * Change channel values based on rc_sub_action and flying modes.
+ */
 void CFCBMain::adjustRemoteJoystickByMode(RC_SUB_ACTION rc_sub_action)
 {
     switch (rc_sub_action)
@@ -1308,10 +1312,12 @@ void CFCBMain::adjustRemoteJoystickByMode(RC_SUB_ACTION rc_sub_action)
     {
         if (m_andruav_vehicle_info.flying_mode == VEHICLE_MODE_GUIDED)
         {
+            // remote control in guided mode uses ctrlGuidedVelocityInLocalFrame for control.
             enableRemoteControlGuided();
         }
         else
         {
+            // for non guided mode uses sendRCChannels()
             enableRemoteControl();
         }
     }
@@ -1324,7 +1330,7 @@ void CFCBMain::adjustRemoteJoystickByMode(RC_SUB_ACTION rc_sub_action)
  *
  * @param rc_channels values from [-500,500] ... -1 meanse release channel.
  */
-void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
+void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[RC_CHANNELS_MAX])
 {
 
     switch (m_andruav_vehicle_info.rc_sub_action)
@@ -1337,22 +1343,24 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
 
     case RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS:
     {
-        // should ignore these values.
+        // should ignore these values...already predefined
     }
     break;
 
     case RC_SUB_ACTION::RC_SUB_ACTION_FREEZE_CHANNELS:
     {
-        // should ignore these values.
+        // should ignore these values...already predefined
     }
     break;
 
     case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS:
     {
+        // In this mode send values via sendRCChannels
+
         m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
         m_andruav_vehicle_info.rc_command_active = true;
 
-        int16_t rc_chammels_pwm[18] = {0};
+        int16_t rc_chammels_pwm[RC_CHANNELS_MAX] = {0};
 
         calculateChannels(rc_channels, true, rc_chammels_pwm);
 
@@ -1368,22 +1376,24 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[18])
         else
         {
             // just copy channels.
-            for (int i = 0; i < 18; ++i)
+            for (int i = 0; i < RC_CHANNELS_MAX; ++i)
             {
                 m_andruav_vehicle_info.rc_channels[i] = rc_chammels_pwm[i];
             }
         }
 
-        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels, 18);
+        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(m_andruav_vehicle_info.rc_channels, RC_CHANNELS_MAX);
     }
     break;
 
     case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED:
     {
+        // In this mode send values via ctrlGuidedVelocityInLocalFrame
+
         m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
         m_andruav_vehicle_info.rc_command_active = true;
 
-        int16_t rc_chammels_pwm[18] = {0};
+        int16_t rc_chammels_pwm[RC_CHANNELS_MAX] = {0};
 
         calculateChannels(rc_channels, true, rc_chammels_pwm);
         if ((m_rcmap_channels_info.use_smart_rc) && (m_rcmap_channels_info.is_valid))
@@ -1422,69 +1432,6 @@ void CFCBMain::setStreamingLevel(const int &streaming_level)
     }
 }
 
-/**
- * @deprecated Streaming is no longer using AndruavWebPlugin. A new method @link setStreamingLevel @endlink is used to set bandwidth.
- * @details Starts, Stops & Update Mavlink streaming to other units & GCS.
- *
- * @param target_party_id
- * @param request_type @link CONST_TELEMETRY_REQUEST_START @endlink @link CONST_TELEMETRY_REQUEST_END @endlink @link CONST_TELEMETRY_REQUEST_RESUME @endlink
- * @param streaming_level from 0 means no optimization to 3 max optimization.
- */
-// void CFCBMain::toggleMavlinkStreaming (const std::string& target_party_id, const int& request_type, const int& streaming_level)
-// {
-//         printf("toggleMavlinkStreaming %s %d %d\r\n", target_party_id.c_str(), request_type, streaming_level);
-
-//         if (streaming_level != -1)
-//         {
-//             // update streaming level globally.
-//             m_mavlink_optimizer.setOptimizationLevel(streaming_level);
-//             m_mavlink_optimizer.reset_timestamps();
-//         }
-
-//         if (!target_party_id.empty())
-//         {
-//             std::vector<std::unique_ptr<ANDRUAV_UNIT_STRUCT>> ::iterator it;
-
-//             bool found = false;
-//             for(it=m_TelemetryUnits.begin(); it!=m_TelemetryUnits.end(); it++)
-//             {
-//                 ANDRUAV_UNIT_STRUCT *unit = it->get();
-
-//                 std::cout << "compare to " << unit->party_id << " to " << target_party_id << std::endl;
-
-//                 if (unit->party_id.compare(target_party_id)==0)
-//                 {
-//                     found = true;
-//                     if (request_type == CONST_TELEMETRY_REQUEST_END)
-//                     {
-//                         std::cout << "found unit->is_online = false" << std::endl;
-//                         unit->is_online = false;
-//                     }
-//                     else
-//                     {
-//                         std::cout << "compare to " << unit->party_id << " to " << target_party_id << std::endl;
-//                         if (unit->party_id.compare(target_party_id)==0)
-//                         {
-//                             std::cout << "found unit->is_online = true" << std::endl;
-//                             unit->is_online = true;
-//                         }
-//                     }
-//                 }
-//             }
-
-//             if (!found && (request_type != CONST_TELEMETRY_REQUEST_END))
-//             {
-//                 std::cout << "Adding to m_TelemetryUnits " << target_party_id << std::endl;
-//                 ANDRUAV_UNIT_STRUCT * unit_ptr= new ANDRUAV_UNIT_STRUCT;
-//                 unit_ptr->party_id = target_party_id;
-//                 unit_ptr->is_online = true;
-
-//                 m_TelemetryUnits.push_back(std::unique_ptr<ANDRUAV_UNIT_STRUCT> (unit_ptr));
-//             }
-//         }
-
-//        return ;
-// }
 
 /**
  * @brief updates RCMAP_CHANNELS_MAP_INFO_STRUCT with valid values.
