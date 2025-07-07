@@ -50,17 +50,14 @@ namespace tracking
 
             public:
 
-                void enableTracking(const bool detected);
                 void onTrack(const double x, const double yz, const bool is_xy);
+                void onStatusChanged(const int status);
 
-
-            public:
-
-                void onTargetAccuired(const bool detected);
                 
             private:
 
-                
+                bool m_tracking_running = false;
+                bool m_object_detected = false;
             
     };
 }

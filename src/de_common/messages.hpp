@@ -453,3 +453,5 @@
 // TYPE_AndruavMessage_TargetTracking_STATUS
 #define TrackingTarget_STATUS_TRACKING_LOST     0
 #define TrackingTarget_STATUS_TRACKING_DETECTED 1
+#define TrackingTarget_STATUS_TRACKING_ENABLED  2
+#define TrackingTarget_STATUS_TRACKING_STOPPED  3
