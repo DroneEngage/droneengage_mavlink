@@ -44,9 +44,18 @@ namespace de
             
             std::string getStringField(const char * field) const;
             void addStringField(const char * field, const char * value);
-            
+            void ModifyStringField(const char* field, const char* newValue);
+
             const u_int32_t getNumericField(const char * field) const ;
             void addNumericField(const char * field, const u_int32_t & value);
+            void ModifyNumericField(const char* field, const u_int32_t& newValue);
+
+            double getDoubleField(const char * field) const;
+            void addDoubleField(const char * field, double value);
+            void ModifyDoubleField(const char* field, double newValue);
+
+
+            void removeFieldByName(const char * fieldName);
 
         protected:
             void ReadFile (const char * fileURL);
