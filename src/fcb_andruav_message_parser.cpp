@@ -423,6 +423,12 @@ void CFCBAndruavMessageParser::parseMessage (Json_de &andruav_message, const cha
                 if (servo_value == 0) servo_value = 1000;
                 mavlinksdk::CMavlinkCommand::getInstance().setServo (servo_channel, servo_value);
             
+                // Send update back
+                std::thread([&]() { // Use a lambda function for the thread
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // Delay for 100 milliseconds (adjust as needed)
+                    CFCBFacade::getInstance().sendServoReadings(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
+                }).detach(); // Use detach() if you don't need to join the thread later
+                
             }
             break;
 
@@ -860,6 +866,12 @@ void CFCBAndruavMessageParser::parseRemoteExecute (Json_de &andruav_message)
     std::cout << "cmd: " << remoteCommand << std::endl;
     switch (remoteCommand)
     {
+        case TYPE_AndruavMessage_ServoChannel:
+            if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
+            
+            CFCBFacade::getInstance().sendServoReadings(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+        break;
+
         case RemoteCommand_REQUEST_PARA_LIST:
             if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked) break ;
             

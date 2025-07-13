@@ -330,6 +330,11 @@ namespace mavlinksdk
                 return m_rc_channels;
             }
 
+            inline const mavlink_servo_output_raw_t& getServoOutputRaw () const 
+            {
+                return m_servo_output_raw;
+            }
+
             inline const mavlink_system_time_t& getSystemTime() const 
             {  
                 return m_system_time;

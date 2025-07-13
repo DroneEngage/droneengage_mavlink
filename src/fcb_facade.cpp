@@ -855,8 +855,15 @@ void CFCBFacade::sendSWARM_M(const std::string& target_party_id, const mavlink_m
 
 void CFCBFacade::sendServoReadings(const std::string&target_party_id)  const
 {
-    // TODO
-
+    const int sys_id = m_vehicle.getSysId();
+    const int comp_id = m_vehicle.getCompId();
+    mavlink_message_t mavlink_message[1];
+    const mavlink_servo_output_raw_t& mavlink_servo_output_raw = m_vehicle.getServoOutputRaw();
+    
+    mavlink_msg_servo_output_raw_encode(sys_id, comp_id, &mavlink_message[0], &mavlink_servo_output_raw);
+    
+    sendMavlinkData_Packed(target_party_id, mavlink_message, 1, false);
+    
     return ;
 }
 
