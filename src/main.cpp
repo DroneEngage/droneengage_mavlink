@@ -314,7 +314,7 @@ void initArguments (int argc, char *argv[])
     }
 }
 
-void initUavosModule(int argc, char *argv[])
+void initDEModule(int argc, char *argv[])
 {
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
     CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
@@ -383,13 +383,37 @@ void init (int argc, char *argv[])
     
     
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
+    const Json_de& jsonLocalConfig = cLocalConfigFile.GetConfigJSON();
     
+    // Retrieve or Create unique ModuleKey
     ModuleKey = cLocalConfigFile.getStringField("module_key");
     if (ModuleKey=="")
     {
         
         ModuleKey = std::to_string(get_time_usec());
         cLocalConfigFile.addStringField("module_key",ModuleKey.c_str());
+        cLocalConfigFile.apply();
+    }
+
+    // Retrieve or Create -if needed- tracking IDs
+    if (jsonConfig.contains("follow_me"))
+    {
+        const Json_de& json_follow_me = jsonConfig["follow_me"];
+        if (json_follow_me.contains("PID_P_X") && !jsonLocalConfig.contains("follow_me_PID_P_X"))
+        {
+            cLocalConfigFile.addDoubleField("follow_me_PID_P_X", json_follow_me["PID_P_X"].get<double>());
+        }
+
+        if (json_follow_me.contains("PID_P_Y") && !jsonLocalConfig.contains("follow_me_PID_P_Y"))
+        {
+            cLocalConfigFile.addDoubleField("follow_me_PID_P_Y", json_follow_me["PID_P_Y"].get<double>());
+        }
+
+        if (json_follow_me.contains("smoothing") && !jsonLocalConfig.contains("follow_me_smoothing"))
+        {
+            cLocalConfigFile.addDoubleField("follow_me_smoothing", json_follow_me["smoothing"].get<double>());
+        }
+
         cLocalConfigFile.apply();
     }
 
@@ -404,7 +428,7 @@ void init (int argc, char *argv[])
     cFCBMain.init();
     
     // should be last
-    initUavosModule (argc,argv);
+    initDEModule (argc,argv);
 
     
 }
