@@ -32,6 +32,7 @@ bool de::comm::CModule::init (const std::string targetIP, int broadcatsPort, con
     createJSONID(true);
     cUDPClient.start();
 
+    m_tracking_manager.init();
     return true;
 }
 
