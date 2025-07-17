@@ -32,7 +32,6 @@ bool de::comm::CModule::init (const std::string targetIP, int broadcatsPort, con
     createJSONID(true);
     cUDPClient.start();
 
-    m_tracking_manager.init();
     return true;
 }
 
@@ -290,15 +289,15 @@ void de::comm::CModule::onReceive (const char * message, int len)
                         if (target_item.contains("y"))
                         {
                             yz_ratio = target_item["y"].get<double>();
+                            break;
                         }
-                        
+                        else
                         if (target_item.contains("z"))
                         {
                             is_xy = false;
                             yz_ratio = target_item["z"].get<double>();
+                            break;
                         }
-
-
                     }
                     m_tracking_manager.onTrack(x_ratio, yz_ratio, is_xy);
                     

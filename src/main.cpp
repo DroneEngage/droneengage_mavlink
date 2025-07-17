@@ -409,6 +409,16 @@ void init (int argc, char *argv[])
             cLocalConfigFile.addDoubleField("follow_me_PID_P_Y", json_follow_me["PID_P_Y"].get<double>());
         }
 
+        if (json_follow_me.contains("PID_I_X") && !jsonLocalConfig.contains("follow_me_PID_I_X"))
+        {
+            cLocalConfigFile.addDoubleField("follow_me_PID_I_X", json_follow_me["PID_I_X"].get<double>());
+        }
+
+        if (json_follow_me.contains("PID_I_Y") && !jsonLocalConfig.contains("follow_me_PID_I_Y"))
+        {
+            cLocalConfigFile.addDoubleField("follow_me_PID_I_Y", json_follow_me["PID_I_Y"].get<double>());
+        }
+
         if (json_follow_me.contains("smoothing") && !jsonLocalConfig.contains("follow_me_smoothing"))
         {
             cLocalConfigFile.addDoubleField("follow_me_smoothing", json_follow_me["smoothing"].get<double>());
