@@ -33,18 +33,36 @@ void CTrackingManager::init()
 
     }
 
+    if (jsonLocalConfig.contains("follow_me_PID_I_X"))
+    {
+        m_x_PID_I = jsonLocalConfig["follow_me_PID_I_X"].get<double>();
+        std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT << "PID_I_X:" << _INFO_CONSOLE_BOLD_TEXT << std::to_string(m_x_PID_I) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+    }
+
+    if (jsonLocalConfig.contains("follow_me_PID_I_Y"))
+    {
+        m_yz_PID_I = jsonLocalConfig["follow_me_PID_I_Y"].get<double>();
+        std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT << "PID_I_Y:" << _INFO_CONSOLE_BOLD_TEXT << std::to_string(m_yz_PID_I) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+    }
+
     if (jsonLocalConfig.contains("follow_me_smoothing"))
     {
         m_alpha = jsonLocalConfig["follow_me_smoothing"].get<double>();
         std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT << "smoothing:" << _INFO_CONSOLE_BOLD_TEXT << std::to_string(m_alpha) << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     }
+
+    m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
+    m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
 }
 
 void CTrackingManager::onStatusChanged(const int status)
 {
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "onTrackStatusChanged:" << _LOG_CONSOLE_BOLD_TEXT << std::to_string(status) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
+    
+    
     switch (status)
     {
         case TrackingTarget_STATUS_TRACKING_LOST:
@@ -59,11 +77,14 @@ void CTrackingManager::onStatusChanged(const int status)
         
         case TrackingTarget_STATUS_TRACKING_ENABLED:
             m_tracking_running = true;
-            
+            m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
+            m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
             break;
         
         case TrackingTarget_STATUS_TRACKING_STOPPED:
             m_tracking_running = false;
+            m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
+            m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
             de::fcb::CFCBMain::getInstance().adjustRemoteJoystickByMode(RC_SUB_ACTION::RC_SUB_ACTION_RELEASED);
             break;
         
@@ -76,7 +97,17 @@ void CTrackingManager::onStatusChanged(const int status)
 void CTrackingManager::onTrack(const double x, const double yz, const bool is_xy)
 {
 
-    #ifdef DEBUG
+    std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_last_message_time);
+
+    if (duration < m_target_frame_time_ms) 
+    {
+        std::cout << "skip" << std::endl;
+        return ;
+    }
+    m_last_message_time = now;
+
+    #ifdef DDEBUG
         std::cout << _INFO_CONSOLE_BOLD_TEXT << "onTrack >> " 
         << _LOG_CONSOLE_BOLD_TEXT << "  x:" << _INFO_CONSOLE_BOLD_TEXT << x
         << _LOG_CONSOLE_BOLD_TEXT << "  yz:" << _INFO_CONSOLE_BOLD_TEXT << yz
@@ -96,8 +127,11 @@ void CTrackingManager::onTrack(const double x, const double yz, const bool is_xy
     // 'E': Elevator
     int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
     
-    m_x = m_alpha * x * m_x_PID_P + (1-m_alpha) * m_x;
-    m_yz = m_alpha * yz * m_yz_PID_P + (1-m_alpha) * m_yz;
+
+    m_x = m_PID_X.calculate(x);
+    m_yz = m_PID_YZ.calculate(yz);
+    //m_x = m_alpha * x * m_x_PID_P + (1-m_alpha) * m_x;
+    //m_yz = m_alpha * yz * m_yz_PID_P + (1-m_alpha) * m_yz;
 
     m_x = std::clamp(m_x, -0.5, 0.5);
     m_yz = std::clamp(m_yz, -0.5, 0.5);
@@ -125,7 +159,7 @@ void CTrackingManager::onTrack(const double x, const double yz, const bool is_xy
     }
     
     
-    #ifdef DEBUG
+    #ifdef DDEBUG
         std::cout << _INFO_CONSOLE_BOLD_TEXT << "onTrack >> " 
         << _LOG_CONSOLE_BOLD_TEXT << "  rcmap_roll:" << rc_map.rcmap_roll << ":" << _INFO_CONSOLE_BOLD_TEXT << rc_channels[rc_map.rcmap_roll]
         << _LOG_CONSOLE_BOLD_TEXT << "  rcmap_pitch:" << rc_map.rcmap_pitch << ":" << _INFO_CONSOLE_BOLD_TEXT << rc_channels[rc_map.rcmap_pitch] 
