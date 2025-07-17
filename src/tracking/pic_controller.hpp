@@ -11,6 +11,9 @@ namespace tracking
 
 class CPIDController {
 public:
+
+    CPIDController();
+
     /**
      * @brief Constructor for the CPIDController.
      * @param kp Proportional gain.
@@ -25,11 +28,9 @@ public:
 
     /**
      * @brief Calculates the PID output.
-     * @param setpoint The desired target value.
-     * @param currentValue The current measured value.
-     * @return The calculated control output.
+     * @param error The current measured value.
      */
-    double calculate(double setpoint, double currentValue);
+    double calculate(double error);
 
     /**
      * @brief Resets the integral and previous error terms.
