@@ -28,12 +28,21 @@ void mavlinksdk::CVehicle::set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* 
 
 bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbeat)
 {
-
-	if ((heartbeat.type >=  MAV_TYPE::MAV_TYPE_GIMBAL)
-	|| (heartbeat.type ==  MAV_TYPE::MAV_TYPE_GCS)
-	|| (heartbeat.type ==  MAV_TYPE::MAV_TYPE_ONBOARD_CONTROLLER))
-	return false; // fix ADSB sensor.
-
+	
+	if (m_sys_id == NO_SYSID_RESTRICTION)
+	{
+		// IGNORE UNIT TYPES 
+		if ((heartbeat.type >=  MAV_TYPE::MAV_TYPE_GIMBAL)
+		|| (heartbeat.type ==  MAV_TYPE::MAV_TYPE_GCS)
+		|| (heartbeat.type ==  MAV_TYPE::MAV_TYPE_ONBOARD_CONTROLLER))
+		return false; // fix ADSB sensor.
+	}
+	else
+	{
+		// Only search for SYSID
+		if (m_sys_id != mavlink_message_temp.sysid) return false;
+	}
+	
 	m_sysid = mavlink_message_temp.sysid;
 	m_compid = mavlink_message_temp.compid;
 
