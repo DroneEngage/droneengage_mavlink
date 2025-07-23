@@ -63,6 +63,9 @@
   // you can ignore loading parameters but the R/C Gamepad will not work.
   "ignore_loading_parameters": false,
 
+  // if value not equal to zero then only recieve mavlinks of sysid specified in the value (optional-advanced). 
+  //"only_allow_ardupilot_sysid": 0,
+
   "message_timeouts":
   { 
         "1": [0,250,500,1000],
