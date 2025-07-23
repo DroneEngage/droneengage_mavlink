@@ -219,7 +219,6 @@
 
 #define TYPE_AndruavMessage_AI_Recognition_ACTION       1076
 #define TYPE_AndruavMessage_AI_Recognition_STATUS       1077
-#define TYPE_AndruavMessage_AI_Recognition_Objects      1078
 
 // Binary Messages 
 
@@ -466,7 +465,7 @@
 #define TrackingTarget_ACTION_AI_Recognition_REGION   1
 #define TrackingTarget_ACTION_AI_Recognition_STOP     2
 
-// TYPE_AndruavMessage_TargetTracking_STATUS
+// TYPE_AndruavMessage_AI_Recognition_STATUS
 #define TrackingTarget_STATUS_AI_Recognition_LOST     0
 #define TrackingTarget_STATUS_AI_Recognition_DETECTED 1
 #define TrackingTarget_STATUS_AI_Recognition_ENABLED  2
