@@ -164,6 +164,16 @@ bool CFCBMain::init()
         m_enable_udp_telemetry_in_config = m_jsonConfig["udp_proxy_enabled"].get<bool>();
     }
 
+    if (m_jsonConfig.contains("only_allow_ardupilot_sysid") && m_jsonConfig["only_allow_ardupilot_sysid"].is_number())
+    {
+        const int sys_id = m_jsonConfig["only_allow_ardupilot_sysid"].get<int>();
+        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Variable " << _INFO_CONSOLE_BOLD_TEXT << " only_allow_ardupilot_sysid " << _SUCCESS_CONSOLE_BOLD_TEXT_ << " is set to " << _INFO_CONSOLE_BOLD_TEXT << sys_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "NOTE OTHER SYS-IDs will be" << _ERROR_CONSOLE_BOLD_TEXT_ << " IGNORED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        mavlinksdk::CVehicle& vehicle = mavlinksdk::CVehicle::getInstance();
+
+        vehicle.restrictMessageToSysID(sys_id);
+    }
+
     m_udp_telemetry_fixed_port = 0;
 
     if (m_enable_udp_telemetry_in_config == true)

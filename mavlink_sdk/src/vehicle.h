@@ -1,4 +1,4 @@
-#ifndef VEHICLE_H_
+  #ifndef VEHICLE_H_
 #define VEHICLE_H_
 
 #include <map>
@@ -8,6 +8,8 @@
 #include <ardupilotmega/ardupilotmega.h>
 
 #include "mavlink_helper.h"
+
+#define NO_SYSID_RESTRICTION 0
 
 namespace mavlinksdk
 {
@@ -387,6 +389,12 @@ namespace mavlinksdk
                     & m_sys_status.onboard_control_sensors_health;
             }
 
+            inline const void restrictMessageToSysID(uint32_t sys_id)
+            {
+                // value = 0  means no restriction.
+                m_sys_id = sys_id;
+            }
+
 
         // Class Members
         protected:
@@ -525,6 +533,8 @@ namespace mavlinksdk
 
             int m_sysid{0};
             int m_compid{0};
+
+            uint32_t m_sys_id{NO_SYSID_RESTRICTION};
 
     };
 }
