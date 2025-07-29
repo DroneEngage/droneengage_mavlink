@@ -37,7 +37,7 @@ namespace mavlinksdk
         virtual void OnADSBVechileReceived (const mavlink_adsb_vehicle_t& adsb_vehicle)                                     {};    
         virtual void OnDistanceSensorChanged (const mavlink_distance_sensor_t& distance_sensor)                             {};
 
-        virtual void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)  {};
+        virtual void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed, const bool &load_parameters_1st_iteration)  {};
         virtual void OnParamReceivedCompleted()                                                                             {};
     
 

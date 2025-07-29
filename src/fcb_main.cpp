@@ -983,17 +983,18 @@ void CFCBMain::OnServoOutputRaw(const mavlink_servo_output_raw_t &servo_output_r
  * @param param_name parameter name
  * @param param_message parameter mavlink message
  * @param changed true if changed & false if new
+ * @param bool load_parameters_1st_iteration
  */
-void CFCBMain::OnParamReceived(const std::string &param_name, const mavlink_param_value_t &param_message, const bool &changed)
+void CFCBMain::OnParamReceived(const std::string &param_name, const mavlink_param_value_t &param_message, const bool &changed, const bool &load_parameters_1st_iteration)
 {
 #ifdef DEBUG
-// std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: "
-// 	<< std::string(param_name) << " : " << "count: " << std::to_string(param_message.param_index) << " of " << std::to_string(param_message.param_count)
-// 	<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
-// 	<< " changed: " << std::to_string(changed) <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: "
+	<< std::string(param_name) << " : " << "count: " << std::to_string(param_message.param_index) << " of " << std::to_string(param_message.param_count)
+	<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
+	<< " changed: " << std::to_string(changed) <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
 
-    if (changed)
+    if (changed && !load_parameters_1st_iteration)
         m_fcb_facade.sendParameterValue(std::string(), param_message);
 }
 
