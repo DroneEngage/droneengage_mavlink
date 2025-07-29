@@ -7,6 +7,7 @@
 #include <mavlink_sdk.h>
 #include <mavlink_command.h>
 #include <mavlink_events.h>
+#include <vehicle.h>
 #include "fcb_facade.hpp"
 #include "./de_common/messages.hpp"
 #include "./de_common/de_module.hpp"
@@ -14,6 +15,7 @@
 #include "./mission/missions.hpp"
 #include "fcb_traffic_optimizer.hpp"
 #include "./de_common/de_common_callback.hpp"
+
 #include "./helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
@@ -278,6 +280,10 @@ namespace fcb
             uint16_t m_udp_telemetry_fixed_port = 0;
             uint64_t m_last_access_telemetry = 0;
             ANDRUAV_UDP_PROXY m_udp_proxy;
+
+
+            mavlinksdk::CVehicle &m_vehicle = mavlinksdk::CVehicle::getInstance();
+            
             
             /**
             * @brief servo channel used for sending events
