@@ -194,9 +194,9 @@ namespace mavlinksdk
                 m_mavlink_events->OnHighLatencyMessageReceived (latency_mode);
             };
 
-            inline void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed) override 
+            inline void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed, const bool &load_parameters_1st_iteration) override 
             {
-                m_mavlink_events->OnParamReceived (param_name, param_message, changed);
+                m_mavlink_events->OnParamReceived (param_name, param_message, changed, load_parameters_1st_iteration);
             };
     
             inline void OnParamReceivedCompleted() override 
