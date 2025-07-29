@@ -362,6 +362,11 @@ namespace mavlinksdk
                 return m_vibration;   
             }
 
+            inline const mavlink_flight_information_t getFlightInformation() const
+            {
+                return m_flight_information;
+            }
+
             inline const std::string& getLastStatusText () const
             {
                 return m_status_text;
@@ -395,7 +400,7 @@ namespace mavlinksdk
                 m_sys_id = sys_id;
             }
 
-
+            
         // Class Members
         protected:
             mavlinksdk::CCallBack_Vehicle* m_callback_vehicle;
@@ -425,6 +430,8 @@ namespace mavlinksdk
              */
             mavlink_battery2_t m_battery2;
 
+
+            mavlink_flight_information_t m_flight_information;
             
             // High Latency
             int m_high_latency_mode = 0; // either equal to MAVLINK_MSG_ID_HIGH_LATENCY or MAVLINK_MSG_ID_HIGH_LATENCY2 or 0

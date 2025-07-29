@@ -468,6 +468,12 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		}
 		break;
 
+		case MAVLINK_MSG_ID_FLIGHT_INFORMATION:
+		{
+			mavlink_msg_flight_information_decode(&mavlink_message, &(m_flight_information));
+		}
+		break;
+
         case MAVLINK_MSG_ID_WIND:
 		{
 			mavlink_msg_wind_decode(&mavlink_message, &(m_wind));
