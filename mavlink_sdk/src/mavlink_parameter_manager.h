@@ -19,8 +19,8 @@ namespace mavlinksdk
     class CCallBack_Parameter
     {
         public:
-            virtual void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed)    {};
-            virtual void OnParamReceivedCompleted ()                                                                                        {};
+            virtual void OnParamReceived(const std::string& param_name, const mavlink_param_value_t& param_message, const bool& changed, const bool &load_parameters_1st_iteration)    {};
+            virtual void OnParamReceivedCompleted ()                                                                                            {};
     };
 
     class CMavlinkParameterManager
@@ -116,6 +116,8 @@ namespace mavlinksdk
             uint64_t m_parameters_last_receive_time = 0;
 
             bool m_ignore_loading_parameters = false;
+
+            bool m_load_parameters_1st_iteration = true;
     };
         
     
