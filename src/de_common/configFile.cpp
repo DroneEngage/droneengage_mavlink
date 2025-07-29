@@ -37,6 +37,22 @@ void CConfigFile::reloadFile ()
 }
 
 
+bool CConfigFile::fileUpdated ()
+{
+    try {
+        std::filesystem::file_time_type lastWriteTime = std::filesystem::last_write_time(m_file_url.c_str());
+        if (lastWriteTime == m_lastWriteTime) return false;
+        
+        m_lastWriteTime = lastWriteTime;
+            
+        std::cout << _INFO_CONSOLE_TEXT << "Initial last write time obtained." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "Error: Could not get initial file write time for '" << m_file_url.c_str() << "': " << e.what() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    }
+
+    return true;
+}
+
 
 void CConfigFile::ReadFile (const char * fileURL)
 {
