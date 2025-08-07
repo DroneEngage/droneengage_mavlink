@@ -119,13 +119,6 @@ namespace comm
             void createJSONID (bool reSend) ;
 
 
-            /**
-             * @brief Set the m_party_id & m_group_id
-             * 
-             * @param party_id 
-             * @param group_id 
-             */
-            void setPartyID (const std::string& party_id, const std::string& group_id){};
             
 
             
