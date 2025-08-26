@@ -139,7 +139,18 @@ void CTrackingManager::onTrack(const double x, const double yz, const bool is_xy
     int tracking_x  = static_cast<int>(m_x  * 1000 + 500);
     int tracking_yz = static_cast<int>(m_yz * 1000 + 500);
     
-    
+    switch (de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().vehicle_type)
+    {
+        case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_TRI:
+        case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_QUAD:
+        break;
+
+        case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_BOAT:
+        break;
+
+        case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_ROVER:
+        break;
+    }
     if (is_xy)
     {
         // x & y .... forward camera.
@@ -157,6 +168,7 @@ void CTrackingManager::onTrack(const double x, const double yz, const bool is_xy
         rc_channels[rc_map.rcmap_throttle]  = 500; 
                     
     }
+
     
     
     #ifdef DDEBUG
