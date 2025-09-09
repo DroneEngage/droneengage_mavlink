@@ -143,13 +143,6 @@ bool CFCBMain::init()
 
     initVehicleChannelLimits(true);
 
-    bool ignore = false;
-    if (m_jsonConfig.contains("ignore_loading_parameters"))
-    {
-        ignore = m_jsonConfig["ignore_loading_parameters"];
-    }
-    mavlinksdk::CMavlinkParameterManager::getInstance().ignoreLoadingParameters(ignore);
-
     m_mavlink_optimizer.init(m_jsonConfig["message_timeouts"]);
 
     if (m_jsonConfig.contains("default_optimization_level"))
