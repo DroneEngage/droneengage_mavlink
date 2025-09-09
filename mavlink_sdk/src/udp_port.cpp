@@ -150,7 +150,9 @@ int mavlinksdk::comm::UDPPort::read_message(mavlink_message_t &message)
 	// Couldn't read from port
 	else
 	{
+		#ifdef DEBUG
 		fprintf(stderr, "ERROR: Could not read, res = %d, errno = %d : %m\n", result, errno);
+		#endif
 	}
 
 	// --------------------------------------------------------------------------
@@ -207,9 +209,11 @@ int mavlinksdk::comm::UDPPort::write_message(const mavlink_message_t &message)
 
 	// Write buffer to UDP port, locks port while writing
 	int bytesWritten = _write_port(buf,len);
+	#ifdef DEBUG
 	if(bytesWritten < 0){
 		fprintf(stderr, "ERROR: Could not write, res = %d, errno = %d : %m\n", bytesWritten, errno);
 	}
+	#endif
 
 	return bytesWritten;
 }
@@ -367,7 +371,9 @@ _write_port(char *buf, unsigned len)
 		addr.sin_port = htons(tx_port);
 		bytesWritten = sendto(m_SocketFD, buf, len, 0, (struct sockaddr*)&addr, sizeof(struct sockaddr_in));
 	}else{
+		#ifdef DEBUG
 		std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: Sending before first packet received!" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+		#endif
 		bytesWritten = -1;
 	}
 
