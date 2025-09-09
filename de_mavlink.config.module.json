@@ -60,8 +60,6 @@
   "event_wait_channel": 15,
   
   "read_only_mode": false,
-  // you can ignore loading parameters but the R/C Gamepad will not work.
-  "ignore_loading_parameters": false,
 
   // if value not equal to zero then only recieve mavlinks of sysid specified in the value (optional-advanced). 
   //"only_allow_ardupilot_sysid": 0,
@@ -116,12 +114,9 @@
 
 // should be a channel from 1 to 8. when High all commands from GCS will be ignored including RC-Override.
 "rc_block_channel": -1,
-//"read_only_mode": true,
-//"ignore_loading_parameters": false,
 
-
-  // Used for Gamepad control via Drone-Engage Web Client
-  // Determine channels enabled, reverse, max & min PWM range
+// Used for Gamepad control via Drone-Engage Web Client
+// Determine channels enabled, reverse, max & min PWM range
 "rc_channels":
 {
     "rc_smart_channels": // optional but very recommended.
