@@ -117,7 +117,6 @@ add_executable( de_mavlink ${files})
 set_target_properties( de_mavlink 
                 PROPERTIES 
                     OUTPUT_NAME "de_ardupilot"
-                    SUFFIX ".so"
                 )
 
 
