@@ -202,6 +202,7 @@ int TCPClientPort::write_message(const mavlink_message_t& message) {
             start(); // Retry connection in a new thread
         }
         std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: Cannot write, TCP port is not open or reconnecting" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         return -1;
     }
 
