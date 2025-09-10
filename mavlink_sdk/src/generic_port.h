@@ -63,9 +63,11 @@
 // ------------------------------------------------------------------------------
 #define MAVLINK_CHANNEL_SERIAL          MAVLINK_COMM_0
 #define MAVLINK_CHANNEL_UDP             MAVLINK_COMM_1
-#define MAVLINK_CHANNEL_INTERMODULE     MAVLINK_COMM_2
-#define MAVLINK_CHANNEL_INTERMODULE_2   MAVLINK_COMM_3
-#define MAVLINK_CHANNEL_TELEMETRY       4
+#define MAVLINK_CHANNEL_TCP             MAVLINK_COMM_2
+#define MAVLINK_CHANNEL_TELEMETRY       MAVLINK_COMM_3
+#define MAVLINK_CHANNEL_INTERMODULE     4
+#define MAVLINK_CHANNEL_INTERMODULE_2   5
+
 
 // ------------------------------------------------------------------------------
 //   Prototypes
