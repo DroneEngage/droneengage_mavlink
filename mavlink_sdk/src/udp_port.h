@@ -100,37 +100,36 @@
  */
 namespace mavlinksdk
 {
-namespace comm
-{
-	class UDPPort: public GenericPort
+	namespace comm
 	{
+		class UDPPort : public GenericPort
+		{
 
 		public:
-
 			UDPPort();
-			UDPPort(const char * target_ip_, int udp_port_);
+			UDPPort(const char *target_ip_, int udp_port_);
 			virtual ~UDPPort();
 
 			int read_message(mavlink_message_t &message) override;
 			int write_message(const mavlink_message_t &message) override;
 
-			bool is_running() override{
+			bool is_running() override
+			{
 				return is_open;
 			}
 			void start() override;
 			void stop() override;
 
 		private:
-
 			mavlink_status_t lastStatus;
-			pthread_mutex_t  lock;
+			pthread_mutex_t lock;
 
 			void initialize_defaults();
 
-			const static int BUFF_LEN=65507;
+			const static int BUFF_LEN = 65507;
 			uint8_t buff[BUFF_LEN];
-			int buff_ptr=0;
-			int buff_len=0;
+			int buff_ptr = 0;
+			int buff_len = 0;
 			bool debug;
 			std::string target_ip_cached;
 			const char *target_ip;
@@ -138,16 +137,11 @@ namespace comm
 			int tx_port;
 			int m_SocketFD;
 			bool is_open;
-			
 
-			int  _read_port(uint8_t &cp);
+			int _read_port(uint8_t &cp);
 			int _write_port(char *buf, unsigned len);
-
-	};
+		};
+	}
 }
-}
-
 
 #endif // UDP_PORT_H_
-
-

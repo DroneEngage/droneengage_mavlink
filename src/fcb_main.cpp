@@ -17,7 +17,6 @@
 
 #include "fcb_modes.hpp"
 
-
 #include "fcb_main.hpp"
 
 #include "./geofence/fcb_geo_fence_base.hpp"
@@ -60,7 +59,6 @@ void CFCBMain::OnMessageReceived(const de::comm::CUDPProxy *udp_proxy, const cha
         }
     }
 }
-
 
 /**
  * @brief get connection type UDP or serial based on config file.
@@ -119,9 +117,10 @@ bool CFCBMain::connectToFCB()
         return true;
 
     case CONNECTION_TYPE_TCP:
-        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "TCP Connection is not supported" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        exit(0);
-        break;
+        std::cout << _INFO_CONSOLE_TEXT << "UDP Connection Initializing" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        m_mavlink_sdk.connectUDP((m_jsonConfig["fcb_connection_uri"])["ip"].get<std::string>().c_str(),
+                                 (m_jsonConfig["fcb_connection_uri"])["port"].get<int>());
+        return true;
 
     default:
         throw "Connection to FCB is not in (serial, udp, tcp) ";
@@ -161,7 +160,7 @@ bool CFCBMain::init()
         const int sys_id = m_jsonConfig["only_allow_ardupilot_sysid"].get<int>();
         std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Variable " << _INFO_CONSOLE_BOLD_TEXT << " only_allow_ardupilot_sysid " << _SUCCESS_CONSOLE_BOLD_TEXT_ << " is set to " << _INFO_CONSOLE_BOLD_TEXT << sys_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
         std::cout << _INFO_CONSOLE_BOLD_TEXT << "NOTE OTHER SYS-IDs will be" << _ERROR_CONSOLE_BOLD_TEXT_ << " IGNORED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        
+
         m_vehicle.restrictMessageToSysID(sys_id);
     }
 
@@ -244,14 +243,15 @@ bool CFCBMain::uninit()
 void CFCBMain::initVehicleChannelLimits(const bool display)
 {
     de::CConfigFile &cConfigFile = CConfigFile::getInstance();
-    if (!cConfigFile.fileUpdated()) return ;
+    if (!cConfigFile.fileUpdated())
+        return;
     cConfigFile.reloadFile();
     m_jsonConfig = cConfigFile.GetConfigJSON();
 
     if (m_jsonConfig.contains("rc_block_channel"))
     {
         m_andruav_vehicle_info.rc_block_channel = m_jsonConfig["rc_block_channel"].get<int>();
-        
+
         if (display && (m_andruav_vehicle_info.rc_block_channel >= 0))
         {
             std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Blocking is " << _ERROR_CONSOLE_BOLD_TEXT_ << "enabled " << _INFO_CONSOLE_BOLD_TEXT << "at channel: " << _INFO_CONSOLE_BOLD_TEXT << std::to_string(m_andruav_vehicle_info.rc_block_channel) << _ERROR_CONSOLE_BOLD_TEXT_ << " - IMPORTANT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -325,15 +325,13 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
         else
         {
             m_rcmap_channels_info.use_smart_rc = false;
-            
-            
         }
 
         if ((m_rcmap_channels_info.use_smart_rc == true) && (m_rcmap_channels_info.is_valid))
         {
-            #ifdef DDEBUG
+#ifdef DDEBUG
             std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Smart Channels are" << _SUCCESS_CONSOLE_BOLD_TEXT_ << " enabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-            #endif
+#endif
 
             // re-adjust rcmapped channels
             if (rc_channels["rc_smart_channels"].contains("rc_channel_limits_max"))
@@ -366,16 +364,14 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
                 m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_yaw] = *it == 1 ? true : false;
             }
         }
-        
     }
 
     if (m_rcmap_channels_info.use_smart_rc == false)
     {
-        #ifdef DDEBUG
-            std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Smart Channels are" << _INFO_CONSOLE_BOLD_TEXT << " disabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        #endif
+#ifdef DDEBUG
+        std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Smart Channels are" << _INFO_CONSOLE_BOLD_TEXT << " disabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+#endif
     }
-            
 }
 
 /**
@@ -550,11 +546,6 @@ void CFCBMain::loopScheduler()
     return;
 }
 
-
-
-
-
-
 /**
  * @brief Message received from FCB
  *
@@ -593,7 +584,6 @@ void CFCBMain::OnMessageReceived(const mavlink_message_t &mavlink_message)
                 m_fcb_facade.sendUdpProxyMavlink(mavlink_message, m_udp_proxy.udp_client);
             }
         }
-        
     }
 
     return;
@@ -676,7 +666,7 @@ void CFCBMain::OnBoardRestarted()
     return;
 }
 
-void CFCBMain::OnArmed(const bool &armed, const bool& ready_to_arm)
+void CFCBMain::OnArmed(const bool &armed, const bool &ready_to_arm)
 {
     std::cout << std::endl
               << _SUCCESS_CONSOLE_BOLD_TEXT_ << "OnArmed/ReadyToArm" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -884,14 +874,13 @@ void CFCBMain::OnMissionCurrentChanged(const mavlink_mission_current_t &mission_
 
     // IMPORTANT: This is an internal only event and cannot be broadcasted to communication-server.
     // if you want to broadcast ato communication-server you need to fire event from servo channels.
-    
+
     // IMPORTANT: here we sent a local event of every mission item. this mission item can be ANYTHING
     // it is just a SYNC with other modules that has waiting events linked to waypoints mission-items using.
     // so instead of Filtering message I have chosen to sent.
 
     // IMPORTANT: Ardupilot sends seq of mission items not mission commands.
     de::fcb::mission::CMissionManager::getInstance().handleMissionCurrentCount(mission_current);
-    
 }
 
 void CFCBMain::OnACK(const int &acknowledged_cmd, const int &result, const std::string &result_msg)
@@ -953,8 +942,6 @@ void CFCBMain::OnHomePositionUpdated(const mavlink_home_position_t &home_positio
     return;
 }
 
-
-
 void CFCBMain::OnServoOutputRaw(const mavlink_servo_output_raw_t &servo_output_raw)
 {
 
@@ -981,10 +968,10 @@ void CFCBMain::OnServoOutputRaw(const mavlink_servo_output_raw_t &servo_output_r
 void CFCBMain::OnParamReceived(const std::string &param_name, const mavlink_param_value_t &param_message, const bool &changed, const bool &load_parameters_1st_iteration)
 {
 #ifdef DEBUG
-std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: "
-	<< std::string(param_name) << " : " << "count: " << std::to_string(param_message.param_index) << " of " << std::to_string(param_message.param_count)
-	<< " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
-	<< " changed: " << std::to_string(changed) <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << __FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  " << _LOG_CONSOLE_TEXT << "DEBUG: "
+              << std::string(param_name) << " : " << "count: " << std::to_string(param_message.param_index) << " of " << std::to_string(param_message.param_count)
+              << " type: " << std::to_string(param_message.param_type) << " value: " << std::to_string(param_message.param_value)
+              << " changed: " << std::to_string(changed) << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
 
     if (changed && !load_parameters_1st_iteration)
@@ -1086,7 +1073,7 @@ void CFCBMain::alertDroneEngageOffline()
  */
 void CFCBMain::calculateChannels(const int16_t scaled_channels[18], const bool ignode_dead_band, int16_t *output)
 {
-	
+
     for (int i = 0; i < 18; ++i)
     {
         int scaled_channel = scaled_channels[i];
@@ -1095,32 +1082,31 @@ void CFCBMain::calculateChannels(const int16_t scaled_channels[18], const bool i
         if ((scaled_channel == SKIP_RC_CHANNEL) || (!m_andruav_vehicle_info.rc_channels_enabled[i]))
         {
             // https://mavlink.io/en/messages/common.html#RC_CHANNELS_OVERRIDE
-            if (i<8)
+            if (i < 8)
             {
                 output[i] = 0; // release RC Channel
             }
             else
             {
-                output[i] = UINT16_MAX-1; // release RC Channel
+                output[i] = UINT16_MAX - 1; // release RC Channel
             }
             continue;
         }
 
-       
         // --- Stage 2: Convert Range, Apply Deadband, Apply Reverse ---
         // convert range to [-500,500]
-        scaled_channel = scaled_channel - 500; 
+        scaled_channel = scaled_channel - 500;
         // apply deadband
         if ((!ignode_dead_band) && (abs(scaled_channel) < 20))
         {
             // https://mavlink.io/en/messages/common.html#RC_CHANNELS_OVERRIDE
-            if (i<8)
+            if (i < 8)
             {
                 scaled_channel = 0; // release RC Channel
             }
             else
             {
-                scaled_channel = UINT16_MAX-1; // release RC Channel
+                scaled_channel = UINT16_MAX - 1; // release RC Channel
             }
         }
 
@@ -1421,9 +1407,6 @@ void CFCBMain::updateRemoteControlChannels(const int16_t rc_channels[RC_CHANNELS
     }
 }
 
-
-
-
 void CFCBMain::setStreamingLevel(const int &streaming_level)
 {
     if (streaming_level != -1)
@@ -1433,7 +1416,6 @@ void CFCBMain::setStreamingLevel(const int &streaming_level)
         m_mavlink_optimizer.reset_timestamps();
     }
 }
-
 
 /**
  * @brief updates RCMAP_CHANNELS_MAP_INFO_STRUCT with valid values.

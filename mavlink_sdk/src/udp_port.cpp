@@ -60,6 +60,8 @@
 
 #include "udp_port.h"
 
+namespace mavlinksdk {
+namespace comm {
 
 // ----------------------------------------------------------------------------------
 //   UDP Port Manager Class
@@ -68,7 +70,7 @@
 // ------------------------------------------------------------------------------
 //   Con/De structors
 // ------------------------------------------------------------------------------
-mavlinksdk::comm::UDPPort::UDPPort(const char * target_ip_, int udp_port_)
+UDPPort::UDPPort(const char * target_ip_, int udp_port_)
 {
 	initialize_defaults();
 	target_ip_cached = std::string(target_ip_);
@@ -77,22 +79,18 @@ mavlinksdk::comm::UDPPort::UDPPort(const char * target_ip_, int udp_port_)
 	is_open = false;
 }
 
-mavlinksdk::comm::UDPPort::
-UDPPort()
+UDPPort::UDPPort()
 {
 	initialize_defaults();
 }
 
-mavlinksdk::comm::UDPPort::
-~UDPPort()
+UDPPort::~UDPPort()
 {
 	// destroy mutex
 	pthread_mutex_destroy(&lock);
 }
 
-void
-mavlinksdk::comm::UDPPort::
-initialize_defaults()
+void UDPPort::initialize_defaults()
 {
 	// Initialize attributes
 	target_ip = "127.0.0.1";
@@ -115,7 +113,7 @@ initialize_defaults()
 // ------------------------------------------------------------------------------
 //   Read from UDP
 // ------------------------------------------------------------------------------
-int mavlinksdk::comm::UDPPort::read_message(mavlink_message_t &message)
+int UDPPort::read_message(mavlink_message_t &message)
 {
 	uint8_t          cp;
 	mavlink_status_t status;
@@ -195,7 +193,7 @@ int mavlinksdk::comm::UDPPort::read_message(mavlink_message_t &message)
 // ------------------------------------------------------------------------------
 //   Write to UDP
 // ------------------------------------------------------------------------------
-int mavlinksdk::comm::UDPPort::write_message(const mavlink_message_t &message)
+int UDPPort::write_message(const mavlink_message_t &message)
 {
 	char buf[300];
 
@@ -226,7 +224,7 @@ int mavlinksdk::comm::UDPPort::write_message(const mavlink_message_t &message)
 /**
  * throws EXIT_FAILURE if could not open the port
  */
-void mavlinksdk::comm::UDPPort::start()
+void UDPPort::start()
 {
 	// --------------------------------------------------------------------------
 	//   OPEN PORT
@@ -273,7 +271,7 @@ void mavlinksdk::comm::UDPPort::start()
 // ------------------------------------------------------------------------------
 //   Close UDP Port
 // ------------------------------------------------------------------------------
-void mavlinksdk::comm::UDPPort::stop()
+void UDPPort::stop()
 {
 	std::cout << _INFO_CONSOLE_TEXT << "Closing UDP Port" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 
@@ -293,7 +291,7 @@ void mavlinksdk::comm::UDPPort::stop()
 // ------------------------------------------------------------------------------
 //   Read Port with Lock
 // ------------------------------------------------------------------------------
-int mavlinksdk::comm::UDPPort::_read_port(uint8_t &cp)
+int UDPPort::_read_port(uint8_t &cp)
 {
 
 	socklen_t sender_address_size;
@@ -353,9 +351,7 @@ int mavlinksdk::comm::UDPPort::_read_port(uint8_t &cp)
 // ------------------------------------------------------------------------------
 //   Write Port with Lock
 // ------------------------------------------------------------------------------
-int
-mavlinksdk::comm::UDPPort::
-_write_port(char *buf, unsigned len)
+int UDPPort::_write_port(char *buf, unsigned len)
 {
 
 	// Lock
@@ -385,3 +381,5 @@ _write_port(char *buf, unsigned len)
 }
 
 
+}
+}
