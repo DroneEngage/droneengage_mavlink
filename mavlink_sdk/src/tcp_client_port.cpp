@@ -183,6 +183,8 @@ int TCPClientPort::_read_port(uint8_t& cp) {
         stop();
     } else if (result < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
         // Timeout, no data
+        //std::this_thread::sleep_for(500);
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
         result = 0;
     }
 
