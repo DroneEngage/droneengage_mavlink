@@ -46,7 +46,7 @@ void TCPClientPort::initialize_defaults() {
 void TCPClientPort::start() {
     // Start a separate thread for connection retries
     std::thread([this]() {
-        const int max_retries = 5;
+        const int max_retries = 15;
         int retry_count = 0;
         bool connected = false;
 
