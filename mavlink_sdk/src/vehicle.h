@@ -378,9 +378,7 @@ namespace mavlinksdk
              */
             inline const bool isReadyToArm() const 
             {
-                return MAV_SYS_STATUS_PREARM_CHECK
-                    & m_sys_status.onboard_control_sensors_enabled 
-                    & m_sys_status.onboard_control_sensors_health;
+                return (m_sys_status.onboard_control_sensors_health & MAV_SYS_STATUS_PREARM_CHECK) != 0;
             }
 
             /**
