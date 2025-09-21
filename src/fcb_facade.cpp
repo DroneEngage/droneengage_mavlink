@@ -34,7 +34,7 @@ void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
          FM : flying mode
          GM : gps mode
          FI : use FCB
-        [AR]: is armed                            // optional 
+        [AR]: arming_status                       // optional 
         [FL]: is flying                           // optional
          SD : shutdown
          TP : telemetry protocol

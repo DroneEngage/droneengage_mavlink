@@ -111,12 +111,11 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 
 void mavlinksdk::CVehicle::handle_sys_status(const mavlink_sys_status_t& sys_status)
 {
-	const bool ready_to_arm = MAV_SYS_STATUS_PREARM_CHECK
-		& sys_status.onboard_control_sensors_enabled 
-		& sys_status.onboard_control_sensors_health;
-	
+	// Check if the pre-arm check bits are set correctly
+    const bool prearm_ready = (sys_status.onboard_control_sensors_health & MAV_SYS_STATUS_PREARM_CHECK) != 0;
+
 	bool trigger_on_arm = false;
-	if (!m_ready_to_arm_trigger_first_tick || (ready_to_arm != isReadyToArm()))
+	if (!m_ready_to_arm_trigger_first_tick || (prearm_ready != isReadyToArm()))
 	{
 		trigger_on_arm = true;
 		m_ready_to_arm_trigger_first_tick = true;
@@ -129,7 +128,7 @@ void mavlinksdk::CVehicle::handle_sys_status(const mavlink_sys_status_t& sys_sta
 
 	if (trigger_on_arm)
 	{
-		m_callback_vehicle->OnArmed(m_armed, ready_to_arm);
+		m_callback_vehicle->OnArmed(m_armed, prearm_ready);
 	}
 	
 }
@@ -205,8 +204,8 @@ void mavlinksdk::CVehicle::handle_status_text (const mavlink_statustext_t& statu
 void mavlinksdk::CVehicle::handle_home_position (const mavlink_home_position_t& home_position)
 {
 	const bool home_changed = ((m_home_position.latitude != home_position.latitude)
-							|| (m_home_position.latitude != home_position.latitude)
-							|| (m_home_position.latitude != home_position.latitude));
+							|| (m_home_position.longitude != home_position.longitude)
+							|| (m_home_position.altitude != home_position.altitude));
 
 	memcpy((void *) &m_home_position, (void *) &home_position, sizeof(mavlink_home_position_t));
 
