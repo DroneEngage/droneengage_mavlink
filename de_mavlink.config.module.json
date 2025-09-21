@@ -13,7 +13,7 @@
   // How to connect to Ardupilot board
   // Using udp connection
   "fcb_connection_uri": 
-  {"type": "tcp",
+  {"type": "udp",
    "ip": "0.0.0.0",
    "port":14551
   },
