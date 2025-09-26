@@ -157,11 +157,21 @@ bool CFCBMain::init()
 
     if (m_jsonConfig.contains("only_allow_ardupilot_sysid") && m_jsonConfig["only_allow_ardupilot_sysid"].is_number())
     {
-        const int sys_id = m_jsonConfig["only_allow_ardupilot_sysid"].get<int>();
+        const uint32_t sys_id = m_jsonConfig["only_allow_ardupilot_sysid"].get<int>();
+        
         std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Variable " << _INFO_CONSOLE_BOLD_TEXT << " only_allow_ardupilot_sysid " << _SUCCESS_CONSOLE_BOLD_TEXT_ << " is set to " << _INFO_CONSOLE_BOLD_TEXT << sys_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
         std::cout << _INFO_CONSOLE_BOLD_TEXT << "NOTE OTHER SYS-IDs will be" << _ERROR_CONSOLE_BOLD_TEXT_ << " IGNORED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
         m_vehicle.restrictMessageToSysID(sys_id);
+    }
+
+    if (m_jsonConfig.contains("only_allow_ardupilot_compid") && m_jsonConfig["only_allow_ardupilot_compid"].is_number())
+    {
+        const uint32_t comp_id = m_jsonConfig["only_allow_ardupilot_compid"].get<int>();
+        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Variable " << _INFO_CONSOLE_BOLD_TEXT << " only_allow_ardupilot_compid " << _SUCCESS_CONSOLE_BOLD_TEXT_ << " is set to " << _INFO_CONSOLE_BOLD_TEXT << comp_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "NOTE OTHER SYS-IDs will be" << _ERROR_CONSOLE_BOLD_TEXT_ << " IGNORED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+        m_vehicle.restrictMessageToCompID(comp_id);
     }
 
     m_udp_telemetry_fixed_port = 0;
