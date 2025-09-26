@@ -31,11 +31,24 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	
 	if (m_sys_id == NO_SYSID_RESTRICTION)
 	{
+		const uint8_t c_type = heartbeat.type;
 		// IGNORE UNIT TYPES 
-		if ((heartbeat.type >=  MAV_TYPE::MAV_TYPE_GIMBAL)
-		|| (heartbeat.type ==  MAV_TYPE::MAV_TYPE_GCS)
-		|| (heartbeat.type ==  MAV_TYPE::MAV_TYPE_ONBOARD_CONTROLLER))
-		return false; // fix ADSB sensor.
+		if ((c_type >=  MAV_TYPE::MAV_TYPE_GIMBAL)
+		|| (c_type ==  MAV_TYPE::MAV_TYPE_GCS)
+		|| (c_type ==  MAV_TYPE::MAV_TYPE_ONBOARD_CONTROLLER)
+		|| (heartbeat.autopilot == MAV_AUTOPILOT_INVALID))
+		return false;
+
+
+		if (m_comp_id == NO_SYSID_RESTRICTION)
+		{
+			if (mavlink_message_temp.compid  != 1) return false; // assuming comp_id is 1 
+		}
+		else
+		{
+			if (m_comp_id != mavlink_message_temp.compid) return false;
+		}
+		
 	}
 	else
 	{

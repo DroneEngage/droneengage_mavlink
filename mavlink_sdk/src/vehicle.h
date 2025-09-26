@@ -398,6 +398,11 @@ namespace mavlinksdk
                 m_sys_id = sys_id;
             }
 
+            inline const void restrictMessageToCompID(uint32_t comp_id)
+            {
+                // value = 0  means no restriction.
+                m_comp_id = comp_id;
+            }
             
         // Class Members
         protected:
@@ -540,6 +545,7 @@ namespace mavlinksdk
             int m_compid{0};
 
             uint32_t m_sys_id{NO_SYSID_RESTRICTION};
+            uint32_t m_comp_id{NO_SYSID_RESTRICTION};
 
     };
 }
