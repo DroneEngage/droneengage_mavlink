@@ -100,7 +100,7 @@ std::string removeComments(std::string prgm)
             s_cmt = false; 
   
         // If multiple line comment is on, then check for end of it 
-        else if  (m_cmt == true && prgm[i] == '*' && prgm[i+1] == '/') 
+        else if  (m_cmt == true && prgm[i] == '*' && (i + 1) < n && prgm[i+1] == '/') 
             m_cmt = false,  i++; 
   
         // If this character is in a comment, ignore it 
@@ -108,9 +108,9 @@ std::string removeComments(std::string prgm)
             continue; 
   
         // Check for beginning of comments and set the approproate flags 
-        else if (prgm[i] == '/' && prgm[i+1] == '/') 
+        else if ((prgm[i] == '/') && ((i + 1) < n) && prgm[i+1] == '/') 
             s_cmt = true, i++; 
-        else if (prgm[i] == '/' && prgm[i+1] == '*') 
+        else if ((prgm[i] == '/') && ((i + 1) < n) && prgm[i+1] == '*') 
             m_cmt = true,  i++; 
   
         // If current character is a non-comment character, append it to res 
@@ -136,11 +136,15 @@ std::string get_linux_machine_id ()
     char * read = fgets(line, 256, f);
     if (read!= NULL)
     {
-        line[strlen(line)-1]=0; // remove "\n" from the read
-        return std::string(line);
+        size_t len = strlen(line);
+        if (len > 0 && line[len-1] == '\n') line[len-1] = '\0'; // remove "\n" if present
+        std::string id(line);
+        fclose(f);
+        return id;
     }
     else
     {
+        fclose(f);
         return std::string("");
     }
 }
@@ -148,7 +152,8 @@ std::string get_linux_machine_id ()
 
 bool is_ascii(const signed char *c, size_t len) {
   for (size_t i = 0; i < len; i++) {
-    if(c[i] < 0) return false;
+        // cast to unsigned to avoid implementation-defined signedness issues
+        if (static_cast<unsigned char>(c[i]) > 127) return false;
   }
   return true;
 }
@@ -173,4 +178,11 @@ bool validateField (const Json_de& message, const char *field_name, const Json_d
         return false;
 
     return true;
+}
+
+
+// Function to round a double to a specified number of decimal places
+double roundToPrecision(double value, int decimalPlaces) {
+    double multiplier = std::pow(10.0, decimalPlaces);
+    return std::round(value * multiplier) / multiplier;
 }

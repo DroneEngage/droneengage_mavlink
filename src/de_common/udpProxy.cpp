@@ -98,8 +98,8 @@ bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, con
     m_udpProxyServer->sin_addr.s_addr = inet_addr(target_ip); 
 
     // Bind the socket with the server address 
-    if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in)) > 0) 
-    { 
+    if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in)) < 0) 
+    {  
         std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return false ;
     } 

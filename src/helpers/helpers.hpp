@@ -12,7 +12,6 @@
 #include "json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
-
 std::string get_time_string();
 
 uint64_t get_time_usec();
@@ -49,5 +48,6 @@ int signum(T x) {
     return signum(x, std::is_signed<T>());
 }
 
+double roundToPrecision(double value, int decimalPlaces);
 
 #endif
