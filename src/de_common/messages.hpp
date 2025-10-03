@@ -257,30 +257,48 @@
  * [ws]: for turning communication server websocket on/off or leave as is.
  * 
  */
-#define TYPE_AndruavMessage_Communication_Line_Set          6509
+#define TYPE_AndruavMessage_Communication_Line_Set             6509
 
-#define TYPE_AndruavMessage_Communication_Line_Status       6510
-
-
-#define TYPE_AndruavMessage_SOUND_TEXT_TO_SPEECH            6511
-#define TYPE_AndruavMessage_SOUND_PLAY_FILE                 6512
-
-#define TYPE_AndruavMessage_SDR_INFO                        6513
-#define TYPE_AndruavMessage_SDR_ACTION                      6514
-#define TYPE_AndruavMessage_SDR_STATUS                      6515
-#define TYPE_AndruavMessage_SDR_SPECTRUM                    6516
+#define TYPE_AndruavMessage_Communication_Line_Status          6510
 
 
-#define TYPE_AndruavMessage_P2P_INFO                        6517
+#define TYPE_AndruavMessage_SOUND_TEXT_TO_SPEECH               6511
+#define TYPE_AndruavMessage_SOUND_PLAY_FILE                    6512
 
-#define TYPE_AndruavMessage_Mission_Item_Sequence           6518
+#define TYPE_AndruavMessage_SDR_INFO                           6513
+#define TYPE_AndruavMessage_SDR_ACTION                         6514
+#define TYPE_AndruavMessage_SDR_STATUS                         6515
+#define TYPE_AndruavMessage_SDR_SPECTRUM                       6516
+
+
+#define TYPE_AndruavMessage_P2P_INFO                           6517
+
+#define TYPE_AndruavMessage_Mission_Item_Sequence              6518
+
+#define TYPE_AndruavMessage_GPIO_ACTION                        6519
+#define TYPE_AndruavMessage_GPIO_STATUS                        6520
+#define TYPE_AndruavMessage_GPIO_REMOTE_EXECUTE                6521
+
+/**
+ * @brief Set IP/Port of Local Communication Server.
+ * current fields are:
+ * [u]: url/ip
+ * [p]: port
+ */
+#define TYPE_AndruavMessage_LocalServer_ACTION                 6522
+#define TYPE_AndruavMessage_LocalServer_STATUS                 6523
+#define TYPE_AndruavMessage_LocalServer_REMOTE_EXECUTE         6524
+
+#define TYPE_AndruavMessage_CONFIG_ACTION                      6525
+#define TYPE_AndruavMessage_CONFIG_STATUS                      6526
+#define TYPE_AndruavMessage_CONFIG_REMOTE_EXECUTE              6527
+
+#define TYPE_AndruavMessage_DUMMY                              9999
 
 /**********************************************************************
                         EOF Andruav Messages 2019
 **********************************************************************/
 
-
-#define TYPE_AndruavMessage_DUMMY                           9999
 #define TYPE_AndruavMessage_USER_RANGE_START                80000
 #define TYPE_AndruavMessage_USER_RANGE_END                  90000
 
