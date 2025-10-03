@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,30 +11,23 @@
 
 using namespace de;
 
-
 const Json_de& CConfigFile::GetConfigJSON()
 {
-    return  m_ConfigJSON;
+    return m_ConfigJSON;
 }
-
 
 void CConfigFile::initConfigFile (const char* fileURL)
 {
     m_file_url = std::string(fileURL);
-
     CConfigFile::ReadFile (m_file_url.c_str());
-    
     CConfigFile::ParseData (m_fileContents.str());
 }
-
 
 void CConfigFile::reloadFile ()
 {
     CConfigFile::ReadFile (m_file_url.c_str());
-    
     CConfigFile::ParseData (m_fileContents.str());
 }
-
 
 bool CConfigFile::fileUpdated ()
 {
@@ -44,21 +36,17 @@ bool CConfigFile::fileUpdated ()
         if (lastWriteTime == m_lastWriteTime) return false;
         
         m_lastWriteTime = lastWriteTime;
-            
         std::cout << _INFO_CONSOLE_TEXT << "Initial last write time obtained." << _NORMAL_CONSOLE_TEXT_ << std::endl;
     } catch (const std::filesystem::filesystem_error& e) {
         std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "Error: Could not get initial file write time for '" << m_file_url.c_str() << "': " << e.what() << _NORMAL_CONSOLE_TEXT_ << std::endl;
     }
-
     return true;
 }
-
 
 void CConfigFile::ReadFile (const char * fileURL)
 {
     std::ifstream stream;
-    
-    std::cout << _LOG_CONSOLE_BOLD_TEXT<< "Read config file: " << _INFO_CONSOLE_TEXT << fileURL << "\033[0m ...." ;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "Read config file: " << _INFO_CONSOLE_TEXT << fileURL << "\033[0m ...." ;
     
     stream.open (fileURL , std::ifstream::in);
     if (!stream) {
@@ -66,21 +54,42 @@ void CConfigFile::ReadFile (const char * fileURL)
         exit(1); // terminate with error
     }
     
-    
     m_fileContents.str("");
-    m_fileContents <<  stream.rdbuf();
-    
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << " succeeded "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
-    
-    return ;
+    m_fileContents << stream.rdbuf();
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << " succeeded " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    return;
 }
 
 void CConfigFile::ParseData (std::string jsonString)
 {
-
     m_ConfigJSON = Json_de::parse(removeComments(jsonString));
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << " config file parsed successfully " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+}
 
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << " config file parsed successfully "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    
+void CConfigFile::updateJSON(const std::string& jsonString)
+{
+    try {
+        Json_de updateJson = Json_de::parse(removeComments(jsonString));
+        for (const auto& item : updateJson.items()) {
+            // Update existing entry or add new entry
+            m_ConfigJSON[item.key()] = item.value();
+            std::cout << _INFO_CONSOLE_TEXT << "Updated/Added JSON key: " << item.key() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        }
+        saveConfigFile();
+    } catch (const std::exception& e) {
+        std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "Error: Failed to parse update JSON: " << e.what() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return;
+    }
+}
+
+void CConfigFile::saveConfigFile()
+{
+    std::ofstream outFile(m_file_url);
+    if (!outFile) {
+        std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "Error: Could not open config file for writing: " << m_file_url << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return;
+    }
+    outFile << m_ConfigJSON.dump(4);
+    outFile.close();
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Config file saved successfully: " << m_file_url << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }

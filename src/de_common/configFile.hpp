@@ -44,6 +44,8 @@ namespace de
             bool fileUpdated ();
             const Json_de& GetConfigJSON();
             std::string getFileName () const {return m_file_url;};
+            void updateJSON(const std::string& jsonString);
+            void saveConfigFile();
             
         protected:
             void ReadFile (const char * fileURL);
