@@ -493,3 +493,8 @@
 #define TrackingTarget_STATUS_AI_Recognition_ENABLED        2
 #define TrackingTarget_STATUS_AI_Recognition_DISABLED       3
 #define TrackingTarget_STATUS_AI_Recognition_CLASS_LIST     4
+
+
+// TYPE_AndruavMessage_CONFIG_ACTION
+#define CONFIG_ACTION_Restart                               0
+#define CONFIG_ACTION_APPLY_CONFIG                          1  
