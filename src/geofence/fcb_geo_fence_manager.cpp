@@ -1,7 +1,7 @@
-#include "../helpers/colors.hpp"
-#include "../helpers/helpers.hpp"
+#include "../de_common/helpers/colors.hpp"
+#include "../de_common/helpers/helpers.hpp"
 
-#include "../de_common/messages.hpp"
+#include "../de_common/de_databus/messages.hpp"
 
 #include "../fcb_modes.hpp"
 #include "../geofence/fcb_geo_fence_manager.hpp"

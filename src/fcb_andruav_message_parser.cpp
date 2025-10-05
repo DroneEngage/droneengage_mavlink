@@ -3,11 +3,11 @@
 #include <plog/Log.h>
 #include "plog/Initializers/RollingFileInitializer.h"
 
-#include "./helpers/helpers.hpp"
-#include "./helpers/colors.hpp"
-#include "./de_common/messages.hpp"
-#include "./de_common/configFile.hpp"
-#include "./de_common/localConfigFile.hpp"
+#include "./de_common/helpers/helpers.hpp"
+#include "./de_common/helpers/colors.hpp"
+#include "./de_common/de_databus/messages.hpp"
+#include "./de_common/de_databus/configFile.hpp"
+#include "./de_common/de_databus/localConfigFile.hpp"
 #include "fcb_modes.hpp"
 #include "fcb_andruav_message_parser.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
@@ -31,7 +31,7 @@ void CFCBAndruavMessageParser::parseMessage(Json_de &andruav_message, const char
     }
 
     bool is_system = false;
-    if ((validateField(andruav_message, ANDRUAV_PROTOCOL_SENDER, Json_de::value_t::string)) && (andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(SPECIAL_NAME_SYS_NAME) == 0))
+    if ((validateField(andruav_message, ANDRUAV_PROTOCOL_SENDER, Json_de::value_t::string)) && (andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(ANDRUAV_PROTOCOL_SENDER_COMM_SERVER) == 0))
     { // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
         is_system = true;
     }
@@ -909,7 +909,7 @@ void CFCBAndruavMessageParser::parseRemoteExecute(Json_de &andruav_message)
 
     bool is_system = false;
 
-    if ((validateField(andruav_message, ANDRUAV_PROTOCOL_SENDER, Json_de::value_t::string)) && (andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(SPECIAL_NAME_SYS_NAME) == 0))
+    if ((validateField(andruav_message, ANDRUAV_PROTOCOL_SENDER, Json_de::value_t::string)) && (andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(ANDRUAV_PROTOCOL_SENDER_COMM_SERVER) == 0))
     { // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
         is_system = true;
     }

@@ -2,10 +2,10 @@
 #include <memory>
 #include <thread>
 #include <mutex>
-#include "./helpers/json_nlohmann.hpp"
+#include "./de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
-#include "helpers/helpers.hpp"
-#include "./de_common/messages.hpp"
+#include "./de_common/helpers/helpers.hpp"
+#include "./de_common/de_databus/messages.hpp"
 
 #include "fcb_facade.hpp"
 #include "fcb_main.hpp"
@@ -671,7 +671,7 @@ void CFCBFacade::sendWayPoints(const std::string&target_party_id) const
         return ;
     }
 
-    //Note: you can put any  number here. as UDP connection now in de_common handles chunks implicitly.
+    //Note: you can put any  number here. as UDP connection now in de_common/de_databus handles chunks implicitly.
     #define MAX_WAYPOINT_CHUNK  20
 
     for (int i=0; i< length; i+=MAX_WAYPOINT_CHUNK)

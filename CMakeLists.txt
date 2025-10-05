@@ -95,7 +95,10 @@ file(GLOB folder_sdk "./mavlink_sdk/src/*.cpp")
 file(GLOB folder_sdk_helper "./mavlink_sdk/src/helpers/*.cpp")
 file(GLOB folder_src "./src/*.cpp")
 file(GLOB folder_helpers "./src/helpers/*.cpp")
+file(GLOB folder_udpproxy "./src/udp_proxy/*.cpp")
 file(GLOB folder_uavos "./src/de_common/*.cpp")
+file(GLOB folder_uavos1 "./src/de_common/de_databus/*.cpp")
+file(GLOB folder_uavos2 "./src/de_common/helpers/*.cpp")
 file(GLOB folder_mission "./src/mission/*.cpp")
 file(GLOB folder_geofence "./src/geofence/*.cpp")
 file(GLOB folder_general_mission_planner "./src/de_general_mission_planner/*.cpp")
@@ -104,7 +107,7 @@ file(GLOB folder_tracking "./src/tracking/*.cpp")
 
 
 
-set(files ${folder_src} ${folder_uavos} ${folder_helpers}
+set(files ${folder_src} ${folder_udpproxy} ${folder_uavos} ${folder_uavos1} ${folder_uavos2} ${folder_helpers}
  ${folder_mission} ${folder_geofence}  ${folder_swarm}
  ${folder_sdk} ${folder_sdk_helper} ${folder_tracking} ${folder_general_mission_planner})
 

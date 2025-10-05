@@ -3,7 +3,7 @@
 #include "../fcb_facade.hpp"
 #include "../fcb_main.hpp"
 #include "../helpers/gps.hpp"
-#include "../helpers/helpers.hpp"
+#include "../de_common/helpers/helpers.hpp"
 
 
 using namespace de::fcb::swarm;

@@ -5,7 +5,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "../helpers/json_nlohmann.hpp"
+#include "../de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 const uint32_t KNODE_LENGTH = 100;

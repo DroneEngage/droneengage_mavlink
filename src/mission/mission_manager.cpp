@@ -3,14 +3,14 @@
 
 #include <all/mavlink.h>
 
-#include "../helpers/colors.hpp"
-#include "../helpers/helpers.hpp"
-#include "../helpers/json_nlohmann.hpp"
+#include "../de_common/helpers/colors.hpp"
+#include "../de_common/helpers/helpers.hpp"
+#include "../de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 #include <mavlink_waypoint_manager.h>
 
-#include "../de_common/messages.hpp"
+#include "../de_common/de_databus/messages.hpp"
 
 #include "mission_translator.hpp"
 #include "mission_manager.hpp"

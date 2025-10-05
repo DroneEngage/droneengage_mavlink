@@ -2,12 +2,12 @@
 
 #include <all/mavlink.h>
 
-#include "../helpers/colors.hpp"
-#include "../helpers/helpers.hpp"
-#include "../helpers/json_nlohmann.hpp"
+#include "../de_common/helpers/colors.hpp"
+#include "../de_common/helpers/helpers.hpp"
+#include "../de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
-#include "../de_common/messages.hpp"
+#include "../de_common/de_databus/messages.hpp"
 
 #include <all/mavlink.h>
 #include "mission_translator.hpp"

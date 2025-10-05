@@ -1,8 +1,8 @@
 #include <mavlink_sdk.h>
-#include "../de_common/messages.hpp"
+#include "../de_common/de_databus/messages.hpp"
 
 
-#include "../helpers/colors.hpp"
+#include "../de_common/helpers/colors.hpp"
 #include "../mission/missions.hpp"
 
 

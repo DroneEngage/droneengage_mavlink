@@ -1,7 +1,7 @@
 
 #include "fcb_swarm_leader.hpp"
 #include "../fcb_facade.hpp"
-#include "../helpers/helpers.hpp"
+#include "../de_common/helpers/helpers.hpp"
 
 using namespace de::fcb::swarm; 
 

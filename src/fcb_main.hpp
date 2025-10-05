@@ -9,14 +9,14 @@
 #include <mavlink_events.h>
 #include <vehicle.h>
 #include "fcb_facade.hpp"
-#include "./de_common/messages.hpp"
-#include "./de_common/de_module.hpp"
-#include "./de_common/udpProxy.hpp"
+#include "./de_common/de_databus/messages.hpp"
+#include "./de_common/de_databus/de_module.hpp"
+#include "./udp_proxy/udpProxy.hpp"
 #include "./mission/missions.hpp"
 #include "fcb_traffic_optimizer.hpp"
-#include "./de_common/de_common_callback.hpp"
+#include "./de_common/de_databus/de_common_callback.hpp"
 
-#include "./helpers/json_nlohmann.hpp"
+#include "./de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 

@@ -1,9 +1,9 @@
-#include "../helpers/helpers.hpp"
-#include "../helpers/colors.hpp"
+#include "../de_common/helpers/helpers.hpp"
+#include "../de_common/helpers/colors.hpp"
 
 #include "fcb_tracking_manager.hpp"
 
-#include "../de_common/localConfigFile.hpp"
+#include "../de_common/de_databus/localConfigFile.hpp"
 
 #include "../fcb_main.hpp"
 

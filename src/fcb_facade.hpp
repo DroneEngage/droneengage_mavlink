@@ -7,8 +7,8 @@
 #include "global.hpp"
 #include "defines.hpp"
 
-#include "./de_common/de_facade_base.hpp"
-#include "./de_common/udpProxy.hpp"
+#include "./de_common/de_databus/de_facade_base.hpp"
+#include "./udp_proxy/udpProxy.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 

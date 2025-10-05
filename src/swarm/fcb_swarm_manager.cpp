@@ -1,5 +1,5 @@
-#include "../helpers/helpers.hpp"
-#include "../helpers/colors.hpp"
+#include "../de_common/helpers/helpers.hpp"
+#include "../de_common/helpers/colors.hpp"
 #include "../fcb_facade.hpp"
 #include "../fcb_main.hpp"
 #include "../helpers/gps.hpp"

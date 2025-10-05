@@ -46,3 +46,4 @@ LASTLOG.TXT
 TODO.txt
 checks.json
 
+*.bak_*

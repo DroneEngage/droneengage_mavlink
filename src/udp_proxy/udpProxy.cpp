@@ -7,8 +7,8 @@
 #include <unistd.h>
        #include <netdb.h>
 
-#include "../helpers/colors.hpp"
-#include "../helpers/json_nlohmann.hpp"
+#include "../de_common/helpers/colors.hpp"
+#include "../de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 #include "udpProxy.hpp"
