@@ -226,17 +226,7 @@ void onReceive (const char * message, int len, Json_de jMsg)
 void initLogger()
 {
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
-    std::string updateStr = R"(
-{
-  "fcb_connection_uri": {
-    "type": "udp",
-    "ip": "0.0.0.0",
-    "port": 14551
-  }
-}
-)";
-    cConfigFile.updateJSON(updateStr);
-    cConfigFile.saveConfigFile();
+    
     if ((jsonConfig.contains("logger_enabled") == false) || (jsonConfig["logger_enabled"].get<bool>()==false))
     {
         std::cout  << _LOG_CONSOLE_BOLD_TEXT<< "Logging is " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
