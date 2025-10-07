@@ -62,6 +62,7 @@ using namespace de;
                         TYPE_AndruavMessage_Upload_DE_Mission, \
                         TYPE_AndruavMessage_CONFIG_ACTION, \
                         TYPE_AndruavMessage_CONFIG_REMOTE_EXECUTE, \
+                        TYPE_AndruavMessage_CONFIG_STATUS, \
                         TYPE_AndruavMessage_DUMMY}
 
 // This is a timestamp used as instance unique number. if changed then communicator module knows module has restarted.

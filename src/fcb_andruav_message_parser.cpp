@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "defines.hpp"
 #include <plog/Log.h>
 #include "plog/Initializers/RollingFileInitializer.h"
@@ -66,10 +67,13 @@ void CFCBAndruavMessageParser::parseMessage(Json_de &andruav_message, const char
 
             if (validateField(cmd, "b", Json_de::value_t::string))
             {
-                std::string module_key = de::comm::CModule::getInstance().getModuleKey();
+                module_key = de::comm::CModule::getInstance().getModuleKey();
 
                 if (module_key != cmd["b"].get<std::string>())
+                {
+                    // the command is not targeting this plugin.
                     return;
+                }
             }
 
             int action = cmd["a"].get<int>();
@@ -89,6 +93,45 @@ void CFCBAndruavMessageParser::parseMessage(Json_de &andruav_message, const char
 
             }
             break;
+
+            case CONFIG_REQUEST_FETCH_CONFIG_TEMPLATE:
+            {
+                if (!andruav_message.contains(ANDRUAV_PROTOCOL_SENDER)) return ;
+                std::string sender = andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
+
+#ifdef DEBUG
+                std::cout << std::endl << _INFO_CONSOLE_TEXT << "CONFIG_REQUEST_FETCH_CONFIG_TEMPLATE" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+#endif                
+                
+                // Read file content
+                std::ifstream file("template.json");
+                if (!file.is_open()) {
+                    // ERROR FILE NOT FOUND
+                    std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "cannot read template.json" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "cannot read template.json");
+                    Json_de empty_file_content_json = {};
+                    CFCBFacade::getInstance().API_sendConfigTemplate(sender, module_key, empty_file_content_json, true);
+                    return ;
+                }
+                
+                 // Read file into string
+                std::string file_content((std::istreambuf_iterator<char>(file)),
+                                        std::istreambuf_iterator<char>());
+                file.close();
+
+                // Parse string to JSON
+                Json_de file_content_json = Json_de::parse(file_content);
+
+                CFCBFacade::getInstance().API_sendConfigTemplate(sender, module_key, file_content_json, true);
+            }
+            break;
+        
+            case CONFIG_REQUEST_FETCH_CONFIG:
+            {
+
+            }
+            break;
+
             default:
                 break;
             }
