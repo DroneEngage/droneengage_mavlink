@@ -7,6 +7,7 @@
                 "type": "object",
                 "fields": {
                     "type": {
+                        "order":1,
                         "type": "combo",
                         "defaultvalue": "serial",
                         "list_values": [
@@ -14,15 +15,18 @@
                         ]
                     },
                     "port": {
+                        "order":2,
                         "type": "number",
                         "defaultvalue": "/dev/ttyUSB1"
                     },
                     "baudrate": {
+                        "order":3,
                         "type": "number",
                         "defaultvalue": "115200",
                         "desc": "115200, 57600, ...etc."
                     },
                     "dynamic": {
+                        "order":4,
                         "type": "checkbox",
                         "defaultvalue": false,
                         "desc": "if active then it will search from for example /dev/ttyUSB0 to /dev/ttyUSB10 so if you make it true do noot write a number next to port path."

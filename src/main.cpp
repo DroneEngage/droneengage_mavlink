@@ -61,7 +61,6 @@ using namespace de;
                         TYPE_AndruavMessage_P2P_STATUS, \
                         TYPE_AndruavMessage_Upload_DE_Mission, \
                         TYPE_AndruavMessage_CONFIG_ACTION, \
-                        TYPE_AndruavMessage_CONFIG_REMOTE_EXECUTE, \
                         TYPE_AndruavMessage_CONFIG_STATUS, \
                         TYPE_AndruavMessage_DUMMY}
 
