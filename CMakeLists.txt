@@ -136,6 +136,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIRECTORY})
 
 
 configure_file(de_mavlink.config.module.json ${OUTPUT_DIRECTORY}/de_mavlink.config.module.json COPYONLY)
+configure_file(template.json ${OUTPUT_DIRECTORY}/template.json COPYONLY)
 
 # Highlight if DDEBUG or TEST_MODE_NO_HAILO_LINK are enabled
 if (DDEBUG)
