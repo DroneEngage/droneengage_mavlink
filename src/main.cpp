@@ -61,7 +61,7 @@ using namespace de;
                         TYPE_AndruavMessage_P2P_STATUS, \
                         TYPE_AndruavMessage_Upload_DE_Mission, \
                         TYPE_AndruavMessage_CONFIG_ACTION, \
-                        TYPE_AndruavMessage_CONFIG_REMOTE_EXECUTE, \
+                        TYPE_AndruavMessage_CONFIG_STATUS, \
                         TYPE_AndruavMessage_DUMMY}
 
 // This is a timestamp used as instance unique number. if changed then communicator module knows module has restarted.
@@ -226,17 +226,7 @@ void onReceive (const char * message, int len, Json_de jMsg)
 void initLogger()
 {
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
-    std::string updateStr = R"(
-{
-  "fcb_connection_uri": {
-    "type": "udp",
-    "ip": "0.0.0.0",
-    "port": 14551
-  }
-}
-)";
-    cConfigFile.updateJSON(updateStr);
-    cConfigFile.saveConfigFile();
+    
     if ((jsonConfig.contains("logger_enabled") == false) || (jsonConfig["logger_enabled"].get<bool>()==false))
     {
         std::cout  << _LOG_CONSOLE_BOLD_TEXT<< "Logging is " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;

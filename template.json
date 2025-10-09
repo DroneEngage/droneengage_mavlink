@@ -1,0 +1,72 @@
+[
+    {
+        "name": "Serial TX/RX Connection",
+        "template": {
+            "Serial TX/RX Connection": {
+                "fieldName": "fcb_connection_uri",
+                "type": "object",
+                "fields": {
+                    "type": {
+                        "order":1,
+                        "type": "combo",
+                        "defaultvalue": "serial",
+                        "list_values": [
+                            "serial"
+                        ]
+                    },
+                    "port": {
+                        "order":2,
+                        "type": "number",
+                        "defaultvalue": "/dev/ttyUSB1"
+                    },
+                    "baudrate": {
+                        "order":3,
+                        "type": "number",
+                        "defaultvalue": "115200",
+                        "desc": "115200, 57600, ...etc."
+                    },
+                    "dynamic": {
+                        "order":4,
+                        "type": "checkbox",
+                        "defaultvalue": false,
+                        "desc": "if active then it will search from for example /dev/ttyUSB0 to /dev/ttyUSB10 so if you make it true do noot write a number next to port path."
+                    }
+                },
+                "optional": false,
+                "desc": "serial port settings - ONLY ONE fcb_connection_uri"
+            }
+        }
+    },
+    {
+        "name": "Net tcp/udp Connection",
+        "template": {
+            "TCP/UDP Connection": {
+                "fieldName": "fcb_connection_uri",
+                "type": "object",
+                "fields": {
+                    "type": {
+                        "type": "combo",
+                        "defaultvalue": "udp",
+                        "list_values": [
+                            "tcp",
+                            "udp"
+                        ],
+                        "desc": "tcp client or UDP listner"
+                    },
+                    "ip": {
+                        "type": "text",
+                        "defaultvalue": "127.0.0.1",
+                        "desc": "if tcp then ip of the board, otherwise make it 127.0.0.1",
+                        "css": "bg-warning"
+                    },
+                    "port": {
+                        "type": "number",
+                        "defaultvalue": 14550
+                    }
+                },
+                "optional": false,
+                "desc": "TCP/UDP connection settings - ONLY ONE fcb_connection_uri"
+            }
+        }
+    }
+]
