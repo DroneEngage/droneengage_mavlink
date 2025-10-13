@@ -14,9 +14,9 @@
                             "serial"
                         ]
                     },
-                    "port": {
+                    "port2": {
                         "order":2,
-                        "type": "number",
+                        "type": "text",
                         "defaultvalue": "/dev/ttyUSB1"
                     },
                     "baudrate": {
