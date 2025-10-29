@@ -21,65 +21,6 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message, const char
 
     switch (messageType)
     {
-    case TYPE_AndruavMessage_CONFIG_ACTION:
-    {
-        std::string module_key = "";
-        if (!validateField(cmd, "a", Json_de::value_t::number_unsigned))
-            return;
-        if (validateField(cmd, "b", Json_de::value_t::string))
-        {
-            module_key = de::comm::CModule::getInstance().getModuleKey();
-            if (module_key != cmd["b"].get<std::string>())
-            {
-                return;
-            }
-        }
-        int action = cmd["a"].get<int>();
-        switch (action)
-        {
-        case CONFIG_ACTION_Restart:
-            exit(0);
-            break;
-        case CONFIG_ACTION_APPLY_CONFIG:
-        {
-            Json_de config = cmd["c"];
-            std::cout << config << std::endl;
-            de::CConfigFile &cConfigFile = de::CConfigFile::getInstance();
-            cConfigFile.updateJSON(config.dump());
-        }
-        break;
-        case CONFIG_REQUEST_FETCH_CONFIG_TEMPLATE:
-        {
-            if (!andruav_message.contains(ANDRUAV_PROTOCOL_SENDER))
-                return;
-            std::string sender = andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
-#ifdef DEBUG
-            std::cout << std::endl
-                      << _INFO_CONSOLE_TEXT << "CONFIG_REQUEST_FETCH_CONFIG_TEMPLATE" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-#endif
-            std::ifstream file("template.json");
-            if (!file.is_open())
-            {
-                std::cout << std::endl
-                          << _ERROR_CONSOLE_BOLD_TEXT_ << "cannot read template.json" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "cannot read template.json");
-                Json_de empty_file_content_json = {};
-                CFCBFacade::getInstance().API_sendConfigTemplate(sender, module_key, empty_file_content_json, true);
-                return;
-            }
-            std::string file_content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-            file.close();
-            Json_de file_content_json = Json_de::parse(file_content);
-            CFCBFacade::getInstance().API_sendConfigTemplate(sender, module_key, file_content_json, true);
-        }
-        break;
-        case CONFIG_REQUEST_FETCH_CONFIG:
-            break;
-        default:
-            break;
-        }
-    }
-    break;
 
     case TYPE_AndruavMessage_Arm:
     {
