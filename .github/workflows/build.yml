@@ -2,7 +2,8 @@ name: Build (amd64 and arm64)
 
 on:
   push:
-    tags: [ 'v*' ]
+    # Trigger on tag pushes (e.g., v1.0.0)
+    tags: [ 'v*' ] 
   workflow_dispatch:
 
 jobs:
@@ -12,14 +13,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # --- AMD64 Build (Standard Label) ---
           - os: ubuntu-24.04
             os-name: Ubuntu 24.04
             arch: amd64
-            runner: ubuntu-24.04
+            runner: ubuntu-24.04  # Standard AMD64 runner label
+          # --- ARM64 Build (FIXED Label) ---
           - os: ubuntu-24.04-arm64
             os-name: Ubuntu 24.04 (ARM64)
             arch: arm64
-            runner: ubuntu-24.04-arm64
+            runner: ubuntu-24.04-arm 
+    
+    # The job will run on the specific runner defined by the matrix
     runs-on: ${{ matrix.runner }}
 
     steps:
@@ -50,15 +55,18 @@ jobs:
           file bin/* || true
 
       - name: Prepare per-arch filenames
+        # Renames the compiled binary to include the architecture (e.g., de_ardupilot-amd64)
         run: |
           cp bin/de_ardupilot bin/de_ardupilot-${{ matrix.arch }}
 
       - name: Upload to GitHub Release (on tags)
+        # This step only runs when triggered by a tag push
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          # Attaches the newly named binary and config files to the release
           files: |
             bin/de_ardupilot-${{ matrix.arch }}
             bin/de_mavlink.config.module.json
