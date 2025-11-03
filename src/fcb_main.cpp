@@ -158,7 +158,7 @@ bool CFCBMain::init()
     if (m_jsonConfig.contains("only_allow_ardupilot_sysid") && m_jsonConfig["only_allow_ardupilot_sysid"].is_number())
     {
         const uint32_t sys_id = m_jsonConfig["only_allow_ardupilot_sysid"].get<int>();
-        
+
         std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Variable " << _INFO_CONSOLE_BOLD_TEXT << " only_allow_ardupilot_sysid " << _SUCCESS_CONSOLE_BOLD_TEXT_ << " is set to " << _INFO_CONSOLE_BOLD_TEXT << sys_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
         std::cout << _INFO_CONSOLE_BOLD_TEXT << "NOTE OTHER SYS-IDs will be" << _ERROR_CONSOLE_BOLD_TEXT_ << " IGNORED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
@@ -580,14 +580,15 @@ void CFCBMain::OnMessageReceived(const mavlink_message_t &mavlink_message)
         break;
     }
 
-    // if streaming active check each message to forward.
-    if (m_mavlink_optimizer.shouldForwardThisMessage(mavlink_message))
+    if (isUdpProxyMavlinkAvailable())
     {
-        // UdpProxy
-        const u_int64_t now = get_time_usec();
-        const u_int64_t last_access_duration = (now - m_last_access_telemetry);
-        if (isUdpProxyMavlinkAvailable())
+        // if streaming active check each message to forward.
+        if (m_mavlink_optimizer.shouldForwardThisMessage(mavlink_message))
         {
+            // UdpProxy
+            const u_int64_t now = get_time_usec();
+            const u_int64_t last_access_duration = (now - m_last_access_telemetry);
+
             // stop sending mavlink if no one is sending back. except heartbeat messages.
             if ((last_access_duration < UDP_PROXY_TIMEOUT) || (mavlink_message.msgid == MAVLINK_MSG_ID_HEARTBEAT))
             {
@@ -1558,7 +1559,7 @@ void CFCBMain::updateUDPProxy(const bool &enabled, const std::string &udp_ip1, c
     }
 
     m_udp_proxy.enabled = enabled;
-    m_udp_proxy.paused = false;
+    m_udp_proxy.paused = true; // by default Smart Telemetry is paused to save traffic and ensure security.
     m_udp_proxy.udp_ip1 = udp_ip1;
     m_udp_proxy.udp_port1 = udp_port1;
     m_udp_proxy.udp_ip2 = udp_ip2;
