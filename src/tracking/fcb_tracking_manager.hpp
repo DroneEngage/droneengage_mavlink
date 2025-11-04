@@ -37,17 +37,16 @@ public:
 
 public:
   inline void setParameters(const double x_PID_P, const double yz_PID_P,
-                            const double x_PID_I, const double yz_PID_I,
-                            const double alpha) {
+                            const double x_PID_I, const double yz_PID_I) {
     m_x_PID_P = x_PID_P;
     m_yz_PID_P = yz_PID_P;
     m_x_PID_I = x_PID_I;
     m_yz_PID_I = yz_PID_I;
-    m_alpha = alpha;
+   
   }
 
 private:
-  void getParameters();
+  void readConfigParameters();
 
 private:
   bool m_tracking_running = false;
@@ -58,7 +57,6 @@ private:
 
   double m_x;
   double m_yz;
-  double m_alpha = 0.1;
   double m_x_PID_P = 1.0;
   double m_yz_PID_P = 1.0;
   double m_x_PID_I = 1.0;
@@ -73,8 +71,7 @@ private:
   bool m_prev_initialized = false;
 
   std::chrono::high_resolution_clock::time_point m_last_message_time;
-  const std::chrono::milliseconds m_target_frame_time_ms =
-      std::chrono::milliseconds(500);
+
 };
 } // namespace tracking
 } // namespace fcb
