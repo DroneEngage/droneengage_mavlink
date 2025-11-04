@@ -9,59 +9,57 @@
 #include "../fcb_main.hpp"
 #include <cmath>
 
+using Json_de = nlohmann::json;
 using namespace de::fcb::tracking;
 
 de::fcb::CFCBMain &m_fcbMain2 = de::fcb::CFCBMain::getInstance();
 
 void CTrackingManager::init() {
-  getParameters();
+  readConfigParameters();
 
   m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
   m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
 }
 
-void CTrackingManager::getParameters() {
+void CTrackingManager::readConfigParameters() {
   de::CConfigFile &cConfigFile = de::CConfigFile::getInstance();
   const Json_de &jsonConfig = cConfigFile.GetConfigJSON();
 
-  if (jsonConfig.contains("follow_me_PID_P_X")) {
-    m_x_PID_P = jsonConfig["follow_me_PID_P_X"].get<double>();
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-              << "PID_P_X:" << _INFO_CONSOLE_BOLD_TEXT
-              << std::to_string(m_x_PID_P) << _NORMAL_CONSOLE_TEXT_
-              << std::endl;
-  }
+  if (jsonConfig.contains("follow_me")) {
+    const Json_de &follow_me = jsonConfig["follow_me"];
+    if (follow_me.contains("PID_P_X")) {
+      m_x_PID_P = follow_me["PID_P_X"].get<double>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "PID_P_X:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_x_PID_P) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+    }
 
-  if (jsonConfig.contains("follow_me_PID_P_Y")) {
-    m_yz_PID_P = jsonConfig["follow_me_PID_P_Y"].get<double>();
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-              << "PID_P_Y:" << _INFO_CONSOLE_BOLD_TEXT
-              << std::to_string(m_yz_PID_P) << _NORMAL_CONSOLE_TEXT_
-              << std::endl;
-  }
+    if (follow_me.contains("PID_P_Y")) {
+      m_yz_PID_P = follow_me["PID_P_Y"].get<double>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "PID_P_Y:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_yz_PID_P) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+    }
 
-  if (jsonConfig.contains("follow_me_PID_I_X")) {
-    m_x_PID_I = jsonConfig["follow_me_PID_I_X"].get<double>();
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-              << "PID_I_X:" << _INFO_CONSOLE_BOLD_TEXT
-              << std::to_string(m_x_PID_I) << _NORMAL_CONSOLE_TEXT_
-              << std::endl;
-  }
+    if (follow_me.contains("PID_I_X")) {
+      m_x_PID_I = follow_me["PID_I_X"].get<double>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "PID_I_X:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_x_PID_I) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+    }
 
-  if (jsonConfig.contains("follow_me_PID_I_Y")) {
-    m_yz_PID_I = jsonConfig["follow_me_PID_I_Y"].get<double>();
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-              << "PID_I_Y:" << _INFO_CONSOLE_BOLD_TEXT
-              << std::to_string(m_yz_PID_I) << _NORMAL_CONSOLE_TEXT_
-              << std::endl;
-  }
+    if (follow_me.contains("PID_I_Y")) {
+      m_yz_PID_I = follow_me["PID_I_Y"].get<double>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "PID_I_Y:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_yz_PID_I) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+    }
 
-  if (jsonConfig.contains("follow_me_smoothing")) {
-    m_alpha = jsonConfig["follow_me_smoothing"].get<double>();
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-              << "smoothing:" << _INFO_CONSOLE_BOLD_TEXT
-              << std::to_string(m_alpha) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-  }
+    
 
   if (jsonConfig.contains("expo_factor")) {
     m_expo_factor = jsonConfig["expo_factor"].get<double>();
@@ -75,6 +73,7 @@ void CTrackingManager::getParameters() {
     m_rate_limit = jsonConfig["rate_limit"].get<double>();
   }
 }
+}
 
 void CTrackingManager::onStatusChanged(const int status) {
 #ifdef DEBUG
@@ -86,11 +85,13 @@ void CTrackingManager::onStatusChanged(const int status) {
   switch (status) {
   case TrackingTarget_STATUS_TRACKING_LOST:
     m_object_detected = false;
+    m_prev_initialized = false; // reset shaping state
     de::fcb::CFCBMain::getInstance().adjustRemoteJoystickByMode(
         RC_SUB_ACTION::RC_SUB_ACTION_RELEASED);
     break;
 
   case TrackingTarget_STATUS_TRACKING_DETECTED:
+    m_tracking_running = true;
     m_object_detected = true;
     de::fcb::CFCBMain::getInstance().adjustRemoteJoystickByMode(
         RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS);
@@ -98,14 +99,17 @@ void CTrackingManager::onStatusChanged(const int status) {
 
   case TrackingTarget_STATUS_TRACKING_ENABLED:
     m_tracking_running = true;
+    m_tracking_running = true;
     m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
     m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
     break;
 
   case TrackingTarget_STATUS_TRACKING_STOPPED:
+    m_object_detected = false;
     m_tracking_running = false;
     m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
     m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
+    m_prev_initialized = false; // reset shaping state
     de::fcb::CFCBMain::getInstance().adjustRemoteJoystickByMode(
         RC_SUB_ACTION::RC_SUB_ACTION_RELEASED);
     break;
@@ -118,14 +122,16 @@ void CTrackingManager::onStatusChanged(const int status) {
 void CTrackingManager::onTrack(const double x, const double yz,
                                const bool is_xy) {
 
+  if (!m_tracking_running || !m_object_detected) {
+    return;
+  }
   std::chrono::high_resolution_clock::time_point now =
       std::chrono::high_resolution_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
-      now - m_last_message_time);
 
-  if (duration < m_target_frame_time_ms) {
-    std::cout << "skip" << std::endl;
-    return;
+  // Compute dt (seconds) for time-based shaping
+  double dt = 0.0;
+  if (m_prev_initialized) {
+    dt = std::chrono::duration<double>(now - m_last_message_time).count();
   }
   m_last_message_time = now;
 
@@ -140,9 +146,14 @@ void CTrackingManager::onTrack(const double x, const double yz,
 
   const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map =
       m_fcbMain2.getRCChannelsMapInfo();
+  
+  std::cout << _INFO_CONSOLE_BOLD_TEXT << "rc_map.use_smart_rc:" << rc_map.use_smart_rc << "     rc_map.is_valid:" << rc_map.is_valid << _NORMAL_CONSOLE_TEXT_ << std::endl;
   if ((!rc_map.use_smart_rc) || (!rc_map.is_valid))
+   
+  {
     return;
-
+  }
+  
   // values: [-0.5,0.5]
 
   // value: [0,1000] IMPORTANT: SKIP_RC_CHANNEL (-999) means channel release
@@ -160,32 +171,35 @@ void CTrackingManager::onTrack(const double x, const double yz,
     m_prev_dy = yz;
     m_prev_initialized = true;
   }
-
-  // 1) Rate limiting (outlier rejection)
-  auto clampStep = [this](double prev, double cur) {
+  
+  // 1) Rate limiting (outlier rejection) - time based
+  // m_rate_limit is interpreted as normalized units per second
+  auto clampStepDt = [this, dt](double prev, double cur) {
+    if (dt <= 0.0) return cur; // first sample after init
+    const double max_step = m_rate_limit * dt;
     const double step = cur - prev;
-    if (std::abs(step) > m_rate_limit) {
-      return prev + std::copysign(m_rate_limit, step);
+    if (std::abs(step) > max_step) {
+      return prev + std::copysign(max_step, step);
     }
     return cur;
   };
-  double sx = clampStep(m_prev_dx, x);
-  double sy = clampStep(m_prev_dy, yz);
-
+  double sx = clampStepDt(m_prev_dx, x);
+  double sy = clampStepDt(m_prev_dy, yz);
+  
   // 2) Deadband
   auto applyDeadband = [this](double v) {
     return (std::abs(v) < m_deadband) ? 0.0 : v;
   };
   sx = applyDeadband(sx);
   sy = applyDeadband(sy);
-
+  
   // 3) Expo response
   auto expo = [this](double v) {
     return v * (1.0 - m_expo_factor) + std::pow(v, 3) * m_expo_factor;
   };
   sx = expo(sx);
   sy = expo(sy);
-
+  
   // 4) Optional precision limiting
   auto round3 = [](double v) { return std::round(v * 1000.0) / 1000.0; };
   sx = round3(sx);
@@ -202,7 +216,7 @@ void CTrackingManager::onTrack(const double x, const double yz,
   // Clamp PID outputs back to [-0.5, 0.5]
   m_x = std::clamp(m_x, -0.5, 0.5);
   m_yz = std::clamp(m_yz, -0.5, 0.5);
-
+  
   int tracking_x = static_cast<int>(m_x * 1000 + 500);
   int tracking_yz = static_cast<int>(m_yz * 1000 + 500);
 
@@ -234,7 +248,7 @@ void CTrackingManager::onTrack(const double x, const double yz,
     rc_channels[rc_map.rcmap_throttle] = 500;
   }
 
-#ifdef DDEBUG
+#ifdef DEBUG
   std::cout << _INFO_CONSOLE_BOLD_TEXT << "onTrack >> "
             << _LOG_CONSOLE_BOLD_TEXT << "  rcmap_roll:" << rc_map.rcmap_roll
             << ":" << _INFO_CONSOLE_BOLD_TEXT << rc_channels[rc_map.rcmap_roll]

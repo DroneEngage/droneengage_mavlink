@@ -27,6 +27,7 @@
 #include "./geofence/fcb_geo_fence_manager.hpp"
 #include "./mission/mission_manager.hpp"
 
+using Json_de = nlohmann::json;
 using namespace de::fcb;
 
 #define UDP_PROXY_TIMEOUT 5000000
@@ -252,10 +253,21 @@ bool CFCBMain::uninit()
 
 void CFCBMain::initVehicleChannelLimits(const bool display)
 {
+    static bool init = false;
+    
     de::CConfigFile &cConfigFile = CConfigFile::getInstance();
-    if (!cConfigFile.fileUpdated())
+
+    const bool file_updated = cConfigFile.fileUpdated();
+    const bool should_run = !init || file_updated;
+    if (!should_run)
         return;
-    cConfigFile.reloadFile();
+
+    init = true;
+    
+    if (file_updated) {
+        cConfigFile.reloadFile();
+    }
+
     m_jsonConfig = cConfigFile.GetConfigJSON();
 
     if (m_jsonConfig.contains("rc_block_channel"))
@@ -378,10 +390,16 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
 
     if (m_rcmap_channels_info.use_smart_rc == false)
     {
-#ifdef DDEBUG
-        std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Smart Channels are" << _INFO_CONSOLE_BOLD_TEXT << " disabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-#endif
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Smart Channels is "
+              << _SUCCESS_CONSOLE_BOLD_TEXT_ << "DISABLED"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
     }
+else
+{
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Smart Channels is "
+              << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+}
 }
 
 /**
