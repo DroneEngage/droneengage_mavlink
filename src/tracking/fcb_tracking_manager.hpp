@@ -61,9 +61,17 @@ private:
   double m_yz_PID_P = 1.0;
   double m_x_PID_I = 1.0;
   double m_yz_PID_I = 1.0;
+  double m_alpha = 0.1;
 
+  // Legacy single-axis settings (used as fallback)
   double m_expo_factor = 0.3;
   double m_deadband = 0.01;
+
+  // Per-axis shaping (preferred if configured)
+  double m_deadband_x  = 0.01;
+  double m_deadband_yz = 0.01;
+  double m_expo_x      = 0.3;
+  double m_expo_yz     = 0.3;
   double m_rate_limit = 0.05; // max change per update in normalized units
 
   double m_prev_dx = 0.0;
