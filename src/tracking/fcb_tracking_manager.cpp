@@ -72,6 +72,28 @@ void CTrackingManager::readConfigParameters() {
   if (jsonConfig.contains("rate_limit")) {
     m_rate_limit = jsonConfig["rate_limit"].get<double>();
   }
+
+  // Optional per-axis overrides
+  if (jsonConfig.contains("deadband_x")) {
+    m_deadband_x = jsonConfig["deadband_x"].get<double>();
+  } else {
+    m_deadband_x = m_deadband;
+  }
+  if (jsonConfig.contains("deadband_yz")) {
+    m_deadband_yz = jsonConfig["deadband_yz"].get<double>();
+  } else {
+    m_deadband_yz = m_deadband;
+  }
+  if (jsonConfig.contains("expo_x")) {
+    m_expo_x = jsonConfig["expo_x"].get<double>();
+  } else {
+    m_expo_x = m_expo_factor;
+  }
+  if (jsonConfig.contains("expo_yz")) {
+    m_expo_yz = jsonConfig["expo_yz"].get<double>();
+  } else {
+    m_expo_yz = m_expo_factor;
+  }
 }
 }
 
@@ -86,6 +108,8 @@ void CTrackingManager::onStatusChanged(const int status) {
   case TrackingTarget_STATUS_TRACKING_LOST:
     m_object_detected = false;
     m_prev_initialized = false; // reset shaping state
+    m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0); // reset integrator
+    m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
     de::fcb::CFCBMain::getInstance().adjustRemoteJoystickByMode(
         RC_SUB_ACTION::RC_SUB_ACTION_RELEASED);
     break;
@@ -98,7 +122,6 @@ void CTrackingManager::onStatusChanged(const int status) {
     break;
 
   case TrackingTarget_STATUS_TRACKING_ENABLED:
-    m_tracking_running = true;
     m_tracking_running = true;
     m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
     m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
@@ -186,24 +209,34 @@ void CTrackingManager::onTrack(const double x, const double yz,
   double sx = clampStepDt(m_prev_dx, x);
   double sy = clampStepDt(m_prev_dy, yz);
   
-  // 2) Deadband
-  auto applyDeadband = [this](double v) {
-    return (std::abs(v) < m_deadband) ? 0.0 : v;
+  // 2) Deadband (per-axis if provided)
+  auto applyDeadbandX = [this](double v) {
+    return (std::abs(v) < m_deadband_x) ? 0.0 : v;
   };
-  sx = applyDeadband(sx);
-  sy = applyDeadband(sy);
+  auto applyDeadbandYZ = [this](double v) {
+    return (std::abs(v) < m_deadband_yz) ? 0.0 : v;
+  };
+  sx = applyDeadbandX(sx);
+  sy = applyDeadbandYZ(sy);
   
-  // 3) Expo response
-  auto expo = [this](double v) {
-    return v * (1.0 - m_expo_factor) + std::pow(v, 3) * m_expo_factor;
+  // 3) Expo response (per-axis if provided)
+  auto expoX = [this](double v) {
+    return v * (1.0 - m_expo_x) + std::pow(v, 3) * m_expo_x;
   };
-  sx = expo(sx);
-  sy = expo(sy);
+  auto expoYZ = [this](double v) {
+    return v * (1.0 - m_expo_yz) + std::pow(v, 3) * m_expo_yz;
+  };
+  sx = expoX(sx);
+  sy = expoYZ(sy);
   
   // 4) Optional precision limiting
   auto round3 = [](double v) { return std::round(v * 1000.0) / 1000.0; };
   sx = round3(sx);
   sy = round3(sy);
+
+  // Clamp shaped inputs to [-0.5, 0.5] BEFORE PID to protect integrators
+  sx = std::clamp(sx, -0.5, 0.5);
+  sy = std::clamp(sy, -0.5, 0.5);
 
   // Update previous for next invocation
   m_prev_dx = sx;
@@ -234,10 +267,10 @@ void CTrackingManager::onTrack(const double x, const double yz,
   }
   if (is_xy) {
     // x & y .... forward camera.
-    rc_channels[rc_map.rcmap_roll] = 500;
+    rc_channels[rc_map.rcmap_roll] = 1000 - tracking_x;
     rc_channels[rc_map.rcmap_pitch] = 1000 - tracking_yz;
     rc_channels[rc_map.rcmap_yaw] =
-        1000 - tracking_x; // to be aligned with default settings of Ardu
+        500; // to be aligned with default settings of Ardu
     rc_channels[rc_map.rcmap_throttle] = 500;
   } else {
     // x & z .... vertical camera.

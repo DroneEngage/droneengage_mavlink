@@ -68,5 +68,46 @@
                 "desc": "TCP/UDP connection settings - ONLY ONE fcb_connection_uri"
             }
         }
+    },
+    {
+        "name":"PID and Expo",
+        "template":{
+            "PID and Expo":{
+                "fieldName":"follow_me",
+                "type":"object",
+                "fields":{
+                    "PID_P_X":{
+                        "type":"number",
+                        "defaultvalue":1.0
+                    },
+                    "PID_P_Y":{
+                        "type":"number",
+                        "defaultvalue":1.0
+                    },
+                    "PID_I_X":{
+                        "type":"number",
+                        "defaultvalue":0.00
+                    },
+                    "PID_I_Y":{
+                        "type":"number",
+                        "defaultvalue":0.00
+                    },
+                    "expo_factor":{
+                        "type":"number",
+                        "defaultvalue":0.5
+                    },
+                    "deadband":{
+                        "type":"number",
+                        "defaultvalue":0.1
+                    },
+                    "rate_limit":{
+                        "type":"number",
+                        "defaultvalue":0.1
+                    }
+                },
+                "optional":false,
+                "desc":"PID and Expo settings"
+            }
+        }   
     }
 ]
