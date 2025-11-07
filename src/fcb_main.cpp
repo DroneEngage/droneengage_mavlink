@@ -26,6 +26,7 @@
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 #include "./mission/mission_manager.hpp"
+#include "./tracking/fcb_tracking_manager.hpp"
 
 using Json_de = nlohmann::json;
 using namespace de::fcb;
@@ -141,7 +142,7 @@ bool CFCBMain::init()
     de::CConfigFile &cConfigFile = CConfigFile::getInstance();
     m_jsonConfig = cConfigFile.GetConfigJSON();
 
-    initVehicleChannelLimits(true);
+    initVehicleChannelLimits();
 
     m_mavlink_optimizer.init(m_jsonConfig["message_timeouts"]);
 
@@ -251,30 +252,21 @@ bool CFCBMain::uninit()
     return true;
 }
 
-void CFCBMain::initVehicleChannelLimits(const bool display)
+void CFCBMain::initVehicleChannelLimits()
 {
-    static bool init = false;
-    
+    readConfigParameters();
+}
+
+void CFCBMain::readConfigParameters()
+{
     de::CConfigFile &cConfigFile = CConfigFile::getInstance();
-
-    const bool file_updated = cConfigFile.fileUpdated();
-    const bool should_run = !init || file_updated;
-    if (!should_run)
-        return;
-
-    init = true;
-    
-    if (file_updated) {
-        cConfigFile.reloadFile();
-    }
-
     m_jsonConfig = cConfigFile.GetConfigJSON();
 
     if (m_jsonConfig.contains("rc_block_channel"))
     {
         m_andruav_vehicle_info.rc_block_channel = m_jsonConfig["rc_block_channel"].get<int>();
 
-        if (display && (m_andruav_vehicle_info.rc_block_channel >= 0))
+        if (m_andruav_vehicle_info.rc_block_channel >= 0)
         {
             std::cout << _LOG_CONSOLE_BOLD_TEXT << "RC Blocking is " << _ERROR_CONSOLE_BOLD_TEXT_ << "enabled " << _INFO_CONSOLE_BOLD_TEXT << "at channel: " << _INFO_CONSOLE_BOLD_TEXT << std::to_string(m_andruav_vehicle_info.rc_block_channel) << _ERROR_CONSOLE_BOLD_TEXT_ << " - IMPORTANT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         }
@@ -286,13 +278,10 @@ void CFCBMain::initVehicleChannelLimits(const bool display)
 
     if (!m_jsonConfig.contains("rc_channels") || !m_jsonConfig["rc_channels"].contains("rc_channel_enabled") || !m_jsonConfig["rc_channels"].contains("rc_channel_reverse") || !m_jsonConfig["rc_channels"].contains("rc_channel_limits_max") || !m_jsonConfig["rc_channels"].contains("rc_channel_limits_min"))
     {
-        if (display)
-        {
-            std::cout << _INFO_CONSOLE_BOLD_TEXT << "RC Channels are not defined." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-            std::cout << _INFO_CONSOLE_TEXT << "..... Assuming default values." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-            std::cout << _INFO_CONSOLE_TEXT << "..... Please define values for safety." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        }
-
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "RC Channels are not defined." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_TEXT << "..... Assuming default values." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_TEXT << "..... Please define values for safety." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
         m_rcmap_channels_info.use_smart_rc = true;
         memset(m_andruav_vehicle_info.rc_channels_enabled, true, RC_CHANNELS_MAX * sizeof(bool));
         memset(m_andruav_vehicle_info.rc_channels_reverse, false, RC_CHANNELS_MAX * sizeof(bool));
@@ -401,6 +390,7 @@ else
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
 }
+            
 
 /**
  * @brief Send periodic RCControl values to FCB board to avoid timeout.
@@ -537,7 +527,6 @@ void CFCBMain::loopScheduler()
         {
             m_fcb_facade.sendWindInfo(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
             m_fcb_facade.sendTerrainReport(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS));
-            initVehicleChannelLimits(false);
         }
 
         if (m_counter % 500 == 0)
@@ -554,6 +543,24 @@ void CFCBMain::loopScheduler()
                 m_fcb_connected = fcb_connected;
                 m_fcb_facade.API_IC_sendID(std::string());
             }
+
+            de::CConfigFile &cConfigFile = de::CConfigFile::getInstance();
+            const bool updated = cConfigFile.fileUpdated();
+            if (updated)
+            {
+                cConfigFile.reloadFile();
+                
+                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ "Config file updated" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                
+                // call modules needs to reload parameters
+                
+                initVehicleChannelLimits();
+
+                de::fcb::tracking::CTrackingManager &cTracking_manager = de::fcb::tracking::CTrackingManager::getInstance(); 
+                cTracking_manager.reloadParametersIfConfigChanged();
+                
+            }
+            
         }
 
         if (m_counter % 1000 == 0)

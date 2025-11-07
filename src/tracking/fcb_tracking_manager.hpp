@@ -34,6 +34,7 @@ public:
   void init();
   void onTrack(const double x, const double yz, const bool is_xy);
   void onStatusChanged(const int status);
+  void reloadParametersIfConfigChanged();
 
 public:
   inline void setParameters(const double x_PID_P, const double yz_PID_P,

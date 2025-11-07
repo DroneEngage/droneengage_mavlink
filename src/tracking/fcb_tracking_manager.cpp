@@ -8,6 +8,7 @@
 
 #include "../fcb_main.hpp"
 #include <cmath>
+#include <string>
 
 using Json_de = nlohmann::json;
 using namespace de::fcb::tracking;
@@ -58,43 +59,76 @@ void CTrackingManager::readConfigParameters() {
                 << std::to_string(m_yz_PID_I) << _NORMAL_CONSOLE_TEXT_
                 << std::endl;
     }
-
-    
+  }
 
   if (jsonConfig.contains("expo_factor")) {
     m_expo_factor = jsonConfig["expo_factor"].get<double>();
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "expo_factor:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_expo_factor) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
   }
 
   if (jsonConfig.contains("deadband")) {
     m_deadband = jsonConfig["deadband"].get<double>();
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "deadband:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_deadband) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
   }
 
   if (jsonConfig.contains("rate_limit")) {
     m_rate_limit = jsonConfig["rate_limit"].get<double>();
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "rate_limit:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_rate_limit) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
   }
 
   // Optional per-axis overrides
   if (jsonConfig.contains("deadband_x")) {
     m_deadband_x = jsonConfig["deadband_x"].get<double>();
-  } else {
+    } else {
     m_deadband_x = m_deadband;
   }
-  if (jsonConfig.contains("deadband_yz")) {
-    m_deadband_yz = jsonConfig["deadband_yz"].get<double>();
+  if (jsonConfig.contains("deadband_y")) {
+    m_deadband_yz = jsonConfig["deadband_y"].get<double>();
   } else {
     m_deadband_yz = m_deadband;
   }
+  std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "deadband_x:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_deadband_x) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+  std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "deadband_yz:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_deadband_yz) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+
   if (jsonConfig.contains("expo_x")) {
     m_expo_x = jsonConfig["expo_x"].get<double>();
-  } else {
+    } else {
     m_expo_x = m_expo_factor;
   }
-  if (jsonConfig.contains("expo_yz")) {
-    m_expo_yz = jsonConfig["expo_yz"].get<double>();
+  if (jsonConfig.contains("expo_y")) {
+    m_expo_yz = jsonConfig["expo_y"].get<double>();
   } else {
     m_expo_yz = m_expo_factor;
   }
+  std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "expo_x:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_expo_x) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+  std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "expo_y:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_expo_yz) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
 }
+
+void CTrackingManager::reloadParametersIfConfigChanged() {
+  readConfigParameters();
+  m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
+  m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
 }
 
 void CTrackingManager::onStatusChanged(const int status) {
@@ -264,22 +298,47 @@ void CTrackingManager::onTrack(const double x, const double yz,
 
   case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_ROVER:
     break;
+
+  case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_PLANE:
+    if (is_xy) {
+      // x & y .... forward camera.
+      rc_channels[rc_map.rcmap_roll] = 500;
+      rc_channels[rc_map.rcmap_pitch] = 1000 - tracking_yz;
+      rc_channels[rc_map.rcmap_yaw] = 1000 - tracking_x; // to be aligned with default settings of Ardu
+      rc_channels[rc_map.rcmap_throttle] = 500;
+    } else {
+      //Q-Plan ONLY
+      // x & z .... vertical camera.
+      // TO BE HANDLED
+      // rc_channels[rc_map.rcmap_roll] = 1000 - tracking_x; // to be aligned with default settings of Ardu
+      // rc_channels[rc_map.rcmap_pitch] = 1000 - tracking_yz;
+      // rc_channels[rc_map.rcmap_yaw] = 500;
+      // rc_channels[rc_map.rcmap_throttle] = 500;
+    }
+    break;
+    
+    default:
+    if (is_xy) {
+      // x & y .... forward camera.
+      rc_channels[rc_map.rcmap_roll] = 500;
+      rc_channels[rc_map.rcmap_pitch] = 1000 - tracking_yz;
+      rc_channels[rc_map.rcmap_yaw] = 1000 - tracking_x; // to be aligned with default settings of Ardu
+      rc_channels[rc_map.rcmap_throttle] = 500;
+    } else {
+      // x & z .... vertical camera.
+      rc_channels[rc_map.rcmap_roll] = 1000 - tracking_x; // to be aligned with default settings of Ardu
+      rc_channels[rc_map.rcmap_pitch] = 1000 - tracking_yz;
+      rc_channels[rc_map.rcmap_yaw] = 500;
+      rc_channels[rc_map.rcmap_throttle] = 500;
+    }
+    break;
   }
-  if (is_xy) {
-    // x & y .... forward camera.
-    rc_channels[rc_map.rcmap_roll] = 1000 - tracking_x;
-    rc_channels[rc_map.rcmap_pitch] = 1000 - tracking_yz;
-    rc_channels[rc_map.rcmap_yaw] =
-        500; // to be aligned with default settings of Ardu
-    rc_channels[rc_map.rcmap_throttle] = 500;
-  } else {
-    // x & z .... vertical camera.
-    rc_channels[rc_map.rcmap_roll] =
-        1000 - tracking_x; // to be aligned with default settings of Ardu
-    rc_channels[rc_map.rcmap_pitch] = 1000 - tracking_yz;
-    rc_channels[rc_map.rcmap_yaw] = 500;
-    rc_channels[rc_map.rcmap_throttle] = 500;
-  }
+
+  #ifdef DEBUG
+  std::cout << "tracking_x:" << std::to_string(tracking_x) << " tracking_yz:" << std::to_string(tracking_yz) << std::endl;
+  #endif
+
+  
 
 #ifdef DEBUG
   std::cout << _INFO_CONSOLE_BOLD_TEXT << "onTrack >> "
