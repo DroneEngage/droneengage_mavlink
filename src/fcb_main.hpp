@@ -232,7 +232,7 @@ namespace fcb
             void OnMessageReceived (const de::comm::CUDPProxy * udp_proxy, const char *, int len) override;
 
         private: 
-            void initVehicleChannelLimits(const bool display);
+            void initVehicleChannelLimits();
      
         private:
             mavlinksdk::CMavlinkSDK& m_mavlink_sdk = mavlinksdk::CMavlinkSDK::getInstance();
@@ -242,6 +242,7 @@ namespace fcb
         private:
             int getConnectionType () const; 
             bool connectToFCB ();
+            void readConfigParameters();
             
             
             void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
