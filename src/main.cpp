@@ -382,8 +382,7 @@ void init(int argc, char *argv[]) {
   cLocalConfigFile.InitConfigFile(localConfigName.c_str());
 
   const Json_de &jsonConfig = cConfigFile.GetConfigJSON();
-  const Json_de &jsonLocalConfig = cLocalConfigFile.GetConfigJSON();
-
+  
   // Retrieve or Create unique ModuleKey
   ModuleKey = cLocalConfigFile.getStringField("module_key");
   if (ModuleKey == "") {
@@ -393,37 +392,6 @@ void init(int argc, char *argv[]) {
     cLocalConfigFile.apply();
   }
 
-  // Retrieve or Create -if needed- tracking IDs
-  if (jsonConfig.contains("follow_me")) {
-    const Json_de &json_follow_me = jsonConfig["follow_me"];
-    if (json_follow_me.contains("PID_P_X") &&
-        !jsonLocalConfig.contains("follow_me_PID_P_X")) {
-      cLocalConfigFile.addDoubleField("follow_me_PID_P_X",
-                                      json_follow_me["PID_P_X"].get<double>());
-    }
-
-    if (json_follow_me.contains("PID_P_Y") &&
-        !jsonLocalConfig.contains("follow_me_PID_P_Y")) {
-      cLocalConfigFile.addDoubleField("follow_me_PID_P_Y",
-                                      json_follow_me["PID_P_Y"].get<double>());
-    }
-
-    if (json_follow_me.contains("PID_I_X") &&
-        !jsonLocalConfig.contains("follow_me_PID_I_X")) {
-      cLocalConfigFile.addDoubleField("follow_me_PID_I_X",
-                                      json_follow_me["PID_I_X"].get<double>());
-    }
-
-    if (json_follow_me.contains("PID_I_Y") &&
-        !jsonLocalConfig.contains("follow_me_PID_I_Y")) {
-      cLocalConfigFile.addDoubleField("follow_me_PID_I_Y",
-                                      json_follow_me["PID_I_Y"].get<double>());
-    }
-
-
-
-    cLocalConfigFile.apply();
-  }
 
   if (jsonConfig.contains("event_fire_channel") &&
       jsonConfig.contains("event_wait_channel")) {
