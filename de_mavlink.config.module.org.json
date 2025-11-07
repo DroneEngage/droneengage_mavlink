@@ -143,15 +143,13 @@
 
 "follow_me":
 {
-  "PID_P_X": 0.2,
-  "PID_P_Y": 0.2,
-  "PID_I_X": 0.01,
-  "PID_I_Y": 0.01,
-  "smoothing": 0.2,
-
-  "expo_factor": 0.3,
-  "deadband": 0.01,
-  "rate_limit": 0.05
+  "PID_P_X": 1.0,
+  "PID_P_Y": 1.0,
+  "PID_I_X": 0.00,
+  "PID_I_Y": 0.00,
+  "expo_factor": 0.5,
+  "deadband": 0.1,
+  "rate_limit": 0.1
 }
 }
 

@@ -420,11 +420,7 @@ void init(int argc, char *argv[]) {
                                       json_follow_me["PID_I_Y"].get<double>());
     }
 
-    if (json_follow_me.contains("smoothing") &&
-        !jsonLocalConfig.contains("follow_me_smoothing")) {
-      cLocalConfigFile.addDoubleField(
-          "follow_me_smoothing", json_follow_me["smoothing"].get<double>());
-    }
+
 
     cLocalConfigFile.apply();
   }
