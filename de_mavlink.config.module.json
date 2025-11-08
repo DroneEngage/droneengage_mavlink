@@ -143,15 +143,20 @@
 
 "follow_me":
 {
-  "PID_P_X": 1.0,
-  "PID_P_Y": 0.0,
-  "PID_I_X": 0.0,
-  "PID_I_Y": 0.3,
-  "expo_factor_x": 0.0,
-  "expo_factor_y": 0.0,
-  "deadband_x": 0.05,
-  "deadband_y": 0.05,
-  "rate_limit": 0.9
+  "PID_P_X": 0.8,
+  "PID_P_Y": 0.6,
+  "PID_I_X": 0.05,
+  "PID_I_Y": 0.08,
+  "PID_D_X": 0.02,
+  "PID_D_Y": 0.02,
+  "expo_x": 0.15,
+  "expo_y": 0.25,
+  "deadband_x": 0.03,
+  "deadband_y": 0.02,
+  "rate_limit": 0.2,
+  "center_hold_enabled": true,
+  "center_hold_y_band": 0.05,
+  "center_hold_decay": 0.1
 }
 }
 

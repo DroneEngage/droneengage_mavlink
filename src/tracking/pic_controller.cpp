@@ -1,6 +1,4 @@
 // pid_controller.cpp
-#include <iostream> // For demonstration purposes, can be removed in production
-#include <limits>   // Required for std::numeric_limits
 #include <algorithm> // Required for std::clamp
 
 #include "pic_controller.hpp"
@@ -25,16 +23,23 @@ double CPIDController::calculate(double error) {
     // 1. Proportional term
     double proportionalTerm = m_Kp * error;
 
-    // 2. Integral term
-    m_integral_sum += m_Ki * error ; 
-
-    // Apply anti-windup by clamping the integral sum
-    m_integral_sum = std::clamp(m_integral_sum, -m_integral_limit, m_integral_limit);
+    // 2. Integral term with anti-windup
+    double pre_clamp_integral = m_integral_sum + m_Ki * error;
+    m_integral_sum = std::clamp(pre_clamp_integral, -m_integral_limit, m_integral_limit);
     m_integral_sum = std::clamp(m_integral_sum, -m_max_min_value, m_max_min_value);
 
     
-    // 4. Derivative term
-    const double derivativeTerm = m_Kd * (error - m_previous_error) ;
+    // 4. Derivative term with filtering
+    double derivativeTerm = 0.0;
+    if (m_delta_time > 0.0)
+    {
+        double rawDerivative = (error - m_previous_error) / m_delta_time;
+        // Simple low-pass filter for D-term (alpha = 0.2 for smoothing)
+        static double filteredDerivative = 0.0;
+        const double alpha = 0.2;
+        filteredDerivative = alpha * rawDerivative + (1.0 - alpha) * filteredDerivative;
+        derivativeTerm = m_Kd * filteredDerivative;
+    }
     
     // Update previous error for the next iteration
     m_previous_error = error;

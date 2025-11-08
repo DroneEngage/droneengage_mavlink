@@ -48,6 +48,11 @@ public:
         m_Kd = kd;
     }
 
+    inline void setDeltaTime(double dt)
+    {
+        m_delta_time = dt;
+    }
+
 
 private:
     double m_Kp;                // Proportional gain

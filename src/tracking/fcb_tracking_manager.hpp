@@ -62,11 +62,9 @@ private:
   double m_yz_PID_P = 1.0;
   double m_x_PID_I = 1.0;
   double m_yz_PID_I = 1.0;
+  double m_x_PID_D = 0.0;
+  double m_yz_PID_D = 0.0;
   double m_alpha = 0.1;
-
-  // Legacy single-axis settings (used as fallback)
-  double m_expo_factor = 0.3;
-  double m_deadband = 0.01;
 
   // Per-axis shaping (preferred if configured)
   double m_deadband_x  = 0.01;
@@ -78,6 +76,12 @@ private:
   double m_prev_dx = 0.0;
   double m_prev_dy = 0.0;
   bool m_prev_initialized = false;
+
+  // Optional center-hold for plane pitch
+  bool   m_center_hold_enabled = false;
+  double m_center_hold_y_band = 0.02;
+  double m_center_hold_decay = 0.02;
+  double m_pitch_hold = 0.0;
 
   std::chrono::high_resolution_clock::time_point m_last_message_time;
 
