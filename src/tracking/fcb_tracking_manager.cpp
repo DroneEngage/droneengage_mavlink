@@ -18,13 +18,15 @@ de::fcb::CFCBMain &m_fcbMain2 = de::fcb::CFCBMain::getInstance();
 void CTrackingManager::init() {
   readConfigParameters();
 
-  m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
-  m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
+  m_PID_X.setPID(m_x_PID_P, m_x_PID_I, m_x_PID_D);
+  m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, m_yz_PID_D);
 }
 
 void CTrackingManager::readConfigParameters() {
   de::CConfigFile &cConfigFile = de::CConfigFile::getInstance();
   const Json_de &jsonConfig = cConfigFile.GetConfigJSON();
+  bool expo_x_from_follow_me = false;
+  bool expo_y_from_follow_me = false;
 
   if (jsonConfig.contains("follow_me")) {
     const Json_de &follow_me = jsonConfig["follow_me"];
@@ -59,76 +61,96 @@ void CTrackingManager::readConfigParameters() {
                 << std::to_string(m_yz_PID_I) << _NORMAL_CONSOLE_TEXT_
                 << std::endl;
     }
-  }
 
-  if (jsonConfig.contains("expo_factor")) {
-    m_expo_factor = jsonConfig["expo_factor"].get<double>();
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                << "expo_factor:" << _INFO_CONSOLE_BOLD_TEXT
-                << std::to_string(m_expo_factor) << _NORMAL_CONSOLE_TEXT_
+    if (follow_me.contains("PID_D_X")) {
+      m_x_PID_D = follow_me["PID_D_X"].get<double>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "PID_D_X:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_x_PID_D) << _NORMAL_CONSOLE_TEXT_
                 << std::endl;
-  }
+    }
 
-  if (jsonConfig.contains("deadband")) {
-    m_deadband = jsonConfig["deadband"].get<double>();
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                << "deadband:" << _INFO_CONSOLE_BOLD_TEXT
-                << std::to_string(m_deadband) << _NORMAL_CONSOLE_TEXT_
+    if (follow_me.contains("PID_D_Y")) {
+      m_yz_PID_D = follow_me["PID_D_Y"].get<double>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "PID_D_Y:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_yz_PID_D) << _NORMAL_CONSOLE_TEXT_
                 << std::endl;
-  }
+    }
 
-  if (jsonConfig.contains("rate_limit")) {
-    m_rate_limit = jsonConfig["rate_limit"].get<double>();
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                << "rate_limit:" << _INFO_CONSOLE_BOLD_TEXT
-                << std::to_string(m_rate_limit) << _NORMAL_CONSOLE_TEXT_
-                << std::endl;
-  }
-
-  // Optional per-axis overrides
-  if (jsonConfig.contains("deadband_x")) {
-    m_deadband_x = jsonConfig["deadband_x"].get<double>();
-    } else {
-    m_deadband_x = m_deadband;
-  }
-  if (jsonConfig.contains("deadband_y")) {
-    m_deadband_yz = jsonConfig["deadband_y"].get<double>();
-  } else {
-    m_deadband_yz = m_deadband;
-  }
-  std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                << "deadband_x:" << _INFO_CONSOLE_BOLD_TEXT
-                << std::to_string(m_deadband_x) << _NORMAL_CONSOLE_TEXT_
-                << std::endl;
-  std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                << "deadband_yz:" << _INFO_CONSOLE_BOLD_TEXT
-                << std::to_string(m_deadband_yz) << _NORMAL_CONSOLE_TEXT_
-                << std::endl;
-
-  if (jsonConfig.contains("expo_x")) {
-    m_expo_x = jsonConfig["expo_x"].get<double>();
-    } else {
-    m_expo_x = m_expo_factor;
-  }
-  if (jsonConfig.contains("expo_y")) {
-    m_expo_yz = jsonConfig["expo_y"].get<double>();
-  } else {
-    m_expo_yz = m_expo_factor;
-  }
-  std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+    // Expo can be provided under follow_me; give it priority over top-level keys
+    if (follow_me.contains("expo_x")) {
+      m_expo_x = follow_me["expo_x"].get<double>();
+      expo_x_from_follow_me = true;
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
                 << "expo_x:" << _INFO_CONSOLE_BOLD_TEXT
                 << std::to_string(m_expo_x) << _NORMAL_CONSOLE_TEXT_
                 << std::endl;
-  std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+    }
+    if (follow_me.contains("expo_y")) {
+      m_expo_yz = follow_me["expo_y"].get<double>();
+      expo_y_from_follow_me = true;
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
                 << "expo_y:" << _INFO_CONSOLE_BOLD_TEXT
                 << std::to_string(m_expo_yz) << _NORMAL_CONSOLE_TEXT_
                 << std::endl;
+    }
+
+    if (follow_me.contains("center_hold_enabled")) {
+      m_center_hold_enabled = follow_me["center_hold_enabled"].get<bool>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "center_hold_enabled:" << _INFO_CONSOLE_BOLD_TEXT
+                << (m_center_hold_enabled ? "true" : "false") << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+    }
+    if (follow_me.contains("center_hold_y_band")) {
+      m_center_hold_y_band = follow_me["center_hold_y_band"].get<double>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "center_hold_y_band:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_center_hold_y_band) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+    }
+    if (follow_me.contains("center_hold_decay")) {
+      m_center_hold_decay = follow_me["center_hold_decay"].get<double>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "center_hold_decay:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_center_hold_decay) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+    }
+  
+
+
+
+    if (follow_me.contains("rate_limit")) {
+      m_rate_limit = follow_me["rate_limit"].get<double>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                  << "rate_limit:" << _INFO_CONSOLE_BOLD_TEXT
+                  << std::to_string(m_rate_limit) << _NORMAL_CONSOLE_TEXT_
+                  << std::endl;
+    }
+
+    // Optional per-axis overrides
+    if (follow_me.contains("deadband_x")) {
+      m_deadband_x = follow_me["deadband_x"].get<double>();
+      }
+    if (follow_me.contains("deadband_y")) {
+      m_deadband_yz = follow_me["deadband_y"].get<double>();
+    }
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                  << "deadband_x:" << _INFO_CONSOLE_BOLD_TEXT
+                  << std::to_string(m_deadband_x) << _NORMAL_CONSOLE_TEXT_
+                  << std::endl;
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                  << "deadband_y:" << _INFO_CONSOLE_BOLD_TEXT
+                  << std::to_string(m_deadband_yz) << _NORMAL_CONSOLE_TEXT_
+                  << std::endl;
+  }
 }
 
 void CTrackingManager::reloadParametersIfConfigChanged() {
   readConfigParameters();
-  m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
-  m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
+  m_PID_X.setPID(m_x_PID_P, m_x_PID_I, m_x_PID_D);
+  m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, m_yz_PID_D);
 }
 
 void CTrackingManager::onStatusChanged(const int status) {
@@ -191,6 +213,10 @@ void CTrackingManager::onTrack(const double x, const double yz,
     dt = std::chrono::duration<double>(now - m_last_message_time).count();
   }
   m_last_message_time = now;
+
+  // pass dt to the PID controllers
+  m_PID_X.setDeltaTime(dt);
+  m_PID_YZ.setDeltaTime(dt);
 
 #ifdef DDEBUG
   std::cout << _INFO_CONSOLE_BOLD_TEXT << "onTrack >> "
@@ -268,6 +294,23 @@ void CTrackingManager::onTrack(const double x, const double yz,
   sx = round3(sx);
   sy = round3(sy);
 
+  // 5) Input slew rate limiting BEFORE PID (prevents integrator corruption)
+  auto clampInputStep = [this, dt](double prev, double cur) {
+    if (dt <= 0.0) return cur;
+    const double max_input_step = 0.3 * dt; // max 0.3 units per second
+    const double step = cur - prev;
+    if (std::abs(step) > max_input_step) {
+      return prev + std::copysign(max_input_step, step);
+    }
+    return cur;
+  };
+  static double prev_input_x = 0.0;
+  static double prev_input_yz = 0.0;
+  sx = clampInputStep(prev_input_x, sx);
+  sy = clampInputStep(prev_input_yz, sy);
+  prev_input_x = sx;
+  prev_input_yz = sy;
+
   // Clamp shaped inputs to [-0.5, 0.5] BEFORE PID to protect integrators
   sx = std::clamp(sx, -0.5, 0.5);
   sy = std::clamp(sy, -0.5, 0.5);
@@ -283,6 +326,50 @@ void CTrackingManager::onTrack(const double x, const double yz,
   // Clamp PID outputs back to [-0.5, 0.5]
   m_x = std::clamp(m_x, -0.5, 0.5);
   m_yz = std::clamp(m_yz, -0.5, 0.5);
+
+  // Enforce sign consistency: project output to match error sign when outside deadband
+  const double epsx = m_deadband_x;
+  const double epsyz = m_deadband_yz;
+  auto projectSign = [](double err, double out) {
+    if (err > 0.0) {
+      // ensure strictly positive output side (> 500 after mapping)
+      const double mag = std::max(std::abs(out), 1e-3);
+      return +mag;
+    } else {
+      // ensure strictly negative output side (< 500 after mapping)
+      const double mag = std::max(std::abs(out), 1e-3);
+      return -mag;
+    }
+  };
+  if (std::abs(sx) > epsx && (m_x * sx) <= 0.0) {
+    m_x = projectSign(sx, m_x);
+  }
+  if (std::abs(sy) > epsyz && (m_yz * sy) <= 0.0) {
+    m_yz = projectSign(sy, m_yz);
+  }
+
+  // Optional center-hold for plane pitch when target is centered
+  if (m_center_hold_enabled && is_xy &&
+      (de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().vehicle_type == ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_PLANE))
+  {
+    if (std::abs(sy) < m_center_hold_y_band)
+    {
+      const double decay = std::clamp(m_center_hold_decay, 0.0, 1.0);
+      m_yz = (1.0 - decay) * m_pitch_hold + decay * m_yz;
+    }
+    else
+    {
+      m_pitch_hold = m_yz;
+    }
+  }
+
+  // Re-enforce sign after any blending to guarantee final RC side correctness
+  if (std::abs(sx) > epsx && (m_x * sx) <= 0.0) {
+    m_x = projectSign(sx, m_x);
+  }
+  if (std::abs(sy) > epsyz && (m_yz * sy) <= 0.0) {
+    m_yz = projectSign(sy, m_yz);
+  }
   
   int tracking_x = static_cast<int>(m_x * 1000 + 500);
   int tracking_yz = static_cast<int>(m_yz * 1000 + 500);
