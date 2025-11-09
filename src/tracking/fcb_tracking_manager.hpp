@@ -13,6 +13,13 @@ using Json_de = nlohmann::json;
 namespace de {
 namespace fcb {
 namespace tracking {
+
+typedef enum TRACKING_TYPE {
+  TRACKING_TARGET = 0,
+  TRACKING_FOLLOW_ME = 1,
+  TRACKING_STANDING = 2       // when camera is looking at ground vertically on a drone.
+} TRACKING_TYPE;
+
 class CTrackingManager {
 public:
   static CTrackingManager &getInstance() {
@@ -32,7 +39,7 @@ public:
 
 public:
   void init();
-  void onTrack(const double x, const double yz, const bool is_xy);
+  void onTrack(const double x, const double yz, const bool is_forward_camera);
   void onStatusChanged(const int status);
   void reloadParametersIfConfigChanged();
 
@@ -43,11 +50,16 @@ public:
     m_yz_PID_P = yz_PID_P;
     m_x_PID_I = x_PID_I;
     m_yz_PID_I = yz_PID_I;
-   
   }
 
 private:
   void readConfigParameters();
+
+  void trackingFollowMe(const double tracking_x, const double tracking_yz);
+  void trackingTarget(const double tracking_x, const double tracking_yz); 
+  void trackingStanding(const double tracking_x, const double tracking_yz);
+  void trackingDroneForward(const double tracking_x, const double tracking_yz);
+
 
 private:
   bool m_tracking_running = false;
@@ -67,10 +79,10 @@ private:
   double m_alpha = 0.1;
 
   // Per-axis shaping (preferred if configured)
-  double m_deadband_x  = 0.01;
+  double m_deadband_x = 0.01;
   double m_deadband_yz = 0.01;
-  double m_expo_x      = 0.3;
-  double m_expo_yz     = 0.3;
+  double m_expo_x = 0.3;
+  double m_expo_yz = 0.3;
   double m_rate_limit = 0.05; // max change per update in normalized units
 
   double m_prev_dx = 0.0;
@@ -78,13 +90,14 @@ private:
   bool m_prev_initialized = false;
 
   // Optional center-hold for plane pitch
-  bool   m_center_hold_enabled = false;
+  bool m_center_hold_enabled = false;
   double m_center_hold_y_band = 0.02;
   double m_center_hold_decay = 0.02;
   double m_pitch_hold = 0.0;
 
   std::chrono::high_resolution_clock::time_point m_last_message_time;
 
+  TRACKING_TYPE m_tracking_type = TRACKING_STANDING;
 };
 } // namespace tracking
 } // namespace fcb
