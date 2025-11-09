@@ -20,6 +20,10 @@ void CTrackingManager::init() {
 
   m_PID_X.setPID(m_x_PID_P, m_x_PID_I, m_x_PID_D);
   m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, m_yz_PID_D);
+  
+  // Initialize Kalman filters with configured parameters
+  m_kalman_x.setParameters(m_kalman_process_noise_q, m_kalman_measurement_noise_r);
+  m_kalman_yz.setParameters(m_kalman_process_noise_q, m_kalman_measurement_noise_r);
 }
 
 void CTrackingManager::readConfigParameters() {
@@ -154,6 +158,32 @@ void CTrackingManager::readConfigParameters() {
               << "deadband_y:" << _INFO_CONSOLE_BOLD_TEXT
               << std::to_string(m_deadband_yz) << _NORMAL_CONSOLE_TEXT_
               << std::endl;
+              
+    // Kalman filter parameters
+    if (follow_me.contains("kalman_enabled")) {
+      m_kalman_enabled = follow_me["kalman_enabled"].get<bool>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_
+                << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "kalman_enabled:" << _INFO_CONSOLE_BOLD_TEXT
+                << (m_kalman_enabled ? "true" : "false")
+                << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    }
+    if (follow_me.contains("kalman_process_noise_q")) {
+      m_kalman_process_noise_q = follow_me["kalman_process_noise_q"].get<double>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_
+                << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "kalman_process_noise_q:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_kalman_process_noise_q) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+    }
+    if (follow_me.contains("kalman_measurement_noise_r")) {
+      m_kalman_measurement_noise_r = follow_me["kalman_measurement_noise_r"].get<double>();
+      std::cout << _SUCCESS_CONSOLE_TEXT_
+                << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
+                << "kalman_measurement_noise_r:" << _INFO_CONSOLE_BOLD_TEXT
+                << std::to_string(m_kalman_measurement_noise_r) << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+    }
   }
 }
 
@@ -161,6 +191,10 @@ void CTrackingManager::reloadParametersIfConfigChanged() {
   readConfigParameters();
   m_PID_X.setPID(m_x_PID_P, m_x_PID_I, m_x_PID_D);
   m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, m_yz_PID_D);
+  m_kalman_x.setParameters(m_kalman_process_noise_q, m_kalman_measurement_noise_r);
+  m_kalman_yz.setParameters(m_kalman_process_noise_q, m_kalman_measurement_noise_r);
+  m_kalman_x.reset();
+  m_kalman_yz.reset();
 }
 
 void CTrackingManager::onStatusChanged(const int status) {
@@ -176,6 +210,9 @@ void CTrackingManager::onStatusChanged(const int status) {
     m_prev_initialized = false;              // reset shaping state
     m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0); // reset integrator
     m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
+    // Reset Kalman filters for clean state on next acquisition
+    m_kalman_x.reset();
+    m_kalman_yz.reset();
     de::fcb::CFCBMain::getInstance().adjustRemoteJoystickByMode(
         RC_SUB_ACTION::RC_SUB_ACTION_RELEASED);
     break;
@@ -191,6 +228,8 @@ void CTrackingManager::onStatusChanged(const int status) {
     m_tracking_running = true;
     m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
     m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
+    m_kalman_x.reset();
+    m_kalman_yz.reset();
     break;
 
   case TrackingTarget_STATUS_TRACKING_STOPPED:
@@ -198,6 +237,8 @@ void CTrackingManager::onStatusChanged(const int status) {
     m_tracking_running = false;
     m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
     m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
+    m_kalman_x.reset();
+    m_kalman_yz.reset();
     m_prev_initialized = false; // reset shaping state
     de::fcb::CFCBMain::getInstance().adjustRemoteJoystickByMode(
         RC_SUB_ACTION::RC_SUB_ACTION_RELEASED);
@@ -250,13 +291,38 @@ void CTrackingManager::onTrack(const double x, const double yz,
     return;
   }
 
+  // Apply Kalman filtering before existing processing if enabled
+  double kalman_x = x;
+  double kalman_yz = yz;
+  if (m_kalman_enabled && m_prev_initialized) {
+    kalman_x = m_kalman_x.update(x, dt);
+    kalman_yz = m_kalman_yz.update(yz, dt);
+    
+    // Use velocity estimates for adaptive response
+    double vel_x = m_kalman_x.getVelocity();
+    double vel_yz = m_kalman_yz.getVelocity();
+    
+    // Reduce rate limiting when we have confident velocity estimates
+    if (std::abs(vel_x) > 0.01) {
+      // Target is moving, allow faster response
+      m_rate_limit = std::min(m_rate_limit * 1.5, 0.15);
+    }
+    if (std::abs(vel_yz) > 0.01) {
+      // Target is moving, allow faster response  
+      m_rate_limit = std::min(m_rate_limit * 1.5, 0.15);
+    }
+  }
+  
+  // Use Kalman-filtered values for subsequent processing
+  double processed_x = kalman_x;
+  double processed_yz = kalman_yz;
   
   // Post-processing: rate limiting, deadband, and expo response
 
   // Initialize previous state once
   if (!m_prev_initialized) {
-    m_prev_dx = x;
-    m_prev_dy = yz;
+    m_prev_dx = processed_x;
+    m_prev_dy = processed_yz;
     m_prev_initialized = true;
   }
 
@@ -272,8 +338,8 @@ void CTrackingManager::onTrack(const double x, const double yz,
     }
     return cur;
   };
-  double sx = clampStepDt(m_prev_dx, x);
-  double sy = clampStepDt(m_prev_dy, yz);
+  double sx = clampStepDt(m_prev_dx, processed_x);
+  double sy = clampStepDt(m_prev_dy, processed_yz);
 
   // 2) Deadband (per-axis if provided)
   auto applyDeadbandX = [this](double v) {

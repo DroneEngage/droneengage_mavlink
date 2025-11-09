@@ -6,6 +6,7 @@
 #include <mavlink_sdk.h>
 
 #include "pic_controller.hpp"
+#include "kalman_filter.hpp"
 
 #include "../de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
@@ -98,6 +99,15 @@ private:
   std::chrono::high_resolution_clock::time_point m_last_message_time;
 
   TRACKING_TYPE m_tracking_type = TRACKING_STANDING;
+  
+  // Kalman filters for smooth tracking
+  SimpleKalmanFilter m_kalman_x;
+  SimpleKalmanFilter m_kalman_yz;
+  
+  // Kalman filter tuning parameters
+  double m_kalman_process_noise_q = 0.01;
+  double m_kalman_measurement_noise_r = 0.1;
+  bool m_kalman_enabled = true;
 };
 } // namespace tracking
 } // namespace fcb
