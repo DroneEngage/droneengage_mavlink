@@ -824,7 +824,7 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
     std::cout << cmd.dump() << std::endl;
 
     float x_ratio, yz_ratio;
-    bool is_xy = true;
+    bool is_forward_camera = true;
     for (const auto &target_item : cmd["t"]) {
       x_ratio = target_item["x"].get<double>();
 
@@ -832,17 +832,12 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
         yz_ratio = target_item["y"].get<double>();
         break;
       } else if (target_item.contains("z")) {
-        is_xy = false;
+        is_forward_camera = false;
         yz_ratio = target_item["z"].get<double>();
         break;
       }
     }
-    m_tracking_manager.onTrack(x_ratio, yz_ratio, is_xy);
-
-#ifdef DEBUG
-    std::cout << "TYPE_AndruavMessage_TrackingTargetLocation" << std::endl;
-#endif
-
+    m_tracking_manager.onTrack(x_ratio, yz_ratio, is_forward_camera);
   } break;
 
   case TYPE_AndruavMessage_TargetTracking_STATUS: {
