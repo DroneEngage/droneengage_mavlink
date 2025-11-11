@@ -70,39 +70,133 @@
         }
     },
     {
-        "name":"PID and Expo",
+        "name":"Follow Me PID and Expo",
         "template":{
-            "PID and Expo":{
+            "Follow Me PID and Expo":{
                 "fieldName":"follow_me",
                 "type":"object",
                 "fields":{
                     "PID_P_X":{
+                        "order":1,
                         "type":"number",
-                        "defaultvalue":1.0
+                        "defaultvalue":1.0,
+                        "desc": "Proportional gain for X axis tracking (0.1-5.0)"
                     },
                     "PID_P_Y":{
+                        "order":2,
                         "type":"number",
-                        "defaultvalue":1.0
+                        "defaultvalue":1.0,
+                        "desc": "Proportional gain for Y axis tracking (0.1-5.0)"
                     },
                     "PID_I_X":{
+                        "order":3,
                         "type":"number",
-                        "defaultvalue":0.00
+                        "defaultvalue":0.00,
+                        "desc": "Integral gain for X axis tracking (0.0-1.0)"
                     },
                     "PID_I_Y":{
+                        "order":4,
                         "type":"number",
-                        "defaultvalue":0.00
+                        "defaultvalue":0.00,
+                        "desc": "Integral gain for Y axis tracking (0.0-1.0)"
                     },
-                    "expo_factor":{
+                    "PID_D_X":{
+                        "order":5,
                         "type":"number",
-                        "defaultvalue":0.5
+                        "defaultvalue":0.00,
+                        "optional": true,
+                        "desc": "Derivative gain for X axis tracking (0.0-0.5)"
                     },
-                    "deadband":{
+                    "PID_D_Y":{
+                        "order":6,
                         "type":"number",
-                        "defaultvalue":0.1
+                        "defaultvalue":0.00,
+                        "optional": true,
+                        "desc": "Derivative gain for Y axis tracking (0.0-0.5)"
                     },
-                    "rate_limit":{
+                    "expo_x":{
+                        "order":7,
                         "type":"number",
-                        "defaultvalue":0.1
+                        "defaultvalue":0.5,
+                        "optional": true,
+                        "desc": "Exponential curve for X axis response (0.0-1.0)"
+                    },
+                    "expo_y":{
+                        "order":8,
+                        "type":"number",
+                        "defaultvalue":0.5,
+                        "optional": true,
+                        "desc": "Exponential curve for Y axis response (0.0-1.0)"
+                    },
+                    "deadband_x":{
+                        "order":9,
+                        "type":"number",
+                        "defaultvalue":0.1,
+                        "optional": true,
+                        "desc": "Deadband threshold for X axis (0.0-0.5)"
+                    },
+                    "deadband_y":{
+                        "order":10,
+                        "type":"number",
+                        "defaultvalue":0.1,
+                        "optional": true,
+                        "desc": "Deadband threshold for Y axis (0.0-0.5)"
+                    },
+                    "Rate Limit":{
+                        "order":11,
+                        "fieldName": "rate_limit",
+                        "type":"number",
+                        "defaultvalue":0.1,
+                        "optional": true,
+                        "desc": "Max rate change per second (0.05-0.2)"
+                    },
+                    "Enable Center Hold":{
+                        "order":12,
+                        "fieldName": "center_hold_enabled",
+                        "type":"checkbox",
+                        "defaultvalue":false,
+                        "optional": false,
+                        "desc": "Enable pitch center hold for planes"
+                    },
+                    "Center Hold Y Band":{
+                        "order":13,
+                        "fieldName": "center_hold_y_band",
+                        "type":"number",
+                        "defaultvalue":0.05,
+                        "optional": true,
+                        "desc": "Y axis band for center hold (0.01-0.2)"
+                    },
+                    "Center Hold Decay":{
+                        "order":14,
+                        "fieldName": "center_hold_decay",
+                        "type":"number",
+                        "defaultvalue":0.1,
+                        "optional": true,
+                        "desc": "Center hold decay factor (0.0-1.0)"
+                    },
+                    "Kalman Filter":{
+                        "order":15,
+                        "fieldName": "kalman_enabled",
+                        "type":"checkbox",
+                        "defaultvalue":false,
+                        "optional": false,
+                        "desc": "Enable Kalman filtering for smooth tracking"
+                    },
+                    "Kalman Process Noise Q":{
+                        "order":16,
+                        "fieldName": "kalman_process_noise_q",
+                        "type":"number",
+                        "defaultvalue":0.05,
+                        "optional": true,
+                        "desc": "Kalman process noise (0.01-0.5)"
+                    },
+                    "Kalman Measurement Noise R":{
+                        "order":17,
+                        "fieldName": "kalman_measurement_noise_r",
+                        "type":"number",
+                        "defaultvalue":0.1,
+                        "optional": true,
+                        "desc": "Kalman measurement noise (0.01-1.0)"
                     }
                 },
                 "optional":false,
