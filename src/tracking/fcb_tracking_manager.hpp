@@ -7,6 +7,7 @@
 
 #include "pic_controller.hpp"
 #include "kalman_filter.hpp"
+#include "../de_common/de_databus/messages.hpp"
 
 #include "../de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
@@ -45,6 +46,8 @@ public:
   void reloadParametersIfConfigChanged();
 
 public:
+
+  inline int getTrackingStatus() const { return m_trcking_status; }
   inline void setParameters(const double x_PID_P, const double yz_PID_P,
                             const double x_PID_I, const double yz_PID_I) {
     m_x_PID_P = x_PID_P;
@@ -108,6 +111,7 @@ private:
   double m_kalman_process_noise_q = 0.01;
   double m_kalman_measurement_noise_r = 0.1;
   bool m_kalman_enabled = true;
+  int m_trcking_status = TrackingTarget_STATUS_TRACKING_STOPPED;
 };
 } // namespace tracking
 } // namespace fcb
