@@ -117,7 +117,8 @@ namespace fcb
             
 
             void releaseRemoteControl();
-            void updateRemoteControlChannels(const int16_t rc_channels[18]);
+            void updateRemoteControlChannels(const int16_t rc_channels[RC_CHANNELS_MAX]);
+            void updateTrackingControlChannels(const int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT]);
 
             void adjustRemoteJoystickByMode(RC_SUB_ACTION rc_sub_action);
             void remoteControlSignal();

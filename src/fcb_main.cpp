@@ -7,6 +7,7 @@
 #include <mavlink_ftp_manager.h>
 
 #include <plog/Log.h>
+#include "global.hpp"
 #include "plog/Initializers/RollingFileInitializer.h"
 
 #include "./de_common/helpers/colors.hpp"
@@ -499,9 +500,13 @@ void CFCBMain::loopScheduler()
             fcb_swarm_leader.handleSwarmsAsLeader();
         }
 
+        if (m_counter % 20 == 0)
+        { // each 200 msec
+            remoteControlSignal();
+        }
+
         if (m_counter % 30 == 0)
         { // each 300 msec
-            remoteControlSignal();
             m_fcb_facade.sendLocationInfo();
         }
 
@@ -1335,7 +1340,7 @@ void CFCBMain::adjustRemoteJoystickByMode(RC_SUB_ACTION rc_sub_action)
     case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED:
     {
         if (m_andruav_vehicle_info.flying_mode == VEHICLE_MODE_GUIDED)
-        {
+        {   // TODO CHECK FOR PLANES HERE
             // remote control in guided mode uses ctrlGuidedVelocityInLocalFrame for control.
             enableRemoteControlGuided();
         }
@@ -1347,6 +1352,38 @@ void CFCBMain::adjustRemoteJoystickByMode(RC_SUB_ACTION rc_sub_action)
     }
     break;
     }
+}
+
+
+void CFCBMain::updateTrackingControlChannels(const int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT])
+{
+     // In this mode send values via ctrlGuidedVelocityInLocalFrame
+
+        int16_t rc_chammels_input [RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
+        rc_chammels_input[m_rcmap_channels_info.rcmap_pitch] = rc_channels[RC_CHANNEL_TRACKING_PITCH];
+        rc_chammels_input[m_rcmap_channels_info.rcmap_roll] = rc_channels[RC_CHANNEL_TRACKING_ROLL];
+        rc_chammels_input[m_rcmap_channels_info.rcmap_throttle] = rc_channels[RC_CHANNEL_TRACKING_THROTTLE];
+        rc_chammels_input[m_rcmap_channels_info.rcmap_yaw] = rc_channels[RC_CHANNEL_TRACKING_YAW];
+        
+        //m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
+        //m_andruav_vehicle_info.rc_command_active = true;
+
+        int16_t rc_chammels_pwm[RC_CHANNELS_MAX] = {0};
+
+        calculateChannels(rc_chammels_input, true, rc_chammels_pwm);
+        if ((m_rcmap_channels_info.use_smart_rc) && (m_rcmap_channels_info.is_valid))
+        {
+            mavlinksdk::CMavlinkCommand::getInstance().ctrlGuidedVelocityInLocalFrame(
+                !m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_pitch] ? 0 : (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_pitch]) / 100.0f,
+                !m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_roll] ? 0 : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_roll] - 1500) / 100.0f,
+                !m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_throttle] ? 0 : (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle]) / 100.0f,
+                !m_andruav_vehicle_info.rc_channels_enabled[m_rcmap_channels_info.rcmap_yaw] ? 0 : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw] - 1500) / 1000.0f,
+                MAV_FRAME_BODY_OFFSET_NED);
+        }
+        else
+        {
+            // SKIP TRACKING
+        }
 }
 
 /**
