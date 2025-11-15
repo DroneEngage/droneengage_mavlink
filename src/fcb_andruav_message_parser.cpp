@@ -478,7 +478,9 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
       rc_channels[rc_map.rcmap_yaw] =
           1000 -
           cmd["R"].get<int>(); // to be aligned with default settings of Ardu
-      rc_channels[rc_map.rcmap_throttle] = 1000 - cmd["T"].get<int>();
+      rc_channels[rc_map.rcmap_throttle] = 
+          1000 -
+          cmd["T"].get<int>();
       rc_channels[rc_map.rcmap_roll] =
           1000 -
           cmd["A"].get<int>(); // to be aligned with default settings of Ardu
@@ -487,11 +489,15 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
       rc_channels[3] =
           1000 -
           cmd["R"].get<int>(); // to be aligned with default settings of Ardu
-      rc_channels[2] = 1000 - cmd["T"].get<int>();
+      rc_channels[2] = 
+          1000 -
+          cmd["T"].get<int>();
       rc_channels[0] =
           1000 -
           cmd["A"].get<int>(); // to be aligned with default settings of Ardu
-      rc_channels[1] = 1000 - cmd["E"].get<int>();
+      rc_channels[1] = 
+          1000 -
+          cmd["E"].get<int>();
       rc_channels[4] = validateField(cmd, "w", Json_de::value_t::number_integer)
                            ? cmd["w"].get<int>()
                            : SKIP_RC_CHANNEL;
