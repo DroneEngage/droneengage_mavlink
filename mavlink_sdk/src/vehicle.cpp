@@ -19,6 +19,11 @@ mavlinksdk::CVehicle::CVehicle()
 	m_system_time.time_unix_usec = 0;
 	m_sysid  = 0;
     m_compid = 0;
+
+	m_last_guided_mode_point.latitude = 0;
+	m_last_guided_mode_point.longitude = 0;
+	m_last_guided_mode_point.altitude = 0;
+	
 }
 
 void mavlinksdk::CVehicle::set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* callback_vehicle)
