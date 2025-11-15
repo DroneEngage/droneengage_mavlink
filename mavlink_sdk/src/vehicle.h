@@ -17,6 +17,13 @@ namespace mavlinksdk
     #define HEART_BEAT_TIMEOUT      3000000l
     #define DISTANCE_SENSOR_TIMEOUT 5000 // ms
 
+    typedef struct LOCATION_3D
+    {
+        double latitude;
+        double longitude;
+        double altitude;
+    } LOCATION_3D;
+
     /**
      * @brief list of messages received from mavlink channel.
      * This structure handles timing and processed flags for each message_id.
@@ -403,6 +410,45 @@ namespace mavlinksdk
                 // value = 0  means no restriction.
                 m_comp_id = comp_id;
             }
+
+
+            inline const LOCATION_3D getPositionforChangeAltitude()
+            {
+                LOCATION_3D location_3d;
+                const mavlink_nav_controller_output_t& nav_controller = getMsgNavController();
+                    
+                if ((nav_controller.wp_dist > 0) && (m_last_guided_mode_point_valid))
+                {
+                    
+                    std::cout << "getPositionforChangeAltitude nav_controller.wp_dist > 0" << std::endl;
+                    
+                    return m_last_guided_mode_point;
+
+                }
+                else
+                {
+                    // use current position
+                    std::cout << "getPositionforChangeAltitude nav_controller. getMsgGlobalPositionInt" << std::endl;
+                    
+                    const mavlink_global_position_int_t& mavlink_global_position_int = getMsgGlobalPositionInt();
+                    location_3d.latitude = mavlink_global_position_int.lat;
+                    location_3d.longitude = mavlink_global_position_int.lon ;
+                    
+                    location_3d.altitude = mavlink_global_position_int.alt;
+                    
+	
+                }
+                return location_3d;
+            }
+
+            inline void setGuidedPoint(const double& latitude, const double& longitude, const double& relative_altitude)
+            {
+                std::cout << "setGuidedPoint" << std::endl;
+                m_last_guided_mode_point.latitude = latitude* 1e7;
+                m_last_guided_mode_point.longitude = longitude* 1e7;
+                m_last_guided_mode_point.altitude = relative_altitude;
+                m_last_guided_mode_point_valid = true;
+            }
             
         // Class Members
         protected:
@@ -525,6 +571,8 @@ namespace mavlinksdk
             // Time Stamps
             Time_Stamps time_stamps;
 
+            LOCATION_3D m_last_guided_mode_point;
+            bool m_last_guided_mode_point_valid = false;
             // Vehicle is armed
             bool m_armed     = false;
             // Flying or Diving => Armed Ready to take-off. It is not necessary physically flying

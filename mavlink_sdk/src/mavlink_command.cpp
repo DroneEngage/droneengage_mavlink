@@ -286,18 +286,8 @@ void CMavlinkCommand::cmdTerminateFlight () const
 void CMavlinkCommand::changeAltitude (const float& altitude) const
 {
 
-	const mavlink_position_target_global_int_t& mavlink_global_position_int = mavlinksdk::CVehicle::getInstance().getMsgTargetPositionGlobalInt();
-	if ((mavlink_global_position_int.lon_int!=0) || (mavlink_global_position_int.lat_int!=0))
-	{
-		gotoGuidedPoint(mavlink_global_position_int.lat_int / 10000000.0f, mavlink_global_position_int.lon_int / 10000000.0f, altitude );
-	}
-	else
-	{
-		const mavlink_global_position_int_t&  mavlink_global_position_int = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt();
-		gotoGuidedPoint(mavlink_global_position_int.lat / 10000000.0f, mavlink_global_position_int.lon / 10000000.0f, altitude );
-	}
-	
-
+	LOCATION_3D location_3d = mavlinksdk::CVehicle::getInstance().getPositionforChangeAltitude();
+	gotoGuidedPoint(location_3d.latitude / 10000000.0f, location_3d.longitude / 10000000.0f, altitude );
 	// sendLongCommand (MAV_CMD_NAV_TAKEOFF, true,
 	// 	-1,  // unused
 	// 	0,  // unused
@@ -1015,6 +1005,8 @@ void CMavlinkCommand::gotoGuidedPoint_default (const double& latitude, const dou
  	mavlink_msg_mission_item_encode (GCS_SYSID,190, &mavlink_message, &msg);
 
 	m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
+
+	std::cout << "gotoGuidedPoint_default x:" << msg.x << " y:" << msg.y << " z:" << msg.z << std::endl;
 }
 
 

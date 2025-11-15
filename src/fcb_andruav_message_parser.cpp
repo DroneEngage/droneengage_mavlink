@@ -56,16 +56,21 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
                 << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
       break;
     }
+
     if (!validateField(cmd, "F", Json_de::value_t::number_unsigned))
       return;
+
     const int andruav_mode = cmd["F"].get<int>();
     uint32_t ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode;
+    
     CFCBModes::getArduPilotMode(
         andruav_mode, m_fcbMain.getAndruavVehicleInfo().vehicle_type,
         ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
+    
     if (ardupilot_mode == E_UNDEFINED_MODE) {
       return;
     }
+    
     mavlinksdk::CMavlinkCommand::getInstance().doSetMode(
         ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
   } break;
@@ -130,10 +135,12 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
       return;
     if (!validateField(cmd, "g", Json_de::value_t::number_float))
       return;
-    double latitude = cmd["a"].get<double>();
-    double longitude = cmd["g"].get<double>();
-    double altitude = mavlinksdk::CVehicle::getInstance()
-                          .getMsgGlobalPositionInt()
+
+    mavlinksdk::CVehicle &vehicle = mavlinksdk::CVehicle::getInstance();      
+
+    const double latitude = cmd["a"].get<double>();
+    const double longitude = cmd["g"].get<double>();
+    double altitude = vehicle.getMsgGlobalPositionInt()
                           .relative_alt;
     if (cmd.contains("l") == true) {
       if ((!validateField(cmd, "l", Json_de::value_t::number_float)) &&
@@ -146,6 +153,7 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
     }
     mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(
         latitude, longitude, altitude / 1000.0);
+    vehicle.setGuidedPoint(latitude, longitude, altitude);
     CFCBFacade::getInstance().sendFCBTargetLocation(
         andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>(), latitude,
         longitude, altitude, DESTINATION_GUIDED_POINT);
