@@ -95,10 +95,15 @@ void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
     return ;
 }
 
-
-void CFCBFacade::sendTelemetryPanic(const std::string& target_party_id)  const
+void CFCBFacade::sendHeartBeat(const std::string& target_party_id) const
 {
+    const int sys_id = m_vehicle.getSysId();
+    const int comp_id = m_vehicle.getCompId();
+    mavlink_message_t mavlink_message;
 
+    const mavlink_heartbeat_t& heartbeat = m_vehicle.getMsgHeartBeat();
+    mavlink_msg_heartbeat_encode(sys_id, comp_id, &mavlink_message, &heartbeat);
+    sendMavlinkData (target_party_id, mavlink_message);
 }
 
 void CFCBFacade::sendHighLatencyInfo(const std::string&target_party_id) const 

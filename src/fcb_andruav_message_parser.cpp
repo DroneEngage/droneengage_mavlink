@@ -904,6 +904,16 @@ void CFCBAndruavMessageParser::parseRemoteExecute(Json_de &andruav_message) {
   const int remoteCommand = cmd["C"].get<int>();
   std::cout << "cmd: " << remoteCommand << std::endl;
   switch (remoteCommand) {
+
+  case TYPE_AndruavMessage_MAVLINK:
+  {
+    const int request_type = cmd["Act"].get<int>();
+    if (request_type == MAVLINK_MSG_ID_HEARTBEAT)
+    {
+      m_fcb_facade.sendHeartBeat(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+    }
+  } 
+  break;
   case TYPE_AndruavMessage_ServoChannel:
     if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked)
       break;
