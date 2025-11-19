@@ -82,7 +82,7 @@ namespace fcb
         public:
 
             void API_IC_sendID(const std::string&target_party_id) const;
-            void sendTelemetryPanic(const std::string&target_party_id) const;
+            void sendHeartBeat(const std::string&target_party_id) const;
             void sendHighLatencyInfo(const std::string&target_party_id) const;
             void sendEKFInfo(const std::string&target_party_id) const;
             void sendVibrationInfo(const std::string&target_party_id) const;
