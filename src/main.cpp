@@ -30,7 +30,7 @@ using namespace de;
 // commands.
 #define MESSAGE_FILTER                                                         \
   {                                                                            \
-    TYPE_AndruavMessage_RemoteExecute, TYPE_AndruavMessage_FlightControl,      \
+        TYPE_AndruavMessage_RemoteExecute, TYPE_AndruavMessage_FlightControl,  \
         TYPE_AndruavMessage_GeoFence, TYPE_AndruavMessage_ExternalGeoFence,    \
         TYPE_AndruavMessage_Arm, TYPE_AndruavMessage_ChangeAltitude,           \
         TYPE_AndruavMessage_Land, TYPE_AndruavMessage_GuidedPoint,             \
