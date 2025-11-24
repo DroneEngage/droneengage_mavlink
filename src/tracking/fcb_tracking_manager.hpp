@@ -1,13 +1,10 @@
 #ifndef FCB_TRACKING_MANAGER_H_
 #define FCB_TRACKING_MANAGER_H_
 
-#include <chrono> // For high-resolution timing
-#include <iostream>
-#include <mavlink_sdk.h>
-
-#include "pic_controller.hpp"
-#include "kalman_filter.hpp"
 #include "../de_common/de_databus/messages.hpp"
+
+#include "fcb_tracker_logic_plan.hpp"
+#include "fcb_tracker_logic_quad.hpp"
 
 #include "../de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
@@ -15,12 +12,6 @@ using Json_de = nlohmann::json;
 namespace de {
 namespace fcb {
 namespace tracking {
-
-typedef enum TRACKING_TYPE {
-  TRACKING_TARGET = 0,
-  TRACKING_FOLLOW_ME = 1,
-  TRACKING_STANDING = 2       // when camera is looking at ground vertically on a drone.
-} TRACKING_TYPE;
 
 class CTrackingManager {
 public:
@@ -46,72 +37,26 @@ public:
   void reloadParametersIfConfigChanged();
 
 public:
-
-  inline int getTrackingStatus() const { return m_trcking_status; }
-  inline void setParameters(const double x_PID_P, const double yz_PID_P,
-                            const double x_PID_I, const double yz_PID_I) {
-    m_x_PID_P = x_PID_P;
-    m_yz_PID_P = yz_PID_P;
-    m_x_PID_I = x_PID_I;
-    m_yz_PID_I = yz_PID_I;
-  }
+  inline int getTrackingStatus() const { return m_tracking_status; }
 
 private:
-  void readConfigParameters();
+  void readConfigParameters()
+  {
+    // can be used to load settings if needed.
+  };
 
-  void trackingFollowMe(const double tracking_x, const double tracking_yz);
-  void trackingTarget(const double tracking_x, const double tracking_yz); 
-  void trackingStanding(const double tracking_x, const double tracking_yz);
-  void trackingDroneForward(const double tracking_x, const double tracking_yz);
-
+  CTrackerLogic &getTracker();
 
 private:
   bool m_tracking_running = false;
   bool m_object_detected = false;
 
-  CPIDController m_PID_X;
-  CPIDController m_PID_YZ;
-
-  double m_x;
-  double m_yz;
-  double m_x_PID_P = 1.0;
-  double m_yz_PID_P = 1.0;
-  double m_x_PID_I = 1.0;
-  double m_yz_PID_I = 1.0;
-  double m_x_PID_D = 0.0;
-  double m_yz_PID_D = 0.0;
-  double m_alpha = 0.1;
-
-  // Per-axis shaping (preferred if configured)
-  double m_deadband_x = 0.01;
-  double m_deadband_yz = 0.01;
-  double m_expo_x = 0.3;
-  double m_expo_yz = 0.3;
-  double m_rate_limit = 0.05; // max change per update in normalized units
-
-  double m_prev_dx = 0.0;
-  double m_prev_dy = 0.0;
-  bool m_prev_initialized = false;
-
-  // Optional center-hold for plane pitch
-  bool m_center_hold_enabled = false;
-  double m_center_hold_y_band = 0.02;
-  double m_center_hold_decay = 0.02;
-  double m_pitch_hold = 0.0;
-
-  std::chrono::high_resolution_clock::time_point m_last_message_time;
-
   TRACKING_TYPE m_tracking_type = TRACKING_STANDING;
-  
-  // Kalman filters for smooth tracking
-  SimpleKalmanFilter m_kalman_x;
-  SimpleKalmanFilter m_kalman_yz;
-  
-  // Kalman filter tuning parameters
-  double m_kalman_process_noise_q = 0.01;
-  double m_kalman_measurement_noise_r = 0.1;
-  bool m_kalman_enabled = true;
-  int m_trcking_status = TrackingTarget_STATUS_TRACKING_STOPPED;
+
+  int m_tracking_status = TrackingTarget_STATUS_TRACKING_STOPPED;
+
+  CTrackerPlanLogic &m_tracker_plan_logic = CTrackerPlanLogic::getInstance();
+  CTrackerQuadLogic &m_tracker_quad_logic = CTrackerQuadLogic::getInstance();
 };
 } // namespace tracking
 } // namespace fcb
