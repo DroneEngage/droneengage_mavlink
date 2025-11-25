@@ -12,8 +12,35 @@
 using Json_de = nlohmann::json;
 using namespace de::fcb::tracking;
 
+#define TRACK_COPTER_STATUS_NONE 0b00000000
+#define TRACK_COPTER_STATUS_VERTICAL_CENTER_REACHED 0b00000001
+#define TRACK_COPTER_STATUS_HORIZONTAL_CENTER_REACHED 0b00000010
+
 static de::fcb::CFCBMain &m_fcbMain2 = de::fcb::CFCBMain::getInstance();
 
+void CTrackerQuadLogic::onStatusChanged(const int status) {
+  CTrackerLogic::onStatusChanged(status);
+
+  switch (status) {
+  case TrackingTarget_STATUS_TRACKING_LOST:
+    resetTrackerCopterStatus();
+    break;
+
+  case TrackingTarget_STATUS_TRACKING_DETECTED:
+    break;
+
+  case TrackingTarget_STATUS_TRACKING_ENABLED:
+    resetTrackerCopterStatus();
+    break;
+
+  case TrackingTarget_STATUS_TRACKING_STOPPED:
+    resetTrackerCopterStatus();
+    break;
+
+  default:
+    break;
+  }
+}
 void CTrackerQuadLogic::readConfigParameters() {
   de::CConfigFile &cConfigFile = de::CConfigFile::getInstance();
   const Json_de &jsonConfig = cConfigFile.GetConfigJSON();
@@ -267,24 +294,40 @@ void CTrackerQuadLogic::trackingDroneForward(const double x, const double yz,
 
   rc_channels[RC_CHANNEL_TRACKING_YAW] = 1000 - tracking_x;
 
-  if (m_loose_altitude) {
-    if (yz > 0) {
-      rc_channels[RC_CHANNEL_TRACKING_PITCH] = tracking_yz;
-    } else {
-      rc_channels[RC_CHANNEL_TRACKING_PITCH] = 500;
-    }
+  int throttle = 500;
 
-    if (yz > 0.3) {
-      rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 0; // flying up
-    } else {
-      if (abs(yz) < 0.1) {
-        rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 1000; // flying down.
+  if (m_loose_altitude) {
+    //TODO: TO BE COMPLETED ... PARTIALLY DEVELOPED
+    // Pitch: only when target is in front (yz > 0), otherwise hold
+    if (isTrackerCopterStatus(TRACK_COPTER_STATUS_NONE)) {
+      if (yz > 0) {
+        rc_channels[RC_CHANNEL_TRACKING_PITCH] = tracking_yz; // tilt forward
       } else {
-        rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 500;
+        addTrackerCopterStatus(TRACK_COPTER_STATUS_HORIZONTAL_CENTER_REACHED);
+        rc_channels[RC_CHANNEL_TRACKING_PITCH] = 500; // flat
+      }
+    } else if (isTrackerCopterStatus(
+                   TRACK_COPTER_STATUS_HORIZONTAL_CENTER_REACHED)) {
+      // Start descending when target reaches middle of bottom section (yz >= 0)
+      const double dead_yz = applyDeadbandYZ(yz);
+      if (dead_yz >= 0) {
+        // Map yz in [0, 0.5] -> throttle in [500, 1000]
+        // gain < 1 to keep descent balanced with pitch
+        const double gain = 0.7;                         // tune this
+        double norm = (dead_yz / 0.5) * gain;            // 0..gain
+        throttle = 500 + static_cast<int>(norm * 500.0); // 500 .. 500+gain*500
+      }
+
+      // If target clearly above center, keep throttle neutral and let pitch
+      // pull quad forward
+      if (yz < -dead_yz) {
+        throttle = 500;
       }
     }
-  } else {
 
+    rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = std::clamp(throttle, 500, 1000);
+
+  } else {
     rc_channels[RC_CHANNEL_TRACKING_PITCH] = tracking_yz;
 
     if (yz > 0.3) {
