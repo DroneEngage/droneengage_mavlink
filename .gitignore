@@ -48,3 +48,6 @@ checks.json
 
 *.bak_*
 *.plan
+local/
+
+wiki/mywiki/
