@@ -25,6 +25,11 @@ void CTrackerQuadLogic::readConfigParameters() {
 
     if (follow_me_root.contains("quad")) {
       const Json_de &follow_me = follow_me_root["quad"];
+
+      if (follow_me.contains("loose_altitude")) {
+        m_loose_altitude = follow_me["loose_altitude"].get<bool>();
+      }
+
       if (follow_me.contains("PID_P_X")) {
         m_x_PID_P = follow_me["PID_P_X"].get<double>();
         std::cout << _SUCCESS_CONSOLE_TEXT_
@@ -259,17 +264,34 @@ void CTrackerQuadLogic::trackingDroneForward(const double x, const double yz,
 
   rc_channels[RC_CHANNEL_TRACKING_ROLL] =
       500; // to be aligned with default settings of Ardu
-  if (yz > 0) {
-    rc_channels[RC_CHANNEL_TRACKING_PITCH] = tracking_yz;
-  } else {
-    rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 500;
-  }
+
   rc_channels[RC_CHANNEL_TRACKING_YAW] = 1000 - tracking_x;
 
-  if (yz > 0.3) {
-    rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 1000;
+  if (m_loose_altitude) {
+    if (yz > 0) {
+      rc_channels[RC_CHANNEL_TRACKING_PITCH] = tracking_yz;
+    } else {
+      rc_channels[RC_CHANNEL_TRACKING_PITCH] = 500;
+    }
+
+    if (yz > 0.3) {
+      rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 0; // flying up
+    } else {
+      if (abs(yz) < 0.1) {
+        rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 1000; // flying down.
+      } else {
+        rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 500;
+      }
+    }
   } else {
-    rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 500;
+
+    rc_channels[RC_CHANNEL_TRACKING_PITCH] = tracking_yz;
+
+    if (yz > 0.3) {
+      rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 0; // flying up
+    } else {
+      rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 500;
+    }
   }
 
 #ifdef DEBUG

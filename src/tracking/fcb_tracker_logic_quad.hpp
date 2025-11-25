@@ -33,6 +33,9 @@ protected:
 
   void trackingStanding(const double x, const double yz, const double tracking_x, const double tracking_yz);
   void trackingDroneForward(const double x, const double yz, const double tracking_x, const double tracking_yz);
+
+private:
+  bool m_loose_altitude = false;
 };
 } // namespace tracking
 } // namespace fcb
