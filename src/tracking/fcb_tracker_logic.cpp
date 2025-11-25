@@ -76,6 +76,22 @@ void CTrackerLogic::onStatusChanged(const int status) {
 
 void CTrackerLogic::onTrack(const double x, const double yz,
                             const bool is_forward_camera) {
+  const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map =
+      de::fcb::CFCBMain::getInstance().getRCChannelsMapInfo();
+
+  if ((!rc_map.use_smart_rc) || (!rc_map.is_valid)) {
+    return;
+  }
+
+  m_raw_x = x;
+  m_raw_yz = yz;
+
+  processTrackingInput(x, yz, is_forward_camera);
+}
+
+void CTrackerLogic::processTrackingInput(const double raw_x,
+                                         const double raw_yz,
+                                         const bool is_forward_camera) {
   std::chrono::high_resolution_clock::time_point now =
       std::chrono::high_resolution_clock::now();
 
@@ -92,31 +108,19 @@ void CTrackerLogic::onTrack(const double x, const double yz,
 
 #ifdef DDEBUG
   std::cout << _INFO_CONSOLE_BOLD_TEXT << "onTrack >> "
-            << _LOG_CONSOLE_BOLD_TEXT << "  x:" << _INFO_CONSOLE_BOLD_TEXT << x
-            << _LOG_CONSOLE_BOLD_TEXT << "  yz:" << _INFO_CONSOLE_BOLD_TEXT
-            << yz << _LOG_CONSOLE_BOLD_TEXT
+            << _LOG_CONSOLE_BOLD_TEXT << "  x:" << _INFO_CONSOLE_BOLD_TEXT
+            << raw_x << _LOG_CONSOLE_BOLD_TEXT
+            << "  yz:" << _INFO_CONSOLE_BOLD_TEXT << raw_yz
+            << _LOG_CONSOLE_BOLD_TEXT
             << "  is_xy:" << _INFO_CONSOLE_BOLD_TEXT << is_forward_camera
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
 
-  const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map =
-      de::fcb::CFCBMain::getInstance().getRCChannelsMapInfo();
-
-  // std::cout << _INFO_CONSOLE_BOLD_TEXT
-  //           << "rc_map.use_smart_rc:" << rc_map.use_smart_rc
-  //           << "     rc_map.is_valid:" << rc_map.is_valid
-  //           << _NORMAL_CONSOLE_TEXT_ << std::endl;
-  if ((!rc_map.use_smart_rc) || (!rc_map.is_valid))
-  {
-    return;
-  }
-
-  // Apply Kalman filtering before existing processing if enabled
-  double kalman_x = x;
-  double kalman_yz = yz;
+  double kalman_x = raw_x;
+  double kalman_yz = raw_yz;
   if (m_kalman_enabled && m_prev_initialized) {
-    kalman_x = m_kalman_x.update(x, dt);
-    kalman_yz = m_kalman_yz.update(yz, dt);
+    kalman_x = m_kalman_x.update(raw_x, dt);
+    kalman_yz = m_kalman_yz.update(raw_yz, dt);
 
     // Use velocity estimates for adaptive response
     double vel_x = m_kalman_x.getVelocity();
@@ -148,69 +152,32 @@ void CTrackerLogic::onTrack(const double x, const double yz,
 
   // 1) Rate limiting (outlier rejection) - time based
   // m_rate_limit is interpreted as normalized units per second
-  auto clampStepDt = [this, dt](double prev, double cur) {
-    if (dt <= 0.0)
-      return cur; // first sample after init
-    const double max_step = m_rate_limit * dt;
-    const double step = cur - prev;
-    if (std::abs(step) > max_step) {
-      return prev + std::copysign(max_step, step);
-    }
-    return cur;
-  };
-  double sx = clampStepDt(m_prev_dx, processed_x);
-  double sy = clampStepDt(m_prev_dy, processed_yz);
+  double sx = clampStepDt(dt, m_prev_dx, processed_x);
+  double sy = clampStepDt(dt, m_prev_dy, processed_yz);
 
   // 2) Deadband (per-axis if provided)
-  auto applyDeadbandX = [this](double v) {
-    return (std::abs(v) < m_deadband_x) ? 0.0 : v;
-  };
-  auto applyDeadbandYZ = [this](double v) {
-    return (std::abs(v) < m_deadband_yz) ? 0.0 : v;
-  };
   sx = applyDeadbandX(sx);
   sy = applyDeadbandYZ(sy);
 
   // 3) Expo response (per-axis if provided)
-  auto expoX = [this](double v) {
-    return v * (1.0 - m_expo_x) + std::pow(v, 3) * m_expo_x;
-  };
-  auto expoYZ = [this](double v) {
-    return v * (1.0 - m_expo_yz) + std::pow(v, 3) * m_expo_yz;
-  };
   sx = expoX(sx);
   sy = expoYZ(sy);
 
   // 4) Optional precision limiting
-  auto round3 = [](double v) { return std::round(v * 1000.0) / 1000.0; };
   sx = round3(sx);
   sy = round3(sy);
 
   // 5) Input slew rate limiting BEFORE PID (prevents integrator corruption)
-  auto clampInputStep = [this, dt](double prev, double cur) {
-    if (dt <= 0.0)
-      return cur;
-    const double max_input_step = 0.3 * dt; // max 0.3 units per second
-    const double step = cur - prev;
-    if (std::abs(step) > max_input_step) {
-      return prev + std::copysign(max_input_step, step);
-    }
-    return cur;
-  };
   static double prev_input_x = 0.0;
   static double prev_input_yz = 0.0;
-  sx = clampInputStep(prev_input_x, sx);
-  sy = clampInputStep(prev_input_yz, sy);
+  sx = clampInputStep(dt, prev_input_x, sx);
+  sy = clampInputStep(dt, prev_input_yz, sy);
   prev_input_x = sx;
   prev_input_yz = sy;
 
   // Clamp shaped inputs to [-0.5, 0.5] BEFORE PID to protect integrators
   sx = std::clamp(sx, -0.5, 0.5);
   sy = std::clamp(sy, -0.5, 0.5);
-
-  // Update previous for next invocation
-  m_prev_dx = sx;
-  m_prev_dy = sy;
 
   // Feed PID with shaped values (normalized [-0.5, 0.5])
   m_x = m_PID_X.calculate(sx);
@@ -224,17 +191,6 @@ void CTrackerLogic::onTrack(const double x, const double yz,
   // deadband
   const double epsx = m_deadband_x;
   const double epsyz = m_deadband_yz;
-  auto projectSign = [](double err, double out) {
-    if (err > 0.0) {
-      // ensure strictly positive output side (> 500 after mapping)
-      const double mag = std::max(std::abs(out), 1e-3);
-      return +mag;
-    } else {
-      // ensure strictly negative output side (< 500 after mapping)
-      const double mag = std::max(std::abs(out), 1e-3);
-      return -mag;
-    }
-  };
   if (std::abs(sx) > epsx && (m_x * sx) <= 0.0) {
     m_x = projectSign(sx, m_x);
   }
@@ -260,5 +216,61 @@ void CTrackerLogic::onTrack(const double x, const double yz,
   }
   if (std::abs(sy) > epsyz && (m_yz * sy) <= 0.0) {
     m_yz = projectSign(sy, m_yz);
+  }
+}
+
+double CTrackerLogic::clampStepDt(const double dt, const double prev,
+                                  const double cur) const {
+  if (dt <= 0.0)
+    return cur; // first sample after init
+  const double max_step = m_rate_limit * dt;
+  const double step = cur - prev;
+  if (std::abs(step) > max_step) {
+    return prev + std::copysign(max_step, step);
+  }
+  return cur;
+}
+
+double CTrackerLogic::applyDeadbandX(const double v) const {
+  return (std::abs(v) < m_deadband_x) ? 0.0 : v;
+}
+
+double CTrackerLogic::applyDeadbandYZ(const double v) const {
+  return (std::abs(v) < m_deadband_yz) ? 0.0 : v;
+}
+
+double CTrackerLogic::expoX(const double v) const {
+  return v * (1.0 - m_expo_x) + std::pow(v, 3) * m_expo_x;
+}
+
+double CTrackerLogic::expoYZ(const double v) const {
+  return v * (1.0 - m_expo_yz) + std::pow(v, 3) * m_expo_yz;
+}
+
+double CTrackerLogic::round3(const double v) {
+  return std::round(v * 1000.0) / 1000.0;
+}
+
+double CTrackerLogic::clampInputStep(const double dt, const double prev,
+                                     const double cur) const {
+  if (dt <= 0.0)
+    return cur;
+  const double max_input_step = 0.3 * dt; // max 0.3 units per second
+  const double step = cur - prev;
+  if (std::abs(step) > max_input_step) {
+    return prev + std::copysign(max_input_step, step);
+  }
+  return cur;
+}
+
+double CTrackerLogic::projectSign(const double err, const double out) {
+  if (err > 0.0) {
+    // ensure strictly positive output side (> 500 after mapping)
+    const double mag = std::max(std::abs(out), 1e-3);
+    return +mag;
+  } else {
+    // ensure strictly negative output side (< 500 after mapping)
+    const double mag = std::max(std::abs(out), 1e-3);
+    return -mag;
   }
 }
