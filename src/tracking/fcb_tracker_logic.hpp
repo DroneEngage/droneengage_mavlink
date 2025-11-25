@@ -46,6 +46,22 @@ public:
 protected:
   virtual void readConfigParameters() = 0;
 
+  void processTrackingInput(const double raw_x, const double raw_yz,
+                            const bool is_forward_camera);
+
+
+protected:
+  double clampStepDt(const double dt, const double prev,
+                     const double cur) const;
+  double applyDeadbandX(const double v) const;
+  double applyDeadbandYZ(const double v) const;
+  double expoX(const double v) const;
+  double expoYZ(const double v) const;
+  static double round3(const double v);
+  double clampInputStep(const double dt, const double prev,
+                        const double cur) const;
+  static double projectSign(const double err, const double out);
+
 protected:
   CPIDController m_PID_X;
   CPIDController m_PID_YZ;
@@ -60,6 +76,9 @@ protected:
 
 protected:
   TRACKING_TYPE m_tracking_type = TRACKING_TARGET;
+
+  double m_raw_x = 0.0;
+  double m_raw_yz = 0.0;
 
   double m_x;
   double m_yz;
