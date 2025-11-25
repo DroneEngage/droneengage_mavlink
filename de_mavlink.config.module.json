@@ -162,7 +162,8 @@
 
       "kalman_enabled": true,
       "kalman_process_noise_q": 0.05,
-      "kalman_measurement_noise_r": 0.1
+      "kalman_measurement_noise_r": 0.1,
+      "loose_altitude": false
     },
     "plan":
     {
