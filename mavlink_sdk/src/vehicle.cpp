@@ -563,6 +563,10 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
         case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
 		{
             mavlink_msg_global_position_int_decode(&mavlink_message, &(m_global_position_int));
+			if (m_heartbeat.type == MAV_TYPE::MAV_TYPE_GROUND_ROVER)
+			{ // ROVER: relative altitude is not meaningful, normalize to 0
+				m_global_position_int.relative_alt = 0;
+			}
 			exit_high_latency ();
         }
         break;
