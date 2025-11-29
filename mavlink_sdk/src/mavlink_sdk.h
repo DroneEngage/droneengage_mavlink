@@ -148,9 +148,9 @@ namespace mavlinksdk
             m_mavlink_events->OnHomePositionUpdated(home_position);
         }
 
-        inline void OnServoOutputRaw(const mavlink_servo_output_raw_t &servo_output_raw) override
+        inline void OnServoOutputRaw(const mavlink_servo_output_raw_t &servo_output_raw, const bool &changed) override
         {
-            m_mavlink_events->OnServoOutputRaw(servo_output_raw);
+            m_mavlink_events->OnServoOutputRaw(servo_output_raw, changed);
         }
 
         inline void OnHighLatencyModeChanged(const int &latency_mode) override

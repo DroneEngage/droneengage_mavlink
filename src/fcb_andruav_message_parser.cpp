@@ -136,7 +136,7 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
     if (!validateField(cmd, "g", Json_de::value_t::number_float))
       return;
 
-    mavlinksdk::CVehicle &vehicle = mavlinksdk::CVehicle::getInstance();      
+    mavlinksdk::CVehicle &vehicle = mavlinksdk::CVehicle::getInstance();
 
     const double latitude = cmd["a"].get<double>();
     const double longitude = cmd["g"].get<double>();
@@ -905,16 +905,24 @@ void CFCBAndruavMessageParser::parseRemoteExecute(Json_de &andruav_message) {
   std::cout << "cmd: " << remoteCommand << std::endl;
   switch (remoteCommand) {
 
-  case TYPE_AndruavMessage_MAVLINK:
-  {
+  case TYPE_AndruavMessage_MAVLINK: {
     const int request_type = cmd["Act"].get<int>();
-    if (request_type == MAVLINK_MSG_ID_HEARTBEAT)
-    {
-      m_fcb_facade.sendHeartBeat(andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+    switch (request_type) {
+    case MAVLINK_MSG_ID_HEARTBEAT:
+      m_fcb_facade.sendHeartBeat(
+          andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+      break;
+    case MAVLINK_MSG_ID_SERVO_OUTPUT_RAW:
+      if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked)
+        break;
+
+      m_fcb_facade.sendServoReadings(
+          andruav_message[ANDRUAV_PROTOCOL_SENDER].get<std::string>());
+      break;
     }
-  } 
-  break;
-  case TYPE_AndruavMessage_ServoChannel:
+  } break;
+
+  case TYPE_AndruavMessage_ServoChannel: // OBSOLETE
     if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked)
       break;
     CFCBFacade::getInstance().sendServoReadings(

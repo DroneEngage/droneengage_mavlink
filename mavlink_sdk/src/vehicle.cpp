@@ -279,8 +279,43 @@ void mavlinksdk::CVehicle::handle_rc_channels_raw  (const mavlink_rc_channels_t&
 
 void mavlinksdk::CVehicle::handle_servo_output_raw  (const mavlink_servo_output_raw_t& servo_output_raw)
 {
+	bool changed = false;
+
+	if ((m_servo_output_raw.time_usec == 0) && (m_servo_output_raw.port == 0))
+	{
+		changed = true;
+	}
+	else
+	{
+		auto is_servo_changed = [](uint16_t old_value, uint16_t new_value) -> bool
+		{
+			if (old_value == new_value) return false;
+			const int diff = (new_value > old_value) ? (new_value - old_value) : (old_value - new_value);
+			const int range = 1000; // typical PWM range 1000-2000
+			return (diff * 100) >= (5 * range);
+		};
+
+		if (is_servo_changed(m_servo_output_raw.servo5_raw, servo_output_raw.servo5_raw)
+			|| is_servo_changed(m_servo_output_raw.servo6_raw, servo_output_raw.servo6_raw)
+			|| is_servo_changed(m_servo_output_raw.servo7_raw, servo_output_raw.servo7_raw)
+			|| is_servo_changed(m_servo_output_raw.servo8_raw, servo_output_raw.servo8_raw)
+			|| is_servo_changed(m_servo_output_raw.servo9_raw, servo_output_raw.servo9_raw)
+			|| is_servo_changed(m_servo_output_raw.servo10_raw, servo_output_raw.servo10_raw)
+			|| is_servo_changed(m_servo_output_raw.servo11_raw, servo_output_raw.servo11_raw)
+			|| is_servo_changed(m_servo_output_raw.servo12_raw, servo_output_raw.servo12_raw)
+			|| is_servo_changed(m_servo_output_raw.servo13_raw, servo_output_raw.servo13_raw)
+			|| is_servo_changed(m_servo_output_raw.servo14_raw, servo_output_raw.servo14_raw)
+			|| is_servo_changed(m_servo_output_raw.servo15_raw, servo_output_raw.servo15_raw)
+			|| is_servo_changed(m_servo_output_raw.servo16_raw, servo_output_raw.servo16_raw)
+		)
+		{
+			changed = true;
+		}
+	}
+
+	std::cout << "changed:" << changed << std::endl;
 	m_servo_output_raw = servo_output_raw;
-	m_callback_vehicle->OnServoOutputRaw(servo_output_raw);
+	m_callback_vehicle->OnServoOutputRaw(servo_output_raw, changed);
 }
 
 

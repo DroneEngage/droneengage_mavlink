@@ -100,7 +100,7 @@ namespace mavlinksdk
         virtual void OnStatusText (const std::uint8_t& severity, const std::string& status)                                             {};
         virtual void OnModeChanges(const uint32_t& custom_mode, const int& firmware_type, const MAV_AUTOPILOT& autopilot)               {};
         virtual void OnHomePositionUpdated(const mavlink_home_position_t& home_position)                                                {};
-        virtual void OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw)                                               {};
+        virtual void OnServoOutputRaw(const mavlink_servo_output_raw_t& servo_output_raw, const bool& changed)                          {};
         virtual void OnHighLatencyModeChanged (const int& latency_mode)                                                                 {};
         virtual void OnHighLatencyMessageReceived (const int& latency_mode)                                                             {};
         virtual void OnEKFStatusReportChanged (const mavlink_ekf_status_report_t& ekf_status_report)                                    {};
