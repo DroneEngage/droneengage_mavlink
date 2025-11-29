@@ -119,7 +119,7 @@ bool CFCBMain::connectToFCB() {
     return true;
 
   case CONNECTION_TYPE_TCP:
-    std::cout << _INFO_CONSOLE_TEXT << "UDP Connection Initializing"
+    std::cout << _INFO_CONSOLE_TEXT << "TCP Connection Initializing"
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
     m_mavlink_sdk.connectTCP(
         (m_jsonConfig["fcb_connection_uri"])["ip"].get<std::string>().c_str(),
