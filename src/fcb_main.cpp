@@ -1013,10 +1013,18 @@ void CFCBMain::OnHomePositionUpdated(
 }
 
 void CFCBMain::OnServoOutputRaw(
-    const mavlink_servo_output_raw_t &servo_output_raw) {
+    const mavlink_servo_output_raw_t &servo_output_raw, const bool& changed) {
 
   m_event_time_divider = m_event_time_divider + 1;
   m_event_time_divider = m_event_time_divider % EVENT_TIME_DIVIDER;
+  
+  if (changed)
+  {
+    m_fcb_facade.sendServoReadings(std::string());
+  }
+ 
+
+  // Handle DroneEngage Events Stored AS Servo Status
   if (m_event_time_divider == 0) {
     de::fcb::mission::CMissionManager::getInstance().readFiredEventFromFCB(
         servo_output_raw);
