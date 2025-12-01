@@ -313,7 +313,6 @@ void mavlinksdk::CVehicle::handle_servo_output_raw  (const mavlink_servo_output_
 		}
 	}
 
-	std::cout << "changed:" << changed << std::endl;
 	m_servo_output_raw = servo_output_raw;
 	m_callback_vehicle->OnServoOutputRaw(servo_output_raw, changed);
 }
