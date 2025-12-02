@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <cstdint>
+#include <string>
 
 namespace mavlinksdk
 {
@@ -79,6 +80,11 @@ namespace mavlinksdk
             const bool isParametersListAvailable() const
             {
                 return (m_parameter_read_mode== mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LIST_LOADED);
+            }
+
+            bool isParameterExistsByName(const std::string& param_name) const
+            {
+                return m_parameters_list.find(param_name) != m_parameters_list.end();
             }
 
 
