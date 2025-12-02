@@ -1208,9 +1208,9 @@ void CFCBMain::calculateChannels(const int16_t scaled_channels[18],
  * @callgraph
  */
 void CFCBMain::releaseRemoteControl() {
-  if (m_andruav_vehicle_info.rc_sub_action ==
-      RC_SUB_ACTION::RC_SUB_ACTION_RELEASED)
-    return;
+  #ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: RELEASE RC" << std::string() << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+  #endif
 
   memset(m_andruav_vehicle_info.rc_channels, 0,
          RC_CHANNELS_MAX * sizeof(int16_t));
@@ -1230,6 +1230,10 @@ void CFCBMain::releaseRemoteControl() {
  *
  */
 void CFCBMain::centerRemoteControl() {
+  #ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:" << std::string() << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+  #endif
+
   if (m_andruav_vehicle_info.rc_sub_action ==
       RC_SUB_ACTION::RC_SUB_ACTION_CENTER_CHANNELS)
     return;
@@ -1404,6 +1408,10 @@ void CFCBMain::adjustRemoteJoystickByMode(RC_SUB_ACTION rc_sub_action) {
     }
   } break;
   }
+
+  #ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: END OF FUNCTION" << std::string() << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+  #endif
 }
 
 void CFCBMain::updateTrackingControlChannels(
