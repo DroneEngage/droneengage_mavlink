@@ -957,6 +957,15 @@ void CMavlinkCommand::ctrlGuidedVelocityInLocalFrame (const float vx, const floa
 
 	m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
+	#ifdef DEBUG
+		std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT 
+					<< std::to_string(mavlink_set_position.vx) << " - "
+					<< std::to_string(mavlink_set_position.vy) << " - "
+					<< std::to_string(mavlink_set_position.vz) << " - "
+					<< std::to_string(mavlink_set_position.yaw_rate) 
+					<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+	#endif
+		
 	return ;
 }
 

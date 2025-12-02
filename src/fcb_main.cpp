@@ -458,7 +458,7 @@ void CFCBMain::remoteControlSignal() {
     // if no RC message has been received since a while change to BreakMode.
     // unless you are in LANDED mode.
     if (now - m_andruav_vehicle_info.rc_command_last_update_time >
-        RCCHANNEL_OVERRIDES_TIMEOUT) {
+        m_rcmap_channels_info.rc_override_time) {
       if (m_andruav_vehicle_info.flying_mode != VEHICLE_MODE_LAND) {
         m_andruav_vehicle_info.rc_command_active = false;
 
@@ -488,7 +488,7 @@ void CFCBMain::remoteControlSignal() {
 
   case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED: {
     if (now - m_andruav_vehicle_info.rc_command_last_update_time >
-        RCCHANNEL_OVERRIDES_TIMEOUT) {
+        m_rcmap_channels_info.rc_override_time) {
       releaseRemoteControl();
 
       // if RC Timeout then switch to brake or equivelant mode.
@@ -1231,7 +1231,7 @@ void CFCBMain::releaseRemoteControl() {
  */
 void CFCBMain::centerRemoteControl() {
   #ifdef DEBUG
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:" << std::string() << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:RC:" << std::string() << _NORMAL_CONSOLE_TEXT_ << std::endl;  
   #endif
 
   if (m_andruav_vehicle_info.rc_sub_action ==
@@ -1334,6 +1334,10 @@ void CFCBMain::enableRemoteControl() {
     return;
   }
 
+  #ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:RC:" << std::string() << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+  #endif
+
   m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
   m_andruav_vehicle_info.rc_command_active =
       false; // remote control data will enable it
@@ -1358,6 +1362,10 @@ void CFCBMain::enableRemoteControlGuided() {
         std::string("Error: RCMAP Channels not Ready."));
     return;
   }
+
+  #ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:RC:" << std::string() << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+  #endif
 
   m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
   m_andruav_vehicle_info.rc_command_active =
@@ -1410,7 +1418,7 @@ void CFCBMain::adjustRemoteJoystickByMode(RC_SUB_ACTION rc_sub_action) {
   }
 
   #ifdef DEBUG
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: END OF FUNCTION" << std::string() << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:RC: END OF FUNCTION" << std::string() << _NORMAL_CONSOLE_TEXT_ << std::endl;  
   #endif
 }
 
@@ -1527,28 +1535,60 @@ void CFCBMain::updateRemoteControlChannels(
     calculateChannels(rc_channels, true, rc_chammels_pwm);
     if ((m_rcmap_channels_info.use_smart_rc) &&
         (m_rcmap_channels_info.is_valid)) {
-      mavlinksdk::CMavlinkCommand::getInstance().ctrlGuidedVelocityInLocalFrame(
-          !m_andruav_vehicle_info
-                  .rc_channels_enabled[m_rcmap_channels_info.rcmap_pitch]
-              ? 0
-              : (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_pitch]) /
-                    100.0f,
-          !m_andruav_vehicle_info
-                  .rc_channels_enabled[m_rcmap_channels_info.rcmap_roll]
-              ? 0
-              : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_roll] - 1500) /
-                    100.0f,
-          !m_andruav_vehicle_info
-                  .rc_channels_enabled[m_rcmap_channels_info.rcmap_throttle]
-              ? 0
-              : (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle]) /
-                    100.0f,
-          !m_andruav_vehicle_info
-                  .rc_channels_enabled[m_rcmap_channels_info.rcmap_yaw]
-              ? 0
-              : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw] - 1500) /
-                    1000.0f,
-          MAV_FRAME_BODY_OFFSET_NED);
+
+      switch (m_andruav_vehicle_info.vehicle_type)
+      {
+        case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_ROVER:
+        case ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_BOAT:
+          mavlinksdk::CMavlinkCommand::getInstance().ctrlGuidedVelocityInLocalFrame(
+              !m_andruav_vehicle_info
+                      .rc_channels_enabled[m_rcmap_channels_info.rcmap_throttle]
+                  ? 0
+                  : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle]-1500) /
+                      100.0f,
+            !m_andruav_vehicle_info
+                    .rc_channels_enabled[m_rcmap_channels_info.rcmap_yaw]
+                ? 0
+                : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw] - 1500) /
+                      100.0f,
+            !m_andruav_vehicle_info
+                    .rc_channels_enabled[m_rcmap_channels_info.rcmap_pitch]
+                ? 0
+                : (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_pitch]) /
+                      100.0f,
+            !m_andruav_vehicle_info
+                    .rc_channels_enabled[m_rcmap_channels_info.rcmap_roll] // steering here
+                ? 0
+                : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_roll] - 1500) /
+                      1000.0f,
+            MAV_FRAME_BODY_OFFSET_NED);
+        break;
+        default:
+          mavlinksdk::CMavlinkCommand::getInstance().ctrlGuidedVelocityInLocalFrame(
+              !m_andruav_vehicle_info
+                      .rc_channels_enabled[m_rcmap_channels_info.rcmap_pitch]
+                  ? 0
+                  : (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_pitch]) /
+                      100.0f,
+            !m_andruav_vehicle_info
+                    .rc_channels_enabled[m_rcmap_channels_info.rcmap_roll]
+                ? 0
+                : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_roll] - 1500) /
+                      100.0f,
+            !m_andruav_vehicle_info
+                    .rc_channels_enabled[m_rcmap_channels_info.rcmap_throttle]
+                ? 0
+                : (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle]) /
+                      100.0f,
+            !m_andruav_vehicle_info
+                    .rc_channels_enabled[m_rcmap_channels_info.rcmap_yaw]
+                ? 0
+                : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw] - 1500) /
+                      1000.0f,
+            MAV_FRAME_BODY_OFFSET_NED);
+        break;
+      }
+        
     } else {
       mavlinksdk::CMavlinkCommand::getInstance().ctrlGuidedVelocityInLocalFrame(
           (1500 - rc_chammels_pwm[1]) / 100.0f,
@@ -1599,7 +1639,31 @@ void CFCBMain::update_rcmap_info() {
     rcmap = parameter_manager.getParameterByName("RCMAP_YAW");
     m_rcmap_channels_info.rcmap_yaw = (uint16_t)rcmap.param_value - 1;
 
+    if (parameter_manager.isParameterExistsByName("RC_OVERRIDE_TIME"))
+    {
+      rcmap = parameter_manager.getParameterByName("RC_OVERRIDE_TIME");
+      if (rcmap.param_value == -1)
+      {
+        m_rcmap_channels_info.rc_override_time = UINT32_MAX; /// wait forever
+      }
+      else
+      {
+        m_rcmap_channels_info.rc_override_time = (uint32_t)(rcmap.param_value * 1000000);
+      }
+    }
+
     m_rcmap_channels_info.is_valid = true;
+
+
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "RCMAP_CHANNELS_MAP_INFO_STRUCT: " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "rcmap_pitch: " << _INFO_CONSOLE_BOLD_TEXT << m_rcmap_channels_info.rcmap_pitch << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "rcmap_roll: " << _INFO_CONSOLE_BOLD_TEXT << m_rcmap_channels_info.rcmap_roll << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "rcmap_throttle: " << _INFO_CONSOLE_BOLD_TEXT << m_rcmap_channels_info.rcmap_throttle << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "rcmap_yaw: " << _INFO_CONSOLE_BOLD_TEXT << m_rcmap_channels_info.rcmap_yaw << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "rc_override_time: " << _INFO_CONSOLE_BOLD_TEXT << m_rcmap_channels_info.rc_override_time << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "is_valid: " << _INFO_CONSOLE_BOLD_TEXT << m_rcmap_channels_info.is_valid  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "use_smart_rc: " << _INFO_CONSOLE_BOLD_TEXT << m_rcmap_channels_info.use_smart_rc << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "--------------------------------" << std::endl;
   } break;
 
   case MAV_AUTOPILOT::MAV_AUTOPILOT_PX4: {
