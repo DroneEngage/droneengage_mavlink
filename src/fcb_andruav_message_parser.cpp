@@ -514,6 +514,7 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
 
     m_fcbMain.updateRemoteControlChannels(rc_channels);
   }
+  break;
 
   // This message was using for Telemetry. It has been replaced with UDPProxy
   // However the message itself is still valid and can be used to send mavlink
