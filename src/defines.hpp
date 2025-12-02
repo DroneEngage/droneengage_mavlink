@@ -2,6 +2,7 @@
 #define DEFINES_H_
 
 
+#include <cstdint>
 #include <iostream>
 #include <all/mavlink.h>
 
@@ -15,7 +16,7 @@
 #define TelemetryProtocol_No_Telemetry       0
 #define TelemetryProtocol_DroneKit_Telemetry 4
 
-// 3 seconds timeout
+// 3 seconds timeout // this can be determined by RC_OVERRIDE_TIME param
 #define RCCHANNEL_OVERRIDES_TIMEOUT 3000000 
 #define BLOCKING_CHANNEL_HIGH_ACTIVE_PWM 1800
 
@@ -148,6 +149,8 @@ typedef struct
     uint16_t rcmap_roll;
     uint16_t rcmap_throttle;
     uint16_t rcmap_yaw;
+
+    uint32_t rc_override_time = RCCHANNEL_OVERRIDES_TIMEOUT; // microseconds ... read from RC_OVERRIDE_TIME
     /**
      * @brief if true then rc_map is valid and can be used for mapping.
      * 
