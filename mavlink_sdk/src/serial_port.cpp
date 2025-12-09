@@ -52,6 +52,9 @@
 //   Includes
 // ------------------------------------------------------------------------------
 #include <sstream>
+#include <algorithm>
+#include <thread>
+#include <chrono>
 #include "serial_port.h"
 
 
@@ -67,9 +70,24 @@ mavlinksdk::comm::SerialPort::
 SerialPort(const char *uart_name , int baudrate, const bool dynamic)
 {
 	initialize_defaults();
-	_uart_name = std::string(uart_name);
-	_baudrate  = baudrate;
-	_dynamic = dynamic;
+	std::string port_str(uart_name);
+	
+	// Check if port is "none" or empty - enable auto-detect mode
+	std::transform(port_str.begin(), port_str.end(), port_str.begin(), ::tolower);
+	if (port_str == "auto" || port_str.empty())
+	{
+		_auto_detect = true;
+		_dynamic = true; // Force dynamic mode for auto-detect
+		_init_port_patterns();
+		std::cout << _INFO_CONSOLE_TEXT << "Auto-detect mode enabled. Will scan common serial ports." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	}
+	else
+	{
+		_auto_detect = false;
+		_uart_name = std::string(uart_name);
+		_dynamic = dynamic;
+	}
+	_baudrate = baudrate;
 }
 
 mavlinksdk::comm::SerialPort::
@@ -93,7 +111,9 @@ initialize_defaults()
 	// Initialize attributes
 	debug  = false;
 	fd     = -1;
-	_is_open = false;
+	_is_running = false;
+	_auto_detect = false;
+	_pattern_index = 0;
 
 	_uart_name = std::string("/dev/ttyUSB0");
 	_baudrate  = 57600;
@@ -231,27 +251,35 @@ start()
 		
 	_got_mavlink = false;
 	
-	std::ostringstream uart_name;
+	std::string port_to_try;
 	
-	uart_name << _uart_name;
-
-	if (_dynamic)
+	if (_auto_detect)
 	{
+		// Get next port candidate from the pattern list
+		port_to_try = _get_next_port_candidate();
+	}
+	else if (_dynamic)
+	{
+		// Original dynamic behavior: append index to base port name
 		_portext++;
 		_portext = _portext % 10;
-		
-		uart_name << std::to_string(_portext);
-		
+		port_to_try = _uart_name + std::to_string(_portext);
 	}
-	std::cout << _INFO_CONSOLE_TEXT  << " Try to open serial port: " << _SUCCESS_CONSOLE_TEXT_ << uart_name.str()  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	else
+	{
+		// Static port
+		port_to_try = _uart_name;
+	}
 	
-	fd = _open_port(uart_name.str().c_str());
+	std::cout << _INFO_CONSOLE_TEXT  << " Try to open serial port: " << _SUCCESS_CONSOLE_TEXT_ << port_to_try  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	
+	fd = _open_port(port_to_try.c_str());
 
 	// Check success
 	if (fd == -1)
 	{
-		_is_open = true;
-		std::cout << _ERROR_CONSOLE_BOLD_TEXT_  << "Failure," << _ERROR_CONSOLE_TEXT_ << " could not configure port: "  << _INFO_CONSOLE_TEXT << uart_name.str() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+		_is_running = true; // module still active ... false when close is called
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_  << "Failure," << _ERROR_CONSOLE_TEXT_ << " could not configure port: "  << _INFO_CONSOLE_TEXT << port_to_try << _NORMAL_CONSOLE_TEXT_ << std::endl;
 		return ;
 	}
 
@@ -273,10 +301,10 @@ start()
 	// --------------------------------------------------------------------------
 	//   CONNECTED!
 	// --------------------------------------------------------------------------
-	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_  << "SUCCESS: " << _SUCCESS_CONSOLE_TEXT_ << "Connection attempt to port " << _INFO_CONSOLE_TEXT <<  uart_name.str() << _SUCCESS_CONSOLE_BOLD_TEXT_ << " with "<< _baudrate << " baud, 8 data bits, no parity, 1 stop bit (8N1)." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_  << "SUCCESS: " << _SUCCESS_CONSOLE_TEXT_ << "Connection attempt to port " << _INFO_CONSOLE_TEXT <<  port_to_try << _SUCCESS_CONSOLE_BOLD_TEXT_ << " with "<< _baudrate << " baud, 8 data bits, no parity, 1 stop bit (8N1)." << _NORMAL_CONSOLE_TEXT_ << std::endl;
 	lastStatus.packet_rx_drop_count = 0;
 
-	_is_open = true;
+	_is_running = true;
 
 	return;
 }
@@ -289,6 +317,10 @@ void mavlinksdk::comm::SerialPort::stop()
 {
 	_reOpen = false;
 	closePort();
+	
+	// Reset port scanning counters for next start()
+	_portext = -1;
+	_pattern_index = 0;
 }
 
 void mavlinksdk::comm::SerialPort::closePort ()
@@ -302,7 +334,7 @@ void mavlinksdk::comm::SerialPort::closePort ()
 		std::cout << _INFO_CONSOLE_TEXT << "WARNING: Error on port close (" << result << ")" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
 	}
 
-	_is_open = false;
+	_is_running = false;
 
 	printf("\n");
 }
@@ -314,28 +346,40 @@ bool mavlinksdk::comm::SerialPort::_try_reopen()
 	// --------------------------------------------------------------------------
 	
 	if (!_reOpen) return false;
-	std::ostringstream uart_name;
+	
+	// Back-off delay to prevent CPU storm when device is unplugged
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	
 	closePort();
 
-	uart_name << _uart_name;
-
-	if (_dynamic)
+	std::string port_to_try;
+	
+	if (_auto_detect)
 	{
+		// Get next port candidate from the pattern list
+		port_to_try = _get_next_port_candidate();
+	}
+	else if (_dynamic)
+	{
+		// Original dynamic behavior: append index to base port name
 		_portext++;
 		_portext = _portext % 10;
-		
-		uart_name << std::to_string(_portext);
-		
+		port_to_try = _uart_name + std::to_string(_portext);
 	}
-	std::cout << _INFO_CONSOLE_TEXT  << " Try to open serial port: " << _SUCCESS_CONSOLE_TEXT_ << uart_name.str()  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-	fd = _open_port(uart_name.str().c_str());
+	else
+	{
+		// Static port
+		port_to_try = _uart_name;
+	}
+	
+	std::cout << _INFO_CONSOLE_TEXT  << " Try to open serial port: " << _SUCCESS_CONSOLE_TEXT_ << port_to_try  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	fd = _open_port(port_to_try.c_str());
 
 
 	// Check success
 	if (fd == -1)
 	{
-		std::cout << _ERROR_CONSOLE_BOLD_TEXT_  << "failure, could not configure port: "  << _INFO_CONSOLE_TEXT << uart_name.str() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+		std::cout << _ERROR_CONSOLE_BOLD_TEXT_  << "failure, could not configure port: "  << _INFO_CONSOLE_TEXT << port_to_try << _NORMAL_CONSOLE_TEXT_ << std::endl;
 		return false; // return here to try again.
 	}
 
@@ -357,11 +401,63 @@ bool mavlinksdk::comm::SerialPort::_try_reopen()
 	// --------------------------------------------------------------------------
 	//   CONNECTED!
 	// --------------------------------------------------------------------------
-	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_  << "SUCCESS: " << _SUCCESS_CONSOLE_TEXT_ << "Connection attempt to port " << _INFO_CONSOLE_TEXT <<  uart_name.str() << _SUCCESS_CONSOLE_BOLD_TEXT_ << " with "<< _baudrate << " baud, 8 data bits, no parity, 1 stop bit (8N1)." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_  << "SUCCESS: " << _SUCCESS_CONSOLE_TEXT_ << "Connection attempt to port " << _INFO_CONSOLE_TEXT <<  port_to_try << _SUCCESS_CONSOLE_BOLD_TEXT_ << " with "<< _baudrate << " baud, 8 data bits, no parity, 1 stop bit (8N1)." << _NORMAL_CONSOLE_TEXT_ << std::endl;
 	lastStatus.packet_rx_drop_count = 0;
 
-	_is_open = true;
+	_is_running = true;
 	return true;
+}
+
+// ------------------------------------------------------------------------------
+//   Helper Function - Initialize Port Patterns for Auto-Detect
+// ------------------------------------------------------------------------------
+void
+mavlinksdk::comm::SerialPort::
+_init_port_patterns()
+{
+	// Common serial port patterns on Linux systems
+	// Each pattern will be appended with indices 0-9
+	_port_patterns = {
+		"/dev/ttyUSB",    // USB-to-Serial adapters (FTDI, CH340, CP210x, etc.)
+		"/dev/ttyACM",    // USB CDC ACM devices (Arduino, STM32, etc.)
+		"/dev/ttyAMA",    // Raspberry Pi hardware UART (Pi 3/4 Bluetooth UART)
+		"/dev/ttyS",      // Standard serial ports (PC COM ports, RPi mini UART)
+		"/dev/serial/by-id/",  // Symlinks by device ID (more stable)
+	};
+	_pattern_index = 0;
+}
+
+// ------------------------------------------------------------------------------
+//   Helper Function - Get Next Port Candidate for Auto-Detect
+// ------------------------------------------------------------------------------
+std::string
+mavlinksdk::comm::SerialPort::
+_get_next_port_candidate()
+{
+	if (_port_patterns.empty())
+	{
+		_init_port_patterns();
+	}
+	
+	// Calculate which pattern and which index within that pattern
+	size_t total_ports_per_pattern = 10; // 0-9 for each pattern
+	size_t pattern_idx = _pattern_index / total_ports_per_pattern;
+	size_t port_idx = _pattern_index % total_ports_per_pattern;
+	
+	// Wrap around if we've exhausted all patterns
+	if (pattern_idx >= _port_patterns.size())
+	{
+		_pattern_index = 0;
+		pattern_idx = 0;
+		port_idx = 0;
+	}
+	
+	std::string port_candidate = _port_patterns[pattern_idx] + std::to_string(port_idx);
+	
+	// Increment for next call
+	_pattern_index++;
+	
+	return port_candidate;
 }
 
 // ------------------------------------------------------------------------------
@@ -453,11 +549,8 @@ _setup_port(int baud, int data_bits, int stop_bits, bool parity, bool hardware_c
 	// One input byte is enough to return from read()
 	// Inter-character timer off
 	config.c_cc[VMIN]  = 1;
-	config.c_cc[VTIME] = 10; // was 0
+	config.c_cc[VTIME] = 5; // wait for 500ms
 
-	// Get the current options for the port
-	////struct termios options;
-	////tcgetattr(fd, &options);
 
 	// Apply baudrate
 	switch (baud)
@@ -569,7 +662,7 @@ _read_port(uint8_t &cp)
 	{
 	int rv;
 	fd_set set;
-	struct timeval timeout = {1, 0};
+	struct timeval timeout = {0, 500000};
 	FD_ZERO(&set); /* clear the set */
   	FD_SET(fd, &set); /* add our file descriptor to the set */
 	rv = select(fd + 1, &set, NULL, NULL, &timeout);
