@@ -57,6 +57,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <stdio.h>   // Standard input/output definitions
+#include <vector>
+#include <string>
 #include <unistd.h>  // UNIX standard function definitions
 #include <fcntl.h>   // File control definitions
 #include <termios.h> // POSIX terminal control definitions
@@ -118,7 +120,7 @@ namespace comm
 			int write_message(const mavlink_message_t &message) override ;
 
 			bool is_running() override {
-				return _is_open;
+				return _is_running;
 			}
 			void start() override ;
 			void stop() override ;
@@ -135,12 +137,20 @@ namespace comm
 			bool debug;
 			std::string _uart_name;
 			int  _baudrate;
-			bool _is_open;
+			// _is_running: true when module is in "started" state (not necessarily connected)
+			bool _is_running;
 			bool _reOpen = true;
 			bool _got_mavlink;
 			bool _dynamic;
 			uint8_t _portext = -1;
-			
+		
+			// Generic port scanning when port is "none"
+			bool _auto_detect;
+			std::vector<std::string> _port_patterns;
+			size_t _pattern_index = 0;
+		
+			void _init_port_patterns();
+			std::string _get_next_port_candidate();
 			
 			int  _open_port(const char* port);
 			bool  _try_reopen();
