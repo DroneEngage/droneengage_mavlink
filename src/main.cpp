@@ -314,7 +314,7 @@ void initDEModule(int argc, char *argv[]) {
   const Json_de &jsonConfig = cConfigFile.GetConfigJSON();
   CLocalConfigFile &cLocalConfigFile = de::CLocalConfigFile::getInstance();
 
-  cModule.defineModule(MODULE_CLASS_FCB, jsonConfig["module_id"],
+  cModule.defineModule(MODULE_CLASS_FCB, trim(jsonConfig["module_id"]),
                        cLocalConfigFile.getStringField("module_key"),
                        version_string, Json_de::array(MESSAGE_FILTER));
 
