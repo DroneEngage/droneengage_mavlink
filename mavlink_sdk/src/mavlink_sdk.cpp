@@ -9,6 +9,7 @@ using namespace mavlinksdk;
 void CMavlinkSDK::start(mavlinksdk::CMavlinkEvents *mavlink_events)
 {
     this->m_mavlink_events = mavlink_events;
+    this->m_stopped_called = false;
 
     this->m_port.get()->start();
 
@@ -47,8 +48,17 @@ void CMavlinkSDK::connectTCP(const char *target_ip, const int tcp_port)
 
 void CMavlinkSDK::stop()
 {
+    // Stop the communicator first (this will join the read thread)
+    if (this->m_communicator.get() != nullptr)
+    {
+        this->m_communicator.get()->stop();
+        this->m_communicator.reset();
+    }
+    
+    // Then stop the port
     if (this->m_port.get() != nullptr)
         this->m_port.get()->stop();
+    
     this->m_stopped_called = true;
 }
 
