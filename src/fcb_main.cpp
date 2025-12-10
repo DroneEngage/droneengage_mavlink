@@ -95,6 +95,15 @@ int CFCBMain::getConnectionType() const {
  * @return false
  */
 bool CFCBMain::connectToFCB() {
+  
+  
+  de::CConfigFile &cConfigFile = CConfigFile::getInstance();
+  m_jsonConfig = cConfigFile.GetConfigJSON();
+  
+  // Stop any existing connection before creating a new one
+  // This allows safe re-calling of connectToFCB without corrupting the connection
+  m_mavlink_sdk.stop();
+
   m_connection_type = getConnectionType();
 
   switch (m_connection_type) {
@@ -588,6 +597,10 @@ void CFCBMain::loopScheduler() {
 
         // call modules needs to reload parameters
 
+        if (connectToFCB() == true) {
+          m_mavlink_sdk.start(this);
+        }
+
         initVehicleChannelLimits();
 
         de::fcb::tracking::CTrackingManager &cTracking_manager =
@@ -609,6 +622,8 @@ void CFCBMain::loopScheduler() {
     }
 
     if (m_counter % 1500 == 0) { // 15 sec
+
+      
     }
   }
 
