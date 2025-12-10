@@ -37,9 +37,11 @@ void mavlinksdk::comm::CMavlinkCommunicator::stop ()
 	// signal exit
 	m_time_to_exit = true;
 
-	// wait for exit
-	
-	m_threadRead.join();
+	// wait for exit (only if thread was started and is joinable)
+	if (m_threadRead.joinable())
+	{
+		m_threadRead.join();
+	}
 
 	// now the read and write threads are closed
 	std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Mavlink Communicator has Stopped" << _NORMAL_CONSOLE_TEXT_ << std::endl;    
