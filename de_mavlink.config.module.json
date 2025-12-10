@@ -28,7 +28,7 @@
   "fcb_connection_uri":
   {
     "type": "serial",
-    "port": "/dev/ttyUSB1",
+    "port": "auto",
     "baudrate": 115200,
     "dynamic": false
   },
