@@ -68,8 +68,10 @@ void CFCBMain::OnMessageReceived(const de::comm::CUDPProxy *udp_proxy,
  * @return int
  */
 int CFCBMain::getConnectionType() const {
-  std::string connection = str_tolower(
-      m_jsonConfig["fcb_connection_uri"]["type"].get<std::string>());
+  std::string connection =
+      trim(m_jsonConfig["fcb_connection_uri"]["type"].get<std::string>());
+
+  connection = str_tolower(connection);
 
   std::size_t found = connection.find("serial");
   if (found != std::string::npos)
@@ -105,7 +107,7 @@ bool CFCBMain::connectToFCB() {
     std::cout << _INFO_CONSOLE_TEXT << "Serial Connection Initializing"
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
     m_mavlink_sdk.connectSerial(
-        (m_jsonConfig["fcb_connection_uri"])["port"].get<std::string>().c_str(),
+        trim((m_jsonConfig["fcb_connection_uri"])["port"].get<std::string>()).c_str(),
         (m_jsonConfig["fcb_connection_uri"])["baudrate"].get<int>(), dynamic);
   }
     return true;
