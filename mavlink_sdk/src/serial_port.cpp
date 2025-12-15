@@ -422,7 +422,7 @@ _init_port_patterns()
 		"/dev/ttyACM",    // USB CDC ACM devices (Arduino, STM32, etc.)
 		"/dev/ttyAMA",    // Raspberry Pi hardware UART (Pi 3/4 Bluetooth UART)
 		"/dev/ttyS",      // Standard serial ports (PC COM ports, RPi mini UART)
-		"/dev/serial/by-id/",  // Symlinks by device ID (more stable)
+		//"/dev/serial/by-id/",  // Symlinks by device ID (more stable)
 	};
 	_pattern_index = 0;
 }
@@ -549,7 +549,7 @@ _setup_port(int baud, int data_bits, int stop_bits, bool parity, bool hardware_c
 	// One input byte is enough to return from read()
 	// Inter-character timer off
 	config.c_cc[VMIN]  = 1;
-	config.c_cc[VTIME] = 5; // wait for 500ms
+	config.c_cc[VTIME] = 10; // was 0
 
 
 	// Apply baudrate
@@ -662,7 +662,7 @@ _read_port(uint8_t &cp)
 	{
 	int rv;
 	fd_set set;
-	struct timeval timeout = {0, 500000};
+	struct timeval timeout = {1, 0};
 	FD_ZERO(&set); /* clear the set */
   	FD_SET(fd, &set); /* add our file descriptor to the set */
 	rv = select(fd + 1, &set, NULL, NULL, &timeout);
