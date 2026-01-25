@@ -172,37 +172,51 @@ bool CFCBMain::init() {
         m_jsonConfig["udp_proxy_enabled"].get<bool>();
   }
 
-  if (m_jsonConfig.contains("only_allow_ardupilot_sysid") &&
-      m_jsonConfig["only_allow_ardupilot_sysid"].is_number()) {
-    const uint32_t sys_id =
-        m_jsonConfig["only_allow_ardupilot_sysid"].get<int>();
+  if (m_jsonConfig.contains("mavlink_ids") && m_jsonConfig["mavlink_ids"].is_object()) {
+    auto& mavlink_ids = m_jsonConfig["mavlink_ids"];
+    
+    if (mavlink_ids.contains("only_allow_ardupilot_sysid") &&
+        mavlink_ids["only_allow_ardupilot_sysid"].is_number()) {
+      const uint32_t sys_id = mavlink_ids["only_allow_ardupilot_sysid"].get<int>();
+      std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Variable "
+                << _INFO_CONSOLE_BOLD_TEXT << " only_allow_ardupilot_sysid "
+                << _SUCCESS_CONSOLE_BOLD_TEXT_ << " is set to "
+                << _INFO_CONSOLE_BOLD_TEXT << sys_id << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+      std::cout << _INFO_CONSOLE_BOLD_TEXT << "NOTE OTHER SYS-IDs will be"
+                << _ERROR_CONSOLE_BOLD_TEXT_ << " IGNORED"
+                << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Variable "
-              << _INFO_CONSOLE_BOLD_TEXT << " only_allow_ardupilot_sysid "
-              << _SUCCESS_CONSOLE_BOLD_TEXT_ << " is set to "
-              << _INFO_CONSOLE_BOLD_TEXT << sys_id << _NORMAL_CONSOLE_TEXT_
-              << std::endl;
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "NOTE OTHER SYS-IDs will be"
-              << _ERROR_CONSOLE_BOLD_TEXT_ << " IGNORED"
-              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+      m_vehicle.restrictMessageToSysID(sys_id);
+    }
 
-    m_vehicle.restrictMessageToSysID(sys_id);
-  }
+    if (mavlink_ids.contains("only_allow_ardupilot_compid") &&
+        mavlink_ids["only_allow_ardupilot_compid"].is_number()) {
+      const uint32_t comp_id = mavlink_ids["only_allow_ardupilot_compid"].get<int>();
+      std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Variable "
+                << _INFO_CONSOLE_BOLD_TEXT << " only_allow_ardupilot_compid "
+                << _SUCCESS_CONSOLE_BOLD_TEXT_ << " is set to "
+                << _INFO_CONSOLE_BOLD_TEXT << comp_id << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+      std::cout << _INFO_CONSOLE_BOLD_TEXT << "NOTE OTHER SYS-IDs will be"
+                << _ERROR_CONSOLE_BOLD_TEXT_ << " IGNORED"
+                << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-  if (m_jsonConfig.contains("only_allow_ardupilot_compid") &&
-      m_jsonConfig["only_allow_ardupilot_compid"].is_number()) {
-    const uint32_t comp_id =
-        m_jsonConfig["only_allow_ardupilot_compid"].get<int>();
-    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Variable "
-              << _INFO_CONSOLE_BOLD_TEXT << " only_allow_ardupilot_compid "
-              << _SUCCESS_CONSOLE_BOLD_TEXT_ << " is set to "
-              << _INFO_CONSOLE_BOLD_TEXT << comp_id << _NORMAL_CONSOLE_TEXT_
-              << std::endl;
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "NOTE OTHER SYS-IDs will be"
-              << _ERROR_CONSOLE_BOLD_TEXT_ << " IGNORED"
-              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+      m_vehicle.restrictMessageToCompID(comp_id);
+    }
 
-    m_vehicle.restrictMessageToCompID(comp_id);
+    if (mavlink_ids.contains("de_mavlink_gcs_id") &&
+        mavlink_ids["de_mavlink_gcs_id"].is_number()) {
+      const int32_t gcs_id = mavlink_ids["de_mavlink_gcs_id"].get<int>();
+      std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Variable "
+                << _INFO_CONSOLE_BOLD_TEXT << " de_mavlink_gcs_id "
+                << _SUCCESS_CONSOLE_BOLD_TEXT_ << " is set to "
+                << _INFO_CONSOLE_BOLD_TEXT << gcs_id << _NORMAL_CONSOLE_TEXT_
+                << std::endl;
+      
+      // Set GCS ID in vehicle, handle special cases
+      m_vehicle.setGcsId(gcs_id);
+    }
   }
 
   m_udp_telemetry_fixed_port = 0;
