@@ -83,20 +83,15 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 		m_heart_beat_first_recieved = true;
 		m_callback_vehicle->OnHeartBeat_First (heartbeat);
 		
-		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_ALL);
-		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_RAW_CONTROLLER);
-		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_RAW_SENSORS);
-		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_RC_CHANNELS);
-		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_EXTENDED_STATUS);
-		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_EXTRA1);
-		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_EXTRA2);
-		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_EXTRA3);
+		requestDataStream();
 	}
 	else 
 	if ((now - time_stamps.getMessageTime(MAVLINK_MSG_ID_HEARTBEAT)) > HEART_BEAT_TIMEOUT)
 	{  // Notify when heart beat get live again.
 		m_callback_vehicle->OnHeartBeat_Resumed (heartbeat);
 		m_ready_to_arm_trigger_first_tick = false;
+
+		requestDataStream();
 	}
 
 	// Detect change in arm status
@@ -139,20 +134,15 @@ void mavlinksdk::CVehicle::handle_sys_status(const mavlink_sys_status_t& sys_sta
 	// Check if the pre-arm check bits are set correctly
     const bool prearm_ready = (sys_status.onboard_control_sensors_health & MAV_SYS_STATUS_PREARM_CHECK) != 0;
 
-	bool trigger_on_arm = false;
-	if (!m_ready_to_arm_trigger_first_tick || (prearm_ready != isReadyToArm()))
-	{
-		trigger_on_arm = true;
-		m_ready_to_arm_trigger_first_tick = true;
-	}
-
-
-	// Add more check here for sensors ...etc.
-
+	const bool is_ready_to_arm = isReadyToArm();
+	const bool state_changed = (prearm_ready != is_ready_to_arm);
+	
 	m_sys_status = sys_status;
-
-	if (trigger_on_arm)
+	if (state_changed)
 	{
+#ifdef DEBUG		
+		std::cout << "state_changed changed to " << is_ready_to_arm << " Sending Notification" << std::endl;
+#endif		
 		m_callback_vehicle->OnArmed(m_armed, prearm_ready);
 	}
 	
@@ -400,6 +390,18 @@ void mavlinksdk::CVehicle::handle_distance_sensor (const mavlink_distance_sensor
 	
 }
 
+
+void mavlinksdk::CVehicle::requestDataStream()
+{
+	mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_ALL);
+	mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_RAW_CONTROLLER);
+	mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_RAW_SENSORS);
+	mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_RC_CHANNELS);
+	mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_EXTENDED_STATUS);
+	mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_EXTRA1);
+	mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_EXTRA2);
+	mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_EXTRA3);
+}
 
 void mavlinksdk::CVehicle::exit_high_latency ()
 {
