@@ -1081,7 +1081,7 @@ void CFCBMain::OnParamReceived(const std::string &param_name,
                                const mavlink_param_value_t &param_message,
                                const bool &changed,
                                const bool &load_parameters_1st_iteration) {
-#ifdef DEBUG
+#ifdef DDEBUG
   std::cout << __FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "
             << _LOG_CONSOLE_TEXT << "DEBUG: " << std::string(param_name)
             << " : " << "count: " << std::to_string(param_message.param_index)

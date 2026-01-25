@@ -199,6 +199,9 @@ namespace mavlinksdk
             
             void handle_high_latency            (const int message_id);
             void exit_high_latency              ();
+            
+            void requestDataStream();
+        
 
         // Vechile Methods
         public:
