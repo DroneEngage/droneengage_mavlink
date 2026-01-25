@@ -203,5 +203,39 @@
                 "desc":"PID and Expo settings"
             }
         }   
+    },
+    {
+        "name": "MAVLink IDs",
+        "template": {
+            "MAVLink IDs": {
+                "fieldName": "mavlink_ids",
+                "type": "object",
+                "fields": {
+                    "only_allow_ardupilot_sysid": {
+                        "order": 1,
+                        "type": "number",
+                        "defaultvalue": 0,
+                        "desc": "Only receive mavlinks from specified system ID (0 = no restriction)",
+                        "optional": true
+                    },
+                    "only_allow_ardupilot_compid": {
+                        "order": 2,
+                        "type": "number",
+                        "defaultvalue": 0,
+                        "desc": "Only receive mavlinks from specified component ID (0 = no restriction)",
+                        "optional": true
+                    },
+                    "de_mavlink_gcs_id": {
+                        "order": 3,
+                        "type": "number",
+                        "defaultvalue": 255,
+                        "desc": "Local GCS system ID (0 = default 255, -1 = disable heartbeat)",
+                        "optional": false
+                    }
+                },
+                "optional": false,
+                "desc": "MAVLink system and component ID configuration"
+            }
+        }
     }
 ]

@@ -139,7 +139,7 @@ void CMavlinkCommand::requestMessageEmit(const uint32_t message_id) const
 
 }
 
-void CMavlinkCommand::sendHeartBeatOfGCS() const
+void CMavlinkCommand::sendHeartBeatOfGCS(const uint8_t gcs_id) const
 {
 	mavlink_heartbeat_t mavlink_heartbeat;
 	mavlink_heartbeat.autopilot = 8;
@@ -150,7 +150,7 @@ void CMavlinkCommand::sendHeartBeatOfGCS() const
 	mavlink_heartbeat.type = 6;
 	
 	mavlink_message_t mavlink_message;
-	mavlink_msg_heartbeat_encode(GCS_SYSID,0, &mavlink_message, &mavlink_heartbeat);
+	mavlink_msg_heartbeat_encode(gcs_id,0, &mavlink_message, &mavlink_heartbeat);
 	
 	m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 	return ;

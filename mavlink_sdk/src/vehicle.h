@@ -161,6 +161,16 @@ namespace mavlinksdk
                 m_compid = compid;
             }
 
+            inline const int& getGcsId () const
+            {
+                return m_gcs_id;
+            }
+            
+            inline const void setGcsId (const int& gcs_id) 
+            {
+                m_gcs_id = gcs_id;
+            }
+
         public:
 
             void set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* callback_vehicle);
@@ -591,6 +601,7 @@ namespace mavlinksdk
 
             int m_sysid{0};
             int m_compid{0};
+            int m_gcs_id{255};  // Default GCS ID
 
             uint32_t m_sys_id{NO_SYSID_RESTRICTION};
             uint32_t m_comp_id{NO_SYSID_RESTRICTION};

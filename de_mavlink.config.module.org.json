@@ -12,17 +12,17 @@
   
   // How to connect to Ardupilot board
   // Using udp connection
-  "fcb_connection_uri": 
-  {"type": "udp",
-   "ip": "0.0.0.0",
-   "port":14551
-  },
+  // "fcb_connection_uri": 
+  // {"type": "udp",
+  //  "ip": "0.0.0.0",
+  //  "port":14551
+  // },
    
-  //"fcb_connection_uri": 
-  //{"type": "tcp",
-  //"ip": "127.0.0.1",
-  //  "port":5760
-  //},
+  "fcb_connection_uri": 
+  {"type": "tcp",
+  "ip": "127.0.0.1",
+   "port":7600
+  },
 
   // Using serial interface: static port 
   // "fcb_connection_uri":
@@ -67,9 +67,14 @@
   
   "read_only_mode": false,
 
-  // if value not equal to zero then only recieve mavlinks of sysid specified in the value (optional-advanced). 
-  //"only_allow_ardupilot_sysid": 0,
+  "mavlink_ids": {
+        "de_mavlink_gcs_id": 255,
+        "only_allow_ardupilot_compid": 0,
+        // if value not equal to zero then only recieve mavlinks of sysid specified in the value (optional-advanced). 
+        "only_allow_ardupilot_sysid": 0
+    },
 
+  
   "message_timeouts":
   { 
         "0": [0,1000,2000,3000],

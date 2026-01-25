@@ -76,13 +76,13 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	m_heartbeat = heartbeat;
 	
 	const uint64_t now = get_time_usec();
-
+	
+		
 	if (m_heart_beat_first_recieved == false) 
 	{  // Notify that we have something alive here.
 		m_heart_beat_first_recieved = true;
 		m_callback_vehicle->OnHeartBeat_First (heartbeat);
 		
-		//mavlinksdk::CMavlinkCommand::getInstance().sendHeartBeatOfGCS();
 		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_ALL);
 		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_RAW_CONTROLLER);
 		mavlinksdk::CMavlinkCommand::getInstance().requestDataStream(MAV_DATA_STREAM::MAV_DATA_STREAM_RAW_SENSORS);
@@ -123,7 +123,14 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	{
 		m_callback_vehicle->OnModeChanges (m_heartbeat.custom_mode, m_heartbeat.type, (MAV_AUTOPILOT)m_heartbeat.autopilot);
 	}
-	
+
+
+	// Handle GCS ID configuration: 0 means default 255, -1 means don't send heartbeat
+	if (m_gcs_id != -1) {
+		uint8_t gcs_id_to_use = (m_gcs_id == 0) ? 255 : m_gcs_id;
+		mavlinksdk::CMavlinkCommand::getInstance().sendHeartBeatOfGCS(gcs_id_to_use);
+	}
+
 	return true;
 }
 
