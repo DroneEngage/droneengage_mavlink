@@ -455,7 +455,7 @@ void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
 	return ;
 }
 
-void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_message)
+bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_message)
 {
 
 	const u_int32_t msgid = mavlink_message.msgid;
@@ -464,6 +464,7 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
     // #endif
 
 	mavlink_message_temp = mavlink_message;
+	bool message_processed = true;
 
 	switch (mavlink_message.msgid)
 	{
@@ -481,7 +482,10 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 				time_stamps.setTimestamp(msgid, get_time_usec());
 				mavlinksdk::CMavlinkParameterManager::getInstance().handle_heart_beat (heartbeat);
 			}
-			return ;
+			else
+			{
+				message_processed = false;
+			}
 		}
         break;
 
@@ -851,4 +855,5 @@ void mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 	// update last so that messages can test delay such as on heartbeat resume
 	time_stamps.setTimestamp(msgid, get_time_usec());
 
+	return message_processed;
 }
