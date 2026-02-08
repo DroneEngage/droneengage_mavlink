@@ -649,26 +649,33 @@ void CFCBMain::loopScheduler() {
  *
  * @param mavlink_message
  */
-void CFCBMain::OnMessageReceived(const mavlink_message_t &mavlink_message) {
+void CFCBMain::OnMessageReceived(const mavlink_message_t &mavlink_message, const bool& processed_by_vehicle) {
 
   switch (mavlink_message.msgid) {
   case MAVLINK_MSG_ID_HEARTBEAT:
-    // this mavlink_message can be from internal components such as camera or
-    // ADSB check msg_heartbeat.type  before parsing or rely on the vehicle
-    // stored heartbeat message.
-    OnHeartBeat();
+    // only process heartbeat if it was validated by vehicle layer
+    if (processed_by_vehicle) {
+      // this mavlink_message can be from internal components such as camera or
+      // ADSB check msg_heartbeat.type  before parsing or rely on the vehicle
+      // stored heartbeat message.
+      OnHeartBeat();
+    }
     break;
 
   case MAVLINK_MSG_ID_COMMAND_LONG:
-    mavlink_command_long_t command_long;
-    mavlink_msg_command_long_decode(&mavlink_message, &(command_long));
+    // only process command_long if it was validated by vehicle layer
+    if (processed_by_vehicle) {
+      mavlink_command_long_t command_long;
+      mavlink_msg_command_long_decode(&mavlink_message, &(command_long));
 
-    OnCommandLong(command_long);
+      OnCommandLong(command_long);
+    }
     break;
   }
 
   if (isUdpProxyMavlinkAvailable()) {
-    // if streaming active check each message to forward.
+    // if streaming active check each message to forward. Messages are forwarded regardless of the processed_by_vehicle flag.
+    // of being processed by vehicle or not.
     if (m_mavlink_optimizer.shouldForwardThisMessage(mavlink_message)) {
       // UdpProxy
       const u_int64_t now = get_time_usec();

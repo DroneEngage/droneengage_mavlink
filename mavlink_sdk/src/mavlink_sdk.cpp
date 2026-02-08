@@ -85,10 +85,8 @@ void CMavlinkSDK::OnMessageReceived(const mavlink_message_t &mavlink_message)
         //     m_compid = mavlink_message.compid;
         // }
 
-        if (mavlinksdk::CVehicle::getInstance().parseMessage(mavlink_message))
-        {
-            this->m_mavlink_events->OnMessageReceived(mavlink_message);
-        }
+        const bool processed_by_vehicle = mavlinksdk::CVehicle::getInstance().parseMessage(mavlink_message);
+        this->m_mavlink_events->OnMessageReceived(mavlink_message, processed_by_vehicle);
     }
     catch (const std::exception &e)
     {

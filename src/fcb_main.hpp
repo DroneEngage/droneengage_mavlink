@@ -197,7 +197,7 @@ namespace fcb
             
         // Events implementation of mavlinksdk::CMavlinkEvents
         public:
-            void OnMessageReceived (const mavlink_message_t& mavlink_message) override;           
+            void OnMessageReceived (const mavlink_message_t& mavlink_message, const bool& processed_by_vehicle = true) override;           
             void OnConnected (const bool& connected) override;
             void OnHeartBeat_First (const mavlink_heartbeat_t& heartbeat) override;
             void OnHeartBeat_Resumed (const mavlink_heartbeat_t& heartbeat) override ;
