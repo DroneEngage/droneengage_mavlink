@@ -51,7 +51,7 @@ namespace mavlinksdk
 
         // CCallBack_Communicator Related
 
-        virtual void OnMessageReceived (const mavlink_message_t& mavlink_message) {};
+        virtual void OnMessageReceived (const mavlink_message_t& mavlink_message, const bool& processed_by_vehicle = true) {};
         virtual void OnConnected (const bool& connected) {};
     };
 }
