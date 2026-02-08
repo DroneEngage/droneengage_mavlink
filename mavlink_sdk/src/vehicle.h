@@ -174,7 +174,7 @@ namespace mavlinksdk
         public:
 
             void set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* callback_vehicle);
-            void parseMessage (const mavlink_message_t& mavlink_message);
+            bool parseMessage (const mavlink_message_t& mavlink_message);
 
 
         protected:
