@@ -549,7 +549,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			
 			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_distance_sensor(distance_sensor);
-			return ;
+			return true;
 		}
 		break;
 
@@ -583,7 +583,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 
 			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_ekf_status_report(ekf_status_report);
-			return ;
+			return true;
 		}
 		break;
 
@@ -594,7 +594,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			
 			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_vibration_report(vibration);
-			return ;
+			return true;
 		}
 		break;
 
@@ -743,7 +743,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_adsb_vehicle(adsb_vehicle);
 
-			return ;
+			return true;
 		}
 		break;
 
