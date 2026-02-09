@@ -279,6 +279,7 @@ namespace fcb
 
             bool m_fcb_connected = false;
             bool m_enable_udp_telemetry_in_config = false; // defined in config file.
+            bool m_udp_proxy_requested_enabled = false;
             uint16_t m_udp_telemetry_fixed_port = 0;
             uint64_t m_last_access_telemetry = 0;
             ANDRUAV_UDP_PROXY m_udp_proxy;

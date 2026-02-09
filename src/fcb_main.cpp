@@ -172,6 +172,8 @@ bool CFCBMain::init() {
         m_jsonConfig["udp_proxy_enabled"].get<bool>();
   }
 
+  m_udp_proxy_requested_enabled = m_enable_udp_telemetry_in_config;
+
   if (m_jsonConfig.contains("mavlink_ids") && m_jsonConfig["mavlink_ids"].is_object()) {
     auto& mavlink_ids = m_jsonConfig["mavlink_ids"];
     
@@ -1137,7 +1139,7 @@ void CFCBMain::OnConnectionStatusChangedWithAndruavServer(const int status) {
 
     // open or close -if open- udpProxy once connection with communication
     // server is established.
-    m_fcb_facade.requestUdpProxyTelemetry(m_enable_udp_telemetry_in_config,
+    m_fcb_facade.requestUdpProxyTelemetry(m_udp_proxy_requested_enabled,
                                           "0.0.0.0", 0, "0.0.0.0",
                                           m_udp_telemetry_fixed_port);
     // Json_de json_msg = sendMREMSG(TYPE_AndruavSystem_LoadTasks);
@@ -1787,6 +1789,11 @@ void CFCBMain::heartbeatCamera() {
 void CFCBMain::updateUDPProxy(const bool &enabled, const std::string &udp_ip1,
                               const int &udp_port1, const std::string &udp_ip2,
                               const int &udp_port2) {
+
+  if (enabled) {
+    m_udp_proxy_requested_enabled = true;
+  }
+
   if (enabled == true) {
     if (m_udp_proxy.udp_client.isStarted()) {
       m_udp_proxy.udp_client.stop();
@@ -1827,19 +1834,16 @@ void CFCBMain::pauseUDPProxy(const bool paused) { m_udp_proxy.paused = paused; }
 
 void CFCBMain::requestChangeUDPProxyClientPort(
     const uint16_t udp_proxy_fixed_port) {
-  if (m_jsonConfig.contains("udp_proxy_enabled")) {
-    /**
-     * @brief In some cases, the m_udp_proxy.enabled variable may be set to
-     * false when attempting to open a port that is already in use. When this
-     * happens, the Communication Server will also set the enabled flag to
-     * false. However, if UDP proxy usage is allowed, you can try to force
-     * enable the proxy or change the port to resolve the issue. It's important
-     * to note that forcing the opening of the UDP proxy is not permitted unless
-     * it's allowed in the configuration file, due to security reasons.
-     */
-    m_udp_proxy.enabled = m_jsonConfig["udp_proxy_enabled"].get<bool>();
-  }
+
+  /**
+   * @brief Requests a change to the UDP proxy client port. Uses the cached
+   * m_udp_proxy_requested_enabled state to preserve the user's desired
+   * proxy enabled/disabled status across port changes and reconnects.
+   */
+
+  m_udp_telemetry_fixed_port = udp_proxy_fixed_port;
+
   m_fcb_facade.requestUdpProxyTelemetry(
-      m_udp_proxy.enabled, m_udp_proxy.udp_ip1, m_udp_proxy.udp_port1,
+      m_udp_proxy_requested_enabled, m_udp_proxy.udp_ip1, m_udp_proxy.udp_port1,
       m_udp_proxy.udp_ip2, udp_proxy_fixed_port);
 }
