@@ -44,7 +44,7 @@ namespace fcb
         std::string udp_ip2;
         int udp_port2;
         bool enabled = false;
-        bool paused = true;
+        bool paused = true; // by default Smart Telemetry is paused to save traffic and ensure security.
         de::comm::CUDPProxy udp_client;
     } ANDRUAV_UDP_PROXY;
 

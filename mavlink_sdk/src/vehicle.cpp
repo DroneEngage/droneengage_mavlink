@@ -43,23 +43,15 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 		|| (c_type ==  MAV_TYPE::MAV_TYPE_ONBOARD_CONTROLLER)
 		|| (heartbeat.autopilot == MAV_AUTOPILOT_INVALID))
 		return false;
-
-
-		if (m_comp_id == NO_SYSID_RESTRICTION)
-		{
-			if (mavlink_message_temp.compid  != 1) return false; // assuming comp_id is 1 
-		}
-		else
-		{
-			if (m_comp_id != mavlink_message_temp.compid) return false;
-		}
-		
 	}
 	else
 	{
 		// Only search for SYSID
 		if (m_sys_id != mavlink_message_temp.sysid) return false;
 	}
+
+	const uint8_t expected_comp_id = (m_comp_id == NO_SYSID_RESTRICTION) ? 1 : static_cast<uint8_t>(m_comp_id);
+	if (mavlink_message_temp.compid != expected_comp_id) return false;
 	
 	m_sysid = mavlink_message_temp.sysid;
 	m_compid = mavlink_message_temp.compid;
@@ -434,8 +426,10 @@ void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
 			fake_heartbeat.custom_mode = m_high_latency.custom_mode;
 			uint64_t now = get_time_usec();
 			time_stamps.setTimestamp(MAVLINK_MSG_ID_HIGH_LATENCY, now);
-			time_stamps.setTimestamp(MAVLINK_MSG_ID_HEARTBEAT, now);
-			handle_heart_beat(fake_heartbeat);
+			if (handle_heart_beat(fake_heartbeat))
+			{
+				time_stamps.setTimestamp(MAVLINK_MSG_ID_HEARTBEAT, now);
+			}
 		}
 		break;
 		
@@ -448,8 +442,10 @@ void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
 			fake_heartbeat.custom_mode = m_high_latency2.custom_mode;
 			uint64_t now = get_time_usec();
 			time_stamps.setTimestamp(MAVLINK_MSG_ID_HIGH_LATENCY2, now);
-			time_stamps.setTimestamp(MAVLINK_MSG_ID_HEARTBEAT, now);
-			handle_heart_beat(fake_heartbeat);
+			if (handle_heart_beat(fake_heartbeat))
+			{
+				time_stamps.setTimestamp(MAVLINK_MSG_ID_HEARTBEAT, now);
+			}
 		}
 		break;
 	} 
@@ -483,6 +479,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 
 			if (handle_heart_beat (heartbeat))
 			{
+				time_stamps.setTimestamp(msgid, get_time_usec());
 				mavlinksdk::CMavlinkParameterManager::getInstance().handle_heart_beat (heartbeat);
 			}
 			else
@@ -552,7 +549,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			
 			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_distance_sensor(distance_sensor);
-			return ;
+			return true;
 		}
 		break;
 
@@ -586,7 +583,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 
 			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_ekf_status_report(ekf_status_report);
-			return ;
+			return true;
 		}
 		break;
 
@@ -597,7 +594,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			
 			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_vibration_report(vibration);
-			return ;
+			return true;
 		}
 		break;
 
@@ -746,7 +743,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_adsb_vehicle(adsb_vehicle);
 
-			return ;
+			return true;
 		}
 		break;
 

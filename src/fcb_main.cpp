@@ -1799,8 +1799,7 @@ void CFCBMain::updateUDPProxy(const bool &enabled, const std::string &udp_ip1,
   }
 
   m_udp_proxy.enabled = enabled;
-  m_udp_proxy.paused = true; // by default Smart Telemetry is paused to save
-                             // traffic and ensure security.
+  
   m_udp_proxy.udp_ip1 = udp_ip1;
   m_udp_proxy.udp_port1 = udp_port1;
   m_udp_proxy.udp_ip2 = udp_ip2;
