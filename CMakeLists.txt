@@ -27,7 +27,51 @@ message( FATAL_ERROR “In-source builds not allowed! Create a build directory a
 exit(1)
 endif()
 
-SET (__APP__VERSION__ "5.5.6")
+# Auto-increment version on each build
+set(VERSION_FILE "${CMAKE_SOURCE_DIR}/.version")
+
+# Manually set major and minor versions (you can change these)
+set(MAJOR_VERSION 5)
+set(MINOR_VERSION 5)
+
+if(EXISTS ${VERSION_FILE})
+    file(READ ${VERSION_FILE} CURRENT_VERSION)
+    string(STRIP "${CURRENT_VERSION}" CURRENT_VERSION)
+    # Extract current version components
+    string(REPLACE "." ";" VERSION_LIST ${CURRENT_VERSION})
+    list(LENGTH VERSION_LIST LIST_LENGTH)
+    if(LIST_LENGTH EQUAL 3)
+        list(GET VERSION_LIST 0 STORED_MAJOR)
+        list(GET VERSION_LIST 1 STORED_MINOR)
+        list(GET VERSION_LIST 2 STORED_PATCH)
+        
+        # Check if major or minor version changed
+        if(NOT (${STORED_MAJOR} EQUAL ${MAJOR_VERSION} AND ${STORED_MINOR} EQUAL ${MINOR_VERSION}))
+            set(PATCH_VERSION 0)  # Reset patch when major/minor changes
+            message(STATUS "Version changed from ${STORED_MAJOR}.${STORED_MINOR}.${STORED_PATCH} to ${MAJOR_VERSION}.${MINOR_VERSION}, resetting patch to 0")
+        else()
+            set(PATCH_VERSION ${STORED_PATCH})  # Continue with existing patch
+        endif()
+    else()
+        set(PATCH_VERSION 0)  # Default patch version
+    endif()
+else()
+    set(PATCH_VERSION 0)  # Default patch version
+endif()
+
+# Increment patch version
+math(EXPR PATCH_VERSION "${PATCH_VERSION} + 1")
+
+# Create new version string
+set(__APP__VERSION__ "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
+
+# Write new version back to file
+file(WRITE ${VERSION_FILE} ${__APP__VERSION__})
+
+message(STATUS "Building version: ${__APP__VERSION__}")
+message(STATUS "To change major/minor versions, edit MAJOR_VERSION and MINOR_VERSION above")
+
+SET (__APP__VERSION__ "${__APP__VERSION__}")
 add_definitions( -D__APP__VERSION__="${__APP__VERSION__}")
 project(DE_MAVLINK_PLUGIN VERSION "${__APP__VERSION__}")
 
@@ -148,7 +192,7 @@ message ("${Yellow}=============================================================
 
 # CPack configuration for Debian package generation
 set(CPACK_PACKAGE_NAME "DE_MAVLINK_PLUGIN")
-set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_PACKAGE_VERSION "${__APP__VERSION__}")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6") # Example dependency
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "DroneEngage Team")
 include(CPack)
