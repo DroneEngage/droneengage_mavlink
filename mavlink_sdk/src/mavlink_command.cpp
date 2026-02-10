@@ -142,12 +142,12 @@ void CMavlinkCommand::requestMessageEmit(const uint32_t message_id) const
 void CMavlinkCommand::sendHeartBeatOfGCS(const uint8_t gcs_id) const
 {
 	mavlink_heartbeat_t mavlink_heartbeat;
-	mavlink_heartbeat.autopilot = 8;
+	mavlink_heartbeat.autopilot = MAV_AUTOPILOT::MAV_AUTOPILOT_INVALID;
 	mavlink_heartbeat.base_mode = 0;
 	mavlink_heartbeat.custom_mode = 0;
 	mavlink_heartbeat.mavlink_version = 3;
 	mavlink_heartbeat.system_status = 0;
-	mavlink_heartbeat.type = 6;
+	mavlink_heartbeat.type = MAV_TYPE::MAV_TYPE_GCS;
 	
 	mavlink_message_t mavlink_message;
 	mavlink_msg_heartbeat_encode(gcs_id,0, &mavlink_message, &mavlink_heartbeat);
@@ -159,8 +159,6 @@ void CMavlinkCommand::sendHeartBeatOfGCS(const uint8_t gcs_id) const
 
 void CMavlinkCommand::sendHeartBeatOfComponent(const uint8_t component_id) const
 {
-	
-
 	const mavlink_heartbeat_t mavlink_heartbeat= m_vehicle.getMsgHeartBeat();
 	
 	mavlink_message_t mavlink_message;

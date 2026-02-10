@@ -45,7 +45,7 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 		if ((c_type >=  MAV_TYPE::MAV_TYPE_GIMBAL)
 		|| (c_type ==  MAV_TYPE::MAV_TYPE_GCS)
 		|| (c_type ==  MAV_TYPE::MAV_TYPE_ONBOARD_CONTROLLER)
-		|| (heartbeat.autopilot == MAV_AUTOPILOT_INVALID))
+		|| (heartbeat.autopilot == MAV_AUTOPILOT::MAV_AUTOPILOT_INVALID))
 		return false;
 
 
