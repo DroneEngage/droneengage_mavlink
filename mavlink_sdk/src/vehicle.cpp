@@ -24,6 +24,9 @@ mavlinksdk::CVehicle::CVehicle()
 	m_last_guided_mode_point.longitude = 0;
 	m_last_guided_mode_point.altitude = 0;
 	
+	// Initialize heartbeat tracking variables
+	m_consecutive_heartbeat_count = 0;
+	m_non_heartbeat_received = false;
 }
 
 void mavlinksdk::CVehicle::set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* callback_vehicle)
@@ -466,6 +469,14 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 	mavlink_message_temp = mavlink_message;
 	bool message_processed = true;
 
+	// Track heartbeat-only messages for data stream request
+	if (msgid == MAVLINK_MSG_ID_HEARTBEAT) {
+		m_consecutive_heartbeat_count++;
+	} else {
+		m_non_heartbeat_received = true;
+		m_consecutive_heartbeat_count = 0;
+	}
+
 	switch (mavlink_message.msgid)
 	{
         case MAVLINK_MSG_ID_HEARTBEAT:
@@ -854,6 +865,14 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 
 	// update last so that messages can test delay such as on heartbeat resume
 	time_stamps.setTimestamp(msgid, get_time_usec());
+
+	// Check if we should request data stream after 3 consecutive heartbeats with no other messages
+	if (m_consecutive_heartbeat_count >= HEARTBEAT_COUNT_FOR_DATA_STREAM_REQUEST && !m_non_heartbeat_received) {
+		requestDataStream();
+		// Reset counters after sending request
+		m_consecutive_heartbeat_count = 0;
+		m_non_heartbeat_received = false;
+	}
 
 	return message_processed;
 }

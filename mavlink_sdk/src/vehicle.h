@@ -16,6 +16,7 @@ namespace mavlinksdk
     // 3 seconds
     #define HEART_BEAT_TIMEOUT      3000000l
     #define DISTANCE_SENSOR_TIMEOUT 5000 // ms
+    #define HEARTBEAT_COUNT_FOR_DATA_STREAM_REQUEST 3
 
     typedef struct LOCATION_3D
     {
@@ -597,6 +598,10 @@ namespace mavlinksdk
             bool m_has_lidar_altitude = false;
 
             bool m_ready_to_arm_trigger_first_tick = false;
+            
+            // Heartbeat-only tracking for data stream request
+            uint32_t m_consecutive_heartbeat_count = 0;
+            bool m_non_heartbeat_received = false;
             
             uint16_t m_mainloop_load = 0;
 
