@@ -51,3 +51,4 @@ checks.json
 local/
 
 wiki/mywiki/
+.version
