@@ -145,3 +145,27 @@ endif()
 
 message ("${Yellow}=========================================================================${ColourReset}")
 
+
+# CPack configuration for Debian package generation
+set(CPACK_PACKAGE_NAME "DE_MAVLINK_PLUGIN")
+set(CPACK_PACKAGE_VERSION "1.0.0")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6") # Example dependency
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "DroneEngage Team")
+include(CPack)
+
+# Installation configuration
+install(TARGETS de_mavlink
+    RUNTIME DESTINATION $ENV{HOME}/drone_engage/de_mavlink
+    COMPONENT runtime
+)
+
+install(FILES 
+    ${PROJECT_SOURCE_DIR}/de_mavlink.config.module.json
+    ${PROJECT_SOURCE_DIR}/template.json
+    DESTINATION $ENV{HOME}/drone_engage/de_mavlink
+    COMPONENT runtime
+)
+
+# Set CPack to install in user home directory
+set(CPACK_SET_DESTDIR FALSE)
+set(CPACK_INSTALL_PREFIX "\${HOME}")
