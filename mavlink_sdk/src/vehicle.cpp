@@ -24,6 +24,10 @@ mavlinksdk::CVehicle::CVehicle()
 	m_last_guided_mode_point.longitude = 0;
 	m_last_guided_mode_point.altitude = 0;
 	
+	// Initialize data stream request tracking
+	m_heartbeat_only_count = 0;
+	m_last_non_heartbeat_time = 0;
+	m_heartbeat_sequence_start_time = 0;
 }
 
 void mavlinksdk::CVehicle::set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* callback_vehicle)
@@ -469,6 +473,34 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 
 	mavlink_message_temp = mavlink_message;
 	bool message_processed = true;
+	
+	const uint64_t current_time = get_time_usec();
+
+	// Track heartbeat-only messages for data stream request logic
+	if (msgid == MAVLINK_MSG_ID_HEARTBEAT) {
+		// Always increment heartbeat count when receiving a heartbeat
+		m_heartbeat_only_count++;
+		
+		// If this is the first heartbeat in a sequence, record the start time
+		if (m_heartbeat_only_count == 1) {
+			m_heartbeat_sequence_start_time = current_time;
+		}
+		
+		// Check if we have 3 or more heartbeats and 3 seconds have passed since sequence started
+		if (m_heartbeat_only_count >= DATA_STREAM_REQUEST_HEARTBEAT_COUNT && 
+			(current_time - m_heartbeat_sequence_start_time) >= DATA_STREAM_REQUEST_TIME_WINDOW) {
+			
+			requestDataStream();
+			// Reset counters after making the request
+			m_heartbeat_only_count = 0;
+			m_heartbeat_sequence_start_time = current_time;
+		}
+	} else {
+		// Non-heartbeat message received, reset tracking
+		m_heartbeat_only_count = 0;
+		m_last_non_heartbeat_time = current_time;
+		m_heartbeat_sequence_start_time = 0;
+	}
 
 	switch (mavlink_message.msgid)
 	{

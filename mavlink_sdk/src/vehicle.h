@@ -16,6 +16,10 @@ namespace mavlinksdk
     // 3 seconds
     #define HEART_BEAT_TIMEOUT      3000000l
     #define DISTANCE_SENSOR_TIMEOUT 5000 // ms
+    
+    // Data stream request constants
+    #define DATA_STREAM_REQUEST_HEARTBEAT_COUNT    3
+    #define DATA_STREAM_REQUEST_TIME_WINDOW        3000000l  // 3 seconds in microseconds
 
     typedef struct LOCATION_3D
     {
@@ -467,6 +471,11 @@ namespace mavlinksdk
         protected:
             mavlinksdk::CCallBack_Vehicle* m_callback_vehicle;
             bool m_heart_beat_first_recieved = false;
+            
+            // Data stream request tracking
+            uint32_t m_heartbeat_only_count = 0;
+            uint64_t m_last_non_heartbeat_time = 0;
+            uint64_t m_heartbeat_sequence_start_time = 0;
 
 
         // Vehicle Attributes
