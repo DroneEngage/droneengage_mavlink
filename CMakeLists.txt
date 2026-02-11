@@ -30,9 +30,10 @@ endif()
 # Auto-increment version on each build
 set(VERSION_FILE "${CMAKE_SOURCE_DIR}/.version")
 
-# Manually set major and minor versions (you can change these)
+# Manually set major, minor, and bugfix versions (you can change these)
 set(MAJOR_VERSION 5)
 set(MINOR_VERSION 6)
+set(BUGFIX_VERSION 3)
 
 if(EXISTS ${VERSION_FILE})
     file(READ ${VERSION_FILE} CURRENT_VERSION)
@@ -40,36 +41,52 @@ if(EXISTS ${VERSION_FILE})
     # Extract current version components
     string(REPLACE "." ";" VERSION_LIST ${CURRENT_VERSION})
     list(LENGTH VERSION_LIST LIST_LENGTH)
-    if(LIST_LENGTH EQUAL 3)
+    if(LIST_LENGTH EQUAL 4)
+        list(GET VERSION_LIST 0 STORED_MAJOR)
+        list(GET VERSION_LIST 1 STORED_MINOR)
+        list(GET VERSION_LIST 2 STORED_BUGFIX)
+        list(GET VERSION_LIST 3 STORED_BUILD)
+        
+        # Check if major, minor, or bugfix version changed
+        if(NOT (${STORED_MAJOR} EQUAL ${MAJOR_VERSION} AND ${STORED_MINOR} EQUAL ${MINOR_VERSION} AND ${STORED_BUGFIX} EQUAL ${BUGFIX_VERSION}))
+            set(BUILD_VERSION 0)  # Reset build when major/minor/bugfix changes
+            message(STATUS "Version changed from ${STORED_MAJOR}.${STORED_MINOR}.${STORED_BUGFIX}.${STORED_BUILD} to ${MAJOR_VERSION}.${MINOR_VERSION}.${BUGFIX_VERSION}, resetting build to 0")
+        else()
+            set(BUILD_VERSION ${STORED_BUILD})  # Continue with existing build
+        endif()
+    elseif(LIST_LENGTH EQUAL 3)
+        # Handle old 3-component format, migrate to 4-component
         list(GET VERSION_LIST 0 STORED_MAJOR)
         list(GET VERSION_LIST 1 STORED_MINOR)
         list(GET VERSION_LIST 2 STORED_PATCH)
         
         # Check if major or minor version changed
         if(NOT (${STORED_MAJOR} EQUAL ${MAJOR_VERSION} AND ${STORED_MINOR} EQUAL ${MINOR_VERSION}))
-            set(PATCH_VERSION 0)  # Reset patch when major/minor changes
-            message(STATUS "Version changed from ${STORED_MAJOR}.${STORED_MINOR}.${STORED_PATCH} to ${MAJOR_VERSION}.${MINOR_VERSION}, resetting patch to 0")
+            set(BUILD_VERSION 0)  # Reset build when major/minor changes
+            message(STATUS "Migrating from 3-component version ${STORED_MAJOR}.${STORED_MINOR}.${STORED_PATCH} to 4-component ${MAJOR_VERSION}.${MINOR_VERSION}.${BUGFIX_VERSION}, resetting build to 0")
         else()
-            set(PATCH_VERSION ${STORED_PATCH})  # Continue with existing patch
+            set(BUILD_VERSION ${STORED_PATCH})  # Migrate old patch to build
         endif()
     else()
-        set(PATCH_VERSION 0)  # Default patch version
+        set(BUILD_VERSION 0)  # Default build version
     endif()
 else()
-    set(PATCH_VERSION 0)  # Default patch version
+    set(BUILD_VERSION 0)  # Default build version
 endif()
 
-# Increment patch version
-math(EXPR PATCH_VERSION "${PATCH_VERSION} + 1")
+# Increment build version only for RELEASE builds
+IF(CMAKE_BUILD_TYPE MATCHES RELEASE)
+    math(EXPR BUILD_VERSION "${BUILD_VERSION} + 1")
+    message(STATUS "Incrementing build version for RELEASE build")
+ELSE()
+    message(STATUS "Non-release build - keeping current build version")
+ENDIF()
 
 # Create new version string
-set(__APP__VERSION__ "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
-
-# Write new version back to file
-file(WRITE ${VERSION_FILE} ${__APP__VERSION__})
+set(__APP__VERSION__ "${MAJOR_VERSION}.${MINOR_VERSION}.${BUGFIX_VERSION}.${BUILD_VERSION}")
 
 message(STATUS "Building version: ${__APP__VERSION__}")
-message(STATUS "To change major/minor versions, edit MAJOR_VERSION and MINOR_VERSION above")
+message(STATUS "To change major/minor/bugfix versions, edit MAJOR_VERSION, MINOR_VERSION, and BUGFIX_VERSION above")
 
 SET (__APP__VERSION__ "${__APP__VERSION__}")
 add_definitions( -D__APP__VERSION__="${__APP__VERSION__}")
@@ -213,3 +230,19 @@ install(FILES
 # Set CPack to install in user home directory
 set(CPACK_SET_DESTDIR FALSE)
 set(CPACK_INSTALL_PREFIX "\${HOME}")
+
+set(BUILD_SUCCESS_SCRIPT "${CMAKE_BINARY_DIR}/build_success.cmake")
+file(WRITE "${BUILD_SUCCESS_SCRIPT}" "")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E echo \"\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E cmake_echo_color --green --bold \"=========================================================================\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E cmake_echo_color --green --bold \"BUILD COMPLETED SUCCESSFULLY\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E cmake_echo_color --cyan --bold \"Version: ${__APP__VERSION__}\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E cmake_echo_color --cyan --bold \"Build Number: ${BUILD_VERSION}\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E cmake_echo_color --cyan --bold \"Dependency Files: ${CMAKE_BINARY_DIR}/CMakeFiles/de_mavlink.dir/*.d\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E cmake_echo_color --green --bold \"=========================================================================\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E echo \"\")\n")
+
+IF(CMAKE_BUILD_TYPE MATCHES RELEASE)
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "file(WRITE \"${VERSION_FILE}\" \"${__APP__VERSION__}\")\n")
+ENDIF()
+
