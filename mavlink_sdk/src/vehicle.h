@@ -16,14 +16,10 @@ namespace mavlinksdk
     // 3 seconds
     #define HEART_BEAT_TIMEOUT      3000000l
     #define DISTANCE_SENSOR_TIMEOUT 5000 // ms
-<<<<<<< HEAD
-    #define HEARTBEAT_COUNT_FOR_DATA_STREAM_REQUEST 3
-=======
     
     // Data stream request constants
     #define DATA_STREAM_REQUEST_HEARTBEAT_COUNT    3
     #define DATA_STREAM_REQUEST_TIME_WINDOW        3000000l  // 3 seconds in microseconds
->>>>>>> master
 
     typedef struct LOCATION_3D
     {
@@ -477,7 +473,7 @@ namespace mavlinksdk
             bool m_heart_beat_first_recieved = false;
             
             // Data stream request tracking
-            uint32_t m_heartbeat_only_count = 0;
+            uint32_t m_consecutive_heartbeat_count = 0;
             uint64_t m_last_non_heartbeat_time = 0;
             uint64_t m_heartbeat_sequence_start_time = 0;
 
@@ -611,12 +607,6 @@ namespace mavlinksdk
 
             bool m_ready_to_arm_trigger_first_tick = false;
             
-            // Heartbeat-only tracking for data stream request
-            uint32_t m_consecutive_heartbeat_count = 0;
-            bool m_non_heartbeat_received = false;
-            
-            uint16_t m_mainloop_load = 0;
-
             mavlink_message_t mavlink_message_temp;
 
             int m_sysid{0};
