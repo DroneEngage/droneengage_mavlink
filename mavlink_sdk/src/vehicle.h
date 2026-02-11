@@ -607,11 +607,6 @@ namespace mavlinksdk
 
             bool m_ready_to_arm_trigger_first_tick = false;
             
-<<<<<<< HEAD
-            uint16_t m_mainloop_load = 0;
-
-=======
->>>>>>> 7a429f6 (fix logic: consolidate duplicate heartbeat tracking and add vehicle ID filtering)
             mavlink_message_t mavlink_message_temp;
 
             int m_sysid{0};
