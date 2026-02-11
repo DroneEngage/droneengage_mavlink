@@ -473,7 +473,7 @@ namespace mavlinksdk
             bool m_heart_beat_first_recieved = false;
             
             // Data stream request tracking
-            uint32_t m_heartbeat_only_count = 0;
+            uint32_t m_consecutive_heartbeat_count = 0;
             uint64_t m_last_non_heartbeat_time = 0;
             uint64_t m_heartbeat_sequence_start_time = 0;
 
@@ -607,8 +607,11 @@ namespace mavlinksdk
 
             bool m_ready_to_arm_trigger_first_tick = false;
             
+<<<<<<< HEAD
             uint16_t m_mainloop_load = 0;
 
+=======
+>>>>>>> 7a429f6 (fix logic: consolidate duplicate heartbeat tracking and add vehicle ID filtering)
             mavlink_message_t mavlink_message_temp;
 
             int m_sysid{0};
