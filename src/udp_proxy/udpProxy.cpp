@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring> 
+#include <cerrno>
 #include <sys/socket.h> 
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
@@ -9,6 +10,8 @@
 
 #include "../de_common/helpers/colors.hpp"
 #include "../de_common/helpers/json_nlohmann.hpp"
+#include "../de_common/de_databus/messages.hpp"
+#include "../de_common/de_databus/de_facade_base.hpp"
 using Json_de = nlohmann::json;
 
 #include "udpProxy.hpp"
@@ -69,6 +72,12 @@ bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, con
         return false;
     }
 
+    int reuse = 1;
+    setsockopt(m_SocketFD, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+#ifdef SO_REUSEPORT
+    setsockopt(m_SocketFD, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse));
+#endif
+
     m_ModuleAddress = new (struct sockaddr_in)();
     m_udpProxyServer = new (struct sockaddr_in)();
     memset(m_ModuleAddress, 0, sizeof(struct sockaddr_in)); 
@@ -100,7 +109,10 @@ bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, con
     // Bind the socket with the server address 
     if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in)) < 0) 
     {  
-        std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        const int err = errno;
+        std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << " err:" << err << " " << strerror(err) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        de::comm::CFacade_Base::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), err, ERROR_3DR, NOTIFICATION_TYPE_ERROR,
+            std::string("UDPProxy: BAD BIND ") + host + ":" + std::to_string(listenningPort) + " err:" + std::to_string(err) + " " + strerror(err));
         return false ;
     } 
 
