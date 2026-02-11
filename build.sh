@@ -33,5 +33,10 @@ cd build
 export CFLAGS="$CFLAGS $EXTRA_CFLAGS"
 export CXXFLAGS="$CXXFLAGS $EXTRA_CFLAGS"
 cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON $ADDITIONAL_DEFINES ../
-make
-
+if make; then
+    if [ -f "./build_success.cmake" ]; then
+        cmake -P "./build_success.cmake"
+    fi
+else
+    exit $?
+fi
