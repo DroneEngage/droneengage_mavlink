@@ -73,6 +73,23 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	
 	const uint64_t now = get_time_usec();
 	
+	m_consecutive_heartbeat_count++;
+		
+	// Track heartbeat-only messages for data stream request logic (only for the active vehicle)
+	// If this is the first heartbeat in a sequence, record the start time
+	if (m_consecutive_heartbeat_count == 1) {
+		m_heartbeat_sequence_start_time = now;
+	}
+
+	// Check if we have 3 or more heartbeats and 3 seconds have passed since sequence started
+	if (m_consecutive_heartbeat_count >= DATA_STREAM_REQUEST_HEARTBEAT_COUNT && 
+		(now - m_heartbeat_sequence_start_time) >= DATA_STREAM_REQUEST_TIME_WINDOW) {
+			
+		requestDataStream();
+		// Reset counters after making the request
+		m_consecutive_heartbeat_count = 0;
+		m_heartbeat_sequence_start_time = now;
+	}
 		
 	if (m_heart_beat_first_recieved == false) 
 	{  // Notify that we have something alive here.
@@ -476,26 +493,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 		(mavlink_message.sysid == m_sysid) &&
 		(mavlink_message.compid == m_compid);
 
-	// Track heartbeat-only messages for data stream request logic (only for the active vehicle)
-	if (is_from_vehicle && msgid == MAVLINK_MSG_ID_HEARTBEAT) {
-		// Always increment heartbeat count when receiving a heartbeat
-		m_consecutive_heartbeat_count++;
-		
-		// If this is the first heartbeat in a sequence, record the start time
-		if (m_consecutive_heartbeat_count == 1) {
-			m_heartbeat_sequence_start_time = current_time;
-		}
-		
-		// Check if we have 3 or more heartbeats and 3 seconds have passed since sequence started
-		if (m_consecutive_heartbeat_count >= DATA_STREAM_REQUEST_HEARTBEAT_COUNT && 
-			(current_time - m_heartbeat_sequence_start_time) >= DATA_STREAM_REQUEST_TIME_WINDOW) {
-			
-			requestDataStream();
-			// Reset counters after making the request
-			m_consecutive_heartbeat_count = 0;
-			m_heartbeat_sequence_start_time = current_time;
-		}
-	} else if (is_from_vehicle) {
+	if (is_from_vehicle && msgid != MAVLINK_MSG_ID_HEARTBEAT) {
 		// Non-heartbeat message received, reset tracking
 		m_consecutive_heartbeat_count = 0;
 		m_last_non_heartbeat_time = current_time;
@@ -583,9 +581,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			mavlink_distance_sensor_t distance_sensor;
 			mavlink_msg_distance_sensor_decode(&mavlink_message, &(distance_sensor));
 			
-			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_distance_sensor(distance_sensor);
-			return true;
 		}
 		break;
 
@@ -617,9 +613,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			mavlink_ekf_status_report_t ekf_status_report;
 			mavlink_msg_ekf_status_report_decode (&mavlink_message, &ekf_status_report);
 
-			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_ekf_status_report(ekf_status_report);
-			return true;
 		}
 		break;
 
@@ -628,9 +622,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			mavlink_vibration_t vibration;
 			mavlink_msg_vibration_decode (&mavlink_message, &vibration);
 			
-			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_vibration_report(vibration);
-			return true;
 		}
 		break;
 
@@ -776,10 +768,8 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 			mavlink_adsb_vehicle_t adsb_vehicle;
 			mavlink_msg_adsb_vehicle_decode(&mavlink_message, &adsb_vehicle);
 			
-			time_stamps.setTimestamp(msgid, get_time_usec());
 			handle_adsb_vehicle(adsb_vehicle);
 
-			return true;
 		}
 		break;
 
