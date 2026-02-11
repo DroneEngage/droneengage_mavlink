@@ -72,12 +72,6 @@ bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, con
         return false;
     }
 
-    int reuse = 1;
-    setsockopt(m_SocketFD, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
-#ifdef SO_REUSEPORT
-    setsockopt(m_SocketFD, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse));
-#endif
-
     m_ModuleAddress = new (struct sockaddr_in)();
     m_udpProxyServer = new (struct sockaddr_in)();
     memset(m_ModuleAddress, 0, sizeof(struct sockaddr_in)); 
@@ -156,6 +150,8 @@ void de::comm::CUDPProxy::stop()
         std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Close UDP Socket" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         //https://stackoverflow.com/questions/6389970/unblock-recvfrom-when-socket-is-closed
         shutdown(m_SocketFD, SHUT_RDWR);
+        close(m_SocketFD);
+        m_SocketFD = -1;
     }
     
     #ifdef DEBUG
