@@ -11,13 +11,16 @@ void CMavlinkTrafficOptimizer::init(const Json_de &mavlink_messages_config)
         //std::cout << it.key() << std::endl;
         int message_id = std::stoi (it.key());
         const std::vector<int> values = it.value();
-        int index = 0;
-        T_MessageOptimizeCard card;
-        
-        for (auto it = values.begin(); it != values.end(); ++it){
-            //std::cout << *it << std::endl;
-            card.timeout[index%4] = *it * 1000;
-            index++;
+        T_MessageOptimizeCard card{};
+
+        if (!values.empty())
+        {
+            const int last_timeout_usec = values.back() * 1000;
+            for (int i = 0; i < OPTIMIZE_LEVELS; ++i)
+            {
+                const int timeout_usec = (i < static_cast<int>(values.size())) ? (values[i] * 1000) : last_timeout_usec;
+                card.timeout[i] = timeout_usec;
+            }
         }
         m_message.insert(std::make_pair(message_id,card));
     }

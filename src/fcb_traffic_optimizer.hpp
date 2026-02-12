@@ -100,10 +100,9 @@ namespace fcb
              */
             void reset_timestamps()
             {
-                for(auto it=m_message.begin();it!=m_message.end();++it)
+                for(auto& pair : m_message)
                 {
-                    T_MessageOptimizeCard card = it->second;
-                    card.time_of_last_sent_message = 0;
+                    pair.second.time_of_last_sent_message = 0;
                 }
                 
                 return;
