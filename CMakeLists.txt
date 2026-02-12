@@ -54,19 +54,6 @@ if(EXISTS ${VERSION_FILE})
         else()
             set(BUILD_VERSION ${STORED_BUILD})  # Continue with existing build
         endif()
-    elseif(LIST_LENGTH EQUAL 3)
-        # Handle old 3-component format, migrate to 4-component
-        list(GET VERSION_LIST 0 STORED_MAJOR)
-        list(GET VERSION_LIST 1 STORED_MINOR)
-        list(GET VERSION_LIST 2 STORED_PATCH)
-        
-        # Check if major or minor version changed
-        if(NOT (${STORED_MAJOR} EQUAL ${MAJOR_VERSION} AND ${STORED_MINOR} EQUAL ${MINOR_VERSION}))
-            set(BUILD_VERSION 0)  # Reset build when major/minor changes
-            message(STATUS "Migrating from 3-component version ${STORED_MAJOR}.${STORED_MINOR}.${STORED_PATCH} to 4-component ${MAJOR_VERSION}.${MINOR_VERSION}.${BUGFIX_VERSION}, resetting build to 0")
-        else()
-            set(BUILD_VERSION ${STORED_PATCH})  # Migrate old patch to build
-        endif()
     else()
         set(BUILD_VERSION 0)  # Default build version
     endif()
