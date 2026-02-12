@@ -7,6 +7,7 @@ using Json_de = nlohmann::json;
 
 #include <all/mavlink.h>
 #include <mavlink_sdk.h>
+#include <unordered_map>
 
 
 
@@ -111,7 +112,8 @@ namespace fcb
         private:
 
             //T_MessageOptimizeCard m_message[TIME_STAMP_MSG_LEN];
-            std::map<int, T_MessageOptimizeCard> m_message;
+            // Fast msgid -> card lookup in the hot path (shouldForwardThisMessage): average O(1) find().
+            std::unordered_map<int, T_MessageOptimizeCard> m_message;
             int m_optimization_level = OPTIMIZATION_LEVEL_DEFAULT;
            
     };
