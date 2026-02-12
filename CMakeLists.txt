@@ -206,7 +206,7 @@ set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "DroneEngage MAVLink Plugin - Ardupilot com
 # Configure CPack to generate packages in build directory
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/packages")
 set(CPACK_SET_DESTDIR TRUE)
-set(CPACK_INSTALL_PREFIX "/home/$USER/droneengage")
+set(CPACK_INSTALL_PREFIX "/home/$USER/drone_engage/de_mavlink")
 
 # Enable DEB generator
 set(CPACK_GENERATOR "DEB;TGZ;STGZ")
@@ -215,14 +215,14 @@ include(CPack)
 
 # Installation configuration
 install(TARGETS de_mavlink
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION .
     COMPONENT runtime
 )
 
 install(FILES 
     ${PROJECT_SOURCE_DIR}/de_mavlink.config.module.json
     ${PROJECT_SOURCE_DIR}/template.json
-    DESTINATION share/de_mavlink
+    DESTINATION .
     COMPONENT runtime
 )
 
