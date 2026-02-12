@@ -1799,15 +1799,17 @@ void CFCBMain::updateUDPProxy(const bool &enabled, const std::string &udp_ip1,
       m_udp_proxy.udp_client.stop();
     }
     m_udp_proxy.udp_client.setCallback(this);
-    m_udp_proxy.udp_client.init(udp_ip1.c_str(), udp_port1, "0.0.0.0", 0);
-    m_udp_proxy.udp_client.start();
+    if (m_udp_proxy.udp_client.init(udp_ip1.c_str(), udp_port1, "0.0.0.0", 0)) {
+      m_udp_proxy.udp_client.start();
+      m_udp_proxy.enabled = true;
+    } else {
+      m_udp_proxy.enabled = false;
+    }
   } else {
     m_udp_proxy.udp_client.stop();
+    m_udp_proxy.enabled = false;
   }
-
-  m_udp_proxy.enabled = enabled;
-  m_udp_proxy.paused = true; // by default Smart Telemetry is paused to save
-                             // traffic and ensure security.
+  
   m_udp_proxy.udp_ip1 = udp_ip1;
   m_udp_proxy.udp_port1 = udp_port1;
   m_udp_proxy.udp_ip2 = udp_ip2;
