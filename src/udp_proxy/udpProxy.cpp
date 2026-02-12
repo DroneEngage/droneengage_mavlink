@@ -68,7 +68,10 @@ bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, con
 
     // Creating socket file descriptor 
     if ( (m_SocketFD = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
+        const int err = errno;
         std::cout << _ERROR_CONSOLE_TEXT_ << "UDPProxy: Socket creation failed: " << _INFO_CONSOLE_TEXT << target_address  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        de::comm::CFacade_Base::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), err, ERROR_3DR, NOTIFICATION_TYPE_ERROR,
+            std::string("UDPProxy: Socket creation failed ") + target_address + " err:" + std::to_string(err) + " " + strerror(err));
         return false;
     }
 
@@ -85,13 +88,21 @@ bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, con
     // UDP Proxy could have a hostname
     struct hostent * hostinfo = gethostbyname(target_address);
     if(!hostinfo) {
+        const int err = errno;
         std::cout << _ERROR_CONSOLE_TEXT_ << "UDPProxy: Cannot get info for udpProxy" << _INFO_CONSOLE_TEXT << target_address  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        de::comm::CFacade_Base::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), err, ERROR_3DR, NOTIFICATION_TYPE_ERROR,
+            std::string("UDPProxy: Cannot get info for udpProxy ") + target_address + " err:" + std::to_string(err) + " " + strerror(err));
+        closeSockets();
         return false;
     }
     char * target_ip = inet_ntoa(*(struct in_addr *)*hostinfo->h_addr_list);
     if (!target_ip)
     {
+        const int err = errno;
         std::cout << _ERROR_CONSOLE_TEXT_ << "UDPProxy: Cannot connect udp proxy " << _INFO_CONSOLE_TEXT << target_address  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        de::comm::CFacade_Base::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), err, ERROR_3DR, NOTIFICATION_TYPE_ERROR,
+            std::string("UDPProxy: Cannot connect udp proxy ") + target_address + " err:" + std::to_string(err) + " " + strerror(err));
+        closeSockets();
         return false;
     }
     std::cout << _LOG_CONSOLE_BOLD_TEXT << "UDPProxy: Trasnlate " <<  _INFO_CONSOLE_TEXT << target_address << " into " <<  target_ip << _NORMAL_CONSOLE_TEXT_ << std::endl;  
@@ -107,6 +118,7 @@ bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, con
         std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << " err:" << err << " " << strerror(err) << _NORMAL_CONSOLE_TEXT_ << std::endl;
         de::comm::CFacade_Base::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), err, ERROR_3DR, NOTIFICATION_TYPE_ERROR,
             std::string("UDPProxy: BAD BIND ") + host + ":" + std::to_string(listenningPort) + " err:" + std::to_string(err) + " " + strerror(err));
+        closeSockets();
         return false ;
     } 
 
@@ -136,6 +148,20 @@ void de::comm::CUDPProxy::startReceiver ()
 }
 
 
+void de::comm::CUDPProxy::closeSockets()
+{
+    if (m_SocketFD != -1)
+    {
+        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Close UDP Socket" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        shutdown(m_SocketFD, SHUT_RDWR);
+        close(m_SocketFD);
+        m_SocketFD = -1;
+    }
+    delete m_ModuleAddress;  m_ModuleAddress = nullptr;
+    delete m_udpProxyServer; m_udpProxyServer = nullptr;
+}
+
+
 void de::comm::CUDPProxy::stop()
 {
 
@@ -145,14 +171,7 @@ void de::comm::CUDPProxy::stop()
 
     m_stopped_called = true;
 
-    if (m_SocketFD != -1)
-    {
-        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Close UDP Socket" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        //https://stackoverflow.com/questions/6389970/unblock-recvfrom-when-socket-is-closed
-        shutdown(m_SocketFD, SHUT_RDWR);
-        close(m_SocketFD);
-        m_SocketFD = -1;
-    }
+    closeSockets();
     
     #ifdef DEBUG
 	std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -166,8 +185,6 @@ void de::comm::CUDPProxy::stop()
             //m_threadSenderID.join();
             m_starrted = false;
         }
-        delete m_ModuleAddress;
-        delete m_udpProxyServer;
 
         #ifdef DEBUG
 	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;

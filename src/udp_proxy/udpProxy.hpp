@@ -49,7 +49,8 @@ class CUDPProxy
 
 
     protected:
-                
+        
+        void closeSockets();
         void startReceiver();
 
         void InternalReceiverEntry();
