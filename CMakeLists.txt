@@ -194,29 +194,37 @@ endif()
 message ("${Yellow}=========================================================================${ColourReset}")
 
 
-# CPack configuration for Debian package generation
-set(CPACK_PACKAGE_NAME "DE_MAVLINK_PLUGIN")
+# CPack configuration for package generation without installation
+set(CPACK_PACKAGE_NAME "de-mavlink-plugin")
 set(CPACK_PACKAGE_VERSION "${__APP__VERSION__}")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6") # Example dependency
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "DroneEngage Team")
+set(CPACK_DEBIAN_PACKAGE_SECTION "science")
+set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "DroneEngage MAVLink Plugin - Ardupilot communication module")
+
+# Configure CPack to generate packages in build directory
+set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/packages")
+set(CPACK_SET_DESTDIR TRUE)
+set(CPACK_INSTALL_PREFIX "/home/$USER/droneengage")
+
+# Enable DEB generator
+set(CPACK_GENERATOR "DEB;TGZ;STGZ")
+
 include(CPack)
 
 # Installation configuration
 install(TARGETS de_mavlink
-    RUNTIME DESTINATION $ENV{HOME}/drone_engage/de_mavlink
+    RUNTIME DESTINATION bin
     COMPONENT runtime
 )
 
 install(FILES 
     ${PROJECT_SOURCE_DIR}/de_mavlink.config.module.json
     ${PROJECT_SOURCE_DIR}/template.json
-    DESTINATION $ENV{HOME}/drone_engage/de_mavlink
+    DESTINATION share/de_mavlink
     COMPONENT runtime
 )
-
-# Set CPack to install in user home directory
-set(CPACK_SET_DESTDIR FALSE)
-set(CPACK_INSTALL_PREFIX "\${HOME}")
 
 set(BUILD_SUCCESS_SCRIPT "${CMAKE_BINARY_DIR}/build_success.cmake")
 file(WRITE "${BUILD_SUCCESS_SCRIPT}" "")
