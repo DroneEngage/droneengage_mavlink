@@ -196,11 +196,11 @@ bool CFCBMain::init() {
         mavlink_ids["only_allow_ardupilot_compid"].is_number()) {
       const uint32_t comp_id = mavlink_ids["only_allow_ardupilot_compid"].get<int>();
       std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Variable "
-                << _INFO_CONSOLE_BOLD_TEXT << " only_allow_ardupilot_compid "
+                << _ERROR_CONSOLE_BOLD_TEXT_ << " only_allow_ardupilot_compid "
                 << _SUCCESS_CONSOLE_BOLD_TEXT_ << " is set to "
                 << _INFO_CONSOLE_BOLD_TEXT << comp_id << _NORMAL_CONSOLE_TEXT_
                 << std::endl;
-      std::cout << _INFO_CONSOLE_BOLD_TEXT << "NOTE OTHER SYS-IDs will be"
+      std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "NOTE OTHER SYS-IDs will be"
                 << _ERROR_CONSOLE_BOLD_TEXT_ << " IGNORED"
                 << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
