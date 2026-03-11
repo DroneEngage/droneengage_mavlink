@@ -15,6 +15,7 @@
 
 #include "./de_common/de_databus/configFile.hpp"
 #include "./de_common/de_databus/localConfigFile.hpp"
+#include "./de_common/de_databus/sync_fire_events.hpp"
 
 #include "fcb_modes.hpp"
 
@@ -699,6 +700,13 @@ void CFCBMain::OnMessageReceived(const mavlink_message_t &mavlink_message, const
 void CFCBMain::OnConnected(const bool &connected) {
   if (m_andruav_vehicle_info.use_fcb != connected) {
     m_andruav_vehicle_info.use_fcb = connected;
+    
+    Json_de mavlink_event_message = Json_de::object();
+    if (connected) {
+      m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_CONNECTED, mavlink_event_message, false);
+    } else {
+      m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_DISCONNECTED, mavlink_event_message, false);
+    }
   }
 
   return;
@@ -763,6 +771,9 @@ void CFCBMain::OnBoardRestarted() {
             << _ERROR_CONSOLE_BOLD_TEXT_ << "Flight Controller Restarted"
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
+  Json_de mavlink_event_message = Json_de::object();
+  m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_FCB_RESTARTED, mavlink_event_message, false);
+            
   m_fcb_facade.sendErrorMessage(
       std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), 0, ERROR_TYPE_LO7ETTA7AKOM,
       NOTIFICATION_TYPE_ERROR, "FCB board has been restarted");
@@ -776,6 +787,14 @@ void CFCBMain::OnArmed(const bool &armed, const bool &ready_to_arm) {
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
   m_andruav_vehicle_info.is_armed = armed;
+  
+  Json_de mavlink_event_message = Json_de::object();
+  if (armed) {
+    mavlink_event_message["r"] = ready_to_arm;
+    m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_ARMED, mavlink_event_message, false);
+  } else {
+    m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_DISARMED, mavlink_event_message, false);
+  }
   m_andruav_vehicle_info.is_ready_to_arm = ready_to_arm;
 
   m_fcb_facade.API_IC_sendID(std::string());
@@ -802,6 +821,14 @@ void CFCBMain::OnFlying(const bool &is_flying) {
     }
 
     m_andruav_vehicle_info.is_flying = is_flying;
+    
+    Json_de mavlink_event_message = Json_de::object();
+    if (is_flying) {
+      m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_FLYING, mavlink_event_message, false);
+    } else {
+      m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_LANDED, mavlink_event_message, false);
+    }
+    
     m_fcb_facade.API_IC_sendID(std::string());
   }
 
@@ -924,6 +951,10 @@ void CFCBMain::OnMissionACK(const int &result, const int &mission_type,
 void CFCBMain::OnWaypointReached(const int &seq) {
   m_andruav_vehicle_info.current_waypoint = seq;
   m_fcb_facade.sendWayPointReached(std::string(), seq);
+  
+  Json_de mavlink_event_message = Json_de::object();
+  mavlink_event_message["sequence"] = seq;
+  m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_MISSION_STARTED, mavlink_event_message, false);
 
   return;
 }
@@ -1039,6 +1070,42 @@ void CFCBMain::OnModeChanges(const uint32_t &custom_mode,
   // vehicle mode is mapped here to andruav mode.
   m_andruav_vehicle_info.flying_mode = CFCBModes::getAndruavMode(
       custom_mode, CFCBModes::getAndruavVehicleType(firmware_type), autopilot);
+  
+  // Send sync fire event for mode change
+  Json_de mavlink_event_message = Json_de::object();
+  mavlink_event_message["mode"] = m_andruav_vehicle_info.flying_mode;
+  mavlink_event_message["custom_mode"] = custom_mode;
+  
+  switch (m_andruav_vehicle_info.flying_mode) {
+    case VEHICLE_MODE_ALT_HOLD:
+      m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_MODE_ALT_HOLD, mavlink_event_message, false);
+      break;
+    case VEHICLE_MODE_GUIDED:
+      m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_MODE_GUIDED, mavlink_event_message, false);
+      break;
+    case VEHICLE_MODE_GUIDED_NO_GPS:
+      m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_MODE_GUIDED_NO_GPS, mavlink_event_message, false);
+      break;
+    case VEHICLE_MODE_AUTO:
+      m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_MODE_AUTO, mavlink_event_message, false);
+      break;
+    case VEHICLE_MODE_RTL:
+      m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_MODE_RTL, mavlink_event_message, false);
+      break;
+    case VEHICLE_MODE_STABILIZE:
+      m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_MODE_STABILIZE, mavlink_event_message, false);
+      break;
+    case VEHICLE_MODE_LOITER:
+      m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_MODE_LOITER, mavlink_event_message, false);
+      break;
+    case VEHICLE_MODE_POS_HOLD:
+      m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_MODE_POSHOLD, mavlink_event_message, false);
+      break;
+    default:
+      // For other modes, we can send a generic mode change event if needed
+      break;
+  }
+  
   adjustRemoteJoystickByMode(m_andruav_vehicle_info.rc_sub_action);
   m_fcb_facade.API_IC_sendID(std::string());
 
@@ -1048,6 +1115,12 @@ void CFCBMain::OnModeChanges(const uint32_t &custom_mode,
 void CFCBMain::OnHomePositionUpdated(
     const mavlink_home_position_t &home_position) {
   m_fcb_facade.sendHomeLocation(std::string());
+  
+  Json_de mavlink_event_message = Json_de::object();
+  mavlink_event_message["lat"] = home_position.latitude;
+  mavlink_event_message["lng"] = home_position.longitude;
+  mavlink_event_message["alt"] = home_position.altitude;
+  m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_HOME_SET, mavlink_event_message, false);
 
   return;
 }

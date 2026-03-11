@@ -307,7 +307,7 @@ ANDRUAV_UNIT_MODE CFCBModes::getAndruavModeFromArdupilotCopterMode(const uint32_
         case COPTER_MODE_AVOID_ADSB:
             return VEHICLE_MODE_UNKNOWN;
         case COPTER_MODE_GUIDED_NOGPS:
-            return VEHICLE_MODE_UNKNOWN;
+            return VEHICLE_MODE_GUIDED_NO_GPS;
         case COPTER_MODE_SMART_RTL:
             return VEHICLE_MODE_SMART_RTL;
         case COPTER_MODE_FLOWHOLD:
@@ -706,6 +706,23 @@ void CFCBModes::getArduPilotMode(const int &andruav_unit_mode, const int &andrua
 
                 case VEHICLE_TYPE_SUBMARINE:
                     custom_mode = SUB_MODE_GUIDED;
+                    return;
+
+                default:
+                    custom_mode = E_UNDEFINED_MODE;
+                    return;
+            }
+
+            break;
+
+        case VEHICLE_MODE_GUIDED_NO_GPS:
+            mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+            switch (andruav_unit_type)
+            {
+                case VEHICLE_TYPE_HELI:
+                case VEHICLE_TYPE_TRI:
+                case VEHICLE_TYPE_QUAD:
+                    custom_mode = COPTER_MODE_GUIDED_NOGPS;
                     return;
 
                 default:
