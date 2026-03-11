@@ -1012,6 +1012,17 @@ void CFCBFacade::sendSyncFireEvent(const std::string&target_party_id, const std:
    
 }
 
+void CFCBFacade::sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid, const Json_de& mavlink_event_message , const bool internal_only) const
+{
+    Json_de message =
+    {
+        {"d", event_sid},
+        {"m", mavlink_event_message}
+    };
+                
+    m_module.sendJMSG (target_party_id, message, TYPE_AndruavMessage_Sync_EventFire, internal_only);
+   
+}
 
 /**
  * This is an INTERMODULE Message ONLY used to tell communicator about the current mission item so that

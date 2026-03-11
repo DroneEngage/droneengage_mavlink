@@ -48,6 +48,7 @@ typedef enum ANDRUAV_UNIT_MODE
     VEHICLE_MODE_ALT_HOLD                   = 7,
     VEHICLE_MODE_MANUAL                     = 8,
     VEHICLE_MODE_GUIDED                     = 9,
+    VEHICLE_MODE_GUIDED_NO_GPS              = 1000,
     VEHICLE_MODE_LOITER                     = 10,
     VEHICLE_MODE_POS_HOLD                   = 11,
     VEHICLE_MODE_LAND                       = 12,
