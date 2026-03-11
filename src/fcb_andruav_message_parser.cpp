@@ -822,7 +822,7 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
      * my address & other adress are arbitrary.
      * you can switch between them
      */
-    const bool enable = cmd["en"].get<bool>();
+    const bool enable = cmd["en"].is_null() ? false : cmd["en"].get<bool>();
     const std::string my_address = socket1["address"].get<std::string>();
     const int my_port = socket1["port"].get<int>();
     const std::string others_address = socket2["address"].get<std::string>();
