@@ -29,6 +29,8 @@
 #include "./geofence/fcb_geo_fence_manager.hpp"
 #include "./mission/mission_manager.hpp"
 #include "./tracking/fcb_tracking_manager.hpp"
+#include "./de_pilot/fcb_de_pilot_takeoff.hpp"
+#include "./de_pilot/fcb_de_pilot_altitude.hpp"
 
 using Json_de = nlohmann::json;
 using namespace de::fcb;
@@ -558,6 +560,11 @@ void CFCBMain::loopScheduler() {
 
     if (m_counter % 20 == 0) { // each 200 msec
       remoteControlSignal();
+      
+      // Update DRONEENGAGE_PILOT operations
+      if (m_andruav_vehicle_info.de_pilot_enabled) {
+        updateDEPilotOperations();
+      }
     }
 
     if (m_counter % 30 == 0) { // each 300 msec
@@ -1921,4 +1928,52 @@ void CFCBMain::requestChangeUDPProxyClientPort(
   m_fcb_facade.requestUdpProxyTelemetry(
       m_udp_proxy_requested_enabled, m_udp_proxy.udp_ip1, m_udp_proxy.udp_port1,
       m_udp_proxy.udp_ip2, udp_proxy_fixed_port);
+}
+
+// DRONEENGAGE_PILOT implementations
+void CFCBMain::setDEPilotEnabled(bool enabled) {
+    m_andruav_vehicle_info.de_pilot_enabled = enabled;
+    
+    if (enabled) {
+        std::cout << _SUCCESS_CONSOLE_TEXT_ << "DRONEENGAGE_PILOT: Enabled" 
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    } else {
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DRONEENGAGE_PILOT: Disabled" 
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // Clear all operations when disabled
+        m_andruav_vehicle_info.de_pilot_operation = DEPILOT_OP_DISABLED;
+    }
+}
+
+bool CFCBMain::isDEPilotEnabled() const {
+    return m_andruav_vehicle_info.de_pilot_enabled;
+}
+
+void CFCBMain::setDEPilotOperation(DRONEENGAGE_PILOT_OPERATION operation, bool active) {
+    if (active) {
+        m_andruav_vehicle_info.de_pilot_operation = 
+            static_cast<DRONEENGAGE_PILOT_OPERATION>(
+                m_andruav_vehicle_info.de_pilot_operation | operation);
+    } else {
+        m_andruav_vehicle_info.de_pilot_operation = 
+            static_cast<DRONEENGAGE_PILOT_OPERATION>(
+                m_andruav_vehicle_info.de_pilot_operation & ~operation);
+    }
+}
+
+void CFCBMain::setDEPilotTargetAltitude(double altitude) {
+    m_andruav_vehicle_info.de_pilot_target_altitude = altitude;
+}
+
+void CFCBMain::updateDEPilotOperations() {
+    // This is called periodically from the scheduler
+    // Update active operations
+    
+    if (m_andruav_vehicle_info.de_pilot_operation & DEPILOT_OP_TAKEOFF) {
+        de::fcb::depilot::CDEPilotTakeoff::getInstance().updateTakeoff();
+    }
+    
+    if (m_andruav_vehicle_info.de_pilot_operation & DEPILOT_OP_ALTITUDE_CONTROL) {
+        de::fcb::depilot::CDEPilotAltitude::getInstance().updateAltitudeControl();
+    }
 }

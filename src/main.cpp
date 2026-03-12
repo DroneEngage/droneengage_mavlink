@@ -52,6 +52,7 @@ using namespace de;
         TYPE_AndruavMessage_UDPProxy_Info, TYPE_AndruavSystem_UDPProxy,        \
         TYPE_AndruavMessage_P2P_ACTION, TYPE_AndruavMessage_P2P_STATUS,        \
         TYPE_AndruavMessage_Upload_DE_Mission,                                 \
+        TYPE_AndruavMessage_DEPilot_Control,                                   \
         TYPE_AndruavMessage_CONFIG_ACTION, TYPE_AndruavMessage_DUMMY           \
   }
 

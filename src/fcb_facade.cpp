@@ -81,6 +81,8 @@ void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
             {"b", andruav_vehicle_info.is_tracking_mode},
             {"C", andruav_vehicle_info.rc_sub_action},
             {"B", andruav_vehicle_info.is_gcs_blocked},
+            {"DE", andruav_vehicle_info.de_pilot_enabled},
+            {"DO", andruav_vehicle_info.de_pilot_operation},
 
             {"n", (int)fcb_swarm_manager.getFormationAsFollower()},
             {"o", (int)fcb_swarm_manager.getFormationAsLeader()},
