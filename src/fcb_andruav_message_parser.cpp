@@ -6,6 +6,8 @@
 #include "./de_common/helpers/helpers.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
+#include "./de_pilot/fcb_de_pilot_takeoff.hpp"
+#include "./de_pilot/fcb_de_pilot_altitude.hpp"
 #include "defines.hpp"
 #include "fcb_modes.hpp"
 #include "plog/Initializers/RollingFileInitializer.h"
@@ -89,10 +91,33 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
         (!validateField(cmd, "a", Json_de::value_t::number_unsigned)))
       return;
     double altitude = cmd["a"].get<double>();
-    if (mavlinksdk::CVehicle::getInstance().isFlying() == true) {
-      mavlinksdk::CMavlinkCommand::getInstance().changeAltitude(altitude);
+    
+    // Check if DRONEENGAGE_PILOT is enabled and mode is compatible
+    const int flying_mode = m_fcbMain.getAndruavVehicleInfo().flying_mode;
+    const bool depilot_compatible = (flying_mode == VEHICLE_MODE_ALT_HOLD || 
+                                     flying_mode == VEHICLE_MODE_STABILIZE || 
+                                     flying_mode == VEHICLE_MODE_GUIDED);
+    
+    if (m_fcbMain.isDEPilotEnabled() && depilot_compatible) {
+      // Use DRONEENGAGE_PILOT control
+      if (!m_fcbMain.getAndruavVehicleInfo().is_flying) {
+        // Not flying - execute takeoff
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Initiating takeoff to " 
+                  << altitude << "m" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        de::fcb::depilot::CDEPilotTakeoff::getInstance().startTakeoff(altitude);
+      } else {
+        // Flying - change altitude
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Changing altitude to " 
+                  << altitude << "m" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        de::fcb::depilot::CDEPilotAltitude::getInstance().startAltitudeChange(altitude);
+      }
     } else {
-      mavlinksdk::CMavlinkCommand::getInstance().takeOff(altitude);
+      // Use existing MAVLink commands
+      if (mavlinksdk::CVehicle::getInstance().isFlying() == true) {
+        mavlinksdk::CMavlinkCommand::getInstance().changeAltitude(altitude);
+      } else {
+        mavlinksdk::CMavlinkCommand::getInstance().takeOff(altitude);
+      }
     }
   } break;
 
@@ -439,6 +464,27 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
       // string droneengage event format.
       m_mission_manager.deEventFiredExternally(cmd["d"].get<std::string>());
     }
+  } break;
+
+  case TYPE_AndruavMessage_DEPilot_Control: {
+    if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked)
+      break;
+    if ((!m_is_system) && ((permission & PERMISSION_ALLOW_GCS_MODES_CONTROL) !=
+                           PERMISSION_ALLOW_GCS_MODES_CONTROL)) {
+      std::cout << _INFO_CONSOLE_BOLD_TEXT
+                << "DEPilot_Control: " << _ERROR_CONSOLE_BOLD_TEXT_
+                << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+      break;
+    }
+    if (!validateField(cmd, "e", Json_de::value_t::boolean))
+      return;
+    
+    bool enabled = cmd["e"].get<bool>();
+    m_fcbMain.setDEPilotEnabled(enabled);
+    
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << "DRONEENGAGE_PILOT: " 
+              << (enabled ? "Enabled" : "Disabled") 
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
   } break;
 
   case TYPE_AndruavMessage_RemoteControl2: {

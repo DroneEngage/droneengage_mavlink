@@ -149,7 +149,13 @@ namespace fcb
                 return m_rcmap_channels_info;
             };
 
-            
+            // DRONEENGAGE_PILOT control methods
+            void setDEPilotEnabled(bool enabled);
+            bool isDEPilotEnabled() const;
+            void updateDEPilotOperations();
+            void setDEPilotOperation(DRONEENGAGE_PILOT_OPERATION operation, bool active);
+            void setDEPilotTargetAltitude(double altitude);
+
             
                 
 

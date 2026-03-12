@@ -152,12 +152,13 @@ file(GLOB folder_geofence "./src/geofence/*.cpp")
 file(GLOB folder_general_mission_planner "./src/de_general_mission_planner/*.cpp")
 file(GLOB folder_swarm "./src/swarm/*.cpp")
 file(GLOB folder_tracking "./src/tracking/*.cpp")
+file(GLOB folder_de_pilot "./src/de_pilot/*.cpp")
 
 
 
 set(files ${folder_src} ${folder_udpproxy} ${folder_uavos} ${folder_uavos1} ${folder_uavos2} ${folder_helpers}
  ${folder_mission} ${folder_geofence}  ${folder_swarm}
- ${folder_sdk} ${folder_sdk_helper} ${folder_tracking} ${folder_general_mission_planner})
+ ${folder_sdk} ${folder_sdk_helper} ${folder_tracking} ${folder_general_mission_planner} ${folder_de_pilot})
 
 include_directories(${PROJECT_SOURCE_DIR}/3rdparty)
 include_directories (${PROJECT_SOURCE_DIR}/mavlink_sdk/src)
