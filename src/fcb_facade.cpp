@@ -15,6 +15,7 @@ using Json_de = nlohmann::json;
 #include "./swarm/fcb_swarm_leader.hpp"
 #include "./swarm/fcb_swarm_follower.hpp"
 #include "./mission/mission_manager.hpp"
+#include "./de_pilot/fcb_de_pilot_manager.hpp"
 
 
 using namespace de::fcb;
@@ -81,8 +82,8 @@ void CFCBFacade::API_IC_sendID(const std::string&target_party_id)  const
             {"b", andruav_vehicle_info.is_tracking_mode},
             {"C", andruav_vehicle_info.rc_sub_action},
             {"B", andruav_vehicle_info.is_gcs_blocked},
-            {"DE", andruav_vehicle_info.de_pilot_enabled},
-            {"DO", andruav_vehicle_info.de_pilot_operation},
+            {"DE", de::fcb::depilot::CDEPilotManager::getInstance().getActive()},
+            {"DO", (int)de::fcb::depilot::CDEPilotManager::getInstance().getCurrentOperation()},
 
             {"n", (int)fcb_swarm_manager.getFormationAsFollower()},
             {"o", (int)fcb_swarm_manager.getFormationAsLeader()},

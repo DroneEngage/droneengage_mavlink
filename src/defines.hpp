@@ -110,10 +110,10 @@ typedef enum RC_SUB_ACTION
 typedef enum DRONEENGAGE_PILOT_OPERATION 
 {
     DEPILOT_OP_DISABLED         = 0,
-    DEPILOT_OP_TAKEOFF          = 1,
-    DEPILOT_OP_ALTITUDE_CONTROL = 2,
+    DEPILOT_OP_CHANGE_ALTITUDE  = 1,
+    DEPILOT_OP_STABILIZATION    = 3,
     DEPILOT_OP_TRACKING         = 4
-    // Can be combined via bitwise OR
+    // Exclusive modes - only one active at a time
 } DRONEENGAGE_PILOT_OPERATION;
 
 typedef struct ANDRUAV_VEHICLE_INFO 
@@ -144,10 +144,6 @@ typedef struct ANDRUAV_VEHICLE_INFO
     bool                rc_command_active                   = false;      
     u_int64_t           rc_command_last_update_time         = 0l;
     
-    // DRONEENGAGE_PILOT state
-    bool                        de_pilot_enabled            = false;
-    DRONEENGAGE_PILOT_OPERATION de_pilot_operation          = DEPILOT_OP_DISABLED;
-    double                      de_pilot_target_altitude    = 0.0;    
     int16_t             rc_channels[18]                     = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     int16_t             rc_channels_min[18]                 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     int16_t             rc_channels_max[18]                 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};

@@ -150,14 +150,7 @@ namespace fcb
             };
 
             // DRONEENGAGE_PILOT control methods
-            void setDEPilotEnabled(bool enabled);
-            bool isDEPilotEnabled() const;
             void updateDEPilotOperations();
-            void setDEPilotOperation(DRONEENGAGE_PILOT_OPERATION operation, bool active);
-            void setDEPilotTargetAltitude(double altitude);
-
-            
-                
 
             /**
              * @brief called when receive {@link TYPE_AndruavSystem_UDPProxy @endlink} to 

@@ -29,8 +29,7 @@
 #include "./geofence/fcb_geo_fence_manager.hpp"
 #include "./mission/mission_manager.hpp"
 #include "./tracking/fcb_tracking_manager.hpp"
-#include "./de_pilot/fcb_de_pilot_takeoff.hpp"
-#include "./de_pilot/fcb_de_pilot_altitude.hpp"
+#include "./de_pilot/fcb_de_pilot_manager.hpp"
 
 using Json_de = nlohmann::json;
 using namespace de::fcb;
@@ -277,6 +276,10 @@ bool CFCBMain::init() {
   }
 
   de::fcb::mission::CMissionManager::getInstance().getAndruavMission().clear();
+  
+  // Initialize DE Pilot Manager
+  de::fcb::depilot::CDEPilotManager::getInstance().init();
+  
   m_andruav_vehicle_info.rc_sub_action = RC_SUB_ACTION::RC_SUB_ACTION_RELEASED;
 
   m_scheduler_thread = std::thread{[&]() { loopScheduler(); }};
@@ -301,6 +304,9 @@ bool CFCBMain::uninit() {
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
 
+  
+// Uninitialize DE Pilot Manager
+  de::fcb::depilot::CDEPilotManager::getInstance().init();
   return true;
 }
 
@@ -465,6 +471,12 @@ void CFCBMain::readConfigParameters() {
 void CFCBMain::remoteControlSignal() {
   if (!m_andruav_vehicle_info.rc_command_active)
     return;
+    
+  // Disable RC command sending during DEPilot operations to prevent interference
+  if (de::fcb::depilot::CDEPilotManager::getInstance().getAllowRCControl()) {
+    return;
+  }
+  
   const u_int64_t now = get_time_usec();
 
   switch (m_andruav_vehicle_info.rc_sub_action) {
@@ -562,7 +574,7 @@ void CFCBMain::loopScheduler() {
       remoteControlSignal();
       
       // Update DRONEENGAGE_PILOT operations
-      if (m_andruav_vehicle_info.de_pilot_enabled) {
+      if (de::fcb::depilot::CDEPilotManager::getInstance().getActive()) {
         updateDEPilotOperations();
       }
     }
@@ -1112,7 +1124,7 @@ void CFCBMain::OnModeChanges(const uint32_t &custom_mode,
       // For other modes, we can send a generic mode change event if needed
       break;
   }
-  
+  depilot::CDEPilotManager::getInstance().OnFlightModeChanged();
   adjustRemoteJoystickByMode(m_andruav_vehicle_info.rc_sub_action);
   m_fcb_facade.API_IC_sendID(std::string());
 
@@ -1930,50 +1942,7 @@ void CFCBMain::requestChangeUDPProxyClientPort(
       m_udp_proxy.udp_ip2, udp_proxy_fixed_port);
 }
 
-// DRONEENGAGE_PILOT implementations
-void CFCBMain::setDEPilotEnabled(bool enabled) {
-    m_andruav_vehicle_info.de_pilot_enabled = enabled;
-    
-    if (enabled) {
-        std::cout << _SUCCESS_CONSOLE_TEXT_ << "DRONEENGAGE_PILOT: Enabled" 
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    } else {
-        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DRONEENGAGE_PILOT: Disabled" 
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        // Clear all operations when disabled
-        m_andruav_vehicle_info.de_pilot_operation = DEPILOT_OP_DISABLED;
-    }
-}
-
-bool CFCBMain::isDEPilotEnabled() const {
-    return m_andruav_vehicle_info.de_pilot_enabled;
-}
-
-void CFCBMain::setDEPilotOperation(DRONEENGAGE_PILOT_OPERATION operation, bool active) {
-    if (active) {
-        m_andruav_vehicle_info.de_pilot_operation = 
-            static_cast<DRONEENGAGE_PILOT_OPERATION>(
-                m_andruav_vehicle_info.de_pilot_operation | operation);
-    } else {
-        m_andruav_vehicle_info.de_pilot_operation = 
-            static_cast<DRONEENGAGE_PILOT_OPERATION>(
-                m_andruav_vehicle_info.de_pilot_operation & ~operation);
-    }
-}
-
-void CFCBMain::setDEPilotTargetAltitude(double altitude) {
-    m_andruav_vehicle_info.de_pilot_target_altitude = altitude;
-}
-
 void CFCBMain::updateDEPilotOperations() {
-    // This is called periodically from the scheduler
-    // Update active operations
-    
-    if (m_andruav_vehicle_info.de_pilot_operation & DEPILOT_OP_TAKEOFF) {
-        de::fcb::depilot::CDEPilotTakeoff::getInstance().updateTakeoff();
-    }
-    
-    if (m_andruav_vehicle_info.de_pilot_operation & DEPILOT_OP_ALTITUDE_CONTROL) {
-        de::fcb::depilot::CDEPilotAltitude::getInstance().updateAltitudeControl();
-    }
+    // Delegate to the pilot manager
+    de::fcb::depilot::CDEPilotManager::getInstance().updateOperations();
 }
