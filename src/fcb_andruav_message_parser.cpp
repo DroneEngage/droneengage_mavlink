@@ -7,7 +7,7 @@
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 #include "./de_pilot/fcb_de_pilot_takeoff.hpp"
-#include "./de_pilot/fcb_de_pilot_altitude.hpp"
+#include "./de_pilot/fcb_de_pilot_manager.hpp"
 #include "defines.hpp"
 #include "fcb_modes.hpp"
 #include "plog/Initializers/RollingFileInitializer.h"
@@ -92,25 +92,13 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
       return;
     double altitude = cmd["a"].get<double>();
     
-    // Check if DRONEENGAGE_PILOT is enabled and mode is compatible
-    const int flying_mode = m_fcbMain.getAndruavVehicleInfo().flying_mode;
-    const bool depilot_compatible = (flying_mode == VEHICLE_MODE_ALT_HOLD || 
-                                     flying_mode == VEHICLE_MODE_STABILIZE || 
-                                     flying_mode == VEHICLE_MODE_GUIDED);
-    
-    if (m_fcbMain.isDEPilotEnabled() && depilot_compatible) {
-      // Use DRONEENGAGE_PILOT control
-      if (!m_fcbMain.getAndruavVehicleInfo().is_flying) {
+    if (depilot::CDEPilotManager::getInstance().getActive()) {
+        // Use DRONEENGAGE_PILOT control
         // Not flying - execute takeoff
         std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Initiating takeoff to " 
                   << altitude << "m" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        de::fcb::depilot::CDEPilotTakeoff::getInstance().startTakeoff(altitude);
-      } else {
-        // Flying - change altitude
-        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Changing altitude to " 
-                  << altitude << "m" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        de::fcb::depilot::CDEPilotAltitude::getInstance().startAltitudeChange(altitude);
-      }
+        depilot::CDEPilotManager::getInstance().ChangeAltitude(altitude);
+      
     } else {
       // Use existing MAVLink commands
       if (mavlinksdk::CVehicle::getInstance().isFlying() == true) {
@@ -480,11 +468,11 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
       return;
     
     bool enabled = cmd["e"].get<bool>();
-    m_fcbMain.setDEPilotEnabled(enabled);
-    
+    de::fcb::depilot::CDEPilotManager::getInstance().setActive(enabled);
     std::cout << _SUCCESS_CONSOLE_TEXT_ << "DRONEENGAGE_PILOT: " 
               << (enabled ? "Enabled" : "Disabled") 
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
   } break;
 
   case TYPE_AndruavMessage_RemoteControl2: {
@@ -1180,4 +1168,4 @@ void CFCBAndruavMessageParser::parseRemoteExecute(Json_de &andruav_message) {
     }
   }
   }
-}
+  }

@@ -5,10 +5,12 @@
 
 #include "../de_common/de_databus/configFile.hpp"
 #include "../de_common/de_databus/localConfigFile.hpp"
+#include "../defines.hpp"
 
 #include "fcb_tracker_logic_plan.hpp"
 #include "fcb_tracker_logic_quad.hpp"
 #include "../fcb_main.hpp"
+#include "../de_pilot/fcb_de_pilot_manager.hpp"
 #include <cmath>
 #include <string>
 
@@ -81,6 +83,11 @@ void CTrackingManager::onTrack(const double x, const double yz,
                                const bool is_forward_camera) {
 
   if (!m_tracking_running || !m_object_detected) {
+    return;
+  }
+
+  // Check if DEPILOT_OP_TRACKING is the current active mode - only work when tracking is the primary mode
+  if (de::fcb::depilot::CDEPilotManager::getInstance().getCurrentOperation() != DEPILOT_OP_TRACKING) {
     return;
   }
 

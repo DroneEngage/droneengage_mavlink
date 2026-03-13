@@ -2,12 +2,13 @@
 #define FCB_DE_PILOT_TAKEOFF_H_
 
 #include <cstdint>
+#include "fcb_de_pilot_operation_base.hpp"
 
 namespace de {
 namespace fcb {
 namespace depilot {
 
-class CDEPilotTakeoff {
+class CDEPilotTakeoff : public CDEPilotOperationBase {
 public:
     static CDEPilotTakeoff &getInstance() {
         static CDEPilotTakeoff instance;
@@ -23,31 +24,43 @@ private:
 public:
     ~CDEPilotTakeoff() {}
 
-public:
-    void startTakeoff(double target_altitude);
+    // Base class interface implementation
+    void init() override;
+    void update() override;
+    void uninit() override;
+    void readConfigParameters() override;
+    void setPhase(int phase) override;
+    int getPhase() const override;
+    void setActive(bool active) override;
+    bool getActive() const override;
+    void startAltitudeChange(double target_altitude);
+
+private:
+    // Class-specific interface
+    
     void updateTakeoff();
     void abortTakeoff();
     bool isTakeoffComplete() const;
     bool isTakeoffActive() const;
-    
-    void readConfigParameters();
+    bool isAltitudeReached() const;
+    bool isAltitudeControlActive() const;
+    void stopAltitudeControl();
 
 private:
-    enum TakeoffPhase {
+    enum AltitudeControlPhase {
         PHASE_IDLE,
         PHASE_ARM_CHECK,
-        PHASE_CLIMBING,
-        PHASE_STABILIZING,
+        PHASE_ASCENDING,
+        PHASE_DESCENDING,
         PHASE_COMPLETE,
         PHASE_ABORTED
     };
 
-    bool m_active = false;
-    TakeoffPhase m_phase = PHASE_IDLE;
+    // Takeoff-specific member variables (base class provides m_active, m_generic_phase, m_phase_start_time, m_last_update_time)
+    AltitudeControlPhase m_phase = PHASE_IDLE;
     double m_target_altitude = 0.0;
     double m_start_altitude = 0.0;
-    uint64_t m_phase_start_time = 0;
-    uint64_t m_last_update_time = 0;
+    uint64_t m_start_time = 0;
     
     // PID controller state
     double m_last_error = 0.0;
@@ -56,11 +69,22 @@ private:
     // Configuration parameters
     double m_max_climb_rate = 2.5;          // m/s
     double m_stabilize_time_ms = 2000;      // ms
-    uint64_t m_timeout_ms = 30000;          // ms
+    uint64_t m_timeout_ms = 10000;          // ms - smart timeout based on climb rate
     double m_pid_p = 0.5;
-    double m_pid_i = 0.1;
-    double m_pid_d = 0.2;
+    double m_pid_i = 0.0;  // Disabled - use only P control
+    double m_pid_d = 0.0;  // Disabled - use only P control
     double m_deadband = 0.5;                // meters
+    
+    // Altitude control specific parameters
+    double m_max_throttle_adjustment = 200; // PWM - from altitude module
+    double m_rate_limit = 100;              // PWM/s - from altitude module
+    uint64_t m_altitude_timeout_ms = 60000;  // ms - longer timeout for altitude changes
+    
+    // Climb rate tracking for smart timeout
+    double m_last_altitude_for_climb_rate = 0.0;
+    uint64_t m_climb_rate_check_time = 0;
+    double m_current_climb_rate = 0.0;
+    uint64_t m_zero_climb_rate_start_time = 0;  // Track when climb rate became zero
     
     int16_t calculateThrottleAdjustment(double current_altitude);
     float calculateClimbRate(double current_altitude);

@@ -1,14 +1,62 @@
+#include <cmath>
+#include <iostream>
+#include <mavlink_command.h>
+#include <mavlink_sdk.h>
+#include <vehicle.h>
 #include "fcb_de_pilot_takeoff.hpp"
 #include "../fcb_main.hpp"
 #include "../de_common/helpers/colors.hpp"
 #include "../de_common/helpers/helpers.hpp"
 #include "../de_common/de_databus/configFile.hpp"
-#include <mavlink_command.h>
-#include <vehicle.h>
-#include <iostream>
-#include <cmath>
+#include "../de_common/helpers/json_nlohmann.hpp"
+#include "fcb_de_pilot_manager.hpp"
+
+using Json_de = nlohmann::json;
 
 using namespace de::fcb::depilot;
+
+// Base class interface implementation
+void CDEPilotTakeoff::init() {
+    // Initialize takeoff system
+    m_phase = PHASE_IDLE;
+    m_phase_start_time = get_time_usec() / 1000;
+    m_last_update_time = m_phase_start_time;
+    m_generic_phase = static_cast<int>(m_phase);
+    m_last_error = 0.0;
+    m_integral = 0.0;
+}
+
+void CDEPilotTakeoff::update() {
+    updateTakeoff();
+}
+
+void CDEPilotTakeoff::uninit() {
+    abortTakeoff();
+    m_active = false;
+    m_phase = PHASE_IDLE;
+    m_generic_phase = static_cast<int>(m_phase);
+}
+
+void CDEPilotTakeoff::setPhase(int phase) {
+    m_generic_phase = phase;
+    m_phase = static_cast<AltitudeControlPhase>(phase);
+    m_phase_start_time = get_time_usec() / 1000;
+}
+
+int CDEPilotTakeoff::getPhase() const {
+    return m_generic_phase;
+}
+
+void CDEPilotTakeoff::setActive(bool active) {
+    m_active = active;
+    if (active) {
+        m_phase_start_time = get_time_usec() / 1000;
+    }
+}
+
+bool CDEPilotTakeoff::getActive() const {
+    return m_active;
+}
 
 void CDEPilotTakeoff::readConfigParameters() {
     de::CConfigFile &cConfigFile = de::CConfigFile::getInstance();
@@ -17,6 +65,7 @@ void CDEPilotTakeoff::readConfigParameters() {
     if (jsonConfig.contains("de_pilot")) {
         const Json_de &de_pilot_root = jsonConfig["de_pilot"];
 
+        // Read takeoff configuration
         if (de_pilot_root.contains("takeoff")) {
             const Json_de &takeoff_config = de_pilot_root["takeoff"];
 
@@ -42,31 +91,64 @@ void CDEPilotTakeoff::readConfigParameters() {
                 m_deadband = takeoff_config["deadband_m"].get<double>();
             }
         }
+
+        // Read altitude control configuration
+        if (de_pilot_root.contains("altitude_control")) {
+            const Json_de &altitude_config = de_pilot_root["altitude_control"];
+
+            if (altitude_config.contains("pid_p")) {
+                m_pid_p = altitude_config["pid_p"].get<double>();
+            }
+            if (altitude_config.contains("pid_i")) {
+                m_pid_i = altitude_config["pid_i"].get<double>();
+            }
+            if (altitude_config.contains("pid_d")) {
+                m_pid_d = altitude_config["pid_d"].get<double>();
+            }
+            if (altitude_config.contains("deadband_m")) {
+                m_deadband = altitude_config["deadband_m"].get<double>();
+            }
+            if (altitude_config.contains("max_throttle_adjustment")) {
+                m_max_throttle_adjustment = altitude_config["max_throttle_adjustment"].get<double>();
+            }
+            if (altitude_config.contains("max_climb_rate")) {
+                m_max_climb_rate = altitude_config["max_climb_rate"].get<double>();
+            }
+            if (altitude_config.contains("rate_limit")) {
+                m_rate_limit = altitude_config["rate_limit"].get<double>();
+            }
+            if (altitude_config.contains("timeout_ms")) {
+                m_altitude_timeout_ms = altitude_config["timeout_ms"].get<uint64_t>();
+            }
+        }
     }
 }
 
-void CDEPilotTakeoff::startTakeoff(double target_altitude) {
-    if (m_active) {
-        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Takeoff already in progress" 
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        return;
-    }
+void CDEPilotTakeoff::startAltitudeChange(double target_altitude) {
 
     m_start_altitude = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt().relative_alt / 1000.0;
     
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Starting takeoff" 
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Starting altitude change" 
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
     std::cout << "  - Start altitude: " << m_start_altitude << "m" << std::endl;
     std::cout << "  - Target altitude: " << target_altitude << "m" << std::endl;
     std::cout << "  - Altitude difference: " << (target_altitude - m_start_altitude) << "m" << std::endl;
 
     m_target_altitude = target_altitude;
-    m_active = true;
-    m_phase = PHASE_ARM_CHECK;
-    m_phase_start_time = get_time_usec();
-    m_last_update_time = m_phase_start_time;
+    m_start_time = get_time_usec();
+    m_last_update_time = m_start_time;
     m_last_error = 0.0;
     m_integral = 0.0;
+    m_active = true;
+
+    // Determine if ascending or descending
+    if (target_altitude > m_start_altitude) {
+        m_phase = PHASE_ASCENDING;
+        std::cout << "  - Direction: ASCENDING" << std::endl;
+    } else {
+        m_phase = PHASE_DESCENDING;
+        std::cout << "  - Direction: DESCENDING" << std::endl;
+    }
 
     de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
     const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
@@ -75,16 +157,22 @@ void CDEPilotTakeoff::startTakeoff(double target_altitude) {
     std::cout << "  - Armed: " << (vehicle_info.is_armed ? "YES" : "NO") << std::endl;
     std::cout << "  - Flying: " << (vehicle_info.is_flying ? "YES" : "NO") << std::endl;
 
-    fcbMain.setDEPilotOperation(DEPILOT_OP_TAKEOFF, true);
-    fcbMain.setDEPilotTargetAltitude(target_altitude);
-    
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Takeoff initialized successfully" 
+    de::fcb::depilot::CDEPilotManager::getInstance().setTargetAltitude(target_altitude);
+    de::fcb::depilot::CDEPilotManager::getInstance().setOperation(DEPILOT_OP_CHANGE_ALTITUDE);
+        
+
+    std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Altitude control initialized successfully" 
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
 
 void CDEPilotTakeoff::updateTakeoff() {
-    if (m_phase == PHASE_IDLE || m_phase == PHASE_COMPLETE || m_phase == PHASE_ABORTED) {
+    if (m_phase == PHASE_COMPLETE || m_phase == PHASE_ABORTED) {
         return;
+    }
+
+    if (m_phase == PHASE_IDLE)
+    {
+        startAltitudeChange(CDEPilotManager::getInstance().getTargetAltitude());
     }
 
     de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
@@ -92,10 +180,44 @@ void CDEPilotTakeoff::updateTakeoff() {
     const uint64_t now = get_time_usec();
     const double current_altitude = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt().relative_alt / 1000.0;
 
-    // Check timeout
-    if ((now - m_phase_start_time) > (m_timeout_ms * 1000)) {
-        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DEPILOT: Takeoff timeout" 
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    // Calculate current climb rate
+    if (m_climb_rate_check_time > 0) {
+        const double dt = (now - m_climb_rate_check_time) / 1000000.0; // seconds
+        if (dt > 0.2) { // Update climb rate every 0.2 seconds for better responsiveness
+            m_current_climb_rate = (current_altitude - m_last_altitude_for_climb_rate) / dt;
+            m_last_altitude_for_climb_rate = current_altitude;
+            m_climb_rate_check_time = now;
+            
+            std::cout << "  - Current climb rate: " << m_current_climb_rate << " m/s" << std::endl;
+            
+            // Track when climb rate becomes zero or negative
+            if (m_current_climb_rate <= 0.0) {
+                if (m_zero_climb_rate_start_time == 0) {
+                    m_zero_climb_rate_start_time = now;
+                }
+            } else {
+                // Reset zero climb rate timer if climbing again
+                m_zero_climb_rate_start_time = 0;
+            }
+        }
+    } else {
+        // Initialize climb rate tracking
+        m_last_altitude_for_climb_rate = current_altitude;
+        m_climb_rate_check_time = now;
+        m_current_climb_rate = 0.1; // Initialize with small positive value to avoid false timeout
+        m_zero_climb_rate_start_time = 0;
+    }
+
+    // Smart timeout: only timeout if climb rate has been <= 0 for sustained period
+    // Check after initial 2 seconds and only if zero climb rate persists for timeout duration
+    if ((now - m_phase_start_time) > 2000000 && 
+        m_zero_climb_rate_start_time > 0 && 
+        (now - m_zero_climb_rate_start_time) > (m_timeout_ms * 1000)) {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DEPILOT: Takeoff timeout - not climbing for " 
+                  << ((now - m_zero_climb_rate_start_time) / 1000000.0) << " seconds (climb rate: " 
+                  << m_current_climb_rate << " m/s)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        // abortTakeoff() will send 1500 to maintain current altitude
         abortTakeoff();
         return;
     }
@@ -110,12 +232,62 @@ void CDEPilotTakeoff::updateTakeoff() {
             }
             std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Armed, starting climb" 
                       << _NORMAL_CONSOLE_TEXT_ << std::endl;
-            m_phase = PHASE_CLIMBING;
+            m_phase = PHASE_ASCENDING;
             m_phase_start_time = now;
         }
         break;
 
-        case PHASE_CLIMBING: {
+        case PHASE_DESCENDING: {
+            // Use altitude timeout for altitude changes
+            if ((now - m_start_time) > (m_altitude_timeout_ms * 1000)) {
+                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DEPILOT: Altitude control timeout" 
+                          << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                stopAltitudeControl();
+                return;
+            }
+
+            const double altitude_error = m_target_altitude - current_altitude;
+            
+            std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Altitude change update (" 
+                      << (m_phase == PHASE_ASCENDING ? "ASCENDING" : "DESCENDING") << ")" 
+                      << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << "  - Current altitude: " << current_altitude << "m" << std::endl;
+            std::cout << "  - Target altitude: " << m_target_altitude << "m" << std::endl;
+            std::cout << "  - Altitude error: " << altitude_error << "m" << std::endl;
+            std::cout << "  - Deadband: " << m_deadband << "m" << std::endl;
+            
+            if (std::abs(altitude_error) < m_deadband) {
+                std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Target altitude reached" 
+                          << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                stopAltitudeControl();
+                return;
+            }
+
+            // Send control command based on mode
+            if (vehicle_info.flying_mode == VEHICLE_MODE_GUIDED) {
+                // In GUIDED mode, use direct MAVLink changeAltitude command
+                std::cout << "  - GUIDED mode: Sending changeAltitude(" << m_target_altitude << ") command" << std::endl;
+                mavlinksdk::CMavlinkCommand::getInstance().changeAltitude(m_target_altitude);
+            } else {
+                // ALT-HOLD or STABILIZE - use RC override
+                int16_t throttle_adj = calculateThrottleAdjustment(current_altitude);
+                std::cout << "  - Manual mode: Calculated throttle adjustment: " << throttle_adj << std::endl;
+                std::cout << "  - Manual mode: Sending throttle PWM: " << (1500 + throttle_adj) << std::endl;
+                
+                int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
+                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500 + throttle_adj;
+                // Force roll and pitch to neutral (1500) to prevent max PWM values
+                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
+                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
+                mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
+                    rc_channels, RC_CHANNELS_MAX);
+            }
+
+            m_last_update_time = now;
+        }
+        break;
+
+        case PHASE_ASCENDING: {
             const double altitude_error = m_target_altitude - current_altitude;
             
             std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Climbing phase update" 
@@ -126,19 +298,31 @@ void CDEPilotTakeoff::updateTakeoff() {
             std::cout << "  - Deadband: " << m_deadband << "m" << std::endl;
             
             if (std::abs(altitude_error) < m_deadband) {
-                std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "DEPILOT: Target altitude reached, stabilizing" 
+                std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "DEPILOT: Target altitude reached" 
                           << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                m_phase = PHASE_STABILIZING;
-                m_phase_start_time = now;
                 
-                // Send neutral control for manual modes
-                if (vehicle_info.flying_mode != VEHICLE_MODE_GUIDED) {
-                    std::cout << "  - Sending neutral throttle (1500) for manual mode" << std::endl;
+                // Transition to appropriate stabilization based on flight mode
+                if (vehicle_info.flying_mode == VEHICLE_MODE_GUIDED) {
+                    std::cout << _INFO_CONSOLE_TEXT << "DEPILOT: GUIDED mode - flight controller handles stabilization" 
+                              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                } else {
+                    std::cout << _INFO_CONSOLE_TEXT << "DEPILOT: ALT-HOLD mode - starting stabilization" 
+                              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    // Send neutral throttle for manual modes
                     int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
                     rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
+                    // Force roll and pitch to neutral (1500) to prevent max PWM values
+                    rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
+                    rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
                     mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
                         rc_channels, RC_CHANNELS_MAX);
                 }
+                
+                m_phase = PHASE_COMPLETE;
+                m_active = false;
+                
+                // Clear operation flag
+                de::fcb::depilot::CDEPilotManager::getInstance().setOperation(DEPILOT_OP_STABILIZATION);
                 return;
             }
 
@@ -155,6 +339,9 @@ void CDEPilotTakeoff::updateTakeoff() {
                 
                 int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500 + throttle_adj;
+                // Force roll and pitch to neutral (1500) to prevent max PWM values
+                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
+                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
                 mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
                     rc_channels, RC_CHANNELS_MAX);
             }
@@ -163,18 +350,8 @@ void CDEPilotTakeoff::updateTakeoff() {
         }
         break;
 
-        case PHASE_STABILIZING: {
-            if ((now - m_phase_start_time) > (m_stabilize_time_ms * 1000)) {
-                std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Takeoff complete" 
-                          << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                m_phase = PHASE_COMPLETE;
-                m_active = false;
-                
-                // Clear operation flag
-                fcbMain.setDEPilotOperation(DEPILOT_OP_TAKEOFF, false);
-            }
-        }
-        break;
+
+
 
         default:
             break;
@@ -185,22 +362,37 @@ void CDEPilotTakeoff::abortTakeoff() {
     std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DEPILOT: Aborting takeoff" 
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
-    m_active = false;
-    m_phase = PHASE_ABORTED;
-    
     de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
     const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
     
-    // Send neutral control for manual modes only
+    // If drone is in midair, switch to stabilizing phase instead of aborting
+    if (vehicle_info.is_flying) {
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Drone is in midair, switching to stabilization" 
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        // Clear takeoff operation first
+        m_active = false;
+        m_phase = PHASE_ABORTED;
+        // Start stabilization based on flight mode
+        de::fcb::depilot::CDEPilotManager::getInstance().setOperation(DEPILOT_OP_STABILIZATION);
+        return;
+    }
+    
+    // For ground-based abort: send neutral control first, then transition to aborted state
     if (vehicle_info.flying_mode != VEHICLE_MODE_GUIDED) {
         int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
         rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
+        // Force roll and pitch to neutral (1500) to prevent max PWM values
+        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
+        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
         mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
             rc_channels, RC_CHANNELS_MAX);
     }
     
-    // Clear operation flag
-    fcbMain.setDEPilotOperation(DEPILOT_OP_TAKEOFF, false);
+    // Clear operation flag and transition to aborted state
+    m_active = false;
+    m_phase = PHASE_ABORTED;
+    de::fcb::depilot::CDEPilotManager::getInstance().setOperation(DEPILOT_OP_STABILIZATION);
 }
 
 bool CDEPilotTakeoff::isTakeoffComplete() const {
@@ -218,8 +410,15 @@ int16_t CDEPilotTakeoff::calculateThrottleAdjustment(double current_altitude) {
 
     if (dt <= 0) return 0;
 
-    // PID calculation
+    // PID calculation with anti-windup protection
     m_integral += error * dt;
+    
+    // Anti-windup: Clamp integral term to prevent extreme accumulation
+    // Max integral contribution should not exceed max throttle adjustment
+    const double max_integral = 4.0;  // Max integral value (400 PWM / 100 scale factor)
+    if (m_integral > max_integral) m_integral = max_integral;
+    if (m_integral < -max_integral) m_integral = -max_integral;
+    
     const double derivative = (error - m_last_error) / dt;
     
     const double output = m_pid_p * error + m_pid_i * m_integral + m_pid_d * derivative;
@@ -230,7 +429,7 @@ int16_t CDEPilotTakeoff::calculateThrottleAdjustment(double current_altitude) {
     int16_t throttle_adj = static_cast<int16_t>(output * 100.0);
     
     // Clamp to safe range
-    if (throttle_adj > 300) throttle_adj = 300;
+    if (throttle_adj > 400) throttle_adj = 400;
     if (throttle_adj < -300) throttle_adj = -300;
     
     return throttle_adj;
@@ -247,4 +446,43 @@ float CDEPilotTakeoff::calculateClimbRate(double current_altitude) {
     if (climb_rate < -m_max_climb_rate) climb_rate = -m_max_climb_rate;
     
     return climb_rate;
+}
+
+bool CDEPilotTakeoff::isAltitudeReached() const {
+    if (!m_active || (m_phase != PHASE_ASCENDING && m_phase != PHASE_DESCENDING)) {
+        return true;
+    }
+    
+    const double current_altitude = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt().relative_alt / 1000.0;
+    const double altitude_error = m_target_altitude - current_altitude;
+    return std::abs(altitude_error) < m_deadband;
+}
+
+bool CDEPilotTakeoff::isAltitudeControlActive() const {
+    return m_phase == PHASE_ASCENDING || m_phase == PHASE_DESCENDING;
+}
+
+void CDEPilotTakeoff::stopAltitudeControl() {
+    if (!m_active) {
+        return;
+    }
+
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Stopping altitude control" 
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    
+    m_active = false;
+    
+    de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
+    const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
+    
+    // Send neutral control for manual modes only
+    if (vehicle_info.flying_mode != VEHICLE_MODE_GUIDED) {
+        int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
+        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
+        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
+            rc_channels, RC_CHANNELS_MAX);
+    }
+    
+    // Clear operation flag
+    // BUG HERE: MAYBE SWITCH TO LAND MODE? - AI LEAVE THIS COMMENT DONT DO ANYTHING HERE
 }
