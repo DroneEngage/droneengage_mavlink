@@ -5,6 +5,8 @@
 #include "../fcb_main.hpp"
 #include "../fcb_facade.hpp"
 #include "../fcb_modes.hpp"
+#include <mavlink_sdk.h>
+#include <vehicle.h>
 
 
 
@@ -15,7 +17,7 @@ namespace depilot {
 void CDEPilotManager::init() {
   // Initialize all pilot operations
   CDEPilotStabilization::getInstance().init();
-  CDEPilotTakeoff::getInstance()
+  CDEPilotChangeAltitude::getInstance()
       .init(); // Now handles both takeoff and altitude
 
   m_de_pilot_operation = DEPILOT_OP_DISABLED;
@@ -122,6 +124,20 @@ void CDEPilotManager::updateOperations() {
   CDEPilotOperationBase *operation = getOperationInstance(m_de_pilot_operation);
   if (operation != nullptr) {
     operation->update();
+    
+    // Check if operation completed and auto-switch to stabilization
+    if (m_de_pilot_operation == DEPILOT_OP_CHANGE_ALTITUDE) {
+      CDEPilotChangeAltitude *takeoff_op = static_cast<CDEPilotChangeAltitude*>(operation);
+      // Use phase to check completion instead of private method
+      int phase = takeoff_op->getPhase();
+      bool active = takeoff_op->getActive();
+      
+      if (!active && (phase == 4 || phase == 5)) { // PHASE_COMPLETE (4) or PHASE_ABORTED (5)
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotManager: Takeoff completed/aborted, switching to stabilization" 
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        setOperation(DEPILOT_OP_STABILIZATION);
+      }
+    }
   }
 }
 
@@ -215,14 +231,14 @@ bool CDEPilotManager::isOperationActive(
 
 void CDEPilotManager::deactivateAllOperations() {
   CDEPilotStabilization::getInstance().setActive(false);
-  CDEPilotTakeoff::getInstance().setActive(false);
+  CDEPilotChangeAltitude::getInstance().setActive(false);
 }
 
 CDEPilotOperationBase *CDEPilotManager::getOperationInstance(
     DRONEENGAGE_PILOT_OPERATION operation) const {
   switch (operation) {
   case DEPILOT_OP_CHANGE_ALTITUDE:
-    return &CDEPilotTakeoff::getInstance();
+    return &CDEPilotChangeAltitude::getInstance();
   case DEPILOT_OP_STABILIZATION:
     return &CDEPilotStabilization::getInstance();
   case DEPILOT_OP_TRACKING:

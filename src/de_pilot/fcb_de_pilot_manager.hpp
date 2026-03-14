@@ -5,7 +5,7 @@
 #include "../defines.hpp"
 #include "fcb_de_pilot_operation_base.hpp"
 #include "fcb_de_pilot_stabilization.hpp"
-#include "fcb_de_pilot_takeoff.hpp"
+#include "fcb_de_pilot_change_altitude.hpp"
 
 namespace de {
 namespace fcb {
