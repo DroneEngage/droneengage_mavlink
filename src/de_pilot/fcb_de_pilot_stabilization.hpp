@@ -33,6 +33,7 @@ public:
     int getPhase() const override;
     void setActive(bool active) override;
     bool getActive() const override;
+    bool isCompleted() override;
 
     // Class-specific interface
     void startStabilization();

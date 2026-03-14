@@ -19,6 +19,8 @@ void CDEPilotStabilization::init() {
     m_phase_start_time = get_time_usec() / 1000;
     m_last_update_time = m_phase_start_time;
     m_generic_phase = static_cast<int>(m_phase);
+
+    startStabilization();
 }
 
 void CDEPilotStabilization::update() {
@@ -30,6 +32,10 @@ void CDEPilotStabilization::uninit() {
     m_active = false;
     m_phase = PHASE_IDLE;
     m_generic_phase = static_cast<int>(m_phase);
+}
+
+bool CDEPilotStabilization::isCompleted() {
+    return true; // you can always get out of this.
 }
 
 void CDEPilotStabilization::setPhase(int phase) {
@@ -110,6 +116,15 @@ void CDEPilotStabilization::updateStabilization() {
     de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
     const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
     const uint64_t now = get_time_usec();
+    
+    
+    if (!vehicle_info.is_armed) {
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Waiting for arm..." 
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                // Do nothing I am not armed.
+        return;
+    }
+
     const double current_altitude = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt().relative_alt / 1000.0;
 
     switch (m_phase) {
@@ -136,14 +151,9 @@ void CDEPilotStabilization::updateStabilization() {
             
             m_last_update_time = now;
             
-            if ((now - m_phase_start_time) > (m_stabilize_time_ms * 1000)) {
-                std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Stabilization complete" 
-                          << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                m_phase = PHASE_COMPLETE;
-                m_active = false;
-                
-
-            }
+            // Stabilization runs indefinitely - no timeout
+            // It will continue sending 1500 throttle to maintain altitude
+            // until manually stopped or switched to another operation
         }
         break;
 
@@ -157,7 +167,7 @@ void CDEPilotStabilization::stopStabilization() {
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
     m_active = false;
-    m_phase = PHASE_COMPLETE;
+    setPhase(PHASE_COMPLETE);
 }
 
 bool CDEPilotStabilization::isStabilizationActive() const {

@@ -123,26 +123,31 @@ void CDEPilotManager::updateOperations() {
   // Update the active operation
   CDEPilotOperationBase *operation = getOperationInstance(m_de_pilot_operation);
   if (operation != nullptr) {
+    //Step Execution
     operation->update();
     
     // Check if operation completed and auto-switch to stabilization
-    if (m_de_pilot_operation == DEPILOT_OP_CHANGE_ALTITUDE) {
-      CDEPilotChangeAltitude *takeoff_op = static_cast<CDEPilotChangeAltitude*>(operation);
-      // Use phase to check completion instead of private method
-      int phase = takeoff_op->getPhase();
-      bool active = takeoff_op->getActive();
-      
-      if (!active && (phase == 4 || phase == 5)) { // PHASE_COMPLETE (4) or PHASE_ABORTED (5)
-        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotManager: Takeoff completed/aborted, switching to stabilization" 
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        setOperation(DEPILOT_OP_STABILIZATION);
+    switch(static_cast<int>(m_de_pilot_operation)) {
+      case DEPILOT_OP_CHANGE_ALTITUDE: {
+        
+        if (operation->isCompleted()) { // PHASE_COMPLETE (4) or PHASE_ABORTED (5)
+          std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotManager: Takeoff completed/aborted, switching to stabilization" 
+                    << _NORMAL_CONSOLE_TEXT_ << std::endl;
+          do_Stabilize();
+        }
       }
+      break;
+
+      case DEPILOT_OP_STABILIZATION: {
+
+      }
+      break;
     }
   }
 }
 
-void CDEPilotManager::ChangeAltitude(double target_altitude) {
-  // LOGIC HERE for AI to IMplement:
+void CDEPilotManager::do_ChangeAltitude(double target_altitude) {
+  
   if (!isCompatibleMode()) {
     init();
     return;
@@ -158,7 +163,23 @@ void CDEPilotManager::ChangeAltitude(double target_altitude) {
   }
 }
 
-void CDEPilotManager::Land() {
+
+void CDEPilotManager::do_Stabilize() {
+  if (!isCompatibleMode()) {
+    init();
+    return;
+  }
+
+  setOperation(DEPILOT_OP_STABILIZATION);
+  if (m_operation_instance == nullptr)
+  {
+    // Failes
+    std::cout << "DE-Pilot Failed to call STABILIZE" << std::endl;
+    return ;
+  }
+}
+
+void CDEPilotManager::do_Land() {
   
   if (!isCompatibleMode()) {
     std::cout << "DE-PILOT: Failed to switch to LAND mode." << std::endl;

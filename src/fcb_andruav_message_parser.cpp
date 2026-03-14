@@ -97,7 +97,7 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
         // Not flying - execute takeoff
         std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Initiating takeoff to " 
                   << altitude << "m" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        depilot::CDEPilotManager::getInstance().ChangeAltitude(altitude);
+        depilot::CDEPilotManager::getInstance().do_ChangeAltitude(altitude);
       
     } else {
       // Use existing MAVLink commands
@@ -472,6 +472,9 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
     std::cout << _SUCCESS_CONSOLE_TEXT_ << "DRONEENGAGE_PILOT: " 
               << (enabled ? "Enabled" : "Disabled") 
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    if (enabled) {
+      de::fcb::depilot::CDEPilotManager::getInstance().do_Stabilize();
+    }
 
   } break;
 
