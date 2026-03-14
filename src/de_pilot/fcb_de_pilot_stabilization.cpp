@@ -96,7 +96,7 @@ void CDEPilotStabilization::startStabilization() {
     std::cout << "  - Flying: " << (vehicle_info.is_flying ? "YES" : "NO") << std::endl;
 
     de::fcb::depilot::CDEPilotManager::getInstance().setTargetAltitude(m_target_altitude);
-    de::fcb::depilot::CDEPilotManager::getInstance().setOperation(DEPILOT_OP_STABILIZATION);
+    // Don't set operation here - it's already set by the manager when this operation is started
     
     std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Stabilization initialized successfully" 
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -142,9 +142,7 @@ void CDEPilotStabilization::updateStabilization() {
                 m_phase = PHASE_COMPLETE;
                 m_active = false;
                 
-                // Clear operation flag
-                de::fcb::depilot::CDEPilotManager::getInstance().setOperation(DEPILOT_OP_STABILIZATION);
-    
+
             }
         }
         break;
@@ -160,8 +158,6 @@ void CDEPilotStabilization::stopStabilization() {
     
     m_active = false;
     m_phase = PHASE_COMPLETE;
-    
-    de::fcb::depilot::CDEPilotManager::getInstance().setOperation(DEPILOT_OP_STABILIZATION);
 }
 
 bool CDEPilotStabilization::isStabilizationActive() const {

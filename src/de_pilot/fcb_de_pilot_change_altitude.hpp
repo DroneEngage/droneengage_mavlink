@@ -8,21 +8,21 @@ namespace de {
 namespace fcb {
 namespace depilot {
 
-class CDEPilotTakeoff : public CDEPilotOperationBase {
+class CDEPilotChangeAltitude : public CDEPilotOperationBase {
 public:
-    static CDEPilotTakeoff &getInstance() {
-        static CDEPilotTakeoff instance;
+    static CDEPilotChangeAltitude &getInstance() {
+        static CDEPilotChangeAltitude instance;
         return instance;
     }
 
-    CDEPilotTakeoff(CDEPilotTakeoff const &) = delete;
-    void operator=(CDEPilotTakeoff const &) = delete;
+    CDEPilotChangeAltitude(CDEPilotChangeAltitude const &) = delete;
+    void operator=(CDEPilotChangeAltitude const &) = delete;
 
 private:
-    CDEPilotTakeoff() {}
+    CDEPilotChangeAltitude() {}
 
 public:
-    ~CDEPilotTakeoff() {}
+    ~CDEPilotChangeAltitude() {}
 
     // Base class interface implementation
     void init() override;

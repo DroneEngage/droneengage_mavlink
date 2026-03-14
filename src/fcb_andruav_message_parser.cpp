@@ -6,7 +6,7 @@
 #include "./de_common/helpers/helpers.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
-#include "./de_pilot/fcb_de_pilot_takeoff.hpp"
+#include "./de_pilot/fcb_de_pilot_change_altitude.hpp"
 #include "./de_pilot/fcb_de_pilot_manager.hpp"
 #include "defines.hpp"
 #include "fcb_modes.hpp"
