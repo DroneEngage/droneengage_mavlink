@@ -25,6 +25,7 @@ public:
     virtual void setActive(bool active) = 0;
     virtual bool getActive() const = 0;
 
+    virtual bool isCompleted() = 0;
 protected:
     // Common member variables that all operations can use
     bool m_active = false;

@@ -1,5 +1,5 @@
-#ifndef FCB_DE_PILOT_TAKEOFF_H_
-#define FCB_DE_PILOT_TAKEOFF_H_
+#ifndef FCB_DE_PILOT_CHANGE_ALTITUDE_H_
+#define FCB_DE_PILOT_CHANGE_ALTITUDE_H_
 
 #include <cstdint>
 #include "fcb_de_pilot_operation_base.hpp"
@@ -34,6 +34,7 @@ public:
     void setActive(bool active) override;
     bool getActive() const override;
     void startAltitudeChange(double target_altitude);
+    bool isCompleted() override;
 
 private:
     // Class-specific interface

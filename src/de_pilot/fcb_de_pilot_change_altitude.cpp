@@ -17,13 +17,23 @@ using namespace de::fcb::depilot;
 
 // Base class interface implementation
 void CDEPilotChangeAltitude::init() {
-    // Initialize takeoff system
     m_phase = PHASE_IDLE;
     m_phase_start_time = get_time_usec() / 1000;
     m_last_update_time = m_phase_start_time;
     m_generic_phase = static_cast<int>(m_phase);
     m_last_error = 0.0;
     m_integral = 0.0;
+    
+    // Reset altitude tracking variables
+    m_target_altitude = 0.0;
+    m_start_altitude = 0.0;
+    m_start_time = 0;
+    
+    // Reset climb rate tracking variables
+    m_last_altitude_for_climb_rate = 0.0;
+    m_climb_rate_check_time = 0;
+    m_current_climb_rate = 0.0;
+    m_zero_climb_rate_start_time = 0;
 }
 
 void CDEPilotChangeAltitude::update() {
@@ -35,6 +45,10 @@ void CDEPilotChangeAltitude::uninit() {
     m_active = false;
     m_phase = PHASE_IDLE;
     m_generic_phase = static_cast<int>(m_phase);
+}
+
+bool CDEPilotChangeAltitude::isCompleted() {
+    return m_phase == PHASE_COMPLETE || m_phase == PHASE_ABORTED;
 }
 
 void CDEPilotChangeAltitude::setPhase(int phase) {

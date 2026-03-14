@@ -31,8 +31,9 @@ public:
 
 public:
     // Main Functions
-    void ChangeAltitude(double target_altitude);
-    void Land();
+    void do_ChangeAltitude(double target_altitude);
+    void do_Stabilize();
+    void do_Land();
     
 public:
     // Getters & Setters
