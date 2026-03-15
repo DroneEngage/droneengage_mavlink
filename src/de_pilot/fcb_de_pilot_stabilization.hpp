@@ -47,6 +47,10 @@ public:
     bool isYawControlActive() const;
 
 private:
+    // Helper to compute desired yaw rate with linear taper
+    float calculateDesiredYawRate(double angle_error_rad) const;
+
+private:
     enum StabilizationPhase {
         PHASE_IDLE,
         PHASE_STABILIZING,
@@ -71,6 +75,11 @@ private:
     double m_yaw_previous_error = 0.0;
     uint64_t m_yaw_last_time = 0;
     
+    // Yaw rate tracking for rate-based control
+    double m_last_heading_for_rate = 0.0;
+    uint64_t m_yaw_rate_check_time = 0;
+    double m_current_yaw_rate = 0.0;
+    
     // Configuration parameters
     double m_stabilize_time_ms = 2000;      // ms
     double m_default_yaw_rate = 30.0;       // deg/sec
@@ -80,6 +89,7 @@ private:
     double m_yaw_i = 0.0;                   // Integral gain
     double m_yaw_d = 0.0;                   // Derivative gain
     double m_yaw_integral_limit = 100.0;    // Integral windup limit
+    double m_slowdown_angle = 15.0;         // degrees - linear taper distance
 };
 
 } // namespace depilot
