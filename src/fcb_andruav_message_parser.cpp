@@ -233,8 +233,20 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
     bool is_clock_wise = cmd["C"].get<bool>();
     bool is_relative = cmd["L"].get<bool>();
 
-    mavlinksdk::CMavlinkCommand::getInstance().setYawCondition(
-        target_angle, turn_rate, is_clock_wise, is_relative);
+    // Check if DE-PILOT is active
+    if (de::fcb::depilot::CDEPilotManager::getInstance().getActive()) {
+      std::cout << _INFO_CONSOLE_BOLD_TEXT
+                << "DoYAW: Using DE-PILOT for yaw control"
+                << _NORMAL_CONSOLE_TEXT_ << std::endl;
+      de::fcb::depilot::CDEPilotManager::getInstance().do_SetYaw(
+          target_angle, turn_rate, is_clock_wise, is_relative);
+    } else {
+      std::cout << _INFO_CONSOLE_BOLD_TEXT
+                << "DoYAW: Using direct MAVLink command (DE-PILOT not active)"
+                << _NORMAL_CONSOLE_TEXT_ << std::endl;
+      mavlinksdk::CMavlinkCommand::getInstance().setYawCondition(
+          target_angle, turn_rate, is_clock_wise, is_relative);
+    }
   } break;
 
   case TYPE_AndruavMessage_ChangeSpeed: {

@@ -17,6 +17,9 @@ using namespace de::fcb::depilot;
 
 // Base class interface implementation
 void CDEPilotChangeAltitude::init() {
+    // Read configuration parameters first
+    readConfigParameters();
+    
     m_phase = PHASE_IDLE;
     m_phase_start_time = get_time_usec() / 1000;
     m_last_update_time = m_phase_start_time;
@@ -79,60 +82,30 @@ void CDEPilotChangeAltitude::readConfigParameters() {
     if (jsonConfig.contains("de_pilot")) {
         const Json_de &de_pilot_root = jsonConfig["de_pilot"];
 
-        // Read takeoff configuration
-        if (de_pilot_root.contains("takeoff")) {
-            const Json_de &takeoff_config = de_pilot_root["takeoff"];
+        // Read change altitude configuration
+        if (de_pilot_root.contains("change_altitude")) {
+            const Json_de &change_altitude_config = de_pilot_root["change_altitude"];
 
-            if (takeoff_config.contains("max_climb_rate")) {
-                m_max_climb_rate = takeoff_config["max_climb_rate"].get<double>();
+            if (change_altitude_config.contains("max_climb_rate")) {
+                m_max_climb_rate = change_altitude_config["max_climb_rate"].get<double>();
             }
-            if (takeoff_config.contains("stabilize_time_ms")) {
-                m_stabilize_time_ms = takeoff_config["stabilize_time_ms"].get<double>();
+            if (change_altitude_config.contains("stabilize_time_ms")) {
+                m_stabilize_time_ms = change_altitude_config["stabilize_time_ms"].get<double>();
             }
-            if (takeoff_config.contains("timeout_ms")) {
-                m_timeout_ms = takeoff_config["timeout_ms"].get<uint64_t>();
+            if (change_altitude_config.contains("timeout_ms")) {
+                m_timeout_ms = change_altitude_config["timeout_ms"].get<uint64_t>();
             }
-            if (takeoff_config.contains("pid_p")) {
-                m_pid_p = takeoff_config["pid_p"].get<double>();
+            if (change_altitude_config.contains("pid_p")) {
+                m_pid_p = change_altitude_config["pid_p"].get<double>();
             }
-            if (takeoff_config.contains("pid_i")) {
-                m_pid_i = takeoff_config["pid_i"].get<double>();
+            if (change_altitude_config.contains("pid_i")) {
+                m_pid_i = change_altitude_config["pid_i"].get<double>();
             }
-            if (takeoff_config.contains("pid_d")) {
-                m_pid_d = takeoff_config["pid_d"].get<double>();
+            if (change_altitude_config.contains("pid_d")) {
+                m_pid_d = change_altitude_config["pid_d"].get<double>();
             }
-            if (takeoff_config.contains("deadband_m")) {
-                m_deadband = takeoff_config["deadband_m"].get<double>();
-            }
-        }
-
-        // Read altitude control configuration
-        if (de_pilot_root.contains("altitude_control")) {
-            const Json_de &altitude_config = de_pilot_root["altitude_control"];
-
-            if (altitude_config.contains("pid_p")) {
-                m_pid_p = altitude_config["pid_p"].get<double>();
-            }
-            if (altitude_config.contains("pid_i")) {
-                m_pid_i = altitude_config["pid_i"].get<double>();
-            }
-            if (altitude_config.contains("pid_d")) {
-                m_pid_d = altitude_config["pid_d"].get<double>();
-            }
-            if (altitude_config.contains("deadband_m")) {
-                m_deadband = altitude_config["deadband_m"].get<double>();
-            }
-            if (altitude_config.contains("max_throttle_adjustment")) {
-                m_max_throttle_adjustment = altitude_config["max_throttle_adjustment"].get<double>();
-            }
-            if (altitude_config.contains("max_climb_rate")) {
-                m_max_climb_rate = altitude_config["max_climb_rate"].get<double>();
-            }
-            if (altitude_config.contains("rate_limit")) {
-                m_rate_limit = altitude_config["rate_limit"].get<double>();
-            }
-            if (altitude_config.contains("timeout_ms")) {
-                m_altitude_timeout_ms = altitude_config["timeout_ms"].get<uint64_t>();
+            if (change_altitude_config.contains("deadband")) {
+                m_deadband = change_altitude_config["deadband"].get<double>();
             }
         }
     }
@@ -204,37 +177,45 @@ void CDEPilotChangeAltitude::updateTakeoff() {
             
             std::cout << "  - Current climb rate: " << m_current_climb_rate << " m/s" << std::endl;
             
-            // Track when climb rate becomes zero or negative
-            if (m_current_climb_rate <= 0.0) {
-                if (m_zero_climb_rate_start_time == 0) {
-                    m_zero_climb_rate_start_time = now;
+            // Track when climb rate becomes inappropriate for current phase
+            if (m_phase == PHASE_ASCENDING) {
+                // For ascending: track when climb rate becomes zero or negative
+                if (m_current_climb_rate <= 0.0) {
+                    if (m_zero_climb_rate_start_time == 0) {
+                        m_zero_climb_rate_start_time = now;
+                    }
+                } else {
+                    // Reset zero climb rate timer if climbing again
+                    m_zero_climb_rate_start_time = 0;
                 }
-            } else {
-                // Reset zero climb rate timer if climbing again
-                m_zero_climb_rate_start_time = 0;
+            } else if (m_phase == PHASE_DESCENDING) {
+                // For descending: track when climb rate becomes zero or positive (not descending)
+                if (m_current_climb_rate >= 0.0) {
+                    if (m_zero_climb_rate_start_time == 0) {
+                        m_zero_climb_rate_start_time = now;
+                    }
+                } else {
+                    // Reset zero descent rate timer if descending again
+                    m_zero_climb_rate_start_time = 0;
+                }
             }
         }
     } else {
         // Initialize climb rate tracking
         m_last_altitude_for_climb_rate = current_altitude;
         m_climb_rate_check_time = now;
-        m_current_climb_rate = 0.1; // Initialize with small positive value to avoid false timeout
+        
+        // Set initial climb rate based on phase to avoid false timeout
+        if (m_phase == PHASE_DESCENDING) {
+            m_current_climb_rate = -0.1; // Initialize with small negative value for descending
+        } else {
+            m_current_climb_rate = 0.1; // Initialize with small positive value for ascending
+        }
         m_zero_climb_rate_start_time = 0;
     }
 
-    // Smart timeout: only timeout if climb rate has been <= 0 for sustained period
-    // Check after initial 2 seconds and only if zero climb rate persists for timeout duration
-    if ((now - m_phase_start_time) > 2000000 && 
-        m_zero_climb_rate_start_time > 0 && 
-        (now - m_zero_climb_rate_start_time) > (m_timeout_ms * 1000)) {
-        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DEPILOT: Takeoff timeout - not climbing for " 
-                  << ((now - m_zero_climb_rate_start_time) / 1000000.0) << " seconds (climb rate: " 
-                  << m_current_climb_rate << " m/s)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        
-        // abortTakeoff() will send 1500 to maintain current altitude
-        abortTakeoff();
-        return;
-    }
+    // Note: Smart timeout logic is now handled within each phase (ASCENDING/DESCENDING)
+    // This ensures phase-appropriate climb rate monitoring
 
     switch (m_phase) {
         case PHASE_ARM_CHECK: {
@@ -252,10 +233,14 @@ void CDEPilotChangeAltitude::updateTakeoff() {
         break;
 
         case PHASE_DESCENDING: {
-            // Use altitude timeout for altitude changes
-            if ((now - m_start_time) > (m_altitude_timeout_ms * 1000)) {
-                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DEPILOT: Altitude control timeout" 
-                          << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            // Smart timeout: only timeout if not descending for sustained period
+            // Check after initial 2 seconds and only if zero/negative descent rate persists for timeout duration
+            if ((now - m_phase_start_time) > 2000000 && 
+                m_zero_climb_rate_start_time > 0 && 
+                (now - m_zero_climb_rate_start_time) > (m_timeout_ms * 1000)) {
+                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DEPILOT: Altitude control timeout - not descending for " 
+                          << ((now - m_zero_climb_rate_start_time) / 1000000.0) << " seconds (climb rate: " 
+                          << m_current_climb_rate << " m/s)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
                 stopAltitudeControl();
                 return;
             }
@@ -302,6 +287,20 @@ void CDEPilotChangeAltitude::updateTakeoff() {
         break;
 
         case PHASE_ASCENDING: {
+            // Smart timeout: only timeout if not climbing for sustained period
+            // Check after initial 2 seconds and only if zero climb rate persists for timeout duration
+            if ((now - m_phase_start_time) > 2000000 && 
+                m_zero_climb_rate_start_time > 0 && 
+                (now - m_zero_climb_rate_start_time) > (m_timeout_ms * 1000)) {
+                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DEPILOT: Takeoff timeout - not climbing for " 
+                          << ((now - m_zero_climb_rate_start_time) / 1000000.0) << " seconds (climb rate: " 
+                          << m_current_climb_rate << " m/s)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                
+                // abortTakeoff() will send 1500 to maintain current altitude
+                abortTakeoff();
+                return;
+            }
+
             const double altitude_error = m_target_altitude - current_altitude;
             
             std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Climbing phase update" 

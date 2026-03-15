@@ -49,23 +49,23 @@ void CTrackingManager::onStatusChanged(const int status) {
 #endif
 
   switch (status) {
-  case TrackingTarget_STATUS_TRACKING_LOST:
+  case TargetTracking_STATUS_TRACKING_LOST:
     m_object_detected = false;
     getTracker().onStatusChanged(status);
     break;
 
-  case TrackingTarget_STATUS_TRACKING_DETECTED:
+  case TargetTracking_STATUS_TRACKING_DETECTED:
     m_tracking_running = true;
     m_object_detected = true;
     getTracker().onStatusChanged(status);
     break;
 
-  case TrackingTarget_STATUS_TRACKING_ENABLED:
+  case TargetTracking_STATUS_TRACKING_ENABLED:
     m_tracking_running = true;
     getTracker().onStatusChanged(status);
     break;
 
-  case TrackingTarget_STATUS_TRACKING_STOPPED:
+  case TargetTracking_STATUS_TRACKING_STOPPED:
     m_object_detected = false;
     m_tracking_running = false;
     getTracker().onStatusChanged(status);
