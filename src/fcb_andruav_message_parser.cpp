@@ -4,17 +4,17 @@
 #include "./de_common/de_databus/messages.hpp"
 #include "./de_common/helpers/colors.hpp"
 #include "./de_common/helpers/helpers.hpp"
-#include "./geofence/fcb_geo_fence_base.hpp"
-#include "./geofence/fcb_geo_fence_manager.hpp"
 #include "./de_pilot/fcb_de_pilot_change_altitude.hpp"
 #include "./de_pilot/fcb_de_pilot_manager.hpp"
+#include "./geofence/fcb_geo_fence_base.hpp"
+#include "./geofence/fcb_geo_fence_manager.hpp"
 #include "defines.hpp"
 #include "fcb_modes.hpp"
 #include "plog/Initializers/RollingFileInitializer.h"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <plog/Log.h>
-#include <algorithm>
 
 using namespace de::fcb;
 
@@ -65,15 +65,15 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
 
     const int andruav_mode = cmd["F"].get<int>();
     uint32_t ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode;
-    
+
     CFCBModes::getArduPilotMode(
         andruav_mode, m_fcbMain.getAndruavVehicleInfo().vehicle_type,
         ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
-    
+
     if (ardupilot_mode == E_UNDEFINED_MODE) {
       return;
     }
-    
+
     mavlinksdk::CMavlinkCommand::getInstance().doSetMode(
         ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
   } break;
@@ -92,14 +92,14 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
         (!validateField(cmd, "a", Json_de::value_t::number_unsigned)))
       return;
     double altitude = cmd["a"].get<double>();
-    
+
     if (depilot::CDEPilotManager::getInstance().getActive()) {
-        // Use DRONEENGAGE_PILOT control
-        // Not flying - execute takeoff
-        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Initiating takeoff to " 
-                  << altitude << "m" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        depilot::CDEPilotManager::getInstance().do_ChangeAltitude(altitude);
-      
+      // Use DRONEENGAGE_PILOT control
+      // Not flying - execute takeoff
+      std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Initiating takeoff to "
+                << altitude << "m" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+      depilot::CDEPilotManager::getInstance().do_ChangeAltitude(altitude);
+
     } else {
       // Use existing MAVLink commands
       if (mavlinksdk::CVehicle::getInstance().isFlying() == true) {
@@ -154,8 +154,7 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
 
     const double latitude = cmd["a"].get<double>();
     const double longitude = cmd["g"].get<double>();
-    double altitude = vehicle.getMsgGlobalPositionInt()
-                          .relative_alt;
+    double altitude = vehicle.getMsgGlobalPositionInt().relative_alt;
     if (cmd.contains("l") == true) {
       if ((!validateField(cmd, "l", Json_de::value_t::number_float)) &&
           (!validateField(cmd, "l", Json_de::value_t::number_unsigned)))
@@ -479,11 +478,11 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
     }
     if (!validateField(cmd, "e", Json_de::value_t::boolean))
       return;
-    
+
     bool enabled = cmd["e"].get<bool>();
     de::fcb::depilot::CDEPilotManager::getInstance().setActive(enabled);
-    std::cout << _SUCCESS_CONSOLE_TEXT_ << "DRONEENGAGE_PILOT: " 
-              << (enabled ? "Enabled" : "Disabled") 
+    std::cout << _SUCCESS_CONSOLE_TEXT_
+              << "DRONEENGAGE_PILOT: " << (enabled ? "Enabled" : "Disabled")
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
     if (enabled) {
       de::fcb::depilot::CDEPilotManager::getInstance().do_Stabilize();
@@ -529,9 +528,7 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
       rc_channels[rc_map.rcmap_yaw] =
           1000 -
           cmd["R"].get<int>(); // to be aligned with default settings of Ardu
-      rc_channels[rc_map.rcmap_throttle] = 
-          1000 -
-          cmd["T"].get<int>();
+      rc_channels[rc_map.rcmap_throttle] = 1000 - cmd["T"].get<int>();
       rc_channels[rc_map.rcmap_roll] =
           1000 -
           cmd["A"].get<int>(); // to be aligned with default settings of Ardu
@@ -540,15 +537,11 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
       rc_channels[3] =
           1000 -
           cmd["R"].get<int>(); // to be aligned with default settings of Ardu
-      rc_channels[2] = 
-          1000 -
-          cmd["T"].get<int>();
+      rc_channels[2] = 1000 - cmd["T"].get<int>();
       rc_channels[0] =
           1000 -
           cmd["A"].get<int>(); // to be aligned with default settings of Ardu
-      rc_channels[1] = 
-          1000 -
-          cmd["E"].get<int>();
+      rc_channels[1] = 1000 - cmd["E"].get<int>();
       rc_channels[4] = validateField(cmd, "w", Json_de::value_t::number_integer)
                            ? cmd["w"].get<int>()
                            : SKIP_RC_CHANNEL;
@@ -564,8 +557,7 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
     }
 
     m_fcbMain.updateRemoteControlChannels(rc_channels);
-  }
-  break;
+  } break;
 
   // This message was using for Telemetry. It has been replaced with UDPProxy
   // However the message itself is still valid and can be used to send mavlink
@@ -1185,4 +1177,4 @@ void CFCBAndruavMessageParser::parseRemoteExecute(Json_de &andruav_message) {
     }
   }
   }
-  }
+}

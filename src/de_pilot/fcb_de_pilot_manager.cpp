@@ -1,14 +1,12 @@
 #include "fcb_de_pilot_manager.hpp"
 
-#include <iostream>
 #include "../de_common/helpers/colors.hpp"
-#include "../fcb_main.hpp"
 #include "../fcb_facade.hpp"
+#include "../fcb_main.hpp"
 #include "../fcb_modes.hpp"
+#include <iostream>
 #include <mavlink_sdk.h>
 #include <vehicle.h>
-
-
 
 namespace de {
 namespace fcb {
@@ -34,17 +32,16 @@ bool CDEPilotManager::isCompatibleMode() {
   const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
   const int flying_mode = vehicle_info.flying_mode;
   const bool depilot_compatible =
-      ( flying_mode == VEHICLE_MODE_ALT_HOLD 
-     || flying_mode == VEHICLE_MODE_LAND 
-     || flying_mode == VEHICLE_MODE_BRAKE 
-     || flying_mode == VEHICLE_MODE_GUIDED);
+      (flying_mode == VEHICLE_MODE_ALT_HOLD ||
+       flying_mode == VEHICLE_MODE_LAND || flying_mode == VEHICLE_MODE_BRAKE ||
+       flying_mode == VEHICLE_MODE_GUIDED);
 
   if (!depilot_compatible) {
     std::cout << "DE-Pilot: Current flight mode [" << flying_mode
               << "] is not compatible with DE pilot." << std::endl;
     return false;
   }
-  
+
   return true;
 }
 
@@ -78,18 +75,17 @@ void CDEPilotManager::setActive(bool active) {
         std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
     return;
   }
-  
+
   m_de_pilot_enabled = true;
   m_allow_RCControl = false;
-  
+
   setOperation(DEPILOT_OP_STABILIZATION); // by default switch to
                                           // DEPILOT_OP_STABILIZATION
 
-  
-  std::cout << _SUCCESS_CONSOLE_TEXT_ << "DRONEENGAGE_PILOT: " 
-              << (m_de_pilot_enabled ? "Enabled" : "Disabled") 
-              << _NORMAL_CONSOLE_TEXT_ << std::endl;
-  
+  std::cout << _SUCCESS_CONSOLE_TEXT_ << "DRONEENGAGE_PILOT: "
+            << (m_de_pilot_enabled ? "Enabled" : "Disabled")
+            << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
   CFCBFacade::getInstance().API_IC_sendID(
       std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
 }
@@ -119,37 +115,36 @@ void CDEPilotManager::updateOperations() {
   }
 
   std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEOperation: " << operation_name
-            << " (" << current_op << ")" << _NORMAL_CONSOLE_TEXT_
-            << std::endl;
+            << " (" << current_op << ")" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
   // Update the active operation
   CDEPilotOperationBase *operation = getOperationInstance(current_op);
   if (operation != nullptr) {
-    //Step Execution
+    // Step Execution
     operation->update();
-    
+
     // Check if operation completed and auto-switch to stabilization
-    switch(static_cast<int>(current_op)) {
-      case DEPILOT_OP_CHANGE_ALTITUDE: {
-        
-        if (operation->isCompleted()) { // PHASE_COMPLETE (4) or PHASE_ABORTED (5)
-          std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotManager: Takeoff completed/aborted, switching to stabilization" 
-                    << _NORMAL_CONSOLE_TEXT_ << std::endl;
-          do_Stabilize();
-        }
-      }
-      break;
+    switch (static_cast<int>(current_op)) {
+    case DEPILOT_OP_CHANGE_ALTITUDE: {
 
-      case DEPILOT_OP_STABILIZATION: {
-
+      if (operation->isCompleted()) { // PHASE_COMPLETE (4) or PHASE_ABORTED (5)
+        std::cout << _INFO_CONSOLE_BOLD_TEXT
+                  << "DEPilotManager: Takeoff completed/aborted, switching to "
+                     "stabilization"
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        do_Stabilize();
       }
-      break;
+    } break;
+
+    case DEPILOT_OP_STABILIZATION: {
+
+    } break;
     }
   }
 }
 
 void CDEPilotManager::do_ChangeAltitude(double target_altitude) {
-  
+
   if (!isCompatibleMode()) {
     init();
     return;
@@ -157,22 +152,22 @@ void CDEPilotManager::do_ChangeAltitude(double target_altitude) {
 
   setTargetAltitude(target_altitude);
   setOperation(DEPILOT_OP_CHANGE_ALTITUDE);
-  if (m_operation_instance == nullptr)
-  {
+  if (m_operation_instance == nullptr) {
     // Failes
     std::cout << "DE-Pilot Failed to call Change Altitude" << std::endl;
-    return ;
+    return;
   }
 
-  // If operation is already active, update the target altitude in the running operation
+  // If operation is already active, update the target altitude in the running
+  // operation
   if (m_operation_instance != nullptr && m_operation_instance->getActive()) {
-    CDEPilotChangeAltitude* altitude_op = static_cast<CDEPilotChangeAltitude*>(m_operation_instance);
+    CDEPilotChangeAltitude *altitude_op =
+        static_cast<CDEPilotChangeAltitude *>(m_operation_instance);
     altitude_op->startAltitudeChange(target_altitude);
-    std::cout << "DE-Pilot: Updated target altitude to " << target_altitude << " during active operation" << std::endl;
+    std::cout << "DE-Pilot: Updated target altitude to " << target_altitude
+              << " during active operation" << std::endl;
   }
-  
 }
-
 
 void CDEPilotManager::do_Stabilize() {
   if (!isCompatibleMode()) {
@@ -181,65 +176,71 @@ void CDEPilotManager::do_Stabilize() {
   }
 
   setOperation(DEPILOT_OP_STABILIZATION);
-  if (m_operation_instance == nullptr)
-  {
+  if (m_operation_instance == nullptr) {
     // Failes
     std::cout << "DE-Pilot Failed to call STABILIZE" << std::endl;
-    return ;
+    return;
   }
 }
 
-void CDEPilotManager::do_SetYaw(double angle, double rate, bool is_clockwise, bool is_relative) {
+void CDEPilotManager::do_SetYaw(double angle, double rate, bool is_clockwise,
+                                bool is_relative) {
   if (!m_de_pilot_enabled) {
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DE-Pilot: Not active, cannot set yaw" 
-              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT
+              << "DE-Pilot: Not active, cannot set yaw" << _NORMAL_CONSOLE_TEXT_
+              << std::endl;
     return;
   }
 
   if (!isCompatibleMode()) {
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DE-Pilot: Incompatible mode, cannot set yaw" 
+    std::cout << _INFO_CONSOLE_BOLD_TEXT
+              << "DE-Pilot: Incompatible mode, cannot set yaw"
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
     return;
   }
 
   // If not in stabilization mode, switch to it first
   if (m_de_pilot_operation != DEPILOT_OP_STABILIZATION) {
-    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DE-Pilot: Switching to stabilization for yaw control" 
+    std::cout << _INFO_CONSOLE_BOLD_TEXT
+              << "DE-Pilot: Switching to stabilization for yaw control"
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
     do_Stabilize();
   }
 
   // Set yaw target on stabilization operation
-  if (m_de_pilot_operation == DEPILOT_OP_STABILIZATION && m_operation_instance != nullptr) {
-    CDEPilotStabilization* stabilization_op = static_cast<CDEPilotStabilization*>(m_operation_instance);
+  if (m_de_pilot_operation == DEPILOT_OP_STABILIZATION &&
+      m_operation_instance != nullptr) {
+    CDEPilotStabilization *stabilization_op =
+        static_cast<CDEPilotStabilization *>(m_operation_instance);
     stabilization_op->setYawTarget(angle, rate, is_clockwise, is_relative);
-    
-    CFCBFacade::getInstance().API_IC_sendID(std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
+
+    CFCBFacade::getInstance().API_IC_sendID(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
   } else {
-    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DE-Pilot: Failed to set yaw target" 
-              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _ERROR_CONSOLE_BOLD_TEXT_
+              << "DE-Pilot: Failed to set yaw target" << _NORMAL_CONSOLE_TEXT_
+              << std::endl;
   }
 }
 
 void CDEPilotManager::do_Land() {
-  
+
   if (!isCompatibleMode()) {
     std::cout << "DE-PILOT: Failed to switch to LAND mode." << std::endl;
     init();
     return;
   }
 
-
   de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
   uint32_t ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode;
-    CFCBModes::getArduPilotMode(
-        VEHICLE_MODE_LAND, fcbMain.getAndruavVehicleInfo().vehicle_type,
-        ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
-    if (ardupilot_mode == E_UNDEFINED_MODE) {
-      return;
-    }
-    mavlinksdk::CMavlinkCommand::getInstance().doSetMode(
-        ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
+  CFCBModes::getArduPilotMode(
+      VEHICLE_MODE_LAND, fcbMain.getAndruavVehicleInfo().vehicle_type,
+      ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
+  if (ardupilot_mode == E_UNDEFINED_MODE) {
+    return;
+  }
+  mavlinksdk::CMavlinkCommand::getInstance().doSetMode(
+      ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
 
   setOperation(DEPILOT_OP_CHANGE_ALTITUDE);
 }
@@ -249,19 +250,18 @@ void CDEPilotManager::setOperation(DRONEENGAGE_PILOT_OPERATION operation) {
   if (!m_de_pilot_enabled) {
     return;
   }
-  
+
   CDEPilotOperationBase *operation_instance = getOperationInstance(operation);
   if (operation_instance != nullptr &&
       operation_instance != m_operation_instance) {
     std::cout << _INFO_CONSOLE_BOLD_TEXT
-            << "DEPilotManager: changing  m_de_pilot_operation from "
-            << m_de_pilot_operation << " to " << operation
-            << _NORMAL_CONSOLE_TEXT_ << std::endl;
+              << "DEPilotManager: changing  m_de_pilot_operation from "
+              << m_de_pilot_operation << " to " << operation
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-    if (m_operation_instance != nullptr)
-    {
-        m_operation_instance->setActive(false);
-        m_operation_instance->uninit();
+    if (m_operation_instance != nullptr) {
+      m_operation_instance->setActive(false);
+      m_operation_instance->uninit();
     }
 
     m_de_pilot_operation = operation;
@@ -274,7 +274,7 @@ void CDEPilotManager::setOperation(DRONEENGAGE_PILOT_OPERATION operation) {
   // This logic mirrors the original fcb_main.cpp behavior
   // Note: We would need access to vehicle info to determine if flying
   // For now, default to DISABLED - this can be enhanced later
-  
+
   de::fcb::CFCBFacade::getInstance().API_IC_sendID(
       std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
 }
@@ -312,8 +312,6 @@ CDEPilotOperationBase *CDEPilotManager::getOperationInstance(
     return nullptr;
   }
 }
-
-
 
 double CDEPilotManager::getTargetAltitude() const { return m_target_altitude; }
 
