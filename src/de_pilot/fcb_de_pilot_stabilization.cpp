@@ -37,6 +37,11 @@ void CDEPilotStabilization::init() {
     m_yaw_previous_error = 0.0;
     m_yaw_last_time = get_time_usec() / 1000;
 
+    // Initialize yaw rate tracking
+    m_last_heading_for_rate = 0.0;
+    m_yaw_rate_check_time = 0;
+    m_current_yaw_rate = 0.0;
+
     startStabilization();
 }
 
@@ -103,6 +108,9 @@ void CDEPilotStabilization::readConfigParameters() {
             }
             if (stabilization_config.contains("yaw_integral_limit")) {
                 m_yaw_integral_limit = stabilization_config["yaw_integral_limit"].get<double>();
+            }
+            if (stabilization_config.contains("slowdown_angle")) {
+                m_slowdown_angle = stabilization_config["slowdown_angle"].get<double>();
             }
         }
     }
@@ -191,6 +199,26 @@ void CDEPilotStabilization::updateStabilization() {
                     while (current_heading < 0) current_heading += 2 * M_PI;
                     while (current_heading >= 2 * M_PI) current_heading -= 2 * M_PI;
                     
+                    // Calculate current yaw rate
+                    const uint64_t now = get_time_usec();
+                    if (m_yaw_rate_check_time > 0) {
+                        const double dt = (now - m_yaw_rate_check_time) / 1000000.0; // seconds
+                        if (dt > 0.2) { // Update yaw rate every 0.2 seconds
+                            double heading_diff = current_heading - m_last_heading_for_rate;
+                            // Handle wraparound for shortest path
+                            if (heading_diff > M_PI) heading_diff -= 2 * M_PI;
+                            if (heading_diff < -M_PI) heading_diff += 2 * M_PI;
+                            m_current_yaw_rate = heading_diff / dt;
+                            m_last_heading_for_rate = current_heading;
+                            m_yaw_rate_check_time = now;
+                        }
+                    } else {
+                        // Initialize yaw rate tracking
+                        m_last_heading_for_rate = current_heading;
+                        m_yaw_rate_check_time = now;
+                        m_current_yaw_rate = 0.0;
+                    }
+                    
                     // Convert target angle from degrees to radians
                     double target_angle_rad = m_target_yaw_angle * M_PI / 180.0;
                     
@@ -205,24 +233,28 @@ void CDEPilotStabilization::updateStabilization() {
                     while (target_heading >= 2 * M_PI) target_heading -= 2 * M_PI;
                     
                     // Calculate yaw error (shortest path)
-                    double error = target_heading - current_heading;
-                    if (error > M_PI) error -= 2 * M_PI;
-                    if (error < -M_PI) error += 2 * M_PI;
+                    double angle_error = target_heading - current_heading;
+                    if (angle_error > M_PI) angle_error -= 2 * M_PI;
+                    if (angle_error < -M_PI) angle_error += 2 * M_PI;
                     
                     // Apply direction constraint if specified
-                    if (m_yaw_is_clockwise && error < 0) {
-                        error = 2 * M_PI + error; // Force clockwise rotation
-                    } else if (!m_yaw_is_clockwise && error > 0) {
-                        error = error - 2 * M_PI; // Force counter-clockwise rotation
+                    if (m_yaw_is_clockwise && angle_error < 0) {
+                        angle_error = 2 * M_PI + angle_error; // Force clockwise rotation
+                    } else if (!m_yaw_is_clockwise && angle_error > 0) {
+                        angle_error = angle_error - 2 * M_PI; // Force counter-clockwise rotation
                     }
                     
-                    // PID calculation
-                    uint64_t current_time = get_time_usec() / 1000;
+                    // Calculate desired yaw rate with linear taper
+                    const float desired_yaw_rate = calculateDesiredYawRate(angle_error);
+                    const double rate_error = desired_yaw_rate - m_current_yaw_rate;
+                    
+                    // PID calculation using rate error
+                    uint64_t current_time = now / 1000;
                     double dt = (current_time - m_yaw_last_time) / 1000.0; // Convert to seconds
                     
                     if (dt > 0.001) { // Avoid division by zero
-                        m_yaw_error = error;
-                        m_yaw_error_integral += error * dt;
+                        m_yaw_error = rate_error;
+                        m_yaw_error_integral += rate_error * dt;
                         
                         // Integral windup protection
                         if (m_yaw_error_integral > m_yaw_integral_limit) {
@@ -231,8 +263,8 @@ void CDEPilotStabilization::updateStabilization() {
                             m_yaw_error_integral = -m_yaw_integral_limit;
                         }
                         
-                        m_yaw_error_derivative = (error - m_yaw_previous_error) / dt;
-                        m_yaw_previous_error = error;
+                        m_yaw_error_derivative = (rate_error - m_yaw_previous_error) / dt;
+                        m_yaw_previous_error = rate_error;
                         m_yaw_last_time = current_time;
                         
                         // PID output
@@ -250,7 +282,10 @@ void CDEPilotStabilization::updateStabilization() {
                         
                         std::cout << "    - Current heading: " << current_heading << " rad" << std::endl;
                         std::cout << "    - Target heading: " << target_heading << " rad" << std::endl;
-                        std::cout << "    - Error: " << error << " rad" << std::endl;
+                        std::cout << "    - Angle error: " << angle_error << " rad" << std::endl;
+                        std::cout << "    - Current yaw rate: " << m_current_yaw_rate << " rad/s" << std::endl;
+                        std::cout << "    - Desired yaw rate: " << desired_yaw_rate << " rad/s" << std::endl;
+                        std::cout << "    - Rate error: " << rate_error << " rad/s" << std::endl;
                         std::cout << "    - PID output: " << pid_output << std::endl;
                         std::cout << "    - PWM: " << pwm << std::endl;
                         
@@ -334,4 +369,16 @@ void CDEPilotStabilization::clearYawTarget() {
 
 bool CDEPilotStabilization::isYawControlActive() const {
     return m_yaw_control_enabled;
+}
+
+float CDEPilotStabilization::calculateDesiredYawRate(double angle_error_rad) const {
+    // Convert angle error to degrees for comparison with slowdown_angle
+    const double angle_error_deg = angle_error_rad * 180.0 / M_PI;
+    const double abs_error_deg = std::abs(angle_error_deg);
+    
+    // Linear taper: desired rate = sign(error) * max_rate * min(abs_error / slowdown_angle, 1)
+    const float desired_rate_deg = static_cast<float>(std::copysign(1.0, angle_error_deg) * m_default_yaw_rate * std::min(abs_error_deg / m_slowdown_angle, 1.0));
+    
+    // Convert back to radians/sec for control
+    return desired_rate_deg * static_cast<float>(M_PI / 180.0);
 }
