@@ -280,9 +280,10 @@ void CDEPilotChangeAltitude::updateTakeoff() {
                 int16_t rc_channels[RC_CHANNELS_MAX];
                 std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500 + throttle_adj;
-                // Force roll and pitch to neutral (1500) to prevent max PWM values
+                // Force roll, pitch, and yaw to neutral (1500) to prevent drift and max PWM values
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
+                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
                 mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
                     rc_channels, RC_CHANNELS_MAX);
             }
@@ -330,9 +331,10 @@ void CDEPilotChangeAltitude::updateTakeoff() {
                     int16_t rc_channels[RC_CHANNELS_MAX];
                     std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
                     rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
-                    // Force roll and pitch to neutral (1500) to prevent max PWM values
+                    // Force roll, pitch, and yaw to neutral (1500) to prevent drift and max PWM values
                     rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
                     rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
+                    rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
                     mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
                         rc_channels, RC_CHANNELS_MAX);
                 }
@@ -361,9 +363,10 @@ void CDEPilotChangeAltitude::updateTakeoff() {
                 int16_t rc_channels[RC_CHANNELS_MAX];
                 std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500 + throttle_adj;
-                // Force roll and pitch to neutral (1500) to prevent max PWM values
+                // Force roll, pitch, and yaw to neutral (1500) to prevent drift and max PWM values
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
+                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
                 mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
                     rc_channels, RC_CHANNELS_MAX);
             }
@@ -400,9 +403,10 @@ void CDEPilotChangeAltitude::abortTakeoff() {
         int16_t rc_channels[RC_CHANNELS_MAX];
         std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
         rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
-        // Force roll and pitch to neutral (1500) to prevent max PWM values
+        // Force roll, pitch, and yaw to neutral (1500) to prevent drift and max PWM values
         rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
         rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
+        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
         mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
             rc_channels, RC_CHANNELS_MAX);
     }
@@ -560,6 +564,10 @@ void CDEPilotChangeAltitude::stopAltitudeControl() {
         int16_t rc_channels[RC_CHANNELS_MAX];
         std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
         rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
+        // Force roll, pitch, and yaw to neutral (1500) to prevent drift and max PWM values
+        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
+        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
+        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
         mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
             rc_channels, RC_CHANNELS_MAX);
     }
