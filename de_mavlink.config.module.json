@@ -323,10 +323,11 @@
             "max_climb_rate": 2.5,
             "stabilize_time_ms": 2000,
             "timeout_ms": 10000,
-            "pid_p": 0.5,
-            "pid_i": 0.0,
+            "pid_p": 2.0,
+            "pid_i": 0.1,
             "pid_d": 0.0,
-            "deadband": 0.5
+            "deadband": 0.5,
+            "slowdown_distance": 5.0
         }
     },
     "rc_block_channel": -1,

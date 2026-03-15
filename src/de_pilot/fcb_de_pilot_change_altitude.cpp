@@ -107,6 +107,9 @@ void CDEPilotChangeAltitude::readConfigParameters() {
             if (change_altitude_config.contains("deadband")) {
                 m_deadband = change_altitude_config["deadband"].get<double>();
             }
+            if (change_altitude_config.contains("slowdown_distance")) {
+                m_slowdown_distance = change_altitude_config["slowdown_distance"].get<double>();
+            }
         }
     }
 }
@@ -416,9 +419,12 @@ bool CDEPilotChangeAltitude::isTakeoffActive() const {
 }
 
 int16_t CDEPilotChangeAltitude::calculateThrottleAdjustment(double current_altitude) {
-    const double error = m_target_altitude - current_altitude;
+    const float desired_rate = calculateClimbRate(current_altitude);
+    const double error = desired_rate - m_current_climb_rate;
     const uint64_t now = get_time_usec();
     const double dt = (now - m_last_update_time) / 1000000.0; // seconds
+
+    std::cout << "  - Desired climb rate: " << desired_rate << " m/s" << std::endl;
 
     if (dt <= 0) return 0;
 
@@ -448,16 +454,13 @@ int16_t CDEPilotChangeAltitude::calculateThrottleAdjustment(double current_altit
 }
 
 float CDEPilotChangeAltitude::calculateClimbRate(double current_altitude) {
-    const double error = m_target_altitude - current_altitude;
+    const double altitude_error = m_target_altitude - current_altitude;
+    const double abs_error = std::abs(altitude_error);
     
-    // Simple proportional control for climb rate
-    float climb_rate = static_cast<float>(error * m_pid_p);
+    // Linear taper: desired rate = sign(error) * max_rate * min(abs_error / slowdown_distance, 1)
+    float desired_rate = static_cast<float>(std::copysign(1.0, altitude_error) * m_max_climb_rate * std::min(abs_error / m_slowdown_distance, 1.0));
     
-    // Clamp to max climb rate
-    if (climb_rate > m_max_climb_rate) climb_rate = m_max_climb_rate;
-    if (climb_rate < -m_max_climb_rate) climb_rate = -m_max_climb_rate;
-    
-    return climb_rate;
+    return desired_rate;
 }
 
 bool CDEPilotChangeAltitude::isAltitudeReached() const {
