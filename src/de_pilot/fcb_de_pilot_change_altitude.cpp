@@ -105,6 +105,9 @@ void CDEPilotChangeAltitude::readConfigParameters() {
             if (change_altitude_config.contains("pid_d")) {
                 m_pid_d = change_altitude_config["pid_d"].get<double>();
             }
+            if (change_altitude_config.contains("ff_scale")) {
+                m_ff_scale = change_altitude_config["ff_scale"].get<double>();
+            }
             if (change_altitude_config.contains("deadband")) {
                 m_deadband = change_altitude_config["deadband"].get<double>();
             }
@@ -435,29 +438,39 @@ int16_t CDEPilotChangeAltitude::calculateThrottleAdjustment(double current_altit
 
     std::cout << "  - Desired climb rate: " << desired_rate << " m/s" << std::endl;
 
-    if (dt <= 0) return 0;
-
-    // PID calculation with anti-windup protection
-    m_integral += error * dt;
-    
-    // Anti-windup: Clamp integral term to prevent extreme accumulation
-    // Max integral contribution should not exceed max throttle adjustment
-    const double max_integral = 4.0;  // Max integral value (400 PWM / 100 scale factor)
-    if (m_integral > max_integral) m_integral = max_integral;
-    if (m_integral < -max_integral) m_integral = -max_integral;
-    
     const double derivative = (error - m_last_error) / dt;
     
-    // Feedforward consideration: ArduPilot's default max climb rate (PILOT_SPEED_UP) 
-    // is 250 cm/s (2.5 m/s) at full stick deflection (+500 PWM).
-    // Thus we map the desired rate linearly to a baseline PWM offset.
-    // If m_max_climb_rate is configured differently, we use it to scale accordingly.
-    double feedforward = 0.0;
-    if (m_max_climb_rate > 0) {
-        feedforward = desired_rate * (500.0 / m_max_climb_rate);
-    }
+    // Feedforward consideration: map the desired rate linearly to a baseline PWM offset
+    // using the configured ff_scale (e.g., 150 PWM per 1 m/s climb rate).
+    const double feedforward = desired_rate * m_ff_scale;
     
-    const double pid_output = m_pid_p * error + m_pid_i * m_integral + m_pid_d * derivative;
+    // Pre-calculate to check anti-windup clamping
+    const double p_term = m_pid_p * error;
+    const double d_term = m_pid_d * derivative;
+    double i_term = m_pid_i * m_integral;
+
+    // Check if adding to the integral would exacerbate windup while pushing against saturation limits
+    const double tentative_output = feedforward + p_term + i_term + d_term;
+    const double i_increment = error * dt;
+    
+    bool is_saturated_positive = (tentative_output >= 5.0) && (error > 0); // 5.0 = 500 PWM (due to *100.0 scale)
+    bool is_saturated_negative = (tentative_output <= -5.0) && (error < 0);
+    
+    if (!is_saturated_positive && !is_saturated_negative) {
+        m_integral += i_increment;
+        
+        // Absolute safety clamp
+        const double max_integral = 4.0;  // Max integral value (400 PWM / 100 scale factor)
+        if (m_integral > max_integral) m_integral = max_integral;
+        if (m_integral < -max_integral) m_integral = -max_integral;
+
+        // Recalculate i_term with updated integral
+        i_term = m_pid_i * m_integral;
+    } else {
+        std::cout << "  - Anti-windup active: suppressing integral growth" << std::endl;
+    }
+
+    const double pid_output = p_term + i_term + d_term;
     
     std::cout << "  - FF + PID output: " << feedforward << " + " << pid_output * 100.0 << " PWM" << std::endl;
 

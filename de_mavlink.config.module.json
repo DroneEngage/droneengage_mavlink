@@ -327,6 +327,7 @@
             "pid_p": 1.0,
             "pid_i": 0.5,
             "pid_d": 0.0,
+            "ff_scale": 150.0,
             "deadband": 0.5,
             "max_accel": 5.0
         }
