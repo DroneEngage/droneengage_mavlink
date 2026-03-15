@@ -1,5 +1,6 @@
 #include "../de_common/helpers/colors.hpp"
 #include "../de_common/helpers/helpers.hpp"
+#include <algorithm>
 
 #include "fcb_tracker_logic_plan.hpp"
 #include "fcb_tracking_manager.hpp"
@@ -262,7 +263,8 @@ void CTrackerPlanLogic::trackingFollowMe(const double tracking_x,
   // 'T': Throttle
   // 'A': Aileron
   // 'E': Elevator
-  int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT] = {SKIP_RC_CHANNEL};
+  int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT];
+  std::fill_n(rc_channels, RC_CHANNEL_TRACKING_COUNT, SKIP_RC_CHANNEL);
   rc_channels[RC_CHANNEL_TRACKING_ROLL] = 500;
   rc_channels[RC_CHANNEL_TRACKING_PITCH] = 1000 - tracking_yz;
   rc_channels[RC_CHANNEL_TRACKING_YAW] =
@@ -305,7 +307,8 @@ void CTrackerPlanLogic::trackingTarget(const double tracking_x,
   // 'T': Throttle
   // 'A': Aileron
   // 'E': Elevator
-  int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT] = {SKIP_RC_CHANNEL};
+  int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT];
+  std::fill_n(rc_channels, RC_CHANNEL_TRACKING_COUNT, SKIP_RC_CHANNEL);
 
   double pitch = 1000 - tracking_yz;
   if (pitch < 500) {

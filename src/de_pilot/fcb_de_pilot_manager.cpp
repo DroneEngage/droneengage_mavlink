@@ -100,8 +100,10 @@ void CDEPilotManager::updateOperations() {
     return;
   }
 
+  DRONEENGAGE_PILOT_OPERATION current_op = m_de_pilot_operation;
+
   const char *operation_name = "UNKNOWN";
-  switch (m_de_pilot_operation) {
+  switch (current_op) {
   case DEPILOT_OP_DISABLED:
     operation_name = "DISABLED";
     break;
@@ -117,17 +119,17 @@ void CDEPilotManager::updateOperations() {
   }
 
   std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEOperation: " << operation_name
-            << " (" << m_de_pilot_operation << ")" << _NORMAL_CONSOLE_TEXT_
+            << " (" << current_op << ")" << _NORMAL_CONSOLE_TEXT_
             << std::endl;
 
   // Update the active operation
-  CDEPilotOperationBase *operation = getOperationInstance(m_de_pilot_operation);
+  CDEPilotOperationBase *operation = getOperationInstance(current_op);
   if (operation != nullptr) {
     //Step Execution
     operation->update();
     
     // Check if operation completed and auto-switch to stabilization
-    switch(static_cast<int>(m_de_pilot_operation)) {
+    switch(static_cast<int>(current_op)) {
       case DEPILOT_OP_CHANGE_ALTITUDE: {
         
         if (operation->isCompleted()) { // PHASE_COMPLETE (4) or PHASE_ABORTED (5)

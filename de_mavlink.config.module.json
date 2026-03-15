@@ -314,18 +314,18 @@
         "stabilization": {
             "stabilize_time_ms": 2000,
             "default_yaw_rate": 15.0,
-            "yaw_p": 5.0,
-            "yaw_i": 0.1,
+            "yaw_p": 4.0,
+            "yaw_i": 2.5,
             "yaw_d": 0.2,
-            "yaw_integral_limit": 25.0,
+            "yaw_integral_limit": 10.0,
             "yaw_max_accel": 90.0
         },
         "change_altitude": {
             "max_climb_rate": 2.5,
             "stabilize_time_ms": 2000,
             "timeout_ms": 10000,
-            "pid_p": 2.0,
-            "pid_i": 0.1,
+            "pid_p": 1.0,
+            "pid_i": 0.5,
             "pid_d": 0.0,
             "deadband": 0.5,
             "max_accel": 5.0
