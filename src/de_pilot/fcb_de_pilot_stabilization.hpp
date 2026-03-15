@@ -47,7 +47,7 @@ public:
     bool isYawControlActive() const;
 
 private:
-    // Helper to compute desired yaw rate with linear taper
+    // Helper to compute desired yaw rate using sqrt_controller
     float calculateDesiredYawRate(double angle_error_rad) const;
 
 private:
@@ -59,14 +59,10 @@ private:
 
     // Stabilization-specific member variables (base class provides m_active, m_generic_phase, m_phase_start_time, m_last_update_time)
     StabilizationPhase m_phase = PHASE_IDLE;
-    double m_target_altitude = 0.0;
     
     // Yaw control member variables
     bool m_yaw_control_enabled = false;
     double m_target_yaw_angle = 0.0;
-    double m_yaw_turn_rate = 0.0;
-    bool m_yaw_is_clockwise = true;
-    bool m_yaw_is_relative = false;
     
     // Yaw PID controller variables
     double m_yaw_error = 0.0;
@@ -81,15 +77,14 @@ private:
     double m_current_yaw_rate = 0.0;
     
     // Configuration parameters
-    double m_stabilize_time_ms = 2000;      // ms
     double m_default_yaw_rate = 30.0;       // deg/sec
     
     // Yaw PID parameters
-    double m_yaw_p = 1.0;                   // Proportional gain
-    double m_yaw_i = 0.0;                   // Integral gain
-    double m_yaw_d = 0.0;                   // Derivative gain
-    double m_yaw_integral_limit = 100.0;    // Integral windup limit
-    double m_slowdown_angle = 15.0;         // degrees - linear taper distance
+    double m_yaw_p = 15.0;                  // Proportional gain
+    double m_yaw_i = 0.5;                   // Integral gain
+    double m_yaw_d = 0.1;                   // Derivative gain
+    double m_yaw_integral_limit = 50.0;     // Integral windup limit
+    double m_yaw_max_accel = 180.0;         // deg/s^2 - max angular acceleration for sqrt_controller
 };
 
 } // namespace depilot
