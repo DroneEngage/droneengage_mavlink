@@ -75,7 +75,7 @@ private:
     double m_pid_i = 0.0;  // Disabled - use only P control
     double m_pid_d = 0.0;  // Disabled - use only P control
     double m_deadband = 0.5;                // meters
-    double m_slowdown_distance = 5.0;       // meters - linear taper distance
+    double m_max_accel = 2.5;               // m/s^2 - max acceleration/deceleration for sqrt_controller
     
     // Altitude control specific parameters
     double m_max_throttle_adjustment = 200; // PWM - from altitude module

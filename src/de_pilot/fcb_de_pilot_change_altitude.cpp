@@ -107,8 +107,8 @@ void CDEPilotChangeAltitude::readConfigParameters() {
             if (change_altitude_config.contains("deadband")) {
                 m_deadband = change_altitude_config["deadband"].get<double>();
             }
-            if (change_altitude_config.contains("slowdown_distance")) {
-                m_slowdown_distance = change_altitude_config["slowdown_distance"].get<double>();
+            if (change_altitude_config.contains("max_accel")) {
+                m_max_accel = change_altitude_config["max_accel"].get<double>();
             }
         }
     }
@@ -454,12 +454,61 @@ int16_t CDEPilotChangeAltitude::calculateThrottleAdjustment(double current_altit
 }
 
 float CDEPilotChangeAltitude::calculateClimbRate(double current_altitude) {
-    const double altitude_error = m_target_altitude - current_altitude;
-    const double abs_error = std::abs(altitude_error);
-    
-    // Linear taper: desired rate = sign(error) * max_rate * min(abs_error / slowdown_distance, 1)
-    float desired_rate = static_cast<float>(std::copysign(1.0, altitude_error) * m_max_climb_rate * std::min(abs_error / m_slowdown_distance, 1.0));
-    
+    const double error = m_target_altitude - current_altitude;
+    const double p_gain = m_pid_p;
+    const double max_accel = m_max_accel;
+
+    // sqrt_controller: ArduPilot-style piecewise controller
+    // Blends a linear P-region near the target with a sqrt deceleration
+    // curve far from the target, ensuring kinematically feasible rate profiles.
+
+    // If no acceleration limit is defined, fallback to pure P-controller
+    if (max_accel <= 0.0) {
+        float rate = static_cast<float>(error * p_gain);
+        if (rate > static_cast<float>(m_max_climb_rate)) rate = static_cast<float>(m_max_climb_rate);
+        if (rate < static_cast<float>(-m_max_climb_rate)) rate = static_cast<float>(-m_max_climb_rate);
+        return rate;
+    }
+
+    // If no P gain is defined, fallback to pure square root controller
+    if (p_gain <= 0.0) {
+        float result;
+        if (error > 0.0) {
+            result = static_cast<float>(std::sqrt(2.0 * max_accel * error));
+        } else if (error < 0.0) {
+            result = static_cast<float>(-std::sqrt(2.0 * max_accel * (-error)));
+        } else {
+            result = 0.0f;
+        }
+        if (result > static_cast<float>(m_max_climb_rate)) result = static_cast<float>(m_max_climb_rate);
+        if (result < static_cast<float>(-m_max_climb_rate)) result = static_cast<float>(-m_max_climb_rate);
+        return result;
+    }
+
+    // Piecewise controller: linear inside threshold, sqrt outside
+    // linear_dist is the distance at which the sqrt curve's slope
+    // equals the P-gain, ensuring tangent continuity at the transition.
+    const double linear_dist = max_accel / (p_gain * p_gain);
+    float desired_rate;
+
+    if (error > linear_dist) {
+        // Positive error beyond linear region — use sqrt branch
+        // Subtract (linear_dist / 2) to align tangent with linear curve
+        desired_rate = static_cast<float>(
+            std::sqrt(2.0 * max_accel * (error - (linear_dist / 2.0))));
+    } else if (error < -linear_dist) {
+        // Negative error beyond linear region — use sqrt branch
+        desired_rate = static_cast<float>(
+            -std::sqrt(2.0 * max_accel * ((-error) - (linear_dist / 2.0))));
+    } else {
+        // Inside linear region — simple proportional control
+        desired_rate = static_cast<float>(error * p_gain);
+    }
+
+    // Clamp to max climb rate
+    if (desired_rate > static_cast<float>(m_max_climb_rate)) desired_rate = static_cast<float>(m_max_climb_rate);
+    if (desired_rate < static_cast<float>(-m_max_climb_rate)) desired_rate = static_cast<float>(-m_max_climb_rate);
+
     return desired_rate;
 }
 

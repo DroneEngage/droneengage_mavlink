@@ -328,7 +328,7 @@
             "pid_i": 0.1,
             "pid_d": 0.0,
             "deadband": 0.5,
-            "slowdown_distance": 5.0
+            "max_accel": 5.0
         }
     },
     "rc_block_channel": -1,
