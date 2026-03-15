@@ -74,6 +74,7 @@ private:
     double m_pid_p = 0.5;
     double m_pid_i = 0.0;  // Disabled - use only P control
     double m_pid_d = 0.0;  // Disabled - use only P control
+    double m_ff_scale = 150.0;              // PWM per m/s feedforward
     double m_deadband = 0.5;                // meters
     double m_max_accel = 2.5;               // m/s^2 - max acceleration/deceleration for sqrt_controller
     
