@@ -3,7 +3,6 @@
 #include "../de_common/helpers/colors.hpp"
 #include "../de_common/helpers/helpers.hpp"
 #include "../de_common/de_databus/configFile.hpp"
-#include "fcb_de_pilot_manager.hpp"
 #include <mavlink_command.h>
 #include <mavlink_sdk.h>
 #include <vehicle.h>
@@ -26,9 +25,6 @@ void CDEPilotStabilization::init() {
     // Initialize yaw control
     m_yaw_control_enabled = false;
     m_target_yaw_angle = 0.0;
-    m_yaw_turn_rate = 0.0;
-    m_yaw_is_clockwise = true;
-    m_yaw_is_relative = false;
     
     // Initialize yaw PID variables
     m_yaw_error = 0.0;
@@ -91,9 +87,6 @@ void CDEPilotStabilization::readConfigParameters() {
         if (de_pilot_root.contains("stabilization")) {
             const Json_de &stabilization_config = de_pilot_root["stabilization"];
 
-            if (stabilization_config.contains("stabilize_time_ms")) {
-                m_stabilize_time_ms = stabilization_config["stabilize_time_ms"].get<double>();
-            }
             if (stabilization_config.contains("default_yaw_rate")) {
                 m_default_yaw_rate = stabilization_config["default_yaw_rate"].get<double>();
             }
@@ -109,8 +102,8 @@ void CDEPilotStabilization::readConfigParameters() {
             if (stabilization_config.contains("yaw_integral_limit")) {
                 m_yaw_integral_limit = stabilization_config["yaw_integral_limit"].get<double>();
             }
-            if (stabilization_config.contains("slowdown_angle")) {
-                m_slowdown_angle = stabilization_config["slowdown_angle"].get<double>();
+            if (stabilization_config.contains("yaw_max_accel")) {
+                m_yaw_max_accel = stabilization_config["yaw_max_accel"].get<double>();
             }
         }
     }
@@ -122,12 +115,9 @@ void CDEPilotStabilization::startStabilization() {
                   << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return;
     }
-
-    m_target_altitude = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt().relative_alt / 1000.0;
     
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Starting stabilization" 
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    std::cout << "  - Target altitude: " << m_target_altitude << "m" << std::endl;
 
     m_active = true;
     m_phase = PHASE_STABILIZING;
@@ -140,8 +130,6 @@ void CDEPilotStabilization::startStabilization() {
     std::cout << "  - Current flight mode: " << vehicle_info.flying_mode << std::endl;
     std::cout << "  - Armed: " << (vehicle_info.is_armed ? "YES" : "NO") << std::endl;
     std::cout << "  - Flying: " << (vehicle_info.is_flying ? "YES" : "NO") << std::endl;
-
-    de::fcb::depilot::CDEPilotManager::getInstance().setTargetAltitude(m_target_altitude);
     // Don't set operation here - it's already set by the manager when this operation is started
     
     std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Stabilization initialized successfully" 
@@ -157,11 +145,9 @@ void CDEPilotStabilization::updateStabilization() {
     const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
     const uint64_t now = get_time_usec();
     
-    
     if (!vehicle_info.is_armed) {
         std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Waiting for arm..." 
                   << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                // Do nothing I am not armed.
         return;
     }
 
@@ -173,7 +159,6 @@ void CDEPilotStabilization::updateStabilization() {
                       << _NORMAL_CONSOLE_TEXT_ << std::endl;
             std::cout << "  - Current flight mode: " << vehicle_info.flying_mode << std::endl;
             std::cout << "  - Current altitude: " << current_altitude << "m" << std::endl;
-            std::cout << "  - Target altitude: " << m_target_altitude << "m" << std::endl;
             
             // In ALT-HOLD mode, send 1500 to stop climbing/descending
             if (vehicle_info.flying_mode != VEHICLE_MODE_GUIDED && vehicle_info.flying_mode != VEHICLE_MODE_BRAKE) {
@@ -188,11 +173,10 @@ void CDEPilotStabilization::updateStabilization() {
                 
                 // Handle yaw control via RC channel in ALT-HOLD mode
                 if (m_yaw_control_enabled) {
-                    std::cout << "  - Yaw control (RC): angle=" << m_target_yaw_angle 
-                              << " clockwise=" << (m_yaw_is_clockwise ? "YES" : "NO") << std::endl;
+                    std::cout << "  - Yaw control (RC): angle=" << m_target_yaw_angle << std::endl;
                     
                     // Get current heading from MAVLink attitude message (already in radians)
-                    const mavlink_attitude_t& attitude = mavlinksdk::CVehicle::getInstance().getMsgAttitude();
+                    const auto& attitude = mavlinksdk::CVehicle::getInstance().getMsgAttitude();
                     double current_heading = attitude.yaw;
                     
                     // Normalize to 0-2π range
@@ -222,29 +206,21 @@ void CDEPilotStabilization::updateStabilization() {
                     // Convert target angle from degrees to radians
                     double target_angle_rad = m_target_yaw_angle * M_PI / 180.0;
                     
-                    // Calculate target heading (absolute or relative)
+                    // Calculate target heading (absolute only)
                     double target_heading = target_angle_rad;
-                    if (m_yaw_is_relative) {
-                        target_heading = current_heading + target_angle_rad;
-                    }
                     
                     // Normalize angles to 0-2π range
                     while (target_heading < 0) target_heading += 2 * M_PI;
                     while (target_heading >= 2 * M_PI) target_heading -= 2 * M_PI;
                     
-                    // Calculate yaw error (shortest path)
+                    // Calculate yaw error (shortest path) - FIXED wraparound logic
                     double angle_error = target_heading - current_heading;
-                    if (angle_error > M_PI) angle_error -= 2 * M_PI;
-                    if (angle_error < -M_PI) angle_error += 2 * M_PI;
                     
-                    // Apply direction constraint if specified
-                    if (m_yaw_is_clockwise && angle_error < 0) {
-                        angle_error = 2 * M_PI + angle_error; // Force clockwise rotation
-                    } else if (!m_yaw_is_clockwise && angle_error > 0) {
-                        angle_error = angle_error - 2 * M_PI; // Force counter-clockwise rotation
-                    }
+                    // Normalize to [-π, +π] range for shortest path
+                    while (angle_error > M_PI) angle_error -= 2 * M_PI;
+                    while (angle_error < -M_PI) angle_error += 2 * M_PI;
                     
-                    // Calculate desired yaw rate with linear taper
+                    // Calculate desired yaw rate using sqrt_controller
                     const float desired_yaw_rate = calculateDesiredYawRate(angle_error);
                     const double rate_error = desired_yaw_rate - m_current_yaw_rate;
                     
@@ -304,17 +280,14 @@ void CDEPilotStabilization::updateStabilization() {
                 
                 // Handle yaw control via MAVLink command in GUIDED mode
                 if (m_yaw_control_enabled) {
-                    std::cout << "  - Yaw control (MAVLink): angle=" << m_target_yaw_angle 
-                              << " rate=" << m_yaw_turn_rate 
-                              << " clockwise=" << (m_yaw_is_clockwise ? "YES" : "NO")
-                              << " relative=" << (m_yaw_is_relative ? "YES" : "NO") << std::endl;
+                    std::cout << "  - Yaw control (MAVLink): angle=" << m_target_yaw_angle << std::endl;
                     
                     // Convert target angle from degrees to radians for MAVLink command
                     double target_angle_rad = m_target_yaw_angle * M_PI / 180.0;
-                    double turn_rate_rad = m_yaw_turn_rate * M_PI / 180.0;
+                    double turn_rate_rad = m_default_yaw_rate * M_PI / 180.0;
                     
                     mavlinksdk::CMavlinkCommand::getInstance().setYawCondition(
-                        target_angle_rad, turn_rate_rad, m_yaw_is_clockwise, m_yaw_is_relative);
+                        target_angle_rad, turn_rate_rad, true, false);
                 }
             }
             
@@ -345,23 +318,18 @@ bool CDEPilotStabilization::isStabilizationActive() const {
 
 void CDEPilotStabilization::setYawTarget(double angle, double rate, bool is_clockwise, bool is_relative) {
     m_target_yaw_angle = angle;
-    m_yaw_turn_rate = (rate > 0.0) ? rate : m_default_yaw_rate;
-    m_yaw_is_clockwise = is_clockwise;
-    m_yaw_is_relative = is_relative;
     m_yaw_control_enabled = true;
     
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Yaw target set" 
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
     std::cout << "  - Target angle: " << m_target_yaw_angle << " deg" << std::endl;
-    std::cout << "  - Turn rate: " << m_yaw_turn_rate << " deg/sec" << std::endl;
-    std::cout << "  - Direction: " << (m_yaw_is_clockwise ? "Clockwise" : "Counter-clockwise") << std::endl;
-    std::cout << "  - Mode: " << (m_yaw_is_relative ? "Relative" : "Absolute") << std::endl;
+    std::cout << "  - Direction: " << (is_clockwise ? "Clockwise" : "Counter-clockwise") << std::endl;
+    std::cout << "  - Mode: " << (is_relative ? "Relative" : "Absolute") << std::endl;
 }
 
 void CDEPilotStabilization::clearYawTarget() {
     m_yaw_control_enabled = false;
     m_target_yaw_angle = 0.0;
-    m_yaw_turn_rate = 0.0;
     
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Yaw control cleared" 
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -372,13 +340,62 @@ bool CDEPilotStabilization::isYawControlActive() const {
 }
 
 float CDEPilotStabilization::calculateDesiredYawRate(double angle_error_rad) const {
-    // Convert angle error to degrees for comparison with slowdown_angle
-    const double angle_error_deg = angle_error_rad * 180.0 / M_PI;
-    const double abs_error_deg = std::abs(angle_error_deg);
-    
-    // Linear taper: desired rate = sign(error) * max_rate * min(abs_error / slowdown_angle, 1)
-    const float desired_rate_deg = static_cast<float>(std::copysign(1.0, angle_error_deg) * m_default_yaw_rate * std::min(abs_error_deg / m_slowdown_angle, 1.0));
-    
-    // Convert back to radians/sec for control
+    // Convert angle error to degrees for the sqrt_controller
+    const double error = angle_error_rad * 180.0 / M_PI;
+    const double p_gain = m_yaw_p;
+    const double max_accel = m_yaw_max_accel;
+    const double max_rate = m_default_yaw_rate;
+
+    // sqrt_controller: ArduPilot-style piecewise controller
+    // Blends a linear P-region near the target with a sqrt deceleration
+    // curve far from the target, ensuring kinematically feasible rate profiles.
+
+    float desired_rate_deg;
+
+    // If no acceleration limit, fallback to pure P-controller
+    if (max_accel <= 0.0) {
+        desired_rate_deg = static_cast<float>(error * p_gain);
+        if (desired_rate_deg > static_cast<float>(max_rate)) desired_rate_deg = static_cast<float>(max_rate);
+        if (desired_rate_deg < static_cast<float>(-max_rate)) desired_rate_deg = static_cast<float>(-max_rate);
+        return desired_rate_deg * static_cast<float>(M_PI / 180.0);
+    }
+
+    // If no P gain, fallback to pure square root controller
+    if (p_gain <= 0.0) {
+        if (error > 0.0) {
+            desired_rate_deg = static_cast<float>(std::sqrt(2.0 * max_accel * error));
+        } else if (error < 0.0) {
+            desired_rate_deg = static_cast<float>(-std::sqrt(2.0 * max_accel * (-error)));
+        } else {
+            desired_rate_deg = 0.0f;
+        }
+        if (desired_rate_deg > static_cast<float>(max_rate)) desired_rate_deg = static_cast<float>(max_rate);
+        if (desired_rate_deg < static_cast<float>(-max_rate)) desired_rate_deg = static_cast<float>(-max_rate);
+        return desired_rate_deg * static_cast<float>(M_PI / 180.0);
+    }
+
+    // Piecewise controller: linear inside threshold, sqrt outside
+    // linear_dist is the angle at which the sqrt curve's slope
+    // equals the P-gain, ensuring tangent continuity at the transition.
+    const double linear_dist = max_accel / (p_gain * p_gain);
+
+    if (error > linear_dist) {
+        // Positive error beyond linear region — use sqrt branch
+        desired_rate_deg = static_cast<float>(
+            std::sqrt(2.0 * max_accel * (error - (linear_dist / 2.0))));
+    } else if (error < -linear_dist) {
+        // Negative error beyond linear region — use sqrt branch
+        desired_rate_deg = static_cast<float>(
+            -std::sqrt(2.0 * max_accel * ((-error) - (linear_dist / 2.0))));
+    } else {
+        // Inside linear region — simple proportional control
+        desired_rate_deg = static_cast<float>(error * p_gain);
+    }
+
+    // Clamp to max yaw rate
+    if (desired_rate_deg > static_cast<float>(max_rate)) desired_rate_deg = static_cast<float>(max_rate);
+    if (desired_rate_deg < static_cast<float>(-max_rate)) desired_rate_deg = static_cast<float>(-max_rate);
+
+    // Convert to radians/sec for control
     return desired_rate_deg * static_cast<float>(M_PI / 180.0);
 }

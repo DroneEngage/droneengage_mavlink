@@ -313,12 +313,12 @@
     "de_pilot": {
         "stabilization": {
             "stabilize_time_ms": 2000,
-            "default_yaw_rate": 5.0,
-            "yaw_p": 20.0,
-            "yaw_i": 1.1,
-            "yaw_d": 0.0,
-            "yaw_integral_limit": 100.0,
-            "slowdown_angle": 15.0
+            "default_yaw_rate": 15.0,
+            "yaw_p": 5.0,
+            "yaw_i": 0.1,
+            "yaw_d": 0.2,
+            "yaw_integral_limit": 25.0,
+            "yaw_max_accel": 90.0
         },
         "change_altitude": {
             "max_climb_rate": 2.5,
