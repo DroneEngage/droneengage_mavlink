@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 #include <mavlink_command.h>
 #include <mavlink_sdk.h>
 #include <vehicle.h>
@@ -276,7 +277,8 @@ void CDEPilotChangeAltitude::updateTakeoff() {
                 std::cout << "  - Manual mode: Calculated throttle adjustment: " << throttle_adj << std::endl;
                 std::cout << "  - Manual mode: Sending throttle PWM: " << (1500 + throttle_adj) << std::endl;
                 
-                int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
+                int16_t rc_channels[RC_CHANNELS_MAX];
+                std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500 + throttle_adj;
                 // Force roll and pitch to neutral (1500) to prevent max PWM values
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
@@ -325,7 +327,8 @@ void CDEPilotChangeAltitude::updateTakeoff() {
                     std::cout << _INFO_CONSOLE_TEXT << "DEPILOT: ALT-HOLD mode - starting stabilization" 
                               << _NORMAL_CONSOLE_TEXT_ << std::endl;
                     // Send neutral throttle for manual modes
-                    int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
+                    int16_t rc_channels[RC_CHANNELS_MAX];
+                    std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
                     rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
                     // Force roll and pitch to neutral (1500) to prevent max PWM values
                     rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
@@ -355,7 +358,8 @@ void CDEPilotChangeAltitude::updateTakeoff() {
                 std::cout << "  - Manual mode: Calculated throttle adjustment: " << throttle_adj << std::endl;
                 std::cout << "  - Manual mode: Sending throttle PWM: " << (1500 + throttle_adj) << std::endl;
                 
-                int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
+                int16_t rc_channels[RC_CHANNELS_MAX];
+                std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500 + throttle_adj;
                 // Force roll and pitch to neutral (1500) to prevent max PWM values
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
@@ -393,7 +397,8 @@ void CDEPilotChangeAltitude::abortTakeoff() {
     
     // For ground-based abort: send neutral control first, then transition to aborted state
     if (vehicle_info.flying_mode != VEHICLE_MODE_GUIDED) {
-        int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
+        int16_t rc_channels[RC_CHANNELS_MAX];
+        std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
         rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
         // Force roll and pitch to neutral (1500) to prevent max PWM values
         rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
@@ -439,16 +444,27 @@ int16_t CDEPilotChangeAltitude::calculateThrottleAdjustment(double current_altit
     
     const double derivative = (error - m_last_error) / dt;
     
-    const double output = m_pid_p * error + m_pid_i * m_integral + m_pid_d * derivative;
+    // Feedforward consideration: ArduPilot's default max climb rate (PILOT_SPEED_UP) 
+    // is 250 cm/s (2.5 m/s) at full stick deflection (+500 PWM).
+    // Thus we map the desired rate linearly to a baseline PWM offset.
+    // If m_max_climb_rate is configured differently, we use it to scale accordingly.
+    double feedforward = 0.0;
+    if (m_max_climb_rate > 0) {
+        feedforward = desired_rate * (500.0 / m_max_climb_rate);
+    }
     
+    const double pid_output = m_pid_p * error + m_pid_i * m_integral + m_pid_d * derivative;
+    
+    std::cout << "  - FF + PID output: " << feedforward << " + " << pid_output * 100.0 << " PWM" << std::endl;
+
     m_last_error = error;
     
     // Convert to throttle adjustment (PWM range)
-    int16_t throttle_adj = static_cast<int16_t>(output * 100.0);
+    int16_t throttle_adj = static_cast<int16_t>(feedforward) + static_cast<int16_t>(pid_output * 100.0);
     
-    // Clamp to safe range
-    if (throttle_adj > 400) throttle_adj = 400;
-    if (throttle_adj < -300) throttle_adj = -300;
+    // Clamp to safe range (widened from +400/-300 to +/- 500 to allow full stick authority)
+    if (throttle_adj > 500) throttle_adj = 500;
+    if (throttle_adj < -500) throttle_adj = -500;
     
     return throttle_adj;
 }
@@ -541,7 +557,8 @@ void CDEPilotChangeAltitude::stopAltitudeControl() {
     
     // Send neutral control for manual modes only
     if (vehicle_info.flying_mode != VEHICLE_MODE_GUIDED) {
-        int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
+        int16_t rc_channels[RC_CHANNELS_MAX];
+        std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
         rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
         mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
             rc_channels, RC_CHANNELS_MAX);

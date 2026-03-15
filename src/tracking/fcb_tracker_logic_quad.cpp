@@ -1,5 +1,6 @@
 #include "../de_common/helpers/colors.hpp"
 #include "../de_common/helpers/helpers.hpp"
+#include <algorithm>
 
 #include "fcb_tracker_logic_quad.hpp"
 #include "fcb_tracking_manager.hpp"
@@ -287,7 +288,8 @@ void CTrackerQuadLogic::trackingDroneForward(const double x, const double yz,
   // 'T': Throttle
   // 'A': Aileron
   // 'E': Elevator
-  int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT] = {SKIP_RC_CHANNEL};
+  int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT];
+  std::fill_n(rc_channels, RC_CHANNEL_TRACKING_COUNT, SKIP_RC_CHANNEL);
 
   rc_channels[RC_CHANNEL_TRACKING_ROLL] =
       500; // to be aligned with default settings of Ardu
@@ -374,7 +376,8 @@ void CTrackerQuadLogic::trackingStanding(const double x, const double yz,
   // 'T': Throttle
   // 'A': Aileron
   // 'E': Elevator
-  int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT] = {SKIP_RC_CHANNEL};
+  int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT];
+  std::fill_n(rc_channels, RC_CHANNEL_TRACKING_COUNT, SKIP_RC_CHANNEL);
 
   rc_channels[RC_CHANNEL_TRACKING_ROLL] =
       1000 - tracking_x; // to be aligned with default settings of Ardu

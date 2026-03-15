@@ -473,7 +473,7 @@ void CFCBMain::remoteControlSignal() {
     return;
     
   // Disable RC command sending during DEPilot operations to prevent interference
-  if (de::fcb::depilot::CDEPilotManager::getInstance().getAllowRCControl()) {
+  if (!de::fcb::depilot::CDEPilotManager::getInstance().getAllowRCControl()) {
     return;
   }
   

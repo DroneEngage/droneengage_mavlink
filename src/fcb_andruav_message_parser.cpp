@@ -14,6 +14,7 @@
 #include <fstream>
 #include <iostream>
 #include <plog/Log.h>
+#include <algorithm>
 
 using namespace de::fcb;
 
@@ -520,7 +521,8 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
     if (!validateField(cmd, "E", Json_de::value_t::number_unsigned))
       return;
 
-    int16_t rc_channels[18] = {SKIP_RC_CHANNEL};
+    int16_t rc_channels[18];
+    std::fill_n(rc_channels, 18, SKIP_RC_CHANNEL);
     const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map =
         m_fcbMain.getRCChannelsMapInfo();
     if ((rc_map.use_smart_rc) && (rc_map.is_valid)) {

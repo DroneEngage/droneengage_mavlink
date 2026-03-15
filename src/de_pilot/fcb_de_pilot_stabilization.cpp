@@ -8,6 +8,7 @@
 #include <vehicle.h>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 using namespace de::fcb::depilot;
 
@@ -17,6 +18,7 @@ void CDEPilotStabilization::init() {
     readConfigParameters();
     
     // Initialize stabilization system
+    m_active = false;
     m_phase = PHASE_IDLE;
     m_phase_start_time = get_time_usec() / 1000;
     m_last_update_time = m_phase_start_time;
@@ -165,7 +167,8 @@ void CDEPilotStabilization::updateStabilization() {
                 std::cout << "  - ALT-HOLD mode: Sending stop command (1500) to maintain altitude" << std::endl;
                 std::cout << "  - Yaw control enabled: " << (m_yaw_control_enabled ? "YES" : "NO") << std::endl;
                 
-                int16_t rc_channels[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
+                int16_t rc_channels[RC_CHANNELS_MAX];
+                std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;  // Stop climbing
                 // Force roll and pitch to neutral (1500) to prevent max PWM values
                 rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
@@ -243,18 +246,23 @@ void CDEPilotStabilization::updateStabilization() {
                         m_yaw_previous_error = rate_error;
                         m_yaw_last_time = current_time;
                         
-                        // PID output
+                        // Feedforward calculation: map desired rad/s directly to PWM offset.
+                        // ArduPilot's default max yaw rate is typically 200 deg/s (~3.49 rad/s) for 500 PWM deflection.
+                        // Thus, 1 rad/s ~ 143.2 PWM. This ensures default_yaw_rate is obeyed instantly.
+                        double feedforward = desired_yaw_rate * 143.2;
+
+                        // PID output corrects for external disturbances (like wind)
                         double pid_output = m_yaw_p * m_yaw_error + 
                                           m_yaw_i * m_yaw_error_integral + 
                                           m_yaw_d * m_yaw_error_derivative;
                         
-                        // Convert PID output to PWM (1000-2000 range)
-                        // Positive error = clockwise, Negative error = counter-clockwise
-                        int16_t pwm = 1500 + (int16_t)(pid_output * 10); // Scale factor for PWM
+                        // Convert combined output to PWM (1000-2000 range)
+                        // feedforward + PID (with existing scale factor 10)
+                        int16_t pwm = 1500 + (int16_t)feedforward + (int16_t)(pid_output * 10.0);
                         
-                        // Limit PWM to valid range
-                        if (pwm > 1600) pwm = 1600;
-                        if (pwm < 1400) pwm = 1400;
+                        // Limit PWM to valid range (widened from 1400-1600 to 1200-1800 to allow overcoming deadband)
+                        if (pwm > 1800) pwm = 1800;
+                        if (pwm < 1200) pwm = 1200;
                         
                         std::cout << "    - Current heading: " << current_heading << " rad" << std::endl;
                         std::cout << "    - Target heading: " << target_heading << " rad" << std::endl;
@@ -262,7 +270,7 @@ void CDEPilotStabilization::updateStabilization() {
                         std::cout << "    - Current yaw rate: " << m_current_yaw_rate << " rad/s" << std::endl;
                         std::cout << "    - Desired yaw rate: " << desired_yaw_rate << " rad/s" << std::endl;
                         std::cout << "    - Rate error: " << rate_error << " rad/s" << std::endl;
-                        std::cout << "    - PID output: " << pid_output << std::endl;
+                        std::cout << "    - FF + PID output: " << feedforward << " + " << pid_output << std::endl;
                         std::cout << "    - PWM: " << pwm << std::endl;
                         
                         rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = pwm;
