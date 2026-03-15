@@ -64,7 +64,7 @@ void CDEPilotManager::setActive(bool active) {
   if (!active) {
     // shutdown
     init();
-    de_pilot_enabled = false;
+    m_de_pilot_enabled = false;
     CFCBFacade::getInstance().API_IC_sendID(
         std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
     return;
@@ -73,13 +73,13 @@ void CDEPilotManager::setActive(bool active) {
   // Check if mode is compatible
   if (!isCompatibleMode()) {
     init();
-    de_pilot_enabled = false;
+    m_de_pilot_enabled = false;
     CFCBFacade::getInstance().API_IC_sendID(
         std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
     return;
   }
   
-  de_pilot_enabled = true;
+  m_de_pilot_enabled = true;
   m_allow_RCControl = false;
   
   setOperation(DEPILOT_OP_STABILIZATION); // by default switch to
@@ -87,7 +87,7 @@ void CDEPilotManager::setActive(bool active) {
 
   
   std::cout << _SUCCESS_CONSOLE_TEXT_ << "DRONEENGAGE_PILOT: " 
-              << (de_pilot_enabled ? "Enabled" : "Disabled") 
+              << (m_de_pilot_enabled ? "Enabled" : "Disabled") 
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
   
   CFCBFacade::getInstance().API_IC_sendID(
@@ -96,7 +96,7 @@ void CDEPilotManager::setActive(bool active) {
 
 void CDEPilotManager::updateOperations() {
 
-  if (!de_pilot_enabled) {
+  if (!m_de_pilot_enabled) {
     return;
   }
 
@@ -161,6 +161,14 @@ void CDEPilotManager::do_ChangeAltitude(double target_altitude) {
     std::cout << "DE-Pilot Failed to call Change Altitude" << std::endl;
     return ;
   }
+
+  // If operation is already active, update the target altitude in the running operation
+  if (m_operation_instance != nullptr && m_operation_instance->getActive()) {
+    CDEPilotChangeAltitude* altitude_op = static_cast<CDEPilotChangeAltitude*>(m_operation_instance);
+    altitude_op->startAltitudeChange(target_altitude);
+    std::cout << "DE-Pilot: Updated target altitude to " << target_altitude << " during active operation" << std::endl;
+  }
+  
 }
 
 
@@ -176,6 +184,38 @@ void CDEPilotManager::do_Stabilize() {
     // Failes
     std::cout << "DE-Pilot Failed to call STABILIZE" << std::endl;
     return ;
+  }
+}
+
+void CDEPilotManager::do_SetYaw(double angle, double rate, bool is_clockwise, bool is_relative) {
+  if (!m_de_pilot_enabled) {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DE-Pilot: Not active, cannot set yaw" 
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    return;
+  }
+
+  if (!isCompatibleMode()) {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DE-Pilot: Incompatible mode, cannot set yaw" 
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    return;
+  }
+
+  // If not in stabilization mode, switch to it first
+  if (m_de_pilot_operation != DEPILOT_OP_STABILIZATION) {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DE-Pilot: Switching to stabilization for yaw control" 
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    do_Stabilize();
+  }
+
+  // Set yaw target on stabilization operation
+  if (m_de_pilot_operation == DEPILOT_OP_STABILIZATION && m_operation_instance != nullptr) {
+    CDEPilotStabilization* stabilization_op = static_cast<CDEPilotStabilization*>(m_operation_instance);
+    stabilization_op->setYawTarget(angle, rate, is_clockwise, is_relative);
+    
+    CFCBFacade::getInstance().API_IC_sendID(std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
+  } else {
+    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DE-Pilot: Failed to set yaw target" 
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
   }
 }
 
@@ -204,7 +244,7 @@ void CDEPilotManager::do_Land() {
 
 void CDEPilotManager::setOperation(DRONEENGAGE_PILOT_OPERATION operation) {
 
-  if (!de_pilot_enabled) {
+  if (!m_de_pilot_enabled) {
     return;
   }
   

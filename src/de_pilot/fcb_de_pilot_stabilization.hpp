@@ -41,6 +41,11 @@ public:
     void stopStabilization();
     bool isStabilizationActive() const;
 
+    // Yaw control interface
+    void setYawTarget(double angle, double rate, bool is_clockwise, bool is_relative);
+    void clearYawTarget();
+    bool isYawControlActive() const;
+
 private:
     enum StabilizationPhase {
         PHASE_IDLE,
@@ -52,8 +57,29 @@ private:
     StabilizationPhase m_phase = PHASE_IDLE;
     double m_target_altitude = 0.0;
     
+    // Yaw control member variables
+    bool m_yaw_control_enabled = false;
+    double m_target_yaw_angle = 0.0;
+    double m_yaw_turn_rate = 0.0;
+    bool m_yaw_is_clockwise = true;
+    bool m_yaw_is_relative = false;
+    
+    // Yaw PID controller variables
+    double m_yaw_error = 0.0;
+    double m_yaw_error_integral = 0.0;
+    double m_yaw_error_derivative = 0.0;
+    double m_yaw_previous_error = 0.0;
+    uint64_t m_yaw_last_time = 0;
+    
     // Configuration parameters
     double m_stabilize_time_ms = 2000;      // ms
+    double m_default_yaw_rate = 30.0;       // deg/sec
+    
+    // Yaw PID parameters
+    double m_yaw_p = 1.0;                   // Proportional gain
+    double m_yaw_i = 0.0;                   // Integral gain
+    double m_yaw_d = 0.0;                   // Derivative gain
+    double m_yaw_integral_limit = 100.0;    // Integral windup limit
 };
 
 } // namespace depilot

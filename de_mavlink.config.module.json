@@ -310,6 +310,25 @@
         ]
     },
     "module_id": "FCB_CTRL",
+    "de_pilot": {
+        "stabilization": {
+            "stabilize_time_ms": 2000,
+            "default_yaw_rate": 5.0,
+            "yaw_p": 2.0,
+            "yaw_i": 0.1,
+            "yaw_d": 0.0,
+            "yaw_integral_limit": 100.0
+        },
+        "change_altitude": {
+            "max_climb_rate": 2.5,
+            "stabilize_time_ms": 2000,
+            "timeout_ms": 10000,
+            "pid_p": 0.5,
+            "pid_i": 0.0,
+            "pid_d": 0.0,
+            "deadband": 0.5
+        }
+    },
     "rc_block_channel": -1,
     "rc_channels": {
         "rc_channel_enabled": [

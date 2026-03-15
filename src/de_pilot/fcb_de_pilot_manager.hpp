@@ -34,6 +34,7 @@ public:
     void do_ChangeAltitude(double target_altitude);
     void do_Stabilize();
     void do_Land();
+    void do_SetYaw(double angle, double rate, bool is_clockwise, bool is_relative);
     
 public:
     // Getters & Setters
@@ -79,7 +80,7 @@ private:
     double m_target_altitude = 0.0;
 
     bool m_allow_RCControl = true;
-    bool                        de_pilot_enabled            = false;
+    bool                        m_de_pilot_enabled            = false;
     DRONEENGAGE_PILOT_OPERATION m_de_pilot_operation          = DEPILOT_OP_DISABLED;
 
 };

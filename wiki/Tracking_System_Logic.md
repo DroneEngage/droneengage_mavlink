@@ -39,33 +39,33 @@ Vertical camera tracking mode for ground-based target tracking.
 
 ### Tracking Status States
 
-- **TrackingTarget_STATUS_TRACKING_STOPPED**: Tracking inactive
-- **TrackingTarget_STATUS_TRACKING_ENABLED**: Tracking activated, waiting for target
-- **TrackingTarget_STATUS_TRACKING_DETECTED**: Target acquired and tracking active
-- **TrackingTarget_STATUS_TRACKING_LOST**: Target lost, tracking paused
+- **TargetTracking_STATUS_TRACKING_STOPPED**: Tracking inactive
+- **TargetTracking_STATUS_TRACKING_ENABLED**: Tracking activated, waiting for target
+- **TargetTracking_STATUS_TRACKING_DETECTED**: Target acquired and tracking active
+- **TargetTracking_STATUS_TRACKING_LOST**: Target lost, tracking paused
 
 ### Status Change Flow
 
 ```cpp
 void CTrackingManager::onStatusChanged(const int status) {
     switch (status) {
-        case TrackingTarget_STATUS_TRACKING_ENABLED:
+        case TargetTracking_STATUS_TRACKING_ENABLED:
             m_tracking_running = true;
             getTracker().onStatusChanged(status);
             break;
             
-        case TrackingTarget_STATUS_TRACKING_DETECTED:
+        case TargetTracking_STATUS_TRACKING_DETECTED:
             m_tracking_running = true;
             m_object_detected = true;
             getTracker().onStatusChanged(status);
             break;
             
-        case TrackingTarget_STATUS_TRACKING_LOST:
+        case TargetTracking_STATUS_TRACKING_LOST:
             m_object_detected = false;
             getTracker().onStatusChanged(status);
             break;
             
-        case TrackingTarget_STATUS_TRACKING_STOPPED:
+        case TargetTracking_STATUS_TRACKING_STOPPED:
             m_object_detected = false;
             m_tracking_running = false;
             getTracker().onStatusChanged(status);
@@ -294,13 +294,13 @@ CTrackingManager &tracker = CTrackingManager::getInstance();
 tracker.init();
 
 // Enable tracking
-tracker.onStatusChanged(TrackingTarget_STATUS_TRACKING_ENABLED);
+tracker.onStatusChanged(TargetTracking_STATUS_TRACKING_ENABLED);
 
 // Process tracking data
 tracker.onTrack(x, yz, is_forward_camera);
 
 // Handle target detection
-tracker.onStatusChanged(TrackingTarget_STATUS_TRACKING_DETECTED);
+tracker.onStatusChanged(TargetTracking_STATUS_TRACKING_DETECTED);
 ```
 
 ### Configuration Reload

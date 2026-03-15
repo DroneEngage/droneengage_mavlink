@@ -568,15 +568,17 @@ void CFCBMain::loopScheduler() {
 
     if (m_counter % 10 == 0) { // each 100 msec
       fcb_swarm_leader.handleSwarmsAsLeader();
+
+      // Update DRONEENGAGE_PILOT operations
+      if (de::fcb::depilot::CDEPilotManager::getInstance().getActive()) {
+        updateDEPilotOperations();
+      }
     }
 
     if (m_counter % 20 == 0) { // each 200 msec
       remoteControlSignal();
       
-      // Update DRONEENGAGE_PILOT operations
-      if (de::fcb::depilot::CDEPilotManager::getInstance().getActive()) {
-        updateDEPilotOperations();
-      }
+      
     }
 
     if (m_counter % 30 == 0) { // each 300 msec
