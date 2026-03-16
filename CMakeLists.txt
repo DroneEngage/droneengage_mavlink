@@ -90,6 +90,9 @@ SET(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(Threads REQUIRED)
 
+# Find OpenSSL package
+find_package(OpenSSL REQUIRED)
+
 
 # Define an option for user control over DETAILED_DEBUG
 option(DDEBUG "Detailed Debug" OFF) # Default is OFF
@@ -127,6 +130,7 @@ add_compile_options(
 add_compile_definitions(
     $<$<CONFIG:DEBUG>:DEBUG>
     $<$<CONFIG:RELEASE>:RELEASE>
+    # DEBUG_CHECK_INTEGRITY
 )
 
 # add_link_options(
@@ -172,7 +176,7 @@ set_target_properties( de_mavlink
                 )
 
 
-target_link_libraries(de_mavlink  Threads::Threads)
+target_link_libraries(de_mavlink  Threads::Threads OpenSSL::SSL OpenSSL::Crypto)
 
 # Conditionally define DDEBUG based on the DDEBUG option
 target_compile_definitions(de_mavlink PRIVATE
