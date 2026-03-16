@@ -40,7 +40,7 @@ void CTrackerLogic::onStatusChanged(const int status) {
 #endif
 
   switch (status) {
-  case TargetTracking_STATUS_TRACKING_LOST:
+  case TrackingTarget_STATUS_TRACKING_LOST:
     m_prev_initialized = false;              // reset shaping state
     m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0); // reset integrator
     m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
@@ -49,19 +49,19 @@ void CTrackerLogic::onStatusChanged(const int status) {
     m_kalman_yz.reset();
     break;
 
-  case TargetTracking_STATUS_TRACKING_DETECTED:
+  case TrackingTarget_STATUS_TRACKING_DETECTED:
     // de::fcb::CFCBMain::getInstance().adjustRemoteJoystickByMode(
     //     RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED);
     break;
 
-  case TargetTracking_STATUS_TRACKING_ENABLED:
+  case TrackingTarget_STATUS_TRACKING_ENABLED:
     m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
     m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
     m_kalman_x.reset();
     m_kalman_yz.reset();
     break;
 
-  case TargetTracking_STATUS_TRACKING_STOPPED:
+  case TrackingTarget_STATUS_TRACKING_STOPPED:
     m_PID_X.setPID(m_x_PID_P, m_x_PID_I, 0);
     m_PID_YZ.setPID(m_yz_PID_P, m_yz_PID_I, 0);
     m_kalman_x.reset();

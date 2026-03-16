@@ -53,7 +53,7 @@ private:
 
   TRACKING_TYPE m_tracking_type = TRACKING_STANDING;
 
-  int m_tracking_status = TargetTracking_STATUS_TRACKING_STOPPED;
+  int m_tracking_status = TrackingTarget_STATUS_TRACKING_STOPPED;
 
   CTrackerPlanLogic &m_tracker_plan_logic = CTrackerPlanLogic::getInstance();
   CTrackerQuadLogic &m_tracker_quad_logic = CTrackerQuadLogic::getInstance();

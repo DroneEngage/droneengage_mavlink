@@ -23,18 +23,18 @@ void CTrackerQuadLogic::onStatusChanged(const int status) {
   CTrackerLogic::onStatusChanged(status);
 
   switch (status) {
-  case TargetTracking_STATUS_TRACKING_LOST:
+  case TrackingTarget_STATUS_TRACKING_LOST:
     resetTrackerCopterStatus();
     break;
 
-  case TargetTracking_STATUS_TRACKING_DETECTED:
+  case TrackingTarget_STATUS_TRACKING_DETECTED:
     break;
 
-  case TargetTracking_STATUS_TRACKING_ENABLED:
+  case TrackingTarget_STATUS_TRACKING_ENABLED:
     resetTrackerCopterStatus();
     break;
 
-  case TargetTracking_STATUS_TRACKING_STOPPED:
+  case TrackingTarget_STATUS_TRACKING_STOPPED:
     resetTrackerCopterStatus();
     break;
 
