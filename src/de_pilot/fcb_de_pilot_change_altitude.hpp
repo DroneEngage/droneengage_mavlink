@@ -46,11 +46,12 @@ private:
     bool isAltitudeReached() const;
     bool isAltitudeControlActive() const;
     void stopAltitudeControl();
-
+    void determineAscendDescendPhase();
 private:
     enum AltitudeControlPhase {
         PHASE_IDLE,
         PHASE_ARM_CHECK,
+        PHASE_ARMED,
         PHASE_ASCENDING,
         PHASE_DESCENDING,
         PHASE_COMPLETE,

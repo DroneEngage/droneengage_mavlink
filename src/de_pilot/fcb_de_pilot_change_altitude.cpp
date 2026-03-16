@@ -118,6 +118,22 @@ void CDEPilotChangeAltitude::readConfigParameters() {
     }
 }
 
+
+void CDEPilotChangeAltitude::determineAscendDescendPhase()
+{
+    if (m_target_altitude > m_start_altitude) {
+                m_phase = PHASE_ASCENDING;
+                std::cout << "  - Direction: ASCENDING" << std::endl;
+            } else {
+                m_phase = PHASE_DESCENDING;
+                std::cout << "  - Direction: DESCENDING" << std::endl;
+            }
+    
+    const uint64_t now = get_time_usec();
+    m_phase_start_time = now;
+    
+}
+
 void CDEPilotChangeAltitude::startAltitudeChange(double target_altitude) {
 
     m_start_altitude = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt().relative_alt / 1000.0;
@@ -135,21 +151,20 @@ void CDEPilotChangeAltitude::startAltitudeChange(double target_altitude) {
     m_integral = 0.0;
     m_active = true;
 
-    // Determine if ascending or descending
-    if (target_altitude > m_start_altitude) {
-        m_phase = PHASE_ASCENDING;
-        std::cout << "  - Direction: ASCENDING" << std::endl;
-    } else {
-        m_phase = PHASE_DESCENDING;
-        std::cout << "  - Direction: DESCENDING" << std::endl;
-    }
-
     de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
     const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
     
     std::cout << "  - Current flight mode: " << vehicle_info.flying_mode << std::endl;
     std::cout << "  - Armed: " << (vehicle_info.is_armed ? "YES" : "NO") << std::endl;
     std::cout << "  - Flying: " << (vehicle_info.is_flying ? "YES" : "NO") << std::endl;
+
+    // Always start with arm check if not armed, regardless of direction
+    if (!vehicle_info.is_armed) {
+        m_phase = PHASE_ARM_CHECK;
+        std::cout << "  - Direction: will be determined after arming" << std::endl;
+    } else {
+        determineAscendDescendPhase();
+    }
 
     de::fcb::depilot::CDEPilotManager::getInstance().setTargetAltitude(target_altitude);
     // Don't set operation here - it's already set by the manager when this operation is started
@@ -227,15 +242,28 @@ void CDEPilotChangeAltitude::updateTakeoff() {
     switch (m_phase) {
         case PHASE_ARM_CHECK: {
             if (!vehicle_info.is_armed) {
-                std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Waiting for arm..." 
+                std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Auto-arming for climb..." 
                           << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                // Could auto-arm here if desired
-                return;
+                // Auto-arm the drone when in DE_PILOT mode and receiving CLIMB command
+                mavlinksdk::CMavlinkCommand::getInstance().doArmDisarm(true, false);
+                return; // Wait for next update cycle to check arm status
             }
-            std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Armed, starting climb" 
+            std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Armed, ready for altitude change..." 
                       << _NORMAL_CONSOLE_TEXT_ << std::endl;
-            m_phase = PHASE_ASCENDING;
+            
+            // After arming, move to ARMED state to determine direction in next cycle
+            m_phase = PHASE_ARMED;
             m_phase_start_time = now;
+            return ;
+        }
+        break;
+
+        case PHASE_ARMED: {
+            std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Determining climb direction..." 
+                      << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            
+            // Determine if ascending or descending and transition to appropriate phase
+            determineAscendDescendPhase();
         }
         break;
 
