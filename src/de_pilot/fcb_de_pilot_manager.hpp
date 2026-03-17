@@ -5,6 +5,7 @@
 #include "fcb_de_pilot_change_altitude.hpp"
 #include "fcb_de_pilot_operation_base.hpp"
 #include "fcb_de_pilot_stabilization.hpp"
+#include "fcb_de_pilot_tracking.hpp"
 #include <cstdint>
 
 namespace de {
@@ -32,10 +33,10 @@ public:
   // Main Functions
   void do_ChangeAltitude(double target_altitude);
   void do_Stabilize();
+  void do_Tracking();
   void do_Land();
   void do_SetYaw(double angle, double rate, bool is_clockwise,
                  bool is_relative);
-
 public:
   // Getters & Setters
   inline bool getActive() const {

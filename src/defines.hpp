@@ -111,8 +111,8 @@ typedef enum DRONEENGAGE_PILOT_OPERATION
 {
     DEPILOT_OP_DISABLED         = 0,
     DEPILOT_OP_CHANGE_ALTITUDE  = 1,
-    DEPILOT_OP_STABILIZATION    = 3,
-    DEPILOT_OP_TRACKING         = 4
+    DEPILOT_OP_STABILIZATION    = 2,
+    DEPILOT_OP_TRACKING         = 3
     // Exclusive modes - only one active at a time
 } DRONEENGAGE_PILOT_OPERATION;
 

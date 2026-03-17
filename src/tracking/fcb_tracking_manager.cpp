@@ -11,6 +11,7 @@
 #include "fcb_tracker_logic_quad.hpp"
 #include "../fcb_main.hpp"
 #include "../de_pilot/fcb_de_pilot_manager.hpp"
+#include "../de_pilot/fcb_de_pilot_tracking.hpp"
 #include <cmath>
 #include <string>
 
@@ -90,6 +91,9 @@ void CTrackingManager::onTrack(const double x, const double yz,
   if (de::fcb::depilot::CDEPilotManager::getInstance().getCurrentOperation() != DEPILOT_OP_TRACKING) {
     return;
   }
+
+  // Update tracking timestamp in the pilot tracking operation
+  de::fcb::depilot::CDEPilotTracking::getInstance().updateTrackingTimestamp();
 
   getTracker().onTrack(x, yz, is_forward_camera);
 }

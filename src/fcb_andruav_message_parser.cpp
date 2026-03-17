@@ -467,6 +467,11 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
   } break;
 
   case TYPE_AndruavMessage_DEPilot_Control: {
+    /*
+        e: enable/disable DEPILOT 
+
+        m: switch to one of the following mode if ([e]!=true)
+     */
     if (m_fcbMain.getAndruavVehicleInfo().is_gcs_blocked)
       break;
     if ((!m_is_system) && ((permission & PERMISSION_ALLOW_GCS_MODES_CONTROL) !=
@@ -476,17 +481,38 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
                 << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
       break;
     }
-    if (!validateField(cmd, "e", Json_de::value_t::boolean))
-      return;
+    
+    if (validateField(cmd, "e", Json_de::value_t::boolean))
+    {
 
-    bool enabled = cmd["e"].get<bool>();
-    de::fcb::depilot::CDEPilotManager::getInstance().setActive(enabled);
-    std::cout << _SUCCESS_CONSOLE_TEXT_
-              << "DRONEENGAGE_PILOT: " << (enabled ? "Enabled" : "Disabled")
-              << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    if (enabled) {
-      de::fcb::depilot::CDEPilotManager::getInstance().do_Stabilize();
+      bool enabled = cmd["e"].get<bool>();
+      de::fcb::depilot::CDEPilotManager::getInstance().setActive(enabled);
+      std::cout << _SUCCESS_CONSOLE_TEXT_
+                << "DRONEENGAGE_PILOT: " << (enabled ? "Enabled" : "Disabled")
+                << _NORMAL_CONSOLE_TEXT_ << std::endl;
     }
+
+    if (validateField(cmd, "m", Json_de::value_t::number_unsigned))
+    {
+      const int de_mode = cmd["m"].get<int>();
+      DRONEENGAGE_PILOT_OPERATION mode = static_cast<DRONEENGAGE_PILOT_OPERATION>(de_mode);
+      switch (mode) {
+        case DRONEENGAGE_PILOT_OPERATION::DEPILOT_OP_STABILIZATION:
+        {
+          de::fcb::depilot::CDEPilotManager::getInstance().do_Stabilize();
+        }
+        break;
+
+        case DRONEENGAGE_PILOT_OPERATION::DEPILOT_OP_TRACKING:
+        {
+          de::fcb::depilot::CDEPilotManager::getInstance().do_Tracking();
+        }
+        break;
+      }
+    }
+  else {
+    
+  }
 
   } break;
 
@@ -898,7 +924,7 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
     m_tracking_manager.onTrack(x_ratio, yz_ratio, is_forward_camera);
   } break;
 
-  case TYPE_AndruavMessage_TargetTracking_STATUS: {
+  case TYPE_AndruavMessage_TrackingTarget_STATUS: {
     if (!cmd["a"].is_number_integer())
       break;
 
