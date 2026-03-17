@@ -28,12 +28,8 @@ void CDEPilotStabilization::init() {
   m_yaw_control_enabled = false;
   m_target_yaw_angle = 0.0;
 
-  // Initialize yaw PID variables
-  m_yaw_error = 0.0;
-  m_yaw_error_integral = 0.0;
-  m_yaw_error_derivative = 0.0;
-  m_yaw_previous_error = 0.0;
-  m_yaw_last_time = get_time_usec() / 1000;
+  // Initialize advanced PID controller
+  m_yaw_pid_controller.reset();
 
   // Initialize yaw rate tracking
   m_last_heading_for_rate = 0.0;
@@ -103,6 +99,16 @@ void CDEPilotStabilization::readConfigParameters() {
       if (stabilization_config.contains("yaw_max_accel")) {
         m_yaw_max_accel = stabilization_config["yaw_max_accel"].get<double>();
       }
+      if (stabilization_config.contains("yaw_ff_scale")) {
+        m_yaw_ff_scale = stabilization_config["yaw_ff_scale"].get<double>();
+      }
+      
+      // Configure the advanced PID controller with loaded parameters
+      m_yaw_pid_controller.setPID(m_yaw_p, m_yaw_i, m_yaw_d);
+      // Set feedforward gain for yaw from configuration
+      m_yaw_pid_controller.setFeedforwardGain(m_yaw_ff_scale);
+      // Set delta time to 0.01s (10ms) which matches typical update rate
+      m_yaw_pid_controller.setDeltaTime(0.01);
     }
   }
 }
@@ -251,41 +257,15 @@ void CDEPilotStabilization::updateStabilization() {
         const float desired_yaw_rate = calculateDesiredYawRate(angle_error);
         const double rate_error = desired_yaw_rate - m_current_yaw_rate;
 
-        // PID calculation using rate error
-        uint64_t current_time = now / 1000;
-        double dt =
-            (current_time - m_yaw_last_time) / 1000.0; // Convert to seconds
-
-        if (dt > 0.001) { // Avoid division by zero
-          m_yaw_error = rate_error;
-          m_yaw_error_integral += rate_error * dt;
-
-          // Integral windup protection
-          if (m_yaw_error_integral > m_yaw_integral_limit) {
-            m_yaw_error_integral = m_yaw_integral_limit;
-          } else if (m_yaw_error_integral < -m_yaw_integral_limit) {
-            m_yaw_error_integral = -m_yaw_integral_limit;
-          }
-
-          m_yaw_error_derivative = (rate_error - m_yaw_previous_error) / dt;
-          m_yaw_previous_error = rate_error;
-          m_yaw_last_time = current_time;
-
-          // Feedforward calculation: map desired rad/s directly to PWM offset.
-          // ArduPilot's default max yaw rate is typically 200 deg/s (~3.49
-          // rad/s) for 500 PWM deflection. Thus, 1 rad/s ~ 143.2 PWM. This
-          // ensures default_yaw_rate is obeyed instantly.
-          double feedforward = desired_yaw_rate * 143.2;
-
-          // PID output corrects for external disturbances (like wind)
-          double pid_output = m_yaw_p * m_yaw_error +
-                              m_yaw_i * m_yaw_error_integral +
-                              m_yaw_d * m_yaw_error_derivative;
+        // PID calculation using rate error with advanced PID controller
+        if (true) { // Always execute since advanced PID controller handles dt internally
+          // Use advanced PID controller with feedforward
+          // The controller handles PID calculation, anti-windup, and feedforward internally
+          double pid_output = m_yaw_pid_controller.calculate(rate_error, desired_yaw_rate);
 
           // Convert combined output to PWM (1000-2000 range)
-          // feedforward + PID (with existing scale factor 10)
-          int16_t pwm =
-              1500 + (int16_t)feedforward + (int16_t)(pid_output * 10.0);
+          // The advanced PID controller already includes feedforward, so just add to 1500
+          int16_t pwm = 1500 + (int16_t)pid_output;
 
           // Limit PWM to valid range (widened from 1400-1600 to 1200-1800 to
           // allow overcoming deadband)
@@ -306,8 +286,7 @@ void CDEPilotStabilization::updateStabilization() {
                     << " rad/s" << std::endl;
           std::cout << "    - Rate error: " << rate_error << " rad/s"
                     << std::endl;
-          std::cout << "    - FF + PID output: " << feedforward << " + "
-                    << pid_output << std::endl;
+          std::cout << "    - Advanced PID output: " << pid_output << " PWM" << std::endl;
           std::cout << "    - PWM: " << pwm << std::endl;
 
           rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = pwm;
@@ -397,63 +376,11 @@ float CDEPilotStabilization::calculateDesiredYawRate(
   const double max_accel = m_yaw_max_accel;
   const double max_rate = m_default_yaw_rate;
 
-  // sqrt_controller: ArduPilot-style piecewise controller
-  // Blends a linear P-region near the target with a sqrt deceleration
-  // curve far from the target, ensuring kinematically feasible rate profiles.
-
-  float desired_rate_deg;
-
-  // If no acceleration limit, fallback to pure P-controller
-  if (max_accel <= 0.0) {
-    desired_rate_deg = static_cast<float>(error * p_gain);
-    if (desired_rate_deg > static_cast<float>(max_rate))
-      desired_rate_deg = static_cast<float>(max_rate);
-    if (desired_rate_deg < static_cast<float>(-max_rate))
-      desired_rate_deg = static_cast<float>(-max_rate);
-    return desired_rate_deg * static_cast<float>(M_PI / 180.0);
-  }
-
-  // If no P gain, fallback to pure square root controller
-  if (p_gain <= 0.0) {
-    if (error > 0.0) {
-      desired_rate_deg = static_cast<float>(std::sqrt(2.0 * max_accel * error));
-    } else if (error < 0.0) {
-      desired_rate_deg =
-          static_cast<float>(-std::sqrt(2.0 * max_accel * (-error)));
-    } else {
-      desired_rate_deg = 0.0f;
-    }
-    if (desired_rate_deg > static_cast<float>(max_rate))
-      desired_rate_deg = static_cast<float>(max_rate);
-    if (desired_rate_deg < static_cast<float>(-max_rate))
-      desired_rate_deg = static_cast<float>(-max_rate);
-    return desired_rate_deg * static_cast<float>(M_PI / 180.0);
-  }
-
-  // Piecewise controller: linear inside threshold, sqrt outside
-  // linear_dist is the angle at which the sqrt curve's slope
-  // equals the P-gain, ensuring tangent continuity at the transition.
-  const double linear_dist = max_accel / (p_gain * p_gain);
-
-  if (error > linear_dist) {
-    // Positive error beyond linear region — use sqrt branch
-    desired_rate_deg = static_cast<float>(
-        std::sqrt(2.0 * max_accel * (error - (linear_dist / 2.0))));
-  } else if (error < -linear_dist) {
-    // Negative error beyond linear region — use sqrt branch
-    desired_rate_deg = static_cast<float>(
-        -std::sqrt(2.0 * max_accel * ((-error) - (linear_dist / 2.0))));
-  } else {
-    // Inside linear region — simple proportional control
-    desired_rate_deg = static_cast<float>(error * p_gain);
-  }
-
-  // Clamp to max yaw rate
-  if (desired_rate_deg > static_cast<float>(max_rate))
-    desired_rate_deg = static_cast<float>(max_rate);
-  if (desired_rate_deg < static_cast<float>(-max_rate))
-    desired_rate_deg = static_cast<float>(-max_rate);
+  // Use the advanced PID controller's static sqrt_controller method
+  // This provides the same ArduPilot-style piecewise controller behavior
+  double desired_rate_deg = CAdvancedPIDController::sqrt_controller(
+      error, p_gain, max_accel, max_rate);
 
   // Convert to radians/sec for control
-  return desired_rate_deg * static_cast<float>(M_PI / 180.0);
+  return static_cast<float>(desired_rate_deg * M_PI / 180.0);
 }

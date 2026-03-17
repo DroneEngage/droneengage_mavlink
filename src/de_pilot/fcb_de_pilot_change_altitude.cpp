@@ -25,8 +25,9 @@ void CDEPilotChangeAltitude::init() {
     m_phase_start_time = get_time_usec() / 1000;
     m_last_update_time = m_phase_start_time;
     m_generic_phase = static_cast<int>(m_phase);
-    m_last_error = 0.0;
-    m_integral = 0.0;
+    
+    // Reset advanced PID controller
+    m_throttle_pid_controller.reset();
     
     // Reset altitude tracking variables
     m_target_altitude = 0.0;
@@ -114,6 +115,12 @@ void CDEPilotChangeAltitude::readConfigParameters() {
             if (change_altitude_config.contains("max_accel")) {
                 m_max_accel = change_altitude_config["max_accel"].get<double>();
             }
+            
+            // Configure the advanced PID controller with loaded parameters
+            m_throttle_pid_controller.setPID(m_pid_p, m_pid_i, m_pid_d);
+            m_throttle_pid_controller.setFeedforwardGain(m_ff_scale);
+            // Set delta time to 0.01s (10ms) which matches typical update rate
+            m_throttle_pid_controller.setDeltaTime(0.01);
         }
     }
 }
@@ -147,8 +154,10 @@ void CDEPilotChangeAltitude::startAltitudeChange(double target_altitude) {
     m_target_altitude = target_altitude;
     m_start_time = get_time_usec();
     m_last_update_time = m_start_time;
-    m_last_error = 0.0;
-    m_integral = 0.0;
+    
+    // Reset advanced PID controller for new altitude change
+    m_throttle_pid_controller.reset();
+    
     m_active = true;
 
     de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
@@ -461,51 +470,17 @@ bool CDEPilotChangeAltitude::isTakeoffActive() const {
 int16_t CDEPilotChangeAltitude::calculateThrottleAdjustment(double current_altitude) {
     const float desired_rate = calculateClimbRate(current_altitude);
     const double error = desired_rate - m_current_climb_rate;
-    const uint64_t now = get_time_usec();
-    const double dt = (now - m_last_update_time) / 1000000.0; // seconds
 
     std::cout << "  - Desired climb rate: " << desired_rate << " m/s" << std::endl;
 
-    const double derivative = (error - m_last_error) / dt;
+    // Use advanced PID controller with feedforward
+    // The controller handles PID calculation, anti-windup, and feedforward internally
+    const double pid_output = m_throttle_pid_controller.calculate(error, desired_rate);
     
-    // Feedforward consideration: map the desired rate linearly to a baseline PWM offset
-    // using the configured ff_scale (e.g., 150 PWM per 1 m/s climb rate).
-    const double feedforward = desired_rate * m_ff_scale;
-    
-    // Pre-calculate to check anti-windup clamping
-    const double p_term = m_pid_p * error;
-    const double d_term = m_pid_d * derivative;
-    double i_term = m_pid_i * m_integral;
-
-    // Check if adding to the integral would exacerbate windup while pushing against saturation limits
-    const double tentative_output = feedforward + p_term + i_term + d_term;
-    const double i_increment = error * dt;
-    
-    bool is_saturated_positive = (tentative_output >= 5.0) && (error > 0); // 5.0 = 500 PWM (due to *100.0 scale)
-    bool is_saturated_negative = (tentative_output <= -5.0) && (error < 0);
-    
-    if (!is_saturated_positive && !is_saturated_negative) {
-        m_integral += i_increment;
-        
-        // Absolute safety clamp
-        const double max_integral = 4.0;  // Max integral value (400 PWM / 100 scale factor)
-        if (m_integral > max_integral) m_integral = max_integral;
-        if (m_integral < -max_integral) m_integral = -max_integral;
-
-        // Recalculate i_term with updated integral
-        i_term = m_pid_i * m_integral;
-    } else {
-        std::cout << "  - Anti-windup active: suppressing integral growth" << std::endl;
-    }
-
-    const double pid_output = p_term + i_term + d_term;
-    
-    std::cout << "  - FF + PID output: " << feedforward << " + " << pid_output * 100.0 << " PWM" << std::endl;
-
-    m_last_error = error;
+    std::cout << "  - Advanced PID output: " << pid_output << " PWM" << std::endl;
     
     // Convert to throttle adjustment (PWM range)
-    int16_t throttle_adj = static_cast<int16_t>(feedforward) + static_cast<int16_t>(pid_output * 100.0);
+    int16_t throttle_adj = static_cast<int16_t>(pid_output);
     
     // Clamp to safe range (widened from +400/-300 to +/- 500 to allow full stick authority)
     if (throttle_adj > 500) throttle_adj = 500;
@@ -516,61 +491,11 @@ int16_t CDEPilotChangeAltitude::calculateThrottleAdjustment(double current_altit
 
 float CDEPilotChangeAltitude::calculateClimbRate(double current_altitude) {
     const double error = m_target_altitude - current_altitude;
-    const double p_gain = m_pid_p;
-    const double max_accel = m_max_accel;
-
-    // sqrt_controller: ArduPilot-style piecewise controller
-    // Blends a linear P-region near the target with a sqrt deceleration
-    // curve far from the target, ensuring kinematically feasible rate profiles.
-
-    // If no acceleration limit is defined, fallback to pure P-controller
-    if (max_accel <= 0.0) {
-        float rate = static_cast<float>(error * p_gain);
-        if (rate > static_cast<float>(m_max_climb_rate)) rate = static_cast<float>(m_max_climb_rate);
-        if (rate < static_cast<float>(-m_max_climb_rate)) rate = static_cast<float>(-m_max_climb_rate);
-        return rate;
-    }
-
-    // If no P gain is defined, fallback to pure square root controller
-    if (p_gain <= 0.0) {
-        float result;
-        if (error > 0.0) {
-            result = static_cast<float>(std::sqrt(2.0 * max_accel * error));
-        } else if (error < 0.0) {
-            result = static_cast<float>(-std::sqrt(2.0 * max_accel * (-error)));
-        } else {
-            result = 0.0f;
-        }
-        if (result > static_cast<float>(m_max_climb_rate)) result = static_cast<float>(m_max_climb_rate);
-        if (result < static_cast<float>(-m_max_climb_rate)) result = static_cast<float>(-m_max_climb_rate);
-        return result;
-    }
-
-    // Piecewise controller: linear inside threshold, sqrt outside
-    // linear_dist is the distance at which the sqrt curve's slope
-    // equals the P-gain, ensuring tangent continuity at the transition.
-    const double linear_dist = max_accel / (p_gain * p_gain);
-    float desired_rate;
-
-    if (error > linear_dist) {
-        // Positive error beyond linear region — use sqrt branch
-        // Subtract (linear_dist / 2) to align tangent with linear curve
-        desired_rate = static_cast<float>(
-            std::sqrt(2.0 * max_accel * (error - (linear_dist / 2.0))));
-    } else if (error < -linear_dist) {
-        // Negative error beyond linear region — use sqrt branch
-        desired_rate = static_cast<float>(
-            -std::sqrt(2.0 * max_accel * ((-error) - (linear_dist / 2.0))));
-    } else {
-        // Inside linear region — simple proportional control
-        desired_rate = static_cast<float>(error * p_gain);
-    }
-
-    // Clamp to max climb rate
-    if (desired_rate > static_cast<float>(m_max_climb_rate)) desired_rate = static_cast<float>(m_max_climb_rate);
-    if (desired_rate < static_cast<float>(-m_max_climb_rate)) desired_rate = static_cast<float>(-m_max_climb_rate);
-
-    return desired_rate;
+    
+    // Use the advanced PID controller's static sqrt_controller method
+    // This provides the same ArduPilot-style piecewise controller behavior
+    return static_cast<float>(CAdvancedPIDController::sqrt_controller(
+        error, m_pid_p, m_max_accel, m_max_climb_rate));
 }
 
 bool CDEPilotChangeAltitude::isAltitudeReached() const {

@@ -318,7 +318,8 @@
             "yaw_i": 2.5,
             "yaw_d": 0.2,
             "yaw_integral_limit": 10.0,
-            "yaw_max_accel": 90.0
+            "yaw_max_accel": 90.0,
+            "yaw_ff_scale": 429.6
         },
         "change_altitude": {
             "max_climb_rate": 2.5,

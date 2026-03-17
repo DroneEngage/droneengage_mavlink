@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include "fcb_de_pilot_operation_base.hpp"
+#include "advanced_pid_controller.hpp"
 
 namespace de {
 namespace fcb {
@@ -19,7 +20,14 @@ public:
     void operator=(CDEPilotChangeAltitude const &) = delete;
 
 private:
-    CDEPilotChangeAltitude() {}
+    CDEPilotChangeAltitude() 
+        : m_throttle_pid_controller(0.5, 0.0, 0.0, 0.01, 400.0, 500.0, 150.0, true, 0.2) {
+        // Initialize with default PID parameters
+        // Parameters: kp, ki, kd, dt, integral_max, max_min_value, feedforward_gain, advanced_antiwindup, derivative_filter_alpha
+        // integral_max: 400.0 (matches original max_integral = 4.0 * 100 scale factor)
+        // max_min_value: 500.0 (PWM output limit)
+        // Will be reconfigured in readConfigParameters()
+    }
 
 public:
     ~CDEPilotChangeAltitude() {}
@@ -64,9 +72,12 @@ private:
     double m_start_altitude = 0.0;
     uint64_t m_start_time = 0;
     
-    // PID controller state
-    double m_last_error = 0.0;
-    double m_integral = 0.0;
+    // PID controller state (replaced by advanced PID controller)
+    // double m_last_error = 0.0;  // Now managed by CAdvancedPIDController
+    // double m_integral = 0.0;     // Now managed by CAdvancedPIDController
+    
+    // Advanced PID controller for throttle control
+    CAdvancedPIDController m_throttle_pid_controller;
     
     // Configuration parameters
     double m_max_climb_rate = 2.5;          // m/s
