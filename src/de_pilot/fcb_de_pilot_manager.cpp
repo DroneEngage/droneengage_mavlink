@@ -17,6 +17,7 @@ void CDEPilotManager::init() {
   CDEPilotStabilization::getInstance().init();
   CDEPilotChangeAltitude::getInstance()
       .init(); // Now handles both takeoff and altitude
+  CDEPilotTracking::getInstance().init(); // Initialize tracking operation
 
   m_de_pilot_operation = DEPILOT_OP_DISABLED;
   m_allow_RCControl = true;
@@ -136,6 +137,16 @@ void CDEPilotManager::updateOperations() {
       }
     } break;
 
+    case DEPILOT_OP_TRACKING: {
+      if (operation->isCompleted()) {
+        std::cout << _INFO_CONSOLE_BOLD_TEXT
+                  << "DEPilotManager: Tracking completed, switching to "
+                     "stabilization"
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        do_Stabilize();
+      }
+    } break;
+
     case DEPILOT_OP_STABILIZATION: {
 
     } break;
@@ -181,6 +192,24 @@ void CDEPilotManager::do_Stabilize() {
     std::cout << "DE-Pilot Failed to call STABILIZE" << std::endl;
     return;
   }
+}
+
+void CDEPilotManager::do_Tracking() {
+  if (!isCompatibleMode()) {
+    init();
+    return;
+  }
+
+  setOperation(DEPILOT_OP_TRACKING);
+  if (m_operation_instance == nullptr) {
+    // Failed
+    std::cout << "DE-Pilot Failed to call TRACKING" << std::endl;
+    return;
+  }
+
+  std::cout << _INFO_CONSOLE_BOLD_TEXT 
+            << "DE-Pilot: Tracking mode activated" 
+            << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
 
 void CDEPilotManager::do_SetYaw(double angle, double rate, bool is_clockwise,
@@ -295,6 +324,7 @@ bool CDEPilotManager::isOperationActive(
 void CDEPilotManager::deactivateAllOperations() {
   CDEPilotStabilization::getInstance().setActive(false);
   CDEPilotChangeAltitude::getInstance().setActive(false);
+  CDEPilotTracking::getInstance().setActive(false);
 }
 
 CDEPilotOperationBase *CDEPilotManager::getOperationInstance(
@@ -305,8 +335,7 @@ CDEPilotOperationBase *CDEPilotManager::getOperationInstance(
   case DEPILOT_OP_STABILIZATION:
     return &CDEPilotStabilization::getInstance();
   case DEPILOT_OP_TRACKING:
-    // Tracking is handled differently - return nullptr for now
-    return nullptr;
+    return &CDEPilotTracking::getInstance();
   case DEPILOT_OP_DISABLED:
   default:
     return nullptr;
