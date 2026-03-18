@@ -113,6 +113,16 @@ void CDEPilotStabilization::readConfigParameters() {
   }
 }
 
+void CDEPilotStabilization::reloadParametersIfConfigChanged() {
+  readConfigParameters();
+  // Reconfigure the advanced PID controller with loaded parameters
+  m_yaw_pid_controller.setPID(m_yaw_p, m_yaw_i, m_yaw_d);
+  // Set feedforward gain for yaw from configuration
+  m_yaw_pid_controller.setFeedforwardGain(m_yaw_ff_scale);
+  // Set delta time to 0.01s (10ms) which matches typical update rate
+  m_yaw_pid_controller.setDeltaTime(0.01);
+}
+
 void CDEPilotStabilization::startStabilization() {
   if (m_active) {
     std::cout << _INFO_CONSOLE_BOLD_TEXT

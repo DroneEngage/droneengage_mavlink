@@ -29,6 +29,7 @@ public:
   void update() override;
   void uninit() override;
   void readConfigParameters() override;
+  void reloadParametersIfConfigChanged() override;
   void setPhase(int phase) override;
   int getPhase() const override;
   void setActive(bool active) override;
@@ -40,6 +41,7 @@ public:
   void stopTracking();
   bool isTrackingActive() const;
   void updateTrackingTimestamp(); // Called by CTrackingManager when tracking data is received
+  void processTrackingData(double x_ratio, double yz_ratio);
 
 private:
   enum TrackingPhase { 

@@ -20,7 +20,7 @@ using namespace de::fcb::tracking;
 
 void CTrackingManager::init() {
   readConfigParameters();
-m_tracker_plan_logic.init();
+  m_tracker_plan_logic.init();
   m_tracker_quad_logic.init();
 }
 
@@ -42,7 +42,7 @@ CTrackerLogic &CTrackingManager::getTracker() {
   }
 }
 
-void CTrackingManager::onStatusChanged(const int status) {
+void CTrackingManager::onStatusChanged(const int status, const uint8_t tracking_camera_direction, const bool ai_priority) {
 #ifdef DEBUG
   std::cout << _INFO_CONSOLE_BOLD_TEXT
             << "onTrackStatusChanged:" << _LOG_CONSOLE_BOLD_TEXT
@@ -52,24 +52,24 @@ void CTrackingManager::onStatusChanged(const int status) {
   switch (status) {
   case TrackingTarget_STATUS_TRACKING_LOST:
     m_object_detected = false;
-    getTracker().onStatusChanged(status);
+    getTracker().onStatusChanged(status, tracking_camera_direction, ai_priority);
     break;
 
   case TrackingTarget_STATUS_TRACKING_DETECTED:
     m_tracking_running = true;
     m_object_detected = true;
-    getTracker().onStatusChanged(status);
+    getTracker().onStatusChanged(status, tracking_camera_direction, ai_priority);
     break;
 
   case TrackingTarget_STATUS_TRACKING_ENABLED:
     m_tracking_running = true;
-    getTracker().onStatusChanged(status);
+    getTracker().onStatusChanged(status, tracking_camera_direction, ai_priority);
     break;
 
   case TrackingTarget_STATUS_TRACKING_STOPPED:
     m_object_detected = false;
     m_tracking_running = false;
-    getTracker().onStatusChanged(status);
+    getTracker().onStatusChanged(status, tracking_camera_direction, ai_priority);
     break;
 
   default:
@@ -77,11 +77,9 @@ void CTrackingManager::onStatusChanged(const int status) {
   }
 
   m_tracking_status = status;
-
 }
 
-void CTrackingManager::onTrack(const double x, const double yz,
-                               const bool is_forward_camera) {
+void CTrackingManager::onTrack(const double x, const double yz) {
 
   if (!m_tracking_running || !m_object_detected) {
     return;
@@ -95,5 +93,5 @@ void CTrackingManager::onTrack(const double x, const double yz,
   // Update tracking timestamp in the pilot tracking operation
   de::fcb::depilot::CDEPilotTracking::getInstance().updateTrackingTimestamp();
 
-  getTracker().onTrack(x, yz, is_forward_camera);
+  getTracker().onTrack(x, yz);
 }

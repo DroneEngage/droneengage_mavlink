@@ -331,6 +331,10 @@
             "ff_scale": 150.0,
             "deadband": 0.5,
             "max_accel": 5.0
+        },
+        "tracking": {
+            "auto_enable_on_detection":false,
+            "tracking_timeout_us": 5000000
         }
     },
     "rc_block_channel": -1,

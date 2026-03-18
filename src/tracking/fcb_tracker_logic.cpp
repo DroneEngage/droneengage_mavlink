@@ -32,7 +32,7 @@ void CTrackerLogic::reloadParametersIfConfigChanged() {
   m_kalman_yz.reset();
 }
 
-void CTrackerLogic::onStatusChanged(const int status) {
+void CTrackerLogic::onStatusChanged(const int status, const uint8_t tracking_camera_direction, const bool ai_priority) {
 #ifdef DEBUG
   std::cout << _INFO_CONSOLE_BOLD_TEXT
             << "onTrackStatusChanged:" << _LOG_CONSOLE_BOLD_TEXT
@@ -72,10 +72,14 @@ void CTrackerLogic::onStatusChanged(const int status) {
   default:
     break;
   }
+
+  m_tracking_camera_direction = tracking_camera_direction;
+  
 }
 
-void CTrackerLogic::onTrack(const double x, const double yz,
-                            const bool is_forward_camera) {
+
+
+void CTrackerLogic::onTrack(const double x, const double yz) {
   const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map =
       de::fcb::CFCBMain::getInstance().getRCChannelsMapInfo();
 
@@ -86,12 +90,11 @@ void CTrackerLogic::onTrack(const double x, const double yz,
   m_raw_x = x;
   m_raw_yz = yz;
 
-  processTrackingInput(x, yz, is_forward_camera);
+  processTrackingInput(x, yz);
 }
 
 void CTrackerLogic::processTrackingInput(const double raw_x,
-                                         const double raw_yz,
-                                         const bool is_forward_camera) {
+                                         const double raw_yz) {
   std::chrono::high_resolution_clock::time_point now =
       std::chrono::high_resolution_clock::now();
 
@@ -199,7 +202,7 @@ void CTrackerLogic::processTrackingInput(const double raw_x,
   }
 
   // Optional center-hold for plane pitch when target is centered
-  if (m_center_hold_enabled && is_forward_camera &&
+  if (m_center_hold_enabled && (m_tracking_camera_direction == TRACKING_CAMERA_DIRECTION_FRONT) &&
       (de::fcb::CFCBMain::getInstance().getAndruavVehicleInfo().vehicle_type ==
        ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_PLANE)) {
     if (std::abs(sy) < m_center_hold_y_band) {

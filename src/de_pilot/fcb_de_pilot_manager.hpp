@@ -26,6 +26,7 @@ public:
   // Manager interface
   void init();
   void updateOperations();
+  void reloadParametersIfConfigChanged();
 
   void setActive(const bool active);
 

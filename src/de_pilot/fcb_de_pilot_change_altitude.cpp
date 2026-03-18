@@ -126,6 +126,16 @@ void CDEPilotChangeAltitude::readConfigParameters() {
 }
 
 
+void CDEPilotChangeAltitude::reloadParametersIfConfigChanged() {
+    readConfigParameters();
+    // Reconfigure the advanced PID controller with loaded parameters
+    m_throttle_pid_controller.setPID(m_pid_p, m_pid_i, m_pid_d);
+    m_throttle_pid_controller.setFeedforwardGain(m_ff_scale);
+    // Set delta time to 0.01s (10ms) which matches typical update rate
+    m_throttle_pid_controller.setDeltaTime(0.01);
+}
+
+
 void CDEPilotChangeAltitude::determineAscendDescendPhase()
 {
     if (m_target_altitude > m_start_altitude) {

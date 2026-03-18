@@ -211,15 +211,14 @@ void CTrackerPlanLogic::readConfigParameters() {
   }
 }
 
-void CTrackerPlanLogic::onTrack(const double x, const double yz,
-                                const bool is_forward_camera) {
-  CTrackerLogic::onTrack(x, yz, is_forward_camera);
+void CTrackerPlanLogic::onTrack(const double x, const double yz) {
+  CTrackerLogic::onTrack(x, yz);
 
   int tracking_x = static_cast<int>(m_x * 1000 + 500);
   int tracking_yz = static_cast<int>(m_yz * 1000 + 500);
 
   m_tracking_type = TRACKING_TARGET; // HARD CODED FOR NOW
-  if (is_forward_camera) {
+  if (m_tracking_camera_direction  == TRACKING_CAMERA_DIRECTION_FRONT) {
 
     switch (m_tracking_type) {
     case TRACKING_TYPE::TRACKING_FOLLOW_ME:
