@@ -37,6 +37,7 @@ public:
     void update() override;
     void uninit() override;
     void readConfigParameters() override;
+    void reloadParametersIfConfigChanged() override;
     void setPhase(int phase) override;
     int getPhase() const override;
     void setActive(bool active) override;

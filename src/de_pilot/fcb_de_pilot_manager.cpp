@@ -28,6 +28,21 @@ void CDEPilotManager::init() {
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
 
+void CDEPilotManager::reloadParametersIfConfigChanged() {
+
+  std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotManager: " << _LOG_CONSOLE_BOLD_TEXT << "Parameters reloading..."
+            << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+  // Reload parameters for all de_pilot operations
+  CDEPilotChangeAltitude::getInstance().reloadParametersIfConfigChanged();
+  CDEPilotStabilization::getInstance().reloadParametersIfConfigChanged();
+  CDEPilotTracking::getInstance().reloadParametersIfConfigChanged();
+  
+  std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotManager: " << _LOG_CONSOLE_BOLD_TEXT << "Parameters reloading DONE"
+            << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+}
+
 bool CDEPilotManager::isCompatibleMode() {
   de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
   const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();

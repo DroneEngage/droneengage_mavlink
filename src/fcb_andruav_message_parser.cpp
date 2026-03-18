@@ -6,6 +6,7 @@
 #include "./de_common/helpers/helpers.hpp"
 #include "./de_pilot/fcb_de_pilot_change_altitude.hpp"
 #include "./de_pilot/fcb_de_pilot_manager.hpp"
+#include "./de_pilot/fcb_de_pilot_tracking.hpp"
 #include "./geofence/fcb_geo_fence_base.hpp"
 #include "./geofence/fcb_geo_fence_manager.hpp"
 #include "defines.hpp"
@@ -908,27 +909,26 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
     std::cout << cmd.dump() << std::endl;
 
     float x_ratio, yz_ratio;
-    bool is_forward_camera = true;
     for (const auto &target_item : cmd["t"]) {
       x_ratio = target_item["x"].get<double>();
 
       if (target_item.contains("y")) {
         yz_ratio = target_item["y"].get<double>();
         break;
-      } else if (target_item.contains("z")) {
-        is_forward_camera = false;
-        yz_ratio = target_item["z"].get<double>();
-        break;
-      }
+      } 
     }
-    m_tracking_manager.onTrack(x_ratio, yz_ratio, is_forward_camera);
+    de::fcb::depilot::CDEPilotTracking::getInstance().processTrackingData(x_ratio, yz_ratio);
   } break;
 
   case TYPE_AndruavMessage_TrackingTarget_STATUS: {
     if (!cmd["a"].is_number_integer())
       break;
 
-    m_tracking_manager.onStatusChanged(cmd["a"].get<int>());
+      const int status= cmd["a"].get<int>();
+      const uint8_t tracking_camera_direction= cmd["b"].get<int>();
+      const bool ai_priority= cmd["c"].get<bool>();
+      
+      m_tracking_manager.onStatusChanged(status, tracking_camera_direction, ai_priority);
   } break;
   }
 }

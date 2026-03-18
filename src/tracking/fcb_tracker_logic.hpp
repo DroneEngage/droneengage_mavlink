@@ -28,9 +28,8 @@ public:
   virtual ~CTrackerLogic();
 
   virtual void init();
-  virtual void onTrack(const double x, const double yz,
-                       const bool is_forward_camera);
-  virtual void onStatusChanged(const int status);
+  virtual void onTrack(const double x, const double yz);
+  virtual void onStatusChanged(const int status, const uint8_t tracking_camera_direction = 0, const bool ai_priority = false);
   virtual void reloadParametersIfConfigChanged();
 
 
@@ -46,8 +45,7 @@ public:
 protected:
   virtual void readConfigParameters() = 0;
 
-  void processTrackingInput(const double raw_x, const double raw_yz,
-                            const bool is_forward_camera);
+  void processTrackingInput(const double raw_x, const double raw_yz);
 
 
 protected:
@@ -110,6 +108,8 @@ protected:
   double m_kalman_process_noise_q = 0.01;
   double m_kalman_measurement_noise_r = 0.1;
   bool m_kalman_enabled = true;
+
+  uint8_t m_tracking_camera_direction  = TRACKING_CAMERA_DIRECTION_FRONT;
 };
 } // namespace tracking
 } // namespace fcb

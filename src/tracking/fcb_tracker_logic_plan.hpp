@@ -19,8 +19,7 @@ public:
   void operator=(CTrackerPlanLogic const &) = delete;
 
 public:
-  void onTrack(const double x, const double yz,
-               const bool is_forward_camera) override;
+  void onTrack(const double x, const double yz) override;
 
 protected:
   void readConfigParameters() override;

@@ -4,6 +4,7 @@
 #include "../de_common/helpers/helpers.hpp"
 #include "../fcb_main.hpp"
 #include "../tracking/fcb_tracking_manager.hpp"
+#include "fcb_de_pilot_manager.hpp"
 #include <iostream>
 
 using namespace de::fcb::depilot;
@@ -36,8 +37,6 @@ void CDEPilotTracking::update() {
 
   m_last_update_time = get_time_usec() / 1000;
 
-  // Update tracking manager parameters if needed
-  de::fcb::tracking::CTrackingManager::getInstance().reloadParametersIfConfigChanged();
 
   // Check for tracking timeout (no tracking updates for specified time)
   if (m_last_tracking_update_time > 0) {
@@ -99,12 +98,29 @@ void CDEPilotTracking::uninit() {
 }
 
 void CDEPilotTracking::readConfigParameters() {
-  // Load tracking-specific configuration parameters
-  // These can be added to the config file as needed
-  
-  // For now, use default values
-  m_auto_enable_on_detection = true;
-  m_tracking_timeout_us = 5000000; // 5 seconds
+  de::CConfigFile &cConfigFile = de::CConfigFile::getInstance();
+  const Json_de &jsonConfig = cConfigFile.GetConfigJSON();
+
+  if (jsonConfig.contains("de_pilot")) {
+    const Json_de &de_pilot_root = jsonConfig["de_pilot"];
+
+    if (de_pilot_root.contains("tracking")) {
+      const Json_de &tracking_config = de_pilot_root["tracking"];
+
+      if (tracking_config.contains("auto_enable_on_detection")) {
+        m_auto_enable_on_detection = tracking_config["auto_enable_on_detection"].get<bool>();
+      }
+      if (tracking_config.contains("tracking_timeout_us")) {
+        m_tracking_timeout_us = tracking_config["tracking_timeout_us"].get<uint64_t>();
+      }
+    }
+  }
+}
+
+void CDEPilotTracking::reloadParametersIfConfigChanged() {
+  readConfigParameters();
+  // Tracking parameters are handled deeper in the tracker classes
+  // The tracking manager reload is already called in update()
 }
 
 void CDEPilotTracking::setPhase(int phase) {
@@ -160,7 +176,7 @@ void CDEPilotTracking::startTracking() {
 void CDEPilotTracking::stopTracking() {
   if (m_phase != PHASE_IDLE) {
     de::fcb::tracking::CTrackingManager::getInstance().onStatusChanged(
-        TrackingTarget_STATUS_TRACKING_STOPPED);
+        TrackingTarget_STATUS_TRACKING_STOPPED, TRACKING_CAMERA_DIRECTION_FRONT, false);
     m_phase = PHASE_IDLE;
     m_generic_phase = static_cast<int>(m_phase);
     m_last_tracking_update_time = 0;
@@ -177,4 +193,18 @@ bool CDEPilotTracking::isTrackingActive() const {
 
 void CDEPilotTracking::updateTrackingTimestamp() {
   m_last_tracking_update_time = get_time_usec() / 1000;
+}
+
+void CDEPilotTracking::processTrackingData(double x_ratio, double yz_ratio) {
+  // Update timestamp to indicate we received tracking data
+  updateTrackingTimestamp();
+  
+  // Auto-enable tracking if configured and currently idle
+  if (m_auto_enable_on_detection && m_phase == PHASE_IDLE && !m_active) {
+    // Use pilot manager to properly select tracking operation
+    CDEPilotManager::getInstance().do_Tracking();
+  }
+  
+  // Forward to tracking manager
+  de::fcb::tracking::CTrackingManager::getInstance().onTrack(x_ratio, yz_ratio);
 }

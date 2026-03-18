@@ -644,6 +644,10 @@ void CFCBMain::loopScheduler() {
         de::fcb::tracking::CTrackingManager &cTracking_manager =
             de::fcb::tracking::CTrackingManager::getInstance();
         cTracking_manager.reloadParametersIfConfigChanged();
+
+        de::fcb::depilot::CDEPilotManager &cDepilot_manager =
+            de::fcb::depilot::CDEPilotManager::getInstance();
+        cDepilot_manager.reloadParametersIfConfigChanged();
       }
     }
 
@@ -1558,7 +1562,8 @@ void CFCBMain::adjustRemoteJoystickByMode(RC_SUB_ACTION rc_sub_action) {
 
 void CFCBMain::updateTrackingControlChannels(
     const int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT]) {
-  // In this mode send values via ctrlGuidedVelocityInLocalFrame
+  // In GUIDED mode send values via ctrlGuidedVelocityInLocalFrame
+  // In ALT-HOLD mode send values via sendRCChannels
 
   int16_t rc_chammels_input[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
   rc_chammels_input[m_rcmap_channels_info.rcmap_pitch] =
@@ -1578,28 +1583,44 @@ void CFCBMain::updateTrackingControlChannels(
   calculateChannels(rc_chammels_input, true, rc_chammels_pwm);
   if ((m_rcmap_channels_info.use_smart_rc) &&
       (m_rcmap_channels_info.is_valid)) {
-    mavlinksdk::CMavlinkCommand::getInstance().ctrlGuidedVelocityInLocalFrame(
-        !m_andruav_vehicle_info
-                .rc_channels_enabled[m_rcmap_channels_info.rcmap_pitch]
-            ? 0
-            : (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_pitch]) /
-                  100.0f,
-        !m_andruav_vehicle_info
-                .rc_channels_enabled[m_rcmap_channels_info.rcmap_roll]
-            ? 0
-            : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_roll] - 1500) /
-                  100.0f,
-        !m_andruav_vehicle_info
-                .rc_channels_enabled[m_rcmap_channels_info.rcmap_throttle]
-            ? 0
-            : (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle]) /
-                  100.0f,
-        !m_andruav_vehicle_info
-                .rc_channels_enabled[m_rcmap_channels_info.rcmap_yaw]
-            ? 0
-            : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw] - 1500) /
-                  1000.0f,
-        MAV_FRAME_BODY_OFFSET_NED);
+    
+    // Check flight mode to determine command type
+    if (m_andruav_vehicle_info.flying_mode == VEHICLE_MODE_GUIDED) {
+      // GUIDED mode: use velocity commands
+      mavlinksdk::CMavlinkCommand::getInstance().ctrlGuidedVelocityInLocalFrame(
+          !m_andruav_vehicle_info
+                  .rc_channels_enabled[m_rcmap_channels_info.rcmap_pitch]
+              ? 0
+              : (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_pitch]) /
+                    100.0f,
+          !m_andruav_vehicle_info
+                  .rc_channels_enabled[m_rcmap_channels_info.rcmap_roll]
+              ? 0
+              : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_roll] - 1500) /
+                    100.0f,
+          !m_andruav_vehicle_info
+                  .rc_channels_enabled[m_rcmap_channels_info.rcmap_throttle]
+              ? 0
+              : (1500 - rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle]) /
+                    100.0f,
+          !m_andruav_vehicle_info
+                  .rc_channels_enabled[m_rcmap_channels_info.rcmap_yaw]
+              ? 0
+              : (rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw] - 1500) /
+                    1000.0f,
+          MAV_FRAME_BODY_OFFSET_NED);
+    } else {
+      // ALT-HOLD and other modes: use RC channel overrides like stabilization
+      int16_t rc_channels_out[RC_CHANNELS_MAX];
+      std::fill_n(rc_channels_out, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
+      
+      rc_channels_out[m_rcmap_channels_info.rcmap_pitch] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_pitch];
+      rc_channels_out[m_rcmap_channels_info.rcmap_roll] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_roll];
+      rc_channels_out[m_rcmap_channels_info.rcmap_throttle] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle];
+      rc_channels_out[m_rcmap_channels_info.rcmap_yaw] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw];
+      
+      mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(rc_channels_out, RC_CHANNELS_MAX);
+    }
   } else {
     // SKIP TRACKING
   }

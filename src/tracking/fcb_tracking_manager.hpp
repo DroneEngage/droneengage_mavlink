@@ -32,8 +32,8 @@ public:
 
 public:
   void init();
-  void onTrack(const double x, const double yz, const bool is_forward_camera);
-  void onStatusChanged(const int status);
+  void onTrack(const double x, const double yz);
+  void onStatusChanged(const int status, const uint8_t tracking_camera_direction, const bool ai_priority);
   void reloadParametersIfConfigChanged();
 
 public:
@@ -54,7 +54,6 @@ private:
   TRACKING_TYPE m_tracking_type = TRACKING_STANDING;
 
   int m_tracking_status = TrackingTarget_STATUS_TRACKING_STOPPED;
-
   CTrackerPlanLogic &m_tracker_plan_logic = CTrackerPlanLogic::getInstance();
   CTrackerQuadLogic &m_tracker_quad_logic = CTrackerQuadLogic::getInstance();
 };

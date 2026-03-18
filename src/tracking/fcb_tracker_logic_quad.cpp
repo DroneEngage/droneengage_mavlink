@@ -19,8 +19,8 @@ using namespace de::fcb::tracking;
 
 static de::fcb::CFCBMain &m_fcbMain2 = de::fcb::CFCBMain::getInstance();
 
-void CTrackerQuadLogic::onStatusChanged(const int status) {
-  CTrackerLogic::onStatusChanged(status);
+void CTrackerQuadLogic::onStatusChanged(const int status, const uint8_t tracking_camera_direction, const bool ai_priority) {
+  CTrackerLogic::onStatusChanged(status, tracking_camera_direction, ai_priority);
 
   switch (status) {
   case TrackingTarget_STATUS_TRACKING_LOST:
@@ -241,16 +241,120 @@ void CTrackerQuadLogic::readConfigParameters() {
       }
     }
   }
+
+  // Read standing tracking mode configuration
+  if (jsonConfig.contains("follow_me")) {
+    const Json_de &follow_me_root = jsonConfig["follow_me"];
+
+    if (follow_me_root.contains("quad")) {
+      const Json_de &quad_config = follow_me_root["quad"];
+
+      if (quad_config.contains("tracking_standing")) {
+        const Json_de &standing_config = quad_config["tracking_standing"];
+
+        // X-axis configuration
+        if (standing_config.contains("x_axis")) {
+          const Json_de &x_config = standing_config["x_axis"];
+
+          if (x_config.contains("pid_p")) {
+            m_standing_pid_p_x = x_config["pid_p"].get<double>();
+          }
+          if (x_config.contains("pid_i")) {
+            m_standing_pid_i_x = x_config["pid_i"].get<double>();
+          }
+          if (x_config.contains("pid_d")) {
+            m_standing_pid_d_x = x_config["pid_d"].get<double>();
+          }
+          if (x_config.contains("ff_scale")) {
+            m_standing_ff_scale_x = x_config["ff_scale"].get<double>();
+          }
+          if (x_config.contains("max_accel")) {
+            m_standing_max_accel_x = x_config["max_accel"].get<double>();
+          }
+          if (x_config.contains("max_rate")) {
+            m_standing_max_rate_x = x_config["max_rate"].get<double>();
+          }
+          if (x_config.contains("deadband")) {
+            m_standing_deadband_x = x_config["deadband"].get<double>();
+          }
+          if (x_config.contains("integral_limit")) {
+            m_standing_integral_limit_x = x_config["integral_limit"].get<double>();
+          }
+          if (x_config.contains("output_limit")) {
+            m_standing_output_limit_x = x_config["output_limit"].get<double>();
+          }
+        }
+
+        // YZ-axis configuration
+        if (standing_config.contains("yz_axis")) {
+          const Json_de &yz_config = standing_config["yz_axis"];
+
+          if (yz_config.contains("pid_p")) {
+            m_standing_pid_p_yz = yz_config["pid_p"].get<double>();
+          }
+          if (yz_config.contains("pid_i")) {
+            m_standing_pid_i_yz = yz_config["pid_i"].get<double>();
+          }
+          if (yz_config.contains("pid_d")) {
+            m_standing_pid_d_yz = yz_config["pid_d"].get<double>();
+          }
+          if (yz_config.contains("ff_scale")) {
+            m_standing_ff_scale_yz = yz_config["ff_scale"].get<double>();
+          }
+          if (yz_config.contains("max_accel")) {
+            m_standing_max_accel_yz = yz_config["max_accel"].get<double>();
+          }
+          if (yz_config.contains("max_rate")) {
+            m_standing_max_rate_yz = yz_config["max_rate"].get<double>();
+          }
+          if (yz_config.contains("deadband")) {
+            m_standing_deadband_yz = yz_config["deadband"].get<double>();
+          }
+          if (yz_config.contains("integral_limit")) {
+            m_standing_integral_limit_yz = yz_config["integral_limit"].get<double>();
+          }
+          if (yz_config.contains("output_limit")) {
+            m_standing_output_limit_yz = yz_config["output_limit"].get<double>();
+          }
+        }
+      }
+    }
+  }
+
+  // Configure advanced PID controllers with loaded parameters
+  m_standing_pid_x.setPID(m_standing_pid_p_x, m_standing_pid_i_x, m_standing_pid_d_x);
+  m_standing_pid_x.setFeedforwardGain(m_standing_ff_scale_x);
+  m_standing_pid_x.setDeltaTime(0.01); // 10ms update rate
+
+  m_standing_pid_yz.setPID(m_standing_pid_p_yz, m_standing_pid_i_yz, m_standing_pid_d_yz);
+  m_standing_pid_yz.setFeedforwardGain(m_standing_ff_scale_yz);
+  m_standing_pid_yz.setDeltaTime(0.01); // 10ms update rate
 }
 
-void CTrackerQuadLogic::onTrack(const double x, const double yz,
-                                const bool is_forward_camera) {
-  CTrackerLogic::onTrack(x, yz, is_forward_camera);
+void CTrackerQuadLogic::reloadParametersIfConfigChanged() {
+  // Call parent method
+  CTrackerLogic::reloadParametersIfConfigChanged();
+  
+  // Re-read configuration parameters
+  readConfigParameters();
+  
+  // Reconfigure advanced PID controllers with loaded parameters
+  m_standing_pid_x.setPID(m_standing_pid_p_x, m_standing_pid_i_x, m_standing_pid_d_x);
+  m_standing_pid_x.setFeedforwardGain(m_standing_ff_scale_x);
+  m_standing_pid_x.setDeltaTime(0.01); // 10ms update rate
+
+  m_standing_pid_yz.setPID(m_standing_pid_p_yz, m_standing_pid_i_yz, m_standing_pid_d_yz);
+  m_standing_pid_yz.setFeedforwardGain(m_standing_ff_scale_yz);
+  m_standing_pid_yz.setDeltaTime(0.01); // 10ms update rate
+}
+
+void CTrackerQuadLogic::onTrack(const double x, const double yz) {
+  CTrackerLogic::onTrack(x, yz);
 
   int tracking_x = static_cast<int>(m_x * 1000 + 500);
   int tracking_yz = static_cast<int>(m_yz * 1000 + 500);
 
-  if (is_forward_camera) {
+  if (m_tracking_camera_direction  == TRACKING_CAMERA_DIRECTION_FRONT) {
     // x & y .... forward camera.
     trackingDroneForward(x, yz, tracking_x, tracking_yz);
 #ifdef DEBUG
@@ -363,43 +467,97 @@ void CTrackerQuadLogic::trackingStanding(const double x, const double yz,
                                          const double tracking_x,
                                          const double tracking_yz) {
 #ifdef DEBUG
-  std::cout << "trackingStanding" << std::endl;
+  std::cout << "trackingStanding (Advanced PID)" << std::endl;
 #endif
 
   const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map =
       m_fcbMain2.getRCChannelsMapInfo();
 
-  // values: [-0.5,0.5]
-
   // value: [0,1000] IMPORTANT: SKIP_RC_CHANNEL (-999) means channel release
-  // 'R': Rudder
-  // 'T': Throttle
-  // 'A': Aileron
-  // 'E': Elevator
+  // 'R': Rudder, 'T': Throttle, 'A': Aileron, 'E': Elevator
   int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT];
   std::fill_n(rc_channels, RC_CHANNEL_TRACKING_COUNT, SKIP_RC_CHANNEL);
 
-  rc_channels[RC_CHANNEL_TRACKING_ROLL] =
-      1000 - tracking_x; // to be aligned with default settings of Ardu
-  rc_channels[RC_CHANNEL_TRACKING_PITCH] = 1000 - tracking_yz;
-  rc_channels[RC_CHANNEL_TRACKING_YAW] = 500;
-  rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 500;
+  // Update rate tracking for feedback
+  const uint64_t now = get_time_usec();
+  if (m_last_rate_time > 0) {
+    const double dt = (now - m_last_rate_time) / 1000000.0; // seconds
+    if (dt > 0.02) { // Update rate every 20ms for smooth tracking
+      m_current_rate_x = (x - m_last_x_for_rate) / dt;
+      m_current_rate_yz = (yz - m_last_yz_for_rate) / dt;
+      m_last_x_for_rate = x;
+      m_last_yz_for_rate = yz;
+      m_last_rate_time = now;
+    }
+  } else {
+    // Initialize rate tracking
+    m_last_x_for_rate = x;
+    m_last_yz_for_rate = yz;
+    m_last_rate_time = now;
+    m_current_rate_x = 0.0;
+    m_current_rate_yz = 0.0;
+  }
+
+  // Calculate position errors (target is center: 0,0)
+  const double error_x = -x; // Negative because drone needs to move opposite to detected position
+  const double error_yz = -yz;
+
+  // Apply deadband
+  const double filtered_error_x = (std::abs(error_x) < m_standing_deadband_x) ? 0.0 : error_x;
+  const double filtered_error_yz = (std::abs(error_yz) < m_standing_deadband_yz) ? 0.0 : error_yz;
+
+  // Use sqrt_controller to compute desired rates
+  const double desired_rate_x = de::fcb::depilot::CAdvancedPIDController::sqrt_controller(
+      filtered_error_x, m_standing_pid_p_x, m_standing_max_accel_x, m_standing_max_rate_x);
+  const double desired_rate_yz = de::fcb::depilot::CAdvancedPIDController::sqrt_controller(
+      filtered_error_yz, m_standing_pid_p_yz, m_standing_max_accel_yz, m_standing_max_rate_yz);
+
+  // Calculate rate errors (desired vs actual)
+  const double rate_error_x = desired_rate_x - m_current_rate_x;
+  const double rate_error_yz = desired_rate_yz - m_current_rate_yz;
+
+  // Use advanced PID controllers to compute control outputs
+  // Pass desired rate as feedforward for better responsiveness
+  const double control_x = m_standing_pid_x.calculate(rate_error_x, desired_rate_x);
+  const double control_yz = m_standing_pid_yz.calculate(rate_error_yz, desired_rate_yz);
+
+  // Convert control outputs to RC channel values (0-1000 range)
+  // Control outputs are in normalized units, scale to PWM range
+  int16_t rc_roll = 500 + static_cast<int16_t>(control_x);
+  int16_t rc_pitch = 500 + static_cast<int16_t>(control_yz);
+
+  // Clamp to valid RC channel range
+  if (rc_roll > 1000) rc_roll = 1000;
+  if (rc_roll < 0) rc_roll = 0;
+  if (rc_pitch > 1000) rc_pitch = 1000;
+  if (rc_pitch < 0) rc_pitch = 0;
+
+  // Set RC channels
+  rc_channels[RC_CHANNEL_TRACKING_ROLL] = rc_roll;
+  rc_channels[RC_CHANNEL_TRACKING_PITCH] = rc_pitch;
+  rc_channels[RC_CHANNEL_TRACKING_YAW] = 500; // Neutral yaw
+  rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 500; // Neutral throttle
 
 #ifdef DEBUG
-  std::cout << _INFO_CONSOLE_BOLD_TEXT << "onTrack >> "
+  std::cout << _INFO_CONSOLE_BOLD_TEXT << "trackingStanding (Advanced PID) >> "
             << _LOG_CONSOLE_BOLD_TEXT
-            << "  rcmap_roll:" << RC_CHANNEL_TRACKING_ROLL << ":"
-            << _INFO_CONSOLE_BOLD_TEXT << rc_channels[RC_CHANNEL_TRACKING_ROLL]
+            << " error_x:" << _INFO_CONSOLE_BOLD_TEXT << error_x
             << _LOG_CONSOLE_BOLD_TEXT
-            << "  rcmap_pitch:" << RC_CHANNEL_TRACKING_PITCH << ":"
-            << _INFO_CONSOLE_BOLD_TEXT << rc_channels[RC_CHANNEL_TRACKING_PITCH]
+            << " error_yz:" << _INFO_CONSOLE_BOLD_TEXT << error_yz
             << _LOG_CONSOLE_BOLD_TEXT
-            << "  rcmap_yaw:" << RC_CHANNEL_TRACKING_YAW << ":"
-            << _INFO_CONSOLE_BOLD_TEXT << rc_channels[RC_CHANNEL_TRACKING_YAW]
+            << " desired_rate_x:" << _INFO_CONSOLE_BOLD_TEXT << desired_rate_x
             << _LOG_CONSOLE_BOLD_TEXT
-            << "  rcmap_throttle:" << RC_CHANNEL_TRACKING_THROTTLE << ":"
-            << _INFO_CONSOLE_BOLD_TEXT
-            << rc_channels[RC_CHANNEL_TRACKING_THROTTLE]
+            << " desired_rate_yz:" << _INFO_CONSOLE_BOLD_TEXT << desired_rate_yz
+            << _LOG_CONSOLE_BOLD_TEXT
+            << " control_x:" << _INFO_CONSOLE_BOLD_TEXT << control_x
+            << _LOG_CONSOLE_BOLD_TEXT
+            << " control_yz:" << _INFO_CONSOLE_BOLD_TEXT << control_yz
+            << _LOG_CONSOLE_BOLD_TEXT
+            << " rcmap_roll:" << RC_CHANNEL_TRACKING_ROLL << ":"
+            << _INFO_CONSOLE_BOLD_TEXT << rc_roll
+            << _LOG_CONSOLE_BOLD_TEXT
+            << " rcmap_pitch:" << RC_CHANNEL_TRACKING_PITCH << ":"
+            << _INFO_CONSOLE_BOLD_TEXT << rc_pitch
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
 

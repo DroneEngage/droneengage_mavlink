@@ -16,6 +16,7 @@ public:
     virtual void update() = 0;
     virtual void uninit() = 0;
     virtual void readConfigParameters() = 0;
+    virtual void reloadParametersIfConfigChanged() = 0;
 
     // Generic phase interface - derived classes handle their specific phases internally
     virtual void setPhase(int phase) = 0;
