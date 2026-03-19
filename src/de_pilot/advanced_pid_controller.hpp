@@ -64,7 +64,9 @@ public:
     void setFeedforwardGain(double gain);
     void setDerivativeFilterAlpha(double alpha);
     void setPID(double kp, double ki, double kd);
+    void setIntegralLimit(double limit);
     void setDeltaTime(double dt);
+    void setOutputLimit(double limit);
 
 private:
     // PID gains

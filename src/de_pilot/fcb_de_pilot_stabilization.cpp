@@ -139,8 +139,7 @@ void CDEPilotStabilization::startStabilization() {
   m_phase_start_time = get_time_usec();
   m_last_update_time = m_phase_start_time;
 
-  de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
-  const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
+  const ANDRUAV_VEHICLE_INFO &vehicle_info = m_fcbMain.getAndruavVehicleInfo();
 
   std::cout << "  - Current flight mode: " << vehicle_info.flying_mode
             << std::endl;
@@ -161,8 +160,7 @@ void CDEPilotStabilization::updateStabilization() {
     return;
   }
 
-  de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
-  const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
+  const ANDRUAV_VEHICLE_INFO &vehicle_info = m_fcbMain.getAndruavVehicleInfo();
   const uint64_t now = get_time_usec();
 
   if (!vehicle_info.is_armed) {
@@ -196,11 +194,10 @@ void CDEPilotStabilization::updateStabilization() {
 
       int16_t rc_channels[RC_CHANNELS_MAX];
       std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
-      rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] =
-          1500; // Stop climbing
+      rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500; // Stop climbing
       // Force roll and pitch to neutral (1500) to prevent max PWM values
-      rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
-      rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
+      rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
+      rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
 
       // Handle yaw control via RC channel in ALT-HOLD mode
       if (m_yaw_control_enabled) {
@@ -299,12 +296,12 @@ void CDEPilotStabilization::updateStabilization() {
           std::cout << "    - Advanced PID output: " << pid_output << " PWM" << std::endl;
           std::cout << "    - PWM: " << pwm << std::endl;
 
-          rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = pwm;
+          rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_yaw] = pwm;
         } else {
-          rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
+          rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
         }
       } else {
-        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
+        rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
       }
 
       mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(

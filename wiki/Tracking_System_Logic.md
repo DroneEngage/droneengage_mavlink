@@ -102,8 +102,9 @@ For forward-facing cameras, the quadcopter tracker controls all four flight chan
 void CTrackerQuadLogic::trackingDroneForward(const double x, const double yz, 
                                              const double tracking_x, 
                                              const double tracking_yz) {
-    int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT] = {SKIP_RC_CHANNEL};
-    
+    int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT];
+    std::fill_n(rc_channels, RC_CHANNEL_TRACKING_COUNT, SKIP_RC_CHANNEL);
+
     // Roll control (horizontal tracking)
     rc_channels[RC_CHANNEL_TRACKING_ROLL] = 500;
     
@@ -132,8 +133,9 @@ For downward-facing cameras (standing mode):
 void CTrackerQuadLogic::trackingStanding(const double x, const double yz,
                                         const double tracking_x, 
                                         const double tracking_yz) {
-    int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT] = {SKIP_RC_CHANNEL};
-    
+    int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT];
+    std::fill_n(rc_channels, RC_CHANNEL_TRACKING_COUNT, SKIP_RC_CHANNEL);
+
     // Horizontal positioning only
     rc_channels[RC_CHANNEL_TRACKING_ROLL] = 1000 - tracking_x;
     rc_channels[RC_CHANNEL_TRACKING_PITCH] = 1000 - tracking_yz;

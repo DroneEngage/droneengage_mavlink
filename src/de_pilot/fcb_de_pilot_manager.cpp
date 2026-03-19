@@ -122,16 +122,13 @@ void CDEPilotManager::updateOperations() {
   case DEPILOT_OP_CHANGE_ALTITUDE:
     operation_name = "CHANGE-ALTITUDE";
     break;
-  case DEPILOT_OP_TRACKING:
-    operation_name = "TRACKING";
-    break;
   case DEPILOT_OP_STABILIZATION:
     operation_name = "STABILIZATION";
     break;
+  case DEPILOT_OP_TRACKING:
+    operation_name = "TRACKING";
+    break;
   }
-
-  std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEOperation: " << operation_name
-            << " (" << current_op << ")" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
   // Update the active operation
   CDEPilotOperationBase *operation = getOperationInstance(current_op);
@@ -144,20 +141,20 @@ void CDEPilotManager::updateOperations() {
     case DEPILOT_OP_CHANGE_ALTITUDE: {
 
       if (operation->isCompleted()) { // PHASE_COMPLETE (4) or PHASE_ABORTED (5)
-        std::cout << _INFO_CONSOLE_BOLD_TEXT
-                  << "DEPilotManager: Takeoff completed/aborted, switching to "
-                     "stabilization"
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // std::cout << _INFO_CONSOLE_BOLD_TEXT
+        //           << "DEPilotManager: Takeoff completed/aborted, switching to "
+        //              "stabilization"
+        //           << _NORMAL_CONSOLE_TEXT_ << std::endl;
         do_Stabilize();
       }
     } break;
 
     case DEPILOT_OP_TRACKING: {
       if (operation->isCompleted()) {
-        std::cout << _INFO_CONSOLE_BOLD_TEXT
-                  << "DEPilotManager: Tracking completed, switching to "
-                     "stabilization"
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // std::cout << _INFO_CONSOLE_BOLD_TEXT
+        //           << "DEPilotManager: Tracking completed, switching to "
+        //              "stabilization"
+        //           << _NORMAL_CONSOLE_TEXT_ << std::endl;
         do_Stabilize();
       }
     } break;

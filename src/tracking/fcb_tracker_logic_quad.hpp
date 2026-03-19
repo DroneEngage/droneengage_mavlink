@@ -22,8 +22,8 @@ public:
 
 private:
   CTrackerQuadLogic() 
-    : m_standing_pid_x(0.5, 0.0, 0.0, 0.01, 100.0, 500.0, 200.0, true, 0.2),
-      m_standing_pid_yz(0.5, 0.0, 0.0, 0.01, 100.0, 500.0, 200.0, true, 0.2) {}
+    : m_standing_pid_x(0.5, 0.0, 0.0, 0.01, 100.0, 500.0, 200.0, false, 0.2),
+      m_standing_pid_yz(0.5, 0.0, 0.0, 0.01, 100.0, 500.0, 200.0, false, 0.2) {}
 
 public:
   ~CTrackerQuadLogic() {}
@@ -38,7 +38,7 @@ public:
   void readConfigParameters() override;
   void reloadParametersIfConfigChanged() override;
 
-  void trackingStanding(const double x, const double yz, const double tracking_x, const double tracking_yz);
+  void trackingStanding(const double x, const double yz, const int tracking_x, const int tracking_yz);
   void trackingDroneForward(const double x, const double yz, const double tracking_x, const double tracking_yz);
 
   inline void resetTrackerCopterStatus() {
@@ -98,6 +98,12 @@ private:
   double m_standing_deadband_yz = 0.02;
   double m_standing_integral_limit_yz = 100.0;
   double m_standing_output_limit_yz = 500.0;
+
+  // Throttle control parameters for standing tracking mode
+  double m_standing_throttle_max = 1000.0;
+  double m_standing_throttle_min = 500.0;
+  double m_standing_throttle_boundary_threshold = 0.35;
+  double m_standing_throttle_boundary_reduction = 0.6;
 
   // Rate tracking for standing mode
   double m_last_x_for_rate = 0.0;
