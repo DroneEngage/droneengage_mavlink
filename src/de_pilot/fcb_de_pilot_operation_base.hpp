@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include "../fcb_main.hpp"
+
 namespace de {
 namespace fcb {
 namespace depilot {
@@ -33,6 +35,9 @@ protected:
     int m_generic_phase = 0;  // Generic phase representation
     uint64_t m_phase_start_time = 0;
     uint64_t m_last_update_time = 0;
+
+    de::fcb::CFCBMain &m_fcbMain = de::fcb::CFCBMain::getInstance();
+
 };
 
 } // namespace depilot

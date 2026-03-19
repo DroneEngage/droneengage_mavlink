@@ -159,8 +159,16 @@ void CAdvancedPIDController::setPID(double kp, double ki, double kd) {
     m_Kd = kd;
 }
 
+void CAdvancedPIDController::setIntegralLimit(double limit) {
+    m_integral_limit = limit;
+}
+
 void CAdvancedPIDController::setDeltaTime(double dt) {
     m_delta_time = dt;
+}
+
+void CAdvancedPIDController::setOutputLimit(double limit) {
+    m_max_min_value = limit;
 }
 
 } // namespace depilot

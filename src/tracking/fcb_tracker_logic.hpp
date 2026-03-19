@@ -5,9 +5,11 @@
 #include <chrono> // For high-resolution timing
 #include <iostream>
 
+#include "../fcb_main.hpp"
 #include "../de_common/de_databus/messages.hpp"
 #include "kalman_filter.hpp"
 #include "pic_controller.hpp"
+
 
 #include "../de_common/helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
@@ -110,6 +112,8 @@ protected:
   bool m_kalman_enabled = true;
 
   uint8_t m_tracking_camera_direction  = TRACKING_CAMERA_DIRECTION_FRONT;
+
+  de::fcb::CFCBMain &m_fcbMain = de::fcb::CFCBMain::getInstance();
 };
 } // namespace tracking
 } // namespace fcb

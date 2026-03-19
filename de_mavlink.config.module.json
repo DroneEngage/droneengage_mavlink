@@ -45,8 +45,39 @@
             "kalman_measurement_noise_r": 0.1,
             "kalman_process_noise_q": 0.05,
             "loose_altitude": false,
-            "rate_limit": 0.05
-        }
+            "rate_limit": 0.05,
+
+        "tracking_standing": {
+                "x_axis": {
+                "pid_p": 10.0,
+                "pid_i": 1.0,
+                "pid_d": 0.05,
+                "ff_scale": 400.0,
+                "max_accel": 1.05,
+                "max_rate": 0.1,
+                "deadband": 0.001,
+                "integral_limit": 100.0,
+                "output_limit": 500.0
+                },
+                "yz_axis": {
+                "pid_p": 10.0,  
+                "pid_i": 1.5,
+                "pid_d": 0.05,
+                "ff_scale": 400.0,
+                "max_accel": 1.05,
+                "max_rate": 0.1,
+                "deadband": 0.001,
+                "integral_limit": 100.0,
+                "output_limit": 500.0
+                },
+                "throttle": {
+                    "throttle_max": 1500.0,
+                    "throttle_min": 1000.0,
+                    "throttle_boundary_threshold": 0.35,
+                    "throttle_boundary_reduction": 0.6
+                }
+            }
+      }
     },
     "logger_debug": false,
     "logger_enabled": true,
@@ -322,7 +353,7 @@
             "yaw_ff_scale": 429.6
         },
         "change_altitude": {
-            "max_climb_rate": 2.5,
+            "max_climb_rate": 5.0,
             "stabilize_time_ms": 2000,
             "timeout_ms": 10000,
             "pid_p": 1.0,
