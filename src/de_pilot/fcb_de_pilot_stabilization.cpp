@@ -192,8 +192,8 @@ void CDEPilotStabilization::updateStabilization() {
       std::cout << "  - Yaw control enabled: "
                 << (m_yaw_control_enabled ? "YES" : "NO") << std::endl;
 
-      int16_t rc_channels[RC_CHANNELS_MAX];
-      std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
+      uint16_t rc_channels[RC_CHANNELS_MAX];
+      std::fill_n(rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
       rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500; // Stop climbing
       // Force roll and pitch to neutral (1500) to prevent max PWM values
       rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
@@ -304,8 +304,8 @@ void CDEPilotStabilization::updateStabilization() {
         rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
       }
 
-      mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
-          rc_channels, RC_CHANNELS_MAX);
+      mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels2(
+          rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
     } else {
       std::cout << "  - GUIDED mode: Flight controller handles stabilization"
                 << std::endl;

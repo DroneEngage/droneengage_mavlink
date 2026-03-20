@@ -81,8 +81,10 @@ public:
   void readParameterByIndex(const uint16_t &param_index) const;
 
   void releaseRCChannels() const;
-  void sendRCChannels(const int16_t channels[MAX_RC_CHANNELS],
+  void sendRCChannels(const uint16_t channels[MAX_RC_CHANNELS],
                       int channel_length) const;
+  void sendRCChannels2(const uint16_t channels[MAX_RC_CHANNELS],
+                                     int channel_length, int ignoreValue) const;
 
   void ctrlGuidedVelocityInLocalFrame(const float vx, const float vy,
                                       const float vz, const float yaw_rate,

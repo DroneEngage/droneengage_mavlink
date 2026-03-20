@@ -112,7 +112,8 @@ typedef enum DRONEENGAGE_PILOT_OPERATION
     DEPILOT_OP_DISABLED         = 0,
     DEPILOT_OP_CHANGE_ALTITUDE  = 1,
     DEPILOT_OP_STABILIZATION    = 2,
-    DEPILOT_OP_TRACKING         = 3
+    DEPILOT_OP_TRACKING         = 3,
+    DEPILOT_OP_IDLE             = 999
     // Exclusive modes - only one active at a time
 } DRONEENGAGE_PILOT_OPERATION;
 
@@ -144,12 +145,12 @@ typedef struct ANDRUAV_VEHICLE_INFO
     bool                rc_command_active                   = false;      
     u_int64_t           rc_command_last_update_time         = 0l;
     
-    int16_t             rc_channels[18]                     = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    int16_t             rc_channels_min[18]                 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    int16_t             rc_channels_max[18]                 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    bool                rc_channels_enabled[18];
-    bool                rc_channels_reverse[18];
-    short               rc_block_channel                    =-1; // disabled
+    uint16_t             rc_channels[18]                     = {0,0,0,0,0,0,0,0,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX};
+    uint16_t             rc_channels_min[18]                 = {0,0,0,0,0,0,0,0,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX};
+    uint16_t             rc_channels_max[18]                 = {0,0,0,0,0,0,0,0,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX};
+    bool                 rc_channels_enabled[18];
+    bool                 rc_channels_reverse[18];
+    short                rc_block_channel                    =-1; // disabled
 
     
 }   ANDRUAV_VEHICLE_INFO;

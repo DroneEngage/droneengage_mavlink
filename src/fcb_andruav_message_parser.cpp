@@ -547,43 +547,44 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
     if (!validateField(cmd, "E", Json_de::value_t::number_unsigned))
       return;
 
-    int16_t rc_channels[18];
-    std::fill_n(rc_channels, 18, SKIP_RC_CHANNEL);
+    int16_t de_rc_channels[18];
+    std::fill_n(de_rc_channels, 18, SKIP_RC_CHANNEL);
     const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map =
         m_fcbMain.getRCChannelsMapInfo();
     if ((rc_map.use_smart_rc) && (rc_map.is_valid)) {
-      rc_channels[rc_map.rcmap_yaw] =
+      de_rc_channels[rc_map.rcmap_yaw] =
           1000 -
           cmd["R"].get<int>(); // to be aligned with default settings of Ardu
-      rc_channels[rc_map.rcmap_throttle] = 1000 - cmd["T"].get<int>();
-      rc_channels[rc_map.rcmap_roll] =
+      de_rc_channels[rc_map.rcmap_throttle] = 1000 - cmd["T"].get<int>();
+      de_rc_channels[rc_map.rcmap_roll] =
           1000 -
           cmd["A"].get<int>(); // to be aligned with default settings of Ardu
-      rc_channels[rc_map.rcmap_pitch] = 1000 - cmd["E"].get<int>();
-    } else {
-      rc_channels[3] =
+      de_rc_channels[rc_map.rcmap_pitch] = 1000 - cmd["E"].get<int>();
+    } 
+    else {
+      de_rc_channels[3] =
           1000 -
           cmd["R"].get<int>(); // to be aligned with default settings of Ardu
-      rc_channels[2] = 1000 - cmd["T"].get<int>();
-      rc_channels[0] =
+      de_rc_channels[2] = 1000 - cmd["T"].get<int>();
+      de_rc_channels[0] =
           1000 -
           cmd["A"].get<int>(); // to be aligned with default settings of Ardu
-      rc_channels[1] = 1000 - cmd["E"].get<int>();
-      rc_channels[4] = validateField(cmd, "w", Json_de::value_t::number_integer)
+      de_rc_channels[1] = 1000 - cmd["E"].get<int>();
+      de_rc_channels[4] = validateField(cmd, "w", Json_de::value_t::number_integer)
                            ? cmd["w"].get<int>()
                            : SKIP_RC_CHANNEL;
-      rc_channels[5] = validateField(cmd, "x", Json_de::value_t::number_integer)
+      de_rc_channels[5] = validateField(cmd, "x", Json_de::value_t::number_integer)
                            ? cmd["x"].get<int>()
                            : SKIP_RC_CHANNEL;
-      rc_channels[6] = validateField(cmd, "y", Json_de::value_t::number_integer)
+      de_rc_channels[6] = validateField(cmd, "y", Json_de::value_t::number_integer)
                            ? cmd["y"].get<int>()
                            : SKIP_RC_CHANNEL;
-      rc_channels[7] = validateField(cmd, "z", Json_de::value_t::number_integer)
+      de_rc_channels[7] = validateField(cmd, "z", Json_de::value_t::number_integer)
                            ? cmd["z"].get<int>()
                            : SKIP_RC_CHANNEL;
     }
 
-    m_fcbMain.updateRemoteControlChannels(rc_channels);
+    m_fcbMain.updateRemoteControlChannels(de_rc_channels);
   } break;
 
   // This message was using for Telemetry. It has been replaced with UDPProxy

@@ -327,15 +327,16 @@ void CDEPilotChangeAltitude::updateTakeoff() {
                 std::cout << "  - Manual mode: Calculated throttle adjustment: " << throttle_adj << std::endl;
                 std::cout << "  - Manual mode: Sending throttle PWM: " << (1500 + throttle_adj) << std::endl;
                 
-                int16_t rc_channels[RC_CHANNELS_MAX];
-                std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
-                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500 + throttle_adj;
+                uint16_t rc_channels[RC_CHANNELS_MAX];
+                std::fill_n(rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
+                const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map = fcbMain.getRCChannelsMapInfo();
+                rc_channels[rc_map.rcmap_throttle] = 1500 + throttle_adj;
                 // Force roll, pitch, and yaw to neutral (1500) to prevent drift and max PWM values
-                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
-                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
-                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
-                mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
-                    rc_channels, RC_CHANNELS_MAX);
+                rc_channels[rc_map.rcmap_roll] = 1500;
+                rc_channels[rc_map.rcmap_pitch] = 1500;
+                rc_channels[rc_map.rcmap_yaw] = 1500;
+                mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels2(
+                    rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
             }
 
             m_last_update_time = now;
@@ -378,15 +379,16 @@ void CDEPilotChangeAltitude::updateTakeoff() {
                     std::cout << _INFO_CONSOLE_TEXT << "DEPILOT: ALT-HOLD mode - starting stabilization" 
                               << _NORMAL_CONSOLE_TEXT_ << std::endl;
                     // Send neutral throttle for manual modes
-                    int16_t rc_channels[RC_CHANNELS_MAX];
-                    std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
-                    rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
+                    uint16_t rc_channels[RC_CHANNELS_MAX];
+                    std::fill_n(rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
+                    const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map = fcbMain.getRCChannelsMapInfo();
+                    rc_channels[rc_map.rcmap_throttle] = 1500;
                     // Force roll, pitch, and yaw to neutral (1500) to prevent drift and max PWM values
-                    rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
-                    rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
-                    rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
-                    mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
-                        rc_channels, RC_CHANNELS_MAX);
+                    rc_channels[rc_map.rcmap_roll] = 1500;
+                    rc_channels[rc_map.rcmap_pitch] = 1500;
+                    rc_channels[rc_map.rcmap_yaw] = 1500;
+                    mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels2(
+                        rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
                 }
                 
                 m_phase = PHASE_COMPLETE;
@@ -410,15 +412,16 @@ void CDEPilotChangeAltitude::updateTakeoff() {
                 std::cout << "  - Manual mode: Calculated throttle adjustment: " << throttle_adj << std::endl;
                 std::cout << "  - Manual mode: Sending throttle PWM: " << (1500 + throttle_adj) << std::endl;
                 
-                int16_t rc_channels[RC_CHANNELS_MAX];
-                std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
-                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500 + throttle_adj;
+                uint16_t rc_channels[RC_CHANNELS_MAX];
+                std::fill_n(rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
+                const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map = fcbMain.getRCChannelsMapInfo();
+                rc_channels[rc_map.rcmap_throttle] = 1500 + throttle_adj;
                 // Force roll, pitch, and yaw to neutral (1500) to prevent drift and max PWM values
-                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
-                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
-                rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
-                mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
-                    rc_channels, RC_CHANNELS_MAX);
+                rc_channels[rc_map.rcmap_roll] = 1500;
+                rc_channels[rc_map.rcmap_pitch] = 1500;
+                rc_channels[rc_map.rcmap_yaw] = 1500;
+                mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels2(
+                    rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
             }
 
             m_last_update_time = now;
@@ -450,15 +453,16 @@ void CDEPilotChangeAltitude::abortTakeoff() {
     
     // For ground-based abort: send neutral control first, then transition to aborted state
     if (vehicle_info.flying_mode != VEHICLE_MODE_GUIDED) {
-        int16_t rc_channels[RC_CHANNELS_MAX];
-        std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
-        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
+        uint16_t rc_channels[RC_CHANNELS_MAX];
+        std::fill_n(rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
+        const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map = fcbMain.getRCChannelsMapInfo();
+        rc_channels[rc_map.rcmap_throttle] = 1500;
         // Force roll, pitch, and yaw to neutral (1500) to prevent drift and max PWM values
-        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
-        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
-        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
-        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
-            rc_channels, RC_CHANNELS_MAX);
+        rc_channels[rc_map.rcmap_roll] = 1500;
+        rc_channels[rc_map.rcmap_pitch] = 1500;
+        rc_channels[rc_map.rcmap_yaw] = 1500;
+        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels2(
+            rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
     }
     
     // Clear operation flag and transition to aborted state
@@ -479,13 +483,13 @@ bool CDEPilotChangeAltitude::isTakeoffActive() const {
 
 int16_t CDEPilotChangeAltitude::calculateThrottleAdjustment(double current_altitude) {
     const float desired_rate = calculateClimbRate(current_altitude);
-    const double error = desired_rate - m_current_climb_rate;
+    const double rate_error = desired_rate - m_current_climb_rate;
 
     std::cout << "  - Desired climb rate: " << desired_rate << " m/s" << std::endl;
 
     // Use advanced PID controller with feedforward
     // The controller handles PID calculation, anti-windup, and feedforward internally
-    const double pid_output = m_throttle_pid_controller.calculate(error, desired_rate);
+    const double pid_output = m_throttle_pid_controller.calculate(rate_error, desired_rate);
     
     std::cout << "  - Advanced PID output: " << pid_output << " PWM" << std::endl;
     
@@ -537,15 +541,16 @@ void CDEPilotChangeAltitude::stopAltitudeControl() {
     
     // Send neutral control for manual modes only
     if (vehicle_info.flying_mode != VEHICLE_MODE_GUIDED) {
-        int16_t rc_channels[RC_CHANNELS_MAX];
-        std::fill_n(rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
-        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
+        uint16_t rc_channels[RC_CHANNELS_MAX];
+        std::fill_n(rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
+        const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map = fcbMain.getRCChannelsMapInfo();
+        rc_channels[rc_map.rcmap_throttle] = 1500;
         // Force roll, pitch, and yaw to neutral (1500) to prevent drift and max PWM values
-        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_roll] = 1500;
-        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_pitch] = 1500;
-        rc_channels[fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 1500;
-        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
-            rc_channels, RC_CHANNELS_MAX);
+        rc_channels[rc_map.rcmap_roll] = 1500;
+        rc_channels[rc_map.rcmap_pitch] = 1500;
+        rc_channels[rc_map.rcmap_yaw] = 1500;
+        mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels2(
+            rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
     }
     
     // Set phase to complete so manager can detect completion
