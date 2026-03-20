@@ -342,13 +342,13 @@ void CTrackerQuadLogic::readConfigParameters() {
   // Configure advanced PID controllers with loaded parameters
   m_standing_pid_x.setPID(m_standing_pid_p_x, m_standing_pid_i_x, m_standing_pid_d_x);
   m_standing_pid_x.setFeedforwardGain(m_standing_ff_scale_x);
-  m_standing_pid_x.setDeltaTime(0.01); // 10ms update rate
+  // Delta time will be set dynamically during tracking based on actual update rate
   m_standing_pid_x.setIntegralLimit(m_standing_integral_limit_x);
   m_standing_pid_x.setOutputLimit(m_standing_output_limit_x);
 
   m_standing_pid_yz.setPID(m_standing_pid_p_yz, m_standing_pid_i_yz, m_standing_pid_d_yz);
   m_standing_pid_yz.setFeedforwardGain(m_standing_ff_scale_yz);
-  m_standing_pid_yz.setDeltaTime(0.01); // 10ms update rate
+  // Delta time will be set dynamically during tracking based on actual update rate
   m_standing_pid_yz.setIntegralLimit(m_standing_integral_limit_yz);
   m_standing_pid_yz.setOutputLimit(m_standing_output_limit_yz);
 }
@@ -363,13 +363,13 @@ void CTrackerQuadLogic::reloadParametersIfConfigChanged() {
   // Reconfigure advanced PID controllers with loaded parameters
   m_standing_pid_x.setPID(m_standing_pid_p_x, m_standing_pid_i_x, m_standing_pid_d_x);
   m_standing_pid_x.setFeedforwardGain(m_standing_ff_scale_x);
-  m_standing_pid_x.setDeltaTime(0.01); // 10ms update rate
+  // Delta time will be set dynamically during tracking based on actual update rate
   m_standing_pid_x.setIntegralLimit(m_standing_integral_limit_x);
   m_standing_pid_x.setOutputLimit(m_standing_output_limit_x);
 
   m_standing_pid_yz.setPID(m_standing_pid_p_yz, m_standing_pid_i_yz, m_standing_pid_d_yz);
   m_standing_pid_yz.setFeedforwardGain(m_standing_ff_scale_yz);
-  m_standing_pid_yz.setDeltaTime(0.01); // 10ms update rate
+  // Delta time will be set dynamically during tracking based on actual update rate
   m_standing_pid_yz.setIntegralLimit(m_standing_integral_limit_yz);
   m_standing_pid_yz.setOutputLimit(m_standing_output_limit_yz);
 }
@@ -512,13 +512,10 @@ void CTrackerQuadLogic::trackingStanding(const double x, const double yz,
   std::cout << "trackingStanding (Advanced PID)" << std::endl;
 #endif
 
-  const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map =
-      m_fcbMain2.getRCChannelsMapInfo();
-
   // value: [0,1000] IMPORTANT: SKIP_RC_CHANNEL (-999) means channel release
   // 'R': Rudder, 'T': Throttle, 'A': Aileron, 'E': Elevator
-  int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT];
-  std::fill_n(rc_channels, RC_CHANNEL_TRACKING_COUNT, SKIP_RC_CHANNEL);
+  // int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT];
+  // std::fill_n(rc_channels, RC_CHANNEL_TRACKING_COUNT, SKIP_RC_CHANNEL);
 
   // Update rate tracking for feedback
   const uint64_t now = get_time_usec();
@@ -527,6 +524,11 @@ void CTrackerQuadLogic::trackingStanding(const double x, const double yz,
     if (dt <= 0.05) {  // If dt is too small, skip update and keep last RC values
       return;
     }
+    
+    // Set dynamic delta time for PID controllers based on actual update rate
+    m_standing_pid_x.setDeltaTime(dt);
+    m_standing_pid_yz.setDeltaTime(dt);
+    
     m_current_rate_x = (x - m_last_x_for_rate) / dt;
     m_current_rate_yz = (yz - m_last_yz_for_rate) / dt;
     m_last_x_for_rate = x;
@@ -539,11 +541,16 @@ void CTrackerQuadLogic::trackingStanding(const double x, const double yz,
     m_last_rate_time = now;
     m_current_rate_x = 0.0;
     m_current_rate_yz = 0.0;
+    
+    // Set initial delta time for PID controllers (use reasonable default)
+    const double initial_dt = 0.01; // 10ms default
+    m_standing_pid_x.setDeltaTime(initial_dt);
+    m_standing_pid_yz.setDeltaTime(initial_dt);
   }
 
   // Calculate position errors (target is center: 0,0)
-  const double error_x = -x; // Negative because drone needs to move opposite to detected position
-  const double error_yz = -yz;
+  const double error_x = x; // Negative because drone needs to move opposite to detected position
+  const double error_yz = yz;
 
   // Apply deadband
   const double filtered_error_x = (std::abs(error_x) < m_standing_deadband_x) ? 0.0 : error_x;
@@ -566,14 +573,14 @@ void CTrackerQuadLogic::trackingStanding(const double x, const double yz,
 
   // Convert control outputs to RC channel values (0-1000 range)
   // PID outputs are now limited to ±500, perfect for direct RC mapping
-  int16_t rc_roll = 500 + static_cast<int16_t>(control_x);
-  int16_t rc_pitch = 500 + static_cast<int16_t>(control_yz);
+  int16_t rc_roll = 1500 + static_cast<int16_t>(control_x);
+  int16_t rc_pitch = 1500 + static_cast<int16_t>(control_yz);
 
   // Clamp to valid RC channel range
-  if (rc_roll > 1000) rc_roll = 1000;
-  if (rc_roll < 0) rc_roll = 0;
-  if (rc_pitch > 1000) rc_pitch = 1000;
-  if (rc_pitch < 0) rc_pitch = 0;
+  if (rc_roll > 2000) rc_roll = 2000;
+  if (rc_roll < 1000) rc_roll = 1000;
+  if (rc_pitch > 2000) rc_pitch = 2000;
+  if (rc_pitch < 1000) rc_pitch = 1000;
 
   // Calculate throttle based on target position
   // Use maximum absolute position to determine if target is near boundaries
@@ -594,15 +601,24 @@ void CTrackerQuadLogic::trackingStanding(const double x, const double yz,
   throttle = std::clamp(throttle, m_standing_throttle_min, m_standing_throttle_max);
   
   const int16_t rc_throttle = static_cast<int16_t>(throttle);
-
+  uint16_t rc_channels[RC_CHANNELS_MAX];
+  std::fill_n(rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
+  const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map = m_fcbMain2.getRCChannelsMapInfo();
+  rc_channels[rc_map.rcmap_roll] = rc_roll;
+  rc_channels[rc_map.rcmap_pitch] = rc_pitch;
+  rc_channels[rc_map.rcmap_yaw] = 1500;
+  rc_channels[rc_map.rcmap_throttle] = rc_throttle;
+  mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels2(
+                    rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
+                
   // Set RC channels
-  rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_roll] = rc_roll;
-  rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_pitch] = rc_pitch;
-  rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_yaw] = 500; // Neutral yaw
-  rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 500; // Dynamic throttle
+  // rc_channels[rc_map.rcmap_roll] = rc_roll;
+  // rc_channels[rc_map.rcmap_pitch] = rc_pitch;
+  // rc_channels[rc_map.rcmap_yaw] = 500; // Neutral yaw
+  // rc_channels[rc_map.rcmap_throttle] = rc_throttle; // Dynamic throttle
 
 #ifdef DEBUG
-  std::cout << _INFO_CONSOLE_BOLD_TEXT << "trackingStanding (Advanced PID) >> "
+  std::cout << _INFO_CONSOLE_BOLD_TEXT << "trackingStanding (Advanced PID) >> "  << std::endl
             << _LOG_CONSOLE_BOLD_TEXT
             << " error_x:" << _INFO_CONSOLE_BOLD_TEXT << error_x
             << _LOG_CONSOLE_BOLD_TEXT
@@ -618,20 +634,20 @@ void CTrackerQuadLogic::trackingStanding(const double x, const double yz,
             << _LOG_CONSOLE_BOLD_TEXT
             << " control_yz:" << _INFO_CONSOLE_BOLD_TEXT << control_yz
             << _LOG_CONSOLE_BOLD_TEXT
-            << " max_position:" << _INFO_CONSOLE_BOLD_TEXT << max_position
+            << " max_position:" << _INFO_CONSOLE_BOLD_TEXT << max_position  << std::endl
             << _LOG_CONSOLE_BOLD_TEXT
             << " throttle_scale:" << _INFO_CONSOLE_BOLD_TEXT << throttle_scale
             << _LOG_CONSOLE_BOLD_TEXT
-            << " rcmap_roll:" << RC_CHANNEL_TRACKING_ROLL << ":"
+            << " rcmap_roll:" << rc_map.rcmap_roll << ":"
             << _INFO_CONSOLE_BOLD_TEXT << rc_roll
             << _LOG_CONSOLE_BOLD_TEXT
-            << " rcmap_pitch:" << RC_CHANNEL_TRACKING_PITCH << ":"
+            << " rcmap_pitch:" << rc_map.rcmap_pitch << ":"
             << _INFO_CONSOLE_BOLD_TEXT << rc_pitch
             << _LOG_CONSOLE_BOLD_TEXT
-            << " rcmap_throttle:" << RC_CHANNEL_TRACKING_THROTTLE << ":"
+            << " rcmap_throttle:" << rc_map.rcmap_throttle << ":"
             << _INFO_CONSOLE_BOLD_TEXT << rc_throttle
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
 
-  m_fcbMain2.updateTrackingControlChannels(rc_channels);
+  // m_fcbMain2.updateTrackingControlChannels(rc_channels);
 }

@@ -66,6 +66,24 @@ void CDEPilotManager::OnFlightModeChanged() {
     setActive(false);
     return;
   }
+
+  de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
+  const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
+  const int flying_mode = vehicle_info.flying_mode;
+  
+  switch (flying_mode) {
+    case VEHICLE_MODE_LAND:
+      setOperation(DEPILOT_OP_IDLE);
+    break;
+  
+    case VEHICLE_MODE_STABILIZE:
+      setActive(false);
+    break;
+
+    default:
+    break;
+  }
+  
 }
 
 void CDEPilotManager::setActive(bool active) {
@@ -283,7 +301,7 @@ void CDEPilotManager::do_Land() {
   mavlinksdk::CMavlinkCommand::getInstance().doSetMode(
       ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode);
 
-  setOperation(DEPILOT_OP_CHANGE_ALTITUDE);
+  setOperation(DEPILOT_OP_IDLE);
 }
 
 void CDEPilotManager::setOperation(DRONEENGAGE_PILOT_OPERATION operation) {
@@ -348,6 +366,8 @@ CDEPilotOperationBase *CDEPilotManager::getOperationInstance(
     return &CDEPilotStabilization::getInstance();
   case DEPILOT_OP_TRACKING:
     return &CDEPilotTracking::getInstance();
+  case DEPILOT_OP_IDLE:
+    return &CDEPilotIdle::getInstance();;
   case DEPILOT_OP_DISABLED:
   default:
     return nullptr;

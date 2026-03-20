@@ -6,6 +6,7 @@
 #include "fcb_de_pilot_operation_base.hpp"
 #include "fcb_de_pilot_stabilization.hpp"
 #include "fcb_de_pilot_tracking.hpp"
+#include "fcb_de_pilot_idle.hpp"
 #include <cstdint>
 
 namespace de {

@@ -118,7 +118,7 @@ namespace fcb
 
             void releaseRemoteControl();
             void updateRemoteControlChannels(const int16_t rc_channels[RC_CHANNELS_MAX]);
-            void updateTrackingControlChannels(const int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT]);
+            void updateTrackingControlChannels(const int16_t rc_channels_tracker[RC_CHANNEL_TRACKING_COUNT]);
 
             void adjustRemoteJoystickByMode(RC_SUB_ACTION rc_sub_action);
             void remoteControlSignal();
@@ -245,7 +245,7 @@ namespace fcb
             void readConfigParameters();
             
             
-            void calculateChannels(const int16_t scaled_channels[16], const bool ignode_dead_band, int16_t *output);
+            void calculateChannels(const int16_t scaled_channels[MAX_RC_CHANNELS], const bool ignode_dead_band, uint16_t *output);
             void update_rcmap_info();
             void checkBlockedStatus();
             /**

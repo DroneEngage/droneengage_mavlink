@@ -76,6 +76,7 @@ double CAdvancedPIDController::calculate(double error, double feedforward_input)
         feedforwardTerm = feedforward_input * m_feedforward_gain;
     }
 
+    // std::cout << "p:" << proportionalTerm << "i:" << i_term << "d:" << derivativeTerm << std::endl;
     // 5. Combine terms for the total PID output
     double output = proportionalTerm + i_term + derivativeTerm + feedforwardTerm;
     output = std::clamp(output, -m_max_min_value, m_max_min_value);

@@ -1291,10 +1291,10 @@ void CFCBMain::alertDroneEngageOffline() {
  * @callgraph
  * @return int16_t [1000,2000]
  */
-void CFCBMain::calculateChannels(const int16_t scaled_channels[18],
-                                 const bool ignode_dead_band, int16_t *output) {
+void CFCBMain::calculateChannels(const int16_t scaled_channels[MAX_RC_CHANNELS],
+                                 const bool ignode_dead_band, uint16_t *output) {
 
-  for (int i = 0; i < 18; ++i) {
+  for (int i = 0; i < MAX_RC_CHANNELS; ++i) {
     int scaled_channel = scaled_channels[i];
 
     // --- Stage 1: Handle Ignored/Disabled Channels ---
@@ -1510,8 +1510,7 @@ void CFCBMain::enableRemoteControlGuided() {
       false; // remote control data will enable it
 
   // release channels
-  memset(m_andruav_vehicle_info.rc_channels, 0,
-         RC_CHANNELS_MAX * sizeof(int16_t));
+  std::fill_n(m_andruav_vehicle_info.rc_channels, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
   mavlinksdk::CMavlinkCommand::getInstance().releaseRCChannels();
 
   m_andruav_vehicle_info.rc_sub_action =
@@ -1561,26 +1560,28 @@ void CFCBMain::adjustRemoteJoystickByMode(RC_SUB_ACTION rc_sub_action) {
 }
 
 void CFCBMain::updateTrackingControlChannels(
-    const int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT]) {
+    const int16_t rc_channels_tracker[RC_CHANNEL_TRACKING_COUNT]) {
   // In GUIDED mode send values via ctrlGuidedVelocityInLocalFrame
   // In ALT-HOLD mode send values via sendRCChannels
 
-  int16_t rc_chammels_input[RC_CHANNELS_MAX] = {SKIP_RC_CHANNEL};
-  rc_chammels_input[m_rcmap_channels_info.rcmap_pitch] =
-      rc_channels[RC_CHANNEL_TRACKING_PITCH];
-  rc_chammels_input[m_rcmap_channels_info.rcmap_roll] =
-      rc_channels[RC_CHANNEL_TRACKING_ROLL];
-  rc_chammels_input[m_rcmap_channels_info.rcmap_throttle] =
-      rc_channels[RC_CHANNEL_TRACKING_THROTTLE];
-  rc_chammels_input[m_rcmap_channels_info.rcmap_yaw] =
-      rc_channels[RC_CHANNEL_TRACKING_YAW];
+  int16_t de_rc_chammels_input[RC_CHANNELS_MAX];
+  std::fill_n(de_rc_chammels_input, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
+
+  de_rc_chammels_input[m_rcmap_channels_info.rcmap_pitch] =
+      rc_channels_tracker[RC_CHANNEL_TRACKING_PITCH];
+  de_rc_chammels_input[m_rcmap_channels_info.rcmap_roll] =
+      rc_channels_tracker[RC_CHANNEL_TRACKING_ROLL];
+  de_rc_chammels_input[m_rcmap_channels_info.rcmap_throttle] =
+      rc_channels_tracker[RC_CHANNEL_TRACKING_THROTTLE];
+  de_rc_chammels_input[m_rcmap_channels_info.rcmap_yaw] =
+      rc_channels_tracker[RC_CHANNEL_TRACKING_YAW];
 
   // m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
   // m_andruav_vehicle_info.rc_command_active = true;
 
-  int16_t rc_chammels_pwm[RC_CHANNELS_MAX] = {0};
+  uint16_t rc_chammels_pwm[RC_CHANNELS_MAX] = {0,0,0,0,0,0,0,0,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX};
 
-  calculateChannels(rc_chammels_input, true, rc_chammels_pwm);
+  calculateChannels(de_rc_chammels_input, true, rc_chammels_pwm);
   if ((m_rcmap_channels_info.use_smart_rc) &&
       (m_rcmap_channels_info.is_valid)) {
     
@@ -1611,15 +1612,16 @@ void CFCBMain::updateTrackingControlChannels(
           MAV_FRAME_BODY_OFFSET_NED);
     } else {
       // ALT-HOLD and other modes: use RC channel overrides like stabilization
-      int16_t rc_channels_out[RC_CHANNELS_MAX];
-      std::fill_n(rc_channels_out, RC_CHANNELS_MAX, SKIP_RC_CHANNEL);
+      uint16_t rc_channels_out[RC_CHANNELS_MAX];
+      std::fill_n(rc_channels_out, RC_CHANNELS_MAX, UINT16_MAX);
+        
       
       rc_channels_out[m_rcmap_channels_info.rcmap_pitch] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_pitch];
       rc_channels_out[m_rcmap_channels_info.rcmap_roll] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_roll];
       rc_channels_out[m_rcmap_channels_info.rcmap_throttle] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_throttle];
       rc_channels_out[m_rcmap_channels_info.rcmap_yaw] = rc_chammels_pwm[m_rcmap_channels_info.rcmap_yaw];
       
-      mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(rc_channels_out, RC_CHANNELS_MAX);
+      mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels2(rc_channels_out, RC_CHANNELS_MAX, UINT16_MAX);
     }
   } else {
     // SKIP TRACKING
@@ -1653,7 +1655,7 @@ void CFCBMain::updateRemoteControlChannels(
     m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
     m_andruav_vehicle_info.rc_command_active = true;
 
-    int16_t rc_chammels_pwm[RC_CHANNELS_MAX] = {0};
+    uint16_t rc_chammels_pwm[RC_CHANNELS_MAX] = {0,0,0,0,0,0,0,0,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX};
 
     calculateChannels(rc_channels, true, rc_chammels_pwm);
 
@@ -1674,7 +1676,6 @@ void CFCBMain::updateRemoteControlChannels(
         m_andruav_vehicle_info.rc_channels[i] = rc_chammels_pwm[i];
       }
     }
-
     mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels(
         m_andruav_vehicle_info.rc_channels, RC_CHANNELS_MAX);
   } break;
@@ -1685,7 +1686,7 @@ void CFCBMain::updateRemoteControlChannels(
     m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
     m_andruav_vehicle_info.rc_command_active = true;
 
-    int16_t rc_chammels_pwm[RC_CHANNELS_MAX] = {0};
+    uint16_t rc_chammels_pwm[RC_CHANNELS_MAX] = {0,0,0,0,0,0,0,0,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX};
 
     calculateChannels(rc_channels, true, rc_chammels_pwm);
     if ((m_rcmap_channels_info.use_smart_rc) &&
@@ -1780,6 +1781,8 @@ void CFCBMain::update_rcmap_info() {
   case MAV_AUTOPILOT::MAV_AUTOPILOT_ARDUPILOTMEGA:
   case MAV_AUTOPILOT::MAV_AUTOPILOT_GENERIC: {
     m_rcmap_channels_info.is_valid = false;
+
+    // converts RCMAP channels to 0 based instead of 1 based.
 
     mavlink_param_value_t rcmap =
         parameter_manager.getParameterByName("RCMAP_PITCH");
