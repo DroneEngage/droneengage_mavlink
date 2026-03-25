@@ -8,6 +8,7 @@
 #include <ardupilotmega/ardupilotmega.h>
 
 #include "mavlink_helper.h"
+#include "tlog/mavlink_tlog.hpp"
 
 #define NO_SYSID_RESTRICTION 0
 
@@ -179,6 +180,7 @@ namespace mavlinksdk
 
             void set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* callback_vehicle);
             bool parseMessage (const mavlink_message_t& mavlink_message);
+            void enableLog (bool enabled);
 
 
         protected:
@@ -615,6 +617,10 @@ namespace mavlinksdk
 
             uint32_t m_sys_id{NO_SYSID_RESTRICTION};
             uint32_t m_comp_id{NO_SYSID_RESTRICTION};
+
+            // TLOG logging
+            mavlinksdk::tlog::CMavlinkTlog m_tlog;
+            bool m_log_enabled{false};
 
     };
 }

@@ -23,6 +23,7 @@ OBJS = $(BUILD)/mavlink_sdk.o \
 	   $(BUILD)/vehicle.o \
 	   $(BUILD)/mavlink_helper.o \
 	   $(BUILD)/mavlink_ftp_manager.o \
+	   $(BUILD)/mavlink_tlog.o \
 
 
 SRCS = ../mavlink_sdk.cpp \
@@ -35,6 +36,7 @@ SRCS = ../mavlink_sdk.cpp \
 	   ../udp_port.cpp \
 	   ../vehicle.cpp \
 	   ../mavlink_helper.cpp \
+	   ../tlog/mavlink_tlog.cpp \
 	   
 	   
 

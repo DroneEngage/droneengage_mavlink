@@ -2,6 +2,9 @@
 #include <iostream>
 #include <string>
 #include <limits.h>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
 #include "./global.hpp"
 #include "./helpers/colors.h"
@@ -33,6 +36,29 @@ mavlinksdk::CVehicle::CVehicle()
 void mavlinksdk::CVehicle::set_callback_vehicle (mavlinksdk::CCallBack_Vehicle* callback_vehicle)
 {
 	m_callback_vehicle = callback_vehicle;
+}
+
+void mavlinksdk::CVehicle::enableLog (bool enabled)
+{
+	m_log_enabled = enabled;
+	if (enabled) {
+		// Generate timestamp-based filename
+		auto now = std::chrono::system_clock::now();
+		auto time_t = std::chrono::system_clock::to_time_t(now);
+		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+			now.time_since_epoch()) % 1000;
+		
+		std::stringstream ss;
+		ss << "mavlink_" << std::put_time(std::localtime(&time_t), "%Y%m%d_%H%M%S");
+		ss << "_" << std::setfill('0') << std::setw(3) << ms.count() << ".tlog";
+		
+		if (!m_tlog.open(ss.str())) {
+			std::cout << _ERROR_CONSOLE_TEXT_ << "Failed to open TLOG file for logging" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+			m_log_enabled = false;
+		}
+	} else {
+		m_tlog.close();
+	}
 }
 
 bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbeat)
@@ -483,6 +509,11 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 	// #ifdef DEBUG
     // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "parseMessage:" << std::to_string(msgid) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     // #endif
+
+	// Log message if enabled
+	if (m_log_enabled) {
+		m_tlog.writeMessage(mavlink_message);
+	}
 
 	mavlink_message_temp = mavlink_message;
 	bool message_processed = true;

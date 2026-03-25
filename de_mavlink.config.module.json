@@ -81,6 +81,7 @@
     },
     "logger_debug": false,
     "logger_enabled": true,
+    "tlog_enabled": false,
     "mavlink_ids": {
         "de_mavlink_gcs_id": 255,
         "only_allow_ardupilot_compid": 0,

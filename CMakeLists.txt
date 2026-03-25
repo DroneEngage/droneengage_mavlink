@@ -145,6 +145,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-export-dynamic")
 
 file(GLOB folder_sdk "./mavlink_sdk/src/*.cpp")
 file(GLOB folder_sdk_helper "./mavlink_sdk/src/helpers/*.cpp")
+file(GLOB folder_sdk_tlog "./mavlink_sdk/src/tlog/*.cpp")
 file(GLOB folder_src "./src/*.cpp")
 file(GLOB folder_helpers "./src/helpers/*.cpp")
 file(GLOB folder_udpproxy "./src/udp_proxy/*.cpp")
@@ -162,7 +163,7 @@ file(GLOB folder_de_pilot "./src/de_pilot/*.cpp")
 
 set(files ${folder_src} ${folder_udpproxy} ${folder_uavos} ${folder_uavos1} ${folder_uavos2} ${folder_helpers}
  ${folder_mission} ${folder_geofence}  ${folder_swarm}
- ${folder_sdk} ${folder_sdk_helper} ${folder_tracking} ${folder_general_mission_planner} ${folder_de_pilot})
+ ${folder_sdk} ${folder_sdk_helper} ${folder_sdk_tlog} ${folder_tracking} ${folder_general_mission_planner} ${folder_de_pilot})
 
 include_directories(${PROJECT_SOURCE_DIR}/3rdparty)
 include_directories (${PROJECT_SOURCE_DIR}/mavlink_sdk/src)

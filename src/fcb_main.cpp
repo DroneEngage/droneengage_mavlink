@@ -176,6 +176,16 @@ bool CFCBMain::init() {
 
   m_udp_proxy_requested_enabled = m_enable_udp_telemetry_in_config;
 
+  if (m_jsonConfig.contains("tlog_enabled") && m_jsonConfig["tlog_enabled"].is_boolean()) {
+    auto& tlog_enabled = m_jsonConfig["tlog_enabled"];
+    m_vehicle.enableLog(tlog_enabled);
+    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Variable "
+              << _INFO_CONSOLE_BOLD_TEXT << " tlog_enabled "
+              << _SUCCESS_CONSOLE_BOLD_TEXT_ << " is set to "
+              << _INFO_CONSOLE_BOLD_TEXT << (tlog_enabled ? "true" : "false") 
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+  }
+
   if (m_jsonConfig.contains("mavlink_ids") && m_jsonConfig["mavlink_ids"].is_object()) {
     auto& mavlink_ids = m_jsonConfig["mavlink_ids"];
     
