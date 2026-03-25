@@ -5,6 +5,7 @@
 #include <mavlink_sdk.h>
 #include <vehicle.h>
 #include "fcb_de_pilot_change_altitude.hpp"
+#include "fcb_de_pilot_yaw_control.hpp"
 #include "../fcb_main.hpp"
 #include "../de_common/helpers/colors.hpp"
 #include "../de_common/helpers/helpers.hpp"
@@ -42,6 +43,9 @@ void CDEPilotChangeAltitude::init() {
 }
 
 void CDEPilotChangeAltitude::update() {
+    // Update YAW control service
+    CDEPilotYawControl::getInstance().updateYawControl();
+    
     updateTakeoff();
 }
 

@@ -7,6 +7,7 @@
 #include "fcb_de_pilot_stabilization.hpp"
 #include "fcb_de_pilot_tracking.hpp"
 #include "fcb_de_pilot_idle.hpp"
+#include "fcb_de_pilot_yaw_control.hpp"
 #include <cstdint>
 
 namespace de {
