@@ -1,4 +1,5 @@
 #include "fcb_de_pilot_tracking.hpp"
+#include "fcb_de_pilot_yaw_control.hpp"
 #include "../de_common/de_databus/configFile.hpp"
 #include "../de_common/helpers/colors.hpp"
 #include "../de_common/helpers/helpers.hpp"
@@ -34,6 +35,9 @@ void CDEPilotTracking::update() {
   if (!m_active) {
     return;
   }
+
+  // Update YAW control service
+  CDEPilotYawControl::getInstance().updateYawControl();
 
   m_last_update_time = get_time_usec() / 1000;
 

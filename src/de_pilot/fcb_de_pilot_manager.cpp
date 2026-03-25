@@ -15,9 +15,9 @@ namespace depilot {
 void CDEPilotManager::init() {
   // Initialize all pilot operations
   CDEPilotStabilization::getInstance().init();
-  CDEPilotChangeAltitude::getInstance()
-      .init(); // Now handles both takeoff and altitude
-  CDEPilotTracking::getInstance().init(); // Initialize tracking operation
+  CDEPilotChangeAltitude::getInstance().init();
+  CDEPilotTracking::getInstance().init();
+  CDEPilotYawControl::getInstance().init();
 
   m_de_pilot_operation = DEPILOT_OP_DISABLED;
   m_allow_RCControl = true;
@@ -37,6 +37,7 @@ void CDEPilotManager::reloadParametersIfConfigChanged() {
   CDEPilotChangeAltitude::getInstance().reloadParametersIfConfigChanged();
   CDEPilotStabilization::getInstance().reloadParametersIfConfigChanged();
   CDEPilotTracking::getInstance().reloadParametersIfConfigChanged();
+  CDEPilotYawControl::getInstance().reloadParametersIfConfigChanged();
   
   std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotManager: " << _LOG_CONSOLE_BOLD_TEXT << "Parameters reloading DONE"
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -258,28 +259,11 @@ void CDEPilotManager::do_SetYaw(double angle, double rate, bool is_clockwise,
     return;
   }
 
-  // If not in stabilization mode, switch to it first
-  if (m_de_pilot_operation != DEPILOT_OP_STABILIZATION) {
-    std::cout << _INFO_CONSOLE_BOLD_TEXT
-              << "DE-Pilot: Switching to stabilization for yaw control"
-              << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    do_Stabilize();
-  }
+  // Set yaw target on YAW control service (works with any operation)
+  CDEPilotYawControl::getInstance().setYawTarget(angle, rate, is_clockwise, is_relative);
 
-  // Set yaw target on stabilization operation
-  if (m_de_pilot_operation == DEPILOT_OP_STABILIZATION &&
-      m_operation_instance != nullptr) {
-    CDEPilotStabilization *stabilization_op =
-        static_cast<CDEPilotStabilization *>(m_operation_instance);
-    stabilization_op->setYawTarget(angle, rate, is_clockwise, is_relative);
-
-    CFCBFacade::getInstance().API_IC_sendID(
-        std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
-  } else {
-    std::cout << _ERROR_CONSOLE_BOLD_TEXT_
-              << "DE-Pilot: Failed to set yaw target" << _NORMAL_CONSOLE_TEXT_
-              << std::endl;
-  }
+  CFCBFacade::getInstance().API_IC_sendID(
+      std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
 }
 
 void CDEPilotManager::do_Land() {
