@@ -27,9 +27,10 @@ void mavlinksdk::CMavlinkParameterManager::set_callback_parameter (mavlinksdk::C
  * @brief initialize process of calling paramaters from FCB. 
  * @details it sets {@link m_parameter_read_mode} to LOADING_PARAMS_LOAD_ALL_INIT
  */
-void mavlinksdk::CMavlinkParameterManager::reloadParemeters ()
+void mavlinksdk::CMavlinkParameterManager::reloadParameters ()
 {
 	m_parameter_read_mode = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LOAD_ALL_INIT;
+	m_start_time = get_time_usec(); // Track when loading started
 
     mavlinksdk::CMavlinkCommand::getInstance().requestParametersList();
 }
@@ -46,10 +47,8 @@ void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_par
 {
 	bool changed = false;
 	
-	char param_id[17];
-	param_id[16] =0;
-	memcpy((void *)&param_id[0], param_message.param_id,16);
-	std::string param_name = std::string(param_id);
+	std::string param_name = std::string(param_message.param_id, 16);
+	param_name.erase(param_name.find('\0')); // Remove null termination
 
 	auto it = m_parameters_list.find(param_name);
 
@@ -79,19 +78,11 @@ void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_par
 		m_parameters_last_index_read = param_message.param_index;
 		m_parameters_list.insert(std::make_pair(param_name, param_message));
 
-		bool bFound = false;
-		for(auto itr=m_parameters_id.begin(); itr !=m_parameters_id.end(); itr++)
-		{
-        	if (*itr == param_message.param_index)
-			{
-				bFound = true;
-				break;
-			}
-		}
-
-		if (!bFound)
+		// Use unordered_set for O(1) lookup instead of O(n) vector search
+		if (m_parameters_id_set.find(param_message.param_index) == m_parameters_id_set.end())
 		{
 			m_parameters_id.push_back(param_message.param_index);
+			m_parameters_id_set.insert(param_message.param_index);
 		}
 	}
 
@@ -131,7 +122,7 @@ void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_par
 
 /**
  * @brief parameters are loaded.
- * @details first time a request to load all parameters is reloadParemeters() then if timeout and not all
+ * @details first time a request to load all parameters is reloadParameters() then if timeout and not all
  * parameters are received then a one-by-one call is executed untill all parameters are received. m_parameter_read_mode is used to store status.
  * @callgraph
  * @param heartbeat mavlink message
@@ -148,18 +139,18 @@ void mavlinksdk::CMavlinkParameterManager::handle_heart_beat (const mavlink_hear
 	// Initialize request all poarameters
 	if (m_parameter_read_mode == mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LIST_EMPTY)
 	{
-		reloadParemeters();
+		reloadParameters();
 
 		return ;
 	}
 
-	// no parameter has been received yet.
+	// no parameter has been received yet and timeout occurred since start.
 	if ((m_parameters_last_receive_time==0) 
 	&& (m_parameter_read_mode == mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LOAD_ALL_INIT) // redundant condition flor clarity only.
-	&& ((now - m_parameters_last_receive_time) >  300000l))
+	&& (m_start_time > 0) && ((now - m_start_time) >  300000l))
 	{
 		// Load all parameters at first
-		reloadParemeters();
+		reloadParameters();
 
 		return ;
 	}
@@ -172,7 +163,7 @@ void mavlinksdk::CMavlinkParameterManager::handle_heart_beat (const mavlink_hear
 		if (m_parameters_last_receive_time==0)
 		{
 			// Load all parameters at first
-			reloadParemeters();
+			reloadParameters();
 		}
 		else
 		{
@@ -196,28 +187,16 @@ void mavlinksdk::CMavlinkParameterManager::handle_heart_beat (const mavlink_hear
 
 uint16_t mavlinksdk::CMavlinkParameterManager::getFirstMissingParameterByIndex()
 {
-	bool bFound;
-	uint16_t index = 0;
 	for (int i=0; i< m_parameter_read_count; ++i)
 	{
-		bFound = false;
-		for(auto itr=m_parameters_id.begin(); itr !=m_parameters_id.end(); itr++)
+		// Use unordered_set for O(1) lookup instead of O(n) vector search
+		if (m_parameters_id_set.find(i) == m_parameters_id_set.end())
 		{
-			if (i==*itr)
-			{
-				bFound = true;
-				break;
-			}
-		}
-		
-		if (!bFound) 
-		{
-			std::cout<<"\n index:"<<index<<std::endl;
+			std::cout<<"\n missing index:"<<i<<std::endl;
 			return i;
 		}
 	}
 
-	
 	return m_parameter_read_count;
 }
 
