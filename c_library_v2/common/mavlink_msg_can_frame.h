@@ -8,7 +8,7 @@ typedef struct __mavlink_can_frame_t {
  uint32_t id; /*<  Frame ID*/
  uint8_t target_system; /*<  System ID.*/
  uint8_t target_component; /*<  Component ID.*/
- uint8_t bus; /*<  bus number*/
+ uint8_t bus; /*<  Bus number*/
  uint8_t len; /*<  Frame length*/
  uint8_t data[8]; /*<  Frame data*/
 } mavlink_can_frame_t;
@@ -58,7 +58,7 @@ typedef struct __mavlink_can_frame_t {
  *
  * @param target_system  System ID.
  * @param target_component  Component ID.
- * @param bus  bus number
+ * @param bus  Bus number
  * @param len  Frame length
  * @param id  Frame ID
  * @param data  Frame data
@@ -83,7 +83,7 @@ static inline uint16_t mavlink_msg_can_frame_pack(uint8_t system_id, uint8_t com
     packet.target_component = target_component;
     packet.bus = bus;
     packet.len = len;
-    mav_array_memcpy(packet.data, data, sizeof(uint8_t)*8);
+    mav_array_assign_uint8_t(packet.data, data, 8);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_CAN_FRAME_LEN);
 #endif
 
@@ -100,7 +100,7 @@ static inline uint16_t mavlink_msg_can_frame_pack(uint8_t system_id, uint8_t com
  *
  * @param target_system  System ID.
  * @param target_component  Component ID.
- * @param bus  bus number
+ * @param bus  Bus number
  * @param len  Frame length
  * @param id  Frame ID
  * @param data  Frame data
@@ -145,7 +145,7 @@ static inline uint16_t mavlink_msg_can_frame_pack_status(uint8_t system_id, uint
  * @param msg The MAVLink message to compress the data into
  * @param target_system  System ID.
  * @param target_component  Component ID.
- * @param bus  bus number
+ * @param bus  Bus number
  * @param len  Frame length
  * @param id  Frame ID
  * @param data  Frame data
@@ -171,7 +171,7 @@ static inline uint16_t mavlink_msg_can_frame_pack_chan(uint8_t system_id, uint8_
     packet.target_component = target_component;
     packet.bus = bus;
     packet.len = len;
-    mav_array_memcpy(packet.data, data, sizeof(uint8_t)*8);
+    mav_array_assign_uint8_t(packet.data, data, 8);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_CAN_FRAME_LEN);
 #endif
 
@@ -226,7 +226,7 @@ static inline uint16_t mavlink_msg_can_frame_encode_status(uint8_t system_id, ui
  *
  * @param target_system  System ID.
  * @param target_component  Component ID.
- * @param bus  bus number
+ * @param bus  Bus number
  * @param len  Frame length
  * @param id  Frame ID
  * @param data  Frame data
@@ -251,7 +251,7 @@ static inline void mavlink_msg_can_frame_send(mavlink_channel_t chan, uint8_t ta
     packet.target_component = target_component;
     packet.bus = bus;
     packet.len = len;
-    mav_array_memcpy(packet.data, data, sizeof(uint8_t)*8);
+    mav_array_assign_uint8_t(packet.data, data, 8);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_CAN_FRAME, (const char *)&packet, MAVLINK_MSG_ID_CAN_FRAME_MIN_LEN, MAVLINK_MSG_ID_CAN_FRAME_LEN, MAVLINK_MSG_ID_CAN_FRAME_CRC);
 #endif
 }
@@ -272,7 +272,7 @@ static inline void mavlink_msg_can_frame_send_struct(mavlink_channel_t chan, con
 
 #if MAVLINK_MSG_ID_CAN_FRAME_LEN <= MAVLINK_MAX_PAYLOAD_LEN
 /*
-  This variant of _send() can be used to save stack space by re-using
+  This variant of _send() can be used to save stack space by reusing
   memory from the receive buffer.  The caller provides a
   mavlink_message_t which is the size of a full mavlink message. This
   is usually the receive buffer for the channel, and allows a reply to an
@@ -296,7 +296,7 @@ static inline void mavlink_msg_can_frame_send_buf(mavlink_message_t *msgbuf, mav
     packet->target_component = target_component;
     packet->bus = bus;
     packet->len = len;
-    mav_array_memcpy(packet->data, data, sizeof(uint8_t)*8);
+    mav_array_assign_uint8_t(packet->data, data, 8);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_CAN_FRAME, (const char *)packet, MAVLINK_MSG_ID_CAN_FRAME_MIN_LEN, MAVLINK_MSG_ID_CAN_FRAME_LEN, MAVLINK_MSG_ID_CAN_FRAME_CRC);
 #endif
 }
@@ -330,7 +330,7 @@ static inline uint8_t mavlink_msg_can_frame_get_target_component(const mavlink_m
 /**
  * @brief Get field bus from can_frame message
  *
- * @return  bus number
+ * @return  Bus number
  */
 static inline uint8_t mavlink_msg_can_frame_get_bus(const mavlink_message_t* msg)
 {

@@ -10,7 +10,7 @@ typedef struct __mavlink_attitude_target_t {
  float body_roll_rate; /*< [rad/s] Body roll rate*/
  float body_pitch_rate; /*< [rad/s] Body pitch rate*/
  float body_yaw_rate; /*< [rad/s] Body yaw rate*/
- float thrust; /*<  Collective thrust, normalized to 0 .. 1 (-1 .. 1 for vehicles capable of reverse trust)*/
+ float thrust; /*<  Collective thrust, normalized to 0 .. 1 (-1 .. 1 for vehicles capable of reverse thrust)*/
  uint8_t type_mask; /*<  Bitmap to indicate which dimensions should be ignored by the vehicle.*/
 } mavlink_attitude_target_t;
 
@@ -65,7 +65,7 @@ typedef struct __mavlink_attitude_target_t {
  * @param body_roll_rate [rad/s] Body roll rate
  * @param body_pitch_rate [rad/s] Body pitch rate
  * @param body_yaw_rate [rad/s] Body yaw rate
- * @param thrust  Collective thrust, normalized to 0 .. 1 (-1 .. 1 for vehicles capable of reverse trust)
+ * @param thrust  Collective thrust, normalized to 0 .. 1 (-1 .. 1 for vehicles capable of reverse thrust)
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_attitude_target_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
@@ -89,7 +89,7 @@ static inline uint16_t mavlink_msg_attitude_target_pack(uint8_t system_id, uint8
     packet.body_yaw_rate = body_yaw_rate;
     packet.thrust = thrust;
     packet.type_mask = type_mask;
-    mav_array_memcpy(packet.q, q, sizeof(float)*4);
+    mav_array_assign_float(packet.q, q, 4);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_ATTITUDE_TARGET_LEN);
 #endif
 
@@ -110,7 +110,7 @@ static inline uint16_t mavlink_msg_attitude_target_pack(uint8_t system_id, uint8
  * @param body_roll_rate [rad/s] Body roll rate
  * @param body_pitch_rate [rad/s] Body pitch rate
  * @param body_yaw_rate [rad/s] Body yaw rate
- * @param thrust  Collective thrust, normalized to 0 .. 1 (-1 .. 1 for vehicles capable of reverse trust)
+ * @param thrust  Collective thrust, normalized to 0 .. 1 (-1 .. 1 for vehicles capable of reverse thrust)
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_attitude_target_pack_status(uint8_t system_id, uint8_t component_id, mavlink_status_t *_status, mavlink_message_t* msg,
@@ -158,7 +158,7 @@ static inline uint16_t mavlink_msg_attitude_target_pack_status(uint8_t system_id
  * @param body_roll_rate [rad/s] Body roll rate
  * @param body_pitch_rate [rad/s] Body pitch rate
  * @param body_yaw_rate [rad/s] Body yaw rate
- * @param thrust  Collective thrust, normalized to 0 .. 1 (-1 .. 1 for vehicles capable of reverse trust)
+ * @param thrust  Collective thrust, normalized to 0 .. 1 (-1 .. 1 for vehicles capable of reverse thrust)
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_attitude_target_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
@@ -183,7 +183,7 @@ static inline uint16_t mavlink_msg_attitude_target_pack_chan(uint8_t system_id, 
     packet.body_yaw_rate = body_yaw_rate;
     packet.thrust = thrust;
     packet.type_mask = type_mask;
-    mav_array_memcpy(packet.q, q, sizeof(float)*4);
+    mav_array_assign_float(packet.q, q, 4);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_ATTITUDE_TARGET_LEN);
 #endif
 
@@ -242,7 +242,7 @@ static inline uint16_t mavlink_msg_attitude_target_encode_status(uint8_t system_
  * @param body_roll_rate [rad/s] Body roll rate
  * @param body_pitch_rate [rad/s] Body pitch rate
  * @param body_yaw_rate [rad/s] Body yaw rate
- * @param thrust  Collective thrust, normalized to 0 .. 1 (-1 .. 1 for vehicles capable of reverse trust)
+ * @param thrust  Collective thrust, normalized to 0 .. 1 (-1 .. 1 for vehicles capable of reverse thrust)
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
@@ -266,7 +266,7 @@ static inline void mavlink_msg_attitude_target_send(mavlink_channel_t chan, uint
     packet.body_yaw_rate = body_yaw_rate;
     packet.thrust = thrust;
     packet.type_mask = type_mask;
-    mav_array_memcpy(packet.q, q, sizeof(float)*4);
+    mav_array_assign_float(packet.q, q, 4);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_ATTITUDE_TARGET, (const char *)&packet, MAVLINK_MSG_ID_ATTITUDE_TARGET_MIN_LEN, MAVLINK_MSG_ID_ATTITUDE_TARGET_LEN, MAVLINK_MSG_ID_ATTITUDE_TARGET_CRC);
 #endif
 }
@@ -287,7 +287,7 @@ static inline void mavlink_msg_attitude_target_send_struct(mavlink_channel_t cha
 
 #if MAVLINK_MSG_ID_ATTITUDE_TARGET_LEN <= MAVLINK_MAX_PAYLOAD_LEN
 /*
-  This variant of _send() can be used to save stack space by re-using
+  This variant of _send() can be used to save stack space by reusing
   memory from the receive buffer.  The caller provides a
   mavlink_message_t which is the size of a full mavlink message. This
   is usually the receive buffer for the channel, and allows a reply to an
@@ -313,7 +313,7 @@ static inline void mavlink_msg_attitude_target_send_buf(mavlink_message_t *msgbu
     packet->body_yaw_rate = body_yaw_rate;
     packet->thrust = thrust;
     packet->type_mask = type_mask;
-    mav_array_memcpy(packet->q, q, sizeof(float)*4);
+    mav_array_assign_float(packet->q, q, 4);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_ATTITUDE_TARGET, (const char *)packet, MAVLINK_MSG_ID_ATTITUDE_TARGET_MIN_LEN, MAVLINK_MSG_ID_ATTITUDE_TARGET_LEN, MAVLINK_MSG_ID_ATTITUDE_TARGET_CRC);
 #endif
 }
@@ -387,7 +387,7 @@ static inline float mavlink_msg_attitude_target_get_body_yaw_rate(const mavlink_
 /**
  * @brief Get field thrust from attitude_target message
  *
- * @return  Collective thrust, normalized to 0 .. 1 (-1 .. 1 for vehicles capable of reverse trust)
+ * @return  Collective thrust, normalized to 0 .. 1 (-1 .. 1 for vehicles capable of reverse thrust)
  */
 static inline float mavlink_msg_attitude_target_get_thrust(const mavlink_message_t* msg)
 {

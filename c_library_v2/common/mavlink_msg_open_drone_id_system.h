@@ -7,12 +7,12 @@
 typedef struct __mavlink_open_drone_id_system_t {
  int32_t operator_latitude; /*< [degE7] Latitude of the operator. If unknown: 0 (both Lat/Lon).*/
  int32_t operator_longitude; /*< [degE7] Longitude of the operator. If unknown: 0 (both Lat/Lon).*/
- float area_ceiling; /*< [m] Area Operations Ceiling relative to WGS84. If unknown: -1000 m.*/
- float area_floor; /*< [m] Area Operations Floor relative to WGS84. If unknown: -1000 m.*/
+ float area_ceiling; /*< [m] Area Operations Ceiling relative to WGS84. If unknown: -1000 m. Used only for swarms/multiple UA.*/
+ float area_floor; /*< [m] Area Operations Floor relative to WGS84. If unknown: -1000 m. Used only for swarms/multiple UA.*/
  float operator_altitude_geo; /*< [m] Geodetic altitude of the operator relative to WGS84. If unknown: -1000 m.*/
  uint32_t timestamp; /*< [s] 32 bit Unix Timestamp in seconds since 00:00:00 01/01/2019.*/
- uint16_t area_count; /*<  Number of aircraft in the area, group or formation (default 1).*/
- uint16_t area_radius; /*< [m] Radius of the cylindrical area of the group or formation (default 0).*/
+ uint16_t area_count; /*<  Number of aircraft in the area, group or formation (default 1). Used only for swarms/multiple UA.*/
+ uint16_t area_radius; /*< [m] Radius of the cylindrical area of the group or formation (default 0). Used only for swarms/multiple UA.*/
  uint8_t target_system; /*<  System ID (0 for broadcast).*/
  uint8_t target_component; /*<  Component ID (0 for broadcast).*/
  uint8_t id_or_mac[20]; /*<  Only used for drone ID data received from other UAs. See detailed description at https://mavlink.io/en/services/opendroneid.html. */
@@ -90,10 +90,10 @@ typedef struct __mavlink_open_drone_id_system_t {
  * @param classification_type  Specifies the classification type of the UA.
  * @param operator_latitude [degE7] Latitude of the operator. If unknown: 0 (both Lat/Lon).
  * @param operator_longitude [degE7] Longitude of the operator. If unknown: 0 (both Lat/Lon).
- * @param area_count  Number of aircraft in the area, group or formation (default 1).
- * @param area_radius [m] Radius of the cylindrical area of the group or formation (default 0).
- * @param area_ceiling [m] Area Operations Ceiling relative to WGS84. If unknown: -1000 m.
- * @param area_floor [m] Area Operations Floor relative to WGS84. If unknown: -1000 m.
+ * @param area_count  Number of aircraft in the area, group or formation (default 1). Used only for swarms/multiple UA.
+ * @param area_radius [m] Radius of the cylindrical area of the group or formation (default 0). Used only for swarms/multiple UA.
+ * @param area_ceiling [m] Area Operations Ceiling relative to WGS84. If unknown: -1000 m. Used only for swarms/multiple UA.
+ * @param area_floor [m] Area Operations Floor relative to WGS84. If unknown: -1000 m. Used only for swarms/multiple UA.
  * @param category_eu  When classification_type is MAV_ODID_CLASSIFICATION_TYPE_EU, specifies the category of the UA.
  * @param class_eu  When classification_type is MAV_ODID_CLASSIFICATION_TYPE_EU, specifies the class of the UA.
  * @param operator_altitude_geo [m] Geodetic altitude of the operator relative to WGS84. If unknown: -1000 m.
@@ -137,7 +137,7 @@ static inline uint16_t mavlink_msg_open_drone_id_system_pack(uint8_t system_id, 
     packet.classification_type = classification_type;
     packet.category_eu = category_eu;
     packet.class_eu = class_eu;
-    mav_array_memcpy(packet.id_or_mac, id_or_mac, sizeof(uint8_t)*20);
+    mav_array_assign_uint8_t(packet.id_or_mac, id_or_mac, 20);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_OPEN_DRONE_ID_SYSTEM_LEN);
 #endif
 
@@ -159,10 +159,10 @@ static inline uint16_t mavlink_msg_open_drone_id_system_pack(uint8_t system_id, 
  * @param classification_type  Specifies the classification type of the UA.
  * @param operator_latitude [degE7] Latitude of the operator. If unknown: 0 (both Lat/Lon).
  * @param operator_longitude [degE7] Longitude of the operator. If unknown: 0 (both Lat/Lon).
- * @param area_count  Number of aircraft in the area, group or formation (default 1).
- * @param area_radius [m] Radius of the cylindrical area of the group or formation (default 0).
- * @param area_ceiling [m] Area Operations Ceiling relative to WGS84. If unknown: -1000 m.
- * @param area_floor [m] Area Operations Floor relative to WGS84. If unknown: -1000 m.
+ * @param area_count  Number of aircraft in the area, group or formation (default 1). Used only for swarms/multiple UA.
+ * @param area_radius [m] Radius of the cylindrical area of the group or formation (default 0). Used only for swarms/multiple UA.
+ * @param area_ceiling [m] Area Operations Ceiling relative to WGS84. If unknown: -1000 m. Used only for swarms/multiple UA.
+ * @param area_floor [m] Area Operations Floor relative to WGS84. If unknown: -1000 m. Used only for swarms/multiple UA.
  * @param category_eu  When classification_type is MAV_ODID_CLASSIFICATION_TYPE_EU, specifies the category of the UA.
  * @param class_eu  When classification_type is MAV_ODID_CLASSIFICATION_TYPE_EU, specifies the class of the UA.
  * @param operator_altitude_geo [m] Geodetic altitude of the operator relative to WGS84. If unknown: -1000 m.
@@ -231,10 +231,10 @@ static inline uint16_t mavlink_msg_open_drone_id_system_pack_status(uint8_t syst
  * @param classification_type  Specifies the classification type of the UA.
  * @param operator_latitude [degE7] Latitude of the operator. If unknown: 0 (both Lat/Lon).
  * @param operator_longitude [degE7] Longitude of the operator. If unknown: 0 (both Lat/Lon).
- * @param area_count  Number of aircraft in the area, group or formation (default 1).
- * @param area_radius [m] Radius of the cylindrical area of the group or formation (default 0).
- * @param area_ceiling [m] Area Operations Ceiling relative to WGS84. If unknown: -1000 m.
- * @param area_floor [m] Area Operations Floor relative to WGS84. If unknown: -1000 m.
+ * @param area_count  Number of aircraft in the area, group or formation (default 1). Used only for swarms/multiple UA.
+ * @param area_radius [m] Radius of the cylindrical area of the group or formation (default 0). Used only for swarms/multiple UA.
+ * @param area_ceiling [m] Area Operations Ceiling relative to WGS84. If unknown: -1000 m. Used only for swarms/multiple UA.
+ * @param area_floor [m] Area Operations Floor relative to WGS84. If unknown: -1000 m. Used only for swarms/multiple UA.
  * @param category_eu  When classification_type is MAV_ODID_CLASSIFICATION_TYPE_EU, specifies the category of the UA.
  * @param class_eu  When classification_type is MAV_ODID_CLASSIFICATION_TYPE_EU, specifies the class of the UA.
  * @param operator_altitude_geo [m] Geodetic altitude of the operator relative to WGS84. If unknown: -1000 m.
@@ -279,7 +279,7 @@ static inline uint16_t mavlink_msg_open_drone_id_system_pack_chan(uint8_t system
     packet.classification_type = classification_type;
     packet.category_eu = category_eu;
     packet.class_eu = class_eu;
-    mav_array_memcpy(packet.id_or_mac, id_or_mac, sizeof(uint8_t)*20);
+    mav_array_assign_uint8_t(packet.id_or_mac, id_or_mac, 20);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_OPEN_DRONE_ID_SYSTEM_LEN);
 #endif
 
@@ -339,10 +339,10 @@ static inline uint16_t mavlink_msg_open_drone_id_system_encode_status(uint8_t sy
  * @param classification_type  Specifies the classification type of the UA.
  * @param operator_latitude [degE7] Latitude of the operator. If unknown: 0 (both Lat/Lon).
  * @param operator_longitude [degE7] Longitude of the operator. If unknown: 0 (both Lat/Lon).
- * @param area_count  Number of aircraft in the area, group or formation (default 1).
- * @param area_radius [m] Radius of the cylindrical area of the group or formation (default 0).
- * @param area_ceiling [m] Area Operations Ceiling relative to WGS84. If unknown: -1000 m.
- * @param area_floor [m] Area Operations Floor relative to WGS84. If unknown: -1000 m.
+ * @param area_count  Number of aircraft in the area, group or formation (default 1). Used only for swarms/multiple UA.
+ * @param area_radius [m] Radius of the cylindrical area of the group or formation (default 0). Used only for swarms/multiple UA.
+ * @param area_ceiling [m] Area Operations Ceiling relative to WGS84. If unknown: -1000 m. Used only for swarms/multiple UA.
+ * @param area_floor [m] Area Operations Floor relative to WGS84. If unknown: -1000 m. Used only for swarms/multiple UA.
  * @param category_eu  When classification_type is MAV_ODID_CLASSIFICATION_TYPE_EU, specifies the category of the UA.
  * @param class_eu  When classification_type is MAV_ODID_CLASSIFICATION_TYPE_EU, specifies the class of the UA.
  * @param operator_altitude_geo [m] Geodetic altitude of the operator relative to WGS84. If unknown: -1000 m.
@@ -386,7 +386,7 @@ static inline void mavlink_msg_open_drone_id_system_send(mavlink_channel_t chan,
     packet.classification_type = classification_type;
     packet.category_eu = category_eu;
     packet.class_eu = class_eu;
-    mav_array_memcpy(packet.id_or_mac, id_or_mac, sizeof(uint8_t)*20);
+    mav_array_assign_uint8_t(packet.id_or_mac, id_or_mac, 20);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_OPEN_DRONE_ID_SYSTEM, (const char *)&packet, MAVLINK_MSG_ID_OPEN_DRONE_ID_SYSTEM_MIN_LEN, MAVLINK_MSG_ID_OPEN_DRONE_ID_SYSTEM_LEN, MAVLINK_MSG_ID_OPEN_DRONE_ID_SYSTEM_CRC);
 #endif
 }
@@ -407,7 +407,7 @@ static inline void mavlink_msg_open_drone_id_system_send_struct(mavlink_channel_
 
 #if MAVLINK_MSG_ID_OPEN_DRONE_ID_SYSTEM_LEN <= MAVLINK_MAX_PAYLOAD_LEN
 /*
-  This variant of _send() can be used to save stack space by re-using
+  This variant of _send() can be used to save stack space by reusing
   memory from the receive buffer.  The caller provides a
   mavlink_message_t which is the size of a full mavlink message. This
   is usually the receive buffer for the channel, and allows a reply to an
@@ -449,7 +449,7 @@ static inline void mavlink_msg_open_drone_id_system_send_buf(mavlink_message_t *
     packet->classification_type = classification_type;
     packet->category_eu = category_eu;
     packet->class_eu = class_eu;
-    mav_array_memcpy(packet->id_or_mac, id_or_mac, sizeof(uint8_t)*20);
+    mav_array_assign_uint8_t(packet->id_or_mac, id_or_mac, 20);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_OPEN_DRONE_ID_SYSTEM, (const char *)packet, MAVLINK_MSG_ID_OPEN_DRONE_ID_SYSTEM_MIN_LEN, MAVLINK_MSG_ID_OPEN_DRONE_ID_SYSTEM_LEN, MAVLINK_MSG_ID_OPEN_DRONE_ID_SYSTEM_CRC);
 #endif
 }
@@ -533,7 +533,7 @@ static inline int32_t mavlink_msg_open_drone_id_system_get_operator_longitude(co
 /**
  * @brief Get field area_count from open_drone_id_system message
  *
- * @return  Number of aircraft in the area, group or formation (default 1).
+ * @return  Number of aircraft in the area, group or formation (default 1). Used only for swarms/multiple UA.
  */
 static inline uint16_t mavlink_msg_open_drone_id_system_get_area_count(const mavlink_message_t* msg)
 {
@@ -543,7 +543,7 @@ static inline uint16_t mavlink_msg_open_drone_id_system_get_area_count(const mav
 /**
  * @brief Get field area_radius from open_drone_id_system message
  *
- * @return [m] Radius of the cylindrical area of the group or formation (default 0).
+ * @return [m] Radius of the cylindrical area of the group or formation (default 0). Used only for swarms/multiple UA.
  */
 static inline uint16_t mavlink_msg_open_drone_id_system_get_area_radius(const mavlink_message_t* msg)
 {
@@ -553,7 +553,7 @@ static inline uint16_t mavlink_msg_open_drone_id_system_get_area_radius(const ma
 /**
  * @brief Get field area_ceiling from open_drone_id_system message
  *
- * @return [m] Area Operations Ceiling relative to WGS84. If unknown: -1000 m.
+ * @return [m] Area Operations Ceiling relative to WGS84. If unknown: -1000 m. Used only for swarms/multiple UA.
  */
 static inline float mavlink_msg_open_drone_id_system_get_area_ceiling(const mavlink_message_t* msg)
 {
@@ -563,7 +563,7 @@ static inline float mavlink_msg_open_drone_id_system_get_area_ceiling(const mavl
 /**
  * @brief Get field area_floor from open_drone_id_system message
  *
- * @return [m] Area Operations Floor relative to WGS84. If unknown: -1000 m.
+ * @return [m] Area Operations Floor relative to WGS84. If unknown: -1000 m. Used only for swarms/multiple UA.
  */
 static inline float mavlink_msg_open_drone_id_system_get_area_floor(const mavlink_message_t* msg)
 {

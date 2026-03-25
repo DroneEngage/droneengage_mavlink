@@ -125,8 +125,8 @@ static inline uint16_t mavlink_msg_video_stream_information_pack(uint8_t system_
     packet.count = count;
     packet.type = type;
     packet.encoding = encoding;
-    mav_array_memcpy(packet.name, name, sizeof(char)*32);
-    mav_array_memcpy(packet.uri, uri, sizeof(char)*160);
+    mav_array_assign_char(packet.name, name, 32);
+    mav_array_assign_char(packet.uri, uri, 160);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION_LEN);
 #endif
 
@@ -255,8 +255,8 @@ static inline uint16_t mavlink_msg_video_stream_information_pack_chan(uint8_t sy
     packet.count = count;
     packet.type = type;
     packet.encoding = encoding;
-    mav_array_memcpy(packet.name, name, sizeof(char)*32);
-    mav_array_memcpy(packet.uri, uri, sizeof(char)*160);
+    mav_array_assign_char(packet.name, name, 32);
+    mav_array_assign_char(packet.uri, uri, 160);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION_LEN);
 #endif
 
@@ -356,8 +356,8 @@ static inline void mavlink_msg_video_stream_information_send(mavlink_channel_t c
     packet.count = count;
     packet.type = type;
     packet.encoding = encoding;
-    mav_array_memcpy(packet.name, name, sizeof(char)*32);
-    mav_array_memcpy(packet.uri, uri, sizeof(char)*160);
+    mav_array_assign_char(packet.name, name, 32);
+    mav_array_assign_char(packet.uri, uri, 160);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION, (const char *)&packet, MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION_MIN_LEN, MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION_LEN, MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION_CRC);
 #endif
 }
@@ -378,7 +378,7 @@ static inline void mavlink_msg_video_stream_information_send_struct(mavlink_chan
 
 #if MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION_LEN <= MAVLINK_MAX_PAYLOAD_LEN
 /*
-  This variant of _send() can be used to save stack space by re-using
+  This variant of _send() can be used to save stack space by reusing
   memory from the receive buffer.  The caller provides a
   mavlink_message_t which is the size of a full mavlink message. This
   is usually the receive buffer for the channel, and allows a reply to an
@@ -415,8 +415,8 @@ static inline void mavlink_msg_video_stream_information_send_buf(mavlink_message
     packet->count = count;
     packet->type = type;
     packet->encoding = encoding;
-    mav_array_memcpy(packet->name, name, sizeof(char)*32);
-    mav_array_memcpy(packet->uri, uri, sizeof(char)*160);
+    mav_array_assign_char(packet->name, name, 32);
+    mav_array_assign_char(packet->uri, uri, 160);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION, (const char *)packet, MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION_MIN_LEN, MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION_LEN, MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION_CRC);
 #endif
 }

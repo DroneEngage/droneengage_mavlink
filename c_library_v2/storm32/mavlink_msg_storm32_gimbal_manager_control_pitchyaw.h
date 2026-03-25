@@ -5,15 +5,15 @@
 
 
 typedef struct __mavlink_storm32_gimbal_manager_control_pitchyaw_t {
- float pitch; /*< [rad] Pitch/tilt angle (positive: tilt up, NaN to be ignored).*/
- float yaw; /*< [rad] Yaw/pan angle (positive: pan the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).*/
- float pitch_rate; /*< [rad/s] Pitch/tilt angular rate (positive: tilt up, NaN to be ignored).*/
- float yaw_rate; /*< [rad/s] Yaw/pan angular rate (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).*/
- uint16_t device_flags; /*<  Gimbal device flags (UINT16_MAX to be ignored).*/
- uint16_t manager_flags; /*<  Gimbal manager flags (0 to be ignored).*/
+ float pitch; /*< [rad] Pitch/tilt angle (positive: tilt up). NaN to be ignored.*/
+ float yaw; /*< [rad] Yaw/pan angle (positive: pan the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.*/
+ float pitch_rate; /*< [rad/s] Pitch/tilt angular rate (positive: tilt up). NaN to be ignored.*/
+ float yaw_rate; /*< [rad/s] Yaw/pan angular rate (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.*/
+ uint16_t device_flags; /*<  Gimbal device flags to be applied (UINT16_MAX to be ignored). Same flags as used in GIMBAL_DEVICE_SET_ATTITUDE.*/
+ uint16_t manager_flags; /*<  Gimbal manager flags to be applied (0 to be ignored).*/
  uint8_t target_system; /*<  System ID*/
  uint8_t target_component; /*<  Component ID*/
- uint8_t gimbal_id; /*<  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).*/
+ uint8_t gimbal_id; /*<  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.*/
  uint8_t client; /*<  Client which is contacting the gimbal manager (must be set).*/
 } mavlink_storm32_gimbal_manager_control_pitchyaw_t;
 
@@ -70,14 +70,14 @@ typedef struct __mavlink_storm32_gimbal_manager_control_pitchyaw_t {
  *
  * @param target_system  System ID
  * @param target_component  Component ID
- * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  * @param client  Client which is contacting the gimbal manager (must be set).
- * @param device_flags  Gimbal device flags (UINT16_MAX to be ignored).
- * @param manager_flags  Gimbal manager flags (0 to be ignored).
- * @param pitch [rad] Pitch/tilt angle (positive: tilt up, NaN to be ignored).
- * @param yaw [rad] Yaw/pan angle (positive: pan the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
- * @param pitch_rate [rad/s] Pitch/tilt angular rate (positive: tilt up, NaN to be ignored).
- * @param yaw_rate [rad/s] Yaw/pan angular rate (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @param device_flags  Gimbal device flags to be applied (UINT16_MAX to be ignored). Same flags as used in GIMBAL_DEVICE_SET_ATTITUDE.
+ * @param manager_flags  Gimbal manager flags to be applied (0 to be ignored).
+ * @param pitch [rad] Pitch/tilt angle (positive: tilt up). NaN to be ignored.
+ * @param yaw [rad] Yaw/pan angle (positive: pan the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
+ * @param pitch_rate [rad/s] Pitch/tilt angular rate (positive: tilt up). NaN to be ignored.
+ * @param yaw_rate [rad/s] Yaw/pan angular rate (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
@@ -126,14 +126,14 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_pack(
  *
  * @param target_system  System ID
  * @param target_component  Component ID
- * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  * @param client  Client which is contacting the gimbal manager (must be set).
- * @param device_flags  Gimbal device flags (UINT16_MAX to be ignored).
- * @param manager_flags  Gimbal manager flags (0 to be ignored).
- * @param pitch [rad] Pitch/tilt angle (positive: tilt up, NaN to be ignored).
- * @param yaw [rad] Yaw/pan angle (positive: pan the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
- * @param pitch_rate [rad/s] Pitch/tilt angular rate (positive: tilt up, NaN to be ignored).
- * @param yaw_rate [rad/s] Yaw/pan angular rate (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @param device_flags  Gimbal device flags to be applied (UINT16_MAX to be ignored). Same flags as used in GIMBAL_DEVICE_SET_ATTITUDE.
+ * @param manager_flags  Gimbal manager flags to be applied (0 to be ignored).
+ * @param pitch [rad] Pitch/tilt angle (positive: tilt up). NaN to be ignored.
+ * @param yaw [rad] Yaw/pan angle (positive: pan the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
+ * @param pitch_rate [rad/s] Pitch/tilt angular rate (positive: tilt up). NaN to be ignored.
+ * @param yaw_rate [rad/s] Yaw/pan angular rate (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_pack_status(uint8_t system_id, uint8_t component_id, mavlink_status_t *_status, mavlink_message_t* msg,
@@ -185,14 +185,14 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_pack_
  * @param msg The MAVLink message to compress the data into
  * @param target_system  System ID
  * @param target_component  Component ID
- * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  * @param client  Client which is contacting the gimbal manager (must be set).
- * @param device_flags  Gimbal device flags (UINT16_MAX to be ignored).
- * @param manager_flags  Gimbal manager flags (0 to be ignored).
- * @param pitch [rad] Pitch/tilt angle (positive: tilt up, NaN to be ignored).
- * @param yaw [rad] Yaw/pan angle (positive: pan the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
- * @param pitch_rate [rad/s] Pitch/tilt angular rate (positive: tilt up, NaN to be ignored).
- * @param yaw_rate [rad/s] Yaw/pan angular rate (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @param device_flags  Gimbal device flags to be applied (UINT16_MAX to be ignored). Same flags as used in GIMBAL_DEVICE_SET_ATTITUDE.
+ * @param manager_flags  Gimbal manager flags to be applied (0 to be ignored).
+ * @param pitch [rad] Pitch/tilt angle (positive: tilt up). NaN to be ignored.
+ * @param yaw [rad] Yaw/pan angle (positive: pan the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
+ * @param pitch_rate [rad/s] Pitch/tilt angular rate (positive: tilt up). NaN to be ignored.
+ * @param yaw_rate [rad/s] Yaw/pan angular rate (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
@@ -280,14 +280,14 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_encod
  *
  * @param target_system  System ID
  * @param target_component  Component ID
- * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  * @param client  Client which is contacting the gimbal manager (must be set).
- * @param device_flags  Gimbal device flags (UINT16_MAX to be ignored).
- * @param manager_flags  Gimbal manager flags (0 to be ignored).
- * @param pitch [rad] Pitch/tilt angle (positive: tilt up, NaN to be ignored).
- * @param yaw [rad] Yaw/pan angle (positive: pan the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
- * @param pitch_rate [rad/s] Pitch/tilt angular rate (positive: tilt up, NaN to be ignored).
- * @param yaw_rate [rad/s] Yaw/pan angular rate (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @param device_flags  Gimbal device flags to be applied (UINT16_MAX to be ignored). Same flags as used in GIMBAL_DEVICE_SET_ATTITUDE.
+ * @param manager_flags  Gimbal manager flags to be applied (0 to be ignored).
+ * @param pitch [rad] Pitch/tilt angle (positive: tilt up). NaN to be ignored.
+ * @param yaw [rad] Yaw/pan angle (positive: pan the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
+ * @param pitch_rate [rad/s] Pitch/tilt angular rate (positive: tilt up). NaN to be ignored.
+ * @param yaw_rate [rad/s] Yaw/pan angular rate (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
@@ -340,7 +340,7 @@ static inline void mavlink_msg_storm32_gimbal_manager_control_pitchyaw_send_stru
 
 #if MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CONTROL_PITCHYAW_LEN <= MAVLINK_MAX_PAYLOAD_LEN
 /*
-  This variant of _send() can be used to save stack space by re-using
+  This variant of _send() can be used to save stack space by reusing
   memory from the receive buffer.  The caller provides a
   mavlink_message_t which is the size of a full mavlink message. This
   is usually the receive buffer for the channel, and allows a reply to an
@@ -408,7 +408,7 @@ static inline uint8_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_ta
 /**
  * @brief Get field gimbal_id from storm32_gimbal_manager_control_pitchyaw message
  *
- * @return  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @return  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  */
 static inline uint8_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_gimbal_id(const mavlink_message_t* msg)
 {
@@ -428,7 +428,7 @@ static inline uint8_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_cl
 /**
  * @brief Get field device_flags from storm32_gimbal_manager_control_pitchyaw message
  *
- * @return  Gimbal device flags (UINT16_MAX to be ignored).
+ * @return  Gimbal device flags to be applied (UINT16_MAX to be ignored). Same flags as used in GIMBAL_DEVICE_SET_ATTITUDE.
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_device_flags(const mavlink_message_t* msg)
 {
@@ -438,7 +438,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_d
 /**
  * @brief Get field manager_flags from storm32_gimbal_manager_control_pitchyaw message
  *
- * @return  Gimbal manager flags (0 to be ignored).
+ * @return  Gimbal manager flags to be applied (0 to be ignored).
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_manager_flags(const mavlink_message_t* msg)
 {
@@ -448,7 +448,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_m
 /**
  * @brief Get field pitch from storm32_gimbal_manager_control_pitchyaw message
  *
- * @return [rad] Pitch/tilt angle (positive: tilt up, NaN to be ignored).
+ * @return [rad] Pitch/tilt angle (positive: tilt up). NaN to be ignored.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_pitch(const mavlink_message_t* msg)
 {
@@ -458,7 +458,7 @@ static inline float mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_pitc
 /**
  * @brief Get field yaw from storm32_gimbal_manager_control_pitchyaw message
  *
- * @return [rad] Yaw/pan angle (positive: pan the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @return [rad] Yaw/pan angle (positive: pan the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_yaw(const mavlink_message_t* msg)
 {
@@ -468,7 +468,7 @@ static inline float mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_yaw(
 /**
  * @brief Get field pitch_rate from storm32_gimbal_manager_control_pitchyaw message
  *
- * @return [rad/s] Pitch/tilt angular rate (positive: tilt up, NaN to be ignored).
+ * @return [rad/s] Pitch/tilt angular rate (positive: tilt up). NaN to be ignored.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_pitch_rate(const mavlink_message_t* msg)
 {
@@ -478,7 +478,7 @@ static inline float mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_pitc
 /**
  * @brief Get field yaw_rate from storm32_gimbal_manager_control_pitchyaw message
  *
- * @return [rad/s] Yaw/pan angular rate (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @return [rad/s] Yaw/pan angular rate (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_control_pitchyaw_get_yaw_rate(const mavlink_message_t* msg)
 {

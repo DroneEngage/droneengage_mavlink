@@ -8,9 +8,9 @@ typedef struct __mavlink_set_home_position_t {
  int32_t latitude; /*< [degE7] Latitude (WGS84)*/
  int32_t longitude; /*< [degE7] Longitude (WGS84)*/
  int32_t altitude; /*< [mm] Altitude (MSL). Positive for up.*/
- float x; /*< [m] Local X position of this position in the local coordinate frame*/
- float y; /*< [m] Local Y position of this position in the local coordinate frame*/
- float z; /*< [m] Local Z position of this position in the local coordinate frame*/
+ float x; /*< [m] Local X position of this position in the local coordinate frame (NED)*/
+ float y; /*< [m] Local Y position of this position in the local coordinate frame (NED)*/
+ float z; /*< [m] Local Z position of this position in the local coordinate frame (NED: positive "down")*/
  float q[4]; /*<  World to surface normal and heading transformation of the takeoff position. Used to indicate the heading and slope of the ground*/
  float approach_x; /*< [m] Local X position of the end of the approach vector. Multicopters should set this position based on their takeoff path. Grass-landing fixed wing aircraft should set it the same way as multicopters. Runway-landing fixed wing aircraft should set it to the opposite direction of the takeoff, assuming the takeoff happened from the threshold / touchdown zone.*/
  float approach_y; /*< [m] Local Y position of the end of the approach vector. Multicopters should set this position based on their takeoff path. Grass-landing fixed wing aircraft should set it the same way as multicopters. Runway-landing fixed wing aircraft should set it to the opposite direction of the takeoff, assuming the takeoff happened from the threshold / touchdown zone.*/
@@ -78,9 +78,9 @@ typedef struct __mavlink_set_home_position_t {
  * @param latitude [degE7] Latitude (WGS84)
  * @param longitude [degE7] Longitude (WGS84)
  * @param altitude [mm] Altitude (MSL). Positive for up.
- * @param x [m] Local X position of this position in the local coordinate frame
- * @param y [m] Local Y position of this position in the local coordinate frame
- * @param z [m] Local Z position of this position in the local coordinate frame
+ * @param x [m] Local X position of this position in the local coordinate frame (NED)
+ * @param y [m] Local Y position of this position in the local coordinate frame (NED)
+ * @param z [m] Local Z position of this position in the local coordinate frame (NED: positive "down")
  * @param q  World to surface normal and heading transformation of the takeoff position. Used to indicate the heading and slope of the ground
  * @param approach_x [m] Local X position of the end of the approach vector. Multicopters should set this position based on their takeoff path. Grass-landing fixed wing aircraft should set it the same way as multicopters. Runway-landing fixed wing aircraft should set it to the opposite direction of the takeoff, assuming the takeoff happened from the threshold / touchdown zone.
  * @param approach_y [m] Local Y position of the end of the approach vector. Multicopters should set this position based on their takeoff path. Grass-landing fixed wing aircraft should set it the same way as multicopters. Runway-landing fixed wing aircraft should set it to the opposite direction of the takeoff, assuming the takeoff happened from the threshold / touchdown zone.
@@ -119,7 +119,7 @@ static inline uint16_t mavlink_msg_set_home_position_pack(uint8_t system_id, uin
     packet.approach_z = approach_z;
     packet.target_system = target_system;
     packet.time_usec = time_usec;
-    mav_array_memcpy(packet.q, q, sizeof(float)*4);
+    mav_array_assign_float(packet.q, q, 4);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_SET_HOME_POSITION_LEN);
 #endif
 
@@ -138,9 +138,9 @@ static inline uint16_t mavlink_msg_set_home_position_pack(uint8_t system_id, uin
  * @param latitude [degE7] Latitude (WGS84)
  * @param longitude [degE7] Longitude (WGS84)
  * @param altitude [mm] Altitude (MSL). Positive for up.
- * @param x [m] Local X position of this position in the local coordinate frame
- * @param y [m] Local Y position of this position in the local coordinate frame
- * @param z [m] Local Z position of this position in the local coordinate frame
+ * @param x [m] Local X position of this position in the local coordinate frame (NED)
+ * @param y [m] Local Y position of this position in the local coordinate frame (NED)
+ * @param z [m] Local Z position of this position in the local coordinate frame (NED: positive "down")
  * @param q  World to surface normal and heading transformation of the takeoff position. Used to indicate the heading and slope of the ground
  * @param approach_x [m] Local X position of the end of the approach vector. Multicopters should set this position based on their takeoff path. Grass-landing fixed wing aircraft should set it the same way as multicopters. Runway-landing fixed wing aircraft should set it to the opposite direction of the takeoff, assuming the takeoff happened from the threshold / touchdown zone.
  * @param approach_y [m] Local Y position of the end of the approach vector. Multicopters should set this position based on their takeoff path. Grass-landing fixed wing aircraft should set it the same way as multicopters. Runway-landing fixed wing aircraft should set it to the opposite direction of the takeoff, assuming the takeoff happened from the threshold / touchdown zone.
@@ -201,9 +201,9 @@ static inline uint16_t mavlink_msg_set_home_position_pack_status(uint8_t system_
  * @param latitude [degE7] Latitude (WGS84)
  * @param longitude [degE7] Longitude (WGS84)
  * @param altitude [mm] Altitude (MSL). Positive for up.
- * @param x [m] Local X position of this position in the local coordinate frame
- * @param y [m] Local Y position of this position in the local coordinate frame
- * @param z [m] Local Z position of this position in the local coordinate frame
+ * @param x [m] Local X position of this position in the local coordinate frame (NED)
+ * @param y [m] Local Y position of this position in the local coordinate frame (NED)
+ * @param z [m] Local Z position of this position in the local coordinate frame (NED: positive "down")
  * @param q  World to surface normal and heading transformation of the takeoff position. Used to indicate the heading and slope of the ground
  * @param approach_x [m] Local X position of the end of the approach vector. Multicopters should set this position based on their takeoff path. Grass-landing fixed wing aircraft should set it the same way as multicopters. Runway-landing fixed wing aircraft should set it to the opposite direction of the takeoff, assuming the takeoff happened from the threshold / touchdown zone.
  * @param approach_y [m] Local Y position of the end of the approach vector. Multicopters should set this position based on their takeoff path. Grass-landing fixed wing aircraft should set it the same way as multicopters. Runway-landing fixed wing aircraft should set it to the opposite direction of the takeoff, assuming the takeoff happened from the threshold / touchdown zone.
@@ -243,7 +243,7 @@ static inline uint16_t mavlink_msg_set_home_position_pack_chan(uint8_t system_id
     packet.approach_z = approach_z;
     packet.target_system = target_system;
     packet.time_usec = time_usec;
-    mav_array_memcpy(packet.q, q, sizeof(float)*4);
+    mav_array_assign_float(packet.q, q, 4);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_SET_HOME_POSITION_LEN);
 #endif
 
@@ -300,9 +300,9 @@ static inline uint16_t mavlink_msg_set_home_position_encode_status(uint8_t syste
  * @param latitude [degE7] Latitude (WGS84)
  * @param longitude [degE7] Longitude (WGS84)
  * @param altitude [mm] Altitude (MSL). Positive for up.
- * @param x [m] Local X position of this position in the local coordinate frame
- * @param y [m] Local Y position of this position in the local coordinate frame
- * @param z [m] Local Z position of this position in the local coordinate frame
+ * @param x [m] Local X position of this position in the local coordinate frame (NED)
+ * @param y [m] Local Y position of this position in the local coordinate frame (NED)
+ * @param z [m] Local Z position of this position in the local coordinate frame (NED: positive "down")
  * @param q  World to surface normal and heading transformation of the takeoff position. Used to indicate the heading and slope of the ground
  * @param approach_x [m] Local X position of the end of the approach vector. Multicopters should set this position based on their takeoff path. Grass-landing fixed wing aircraft should set it the same way as multicopters. Runway-landing fixed wing aircraft should set it to the opposite direction of the takeoff, assuming the takeoff happened from the threshold / touchdown zone.
  * @param approach_y [m] Local Y position of the end of the approach vector. Multicopters should set this position based on their takeoff path. Grass-landing fixed wing aircraft should set it the same way as multicopters. Runway-landing fixed wing aircraft should set it to the opposite direction of the takeoff, assuming the takeoff happened from the threshold / touchdown zone.
@@ -341,7 +341,7 @@ static inline void mavlink_msg_set_home_position_send(mavlink_channel_t chan, ui
     packet.approach_z = approach_z;
     packet.target_system = target_system;
     packet.time_usec = time_usec;
-    mav_array_memcpy(packet.q, q, sizeof(float)*4);
+    mav_array_assign_float(packet.q, q, 4);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_SET_HOME_POSITION, (const char *)&packet, MAVLINK_MSG_ID_SET_HOME_POSITION_MIN_LEN, MAVLINK_MSG_ID_SET_HOME_POSITION_LEN, MAVLINK_MSG_ID_SET_HOME_POSITION_CRC);
 #endif
 }
@@ -362,7 +362,7 @@ static inline void mavlink_msg_set_home_position_send_struct(mavlink_channel_t c
 
 #if MAVLINK_MSG_ID_SET_HOME_POSITION_LEN <= MAVLINK_MAX_PAYLOAD_LEN
 /*
-  This variant of _send() can be used to save stack space by re-using
+  This variant of _send() can be used to save stack space by reusing
   memory from the receive buffer.  The caller provides a
   mavlink_message_t which is the size of a full mavlink message. This
   is usually the receive buffer for the channel, and allows a reply to an
@@ -398,7 +398,7 @@ static inline void mavlink_msg_set_home_position_send_buf(mavlink_message_t *msg
     packet->approach_z = approach_z;
     packet->target_system = target_system;
     packet->time_usec = time_usec;
-    mav_array_memcpy(packet->q, q, sizeof(float)*4);
+    mav_array_assign_float(packet->q, q, 4);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_SET_HOME_POSITION, (const char *)packet, MAVLINK_MSG_ID_SET_HOME_POSITION_MIN_LEN, MAVLINK_MSG_ID_SET_HOME_POSITION_LEN, MAVLINK_MSG_ID_SET_HOME_POSITION_CRC);
 #endif
 }
@@ -452,7 +452,7 @@ static inline int32_t mavlink_msg_set_home_position_get_altitude(const mavlink_m
 /**
  * @brief Get field x from set_home_position message
  *
- * @return [m] Local X position of this position in the local coordinate frame
+ * @return [m] Local X position of this position in the local coordinate frame (NED)
  */
 static inline float mavlink_msg_set_home_position_get_x(const mavlink_message_t* msg)
 {
@@ -462,7 +462,7 @@ static inline float mavlink_msg_set_home_position_get_x(const mavlink_message_t*
 /**
  * @brief Get field y from set_home_position message
  *
- * @return [m] Local Y position of this position in the local coordinate frame
+ * @return [m] Local Y position of this position in the local coordinate frame (NED)
  */
 static inline float mavlink_msg_set_home_position_get_y(const mavlink_message_t* msg)
 {
@@ -472,7 +472,7 @@ static inline float mavlink_msg_set_home_position_get_y(const mavlink_message_t*
 /**
  * @brief Get field z from set_home_position message
  *
- * @return [m] Local Z position of this position in the local coordinate frame
+ * @return [m] Local Z position of this position in the local coordinate frame (NED: positive "down")
  */
 static inline float mavlink_msg_set_home_position_get_z(const mavlink_message_t* msg)
 {

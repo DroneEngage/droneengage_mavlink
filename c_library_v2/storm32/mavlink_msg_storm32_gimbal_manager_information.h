@@ -5,14 +5,14 @@
 
 
 typedef struct __mavlink_storm32_gimbal_manager_information_t {
- uint32_t device_cap_flags; /*<  Gimbal device capability flags.*/
+ uint32_t device_cap_flags; /*<  Gimbal device capability flags. Same flags as reported by GIMBAL_DEVICE_INFORMATION. The flag is only 16 bit wide, but stored in 32 bit, for backwards compatibility (high word is zero).*/
  uint32_t manager_cap_flags; /*<  Gimbal manager capability flags.*/
- float roll_min; /*< [rad] Hardware minimum roll angle (positive: roll to the right, NaN if unknown).*/
- float roll_max; /*< [rad] Hardware maximum roll angle (positive: roll to the right, NaN if unknown).*/
- float pitch_min; /*< [rad] Hardware minimum pitch/tilt angle (positive: tilt up, NaN if unknown).*/
- float pitch_max; /*< [rad] Hardware maximum pitch/tilt angle (positive: tilt up, NaN if unknown).*/
- float yaw_min; /*< [rad] Hardware minimum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base, NaN if unknown).*/
- float yaw_max; /*< [rad] Hardware maximum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base, NaN if unknown).*/
+ float roll_min; /*< [rad] Hardware minimum roll angle (positive: roll to the right). NaN if unknown.*/
+ float roll_max; /*< [rad] Hardware maximum roll angle (positive: roll to the right). NaN if unknown.*/
+ float pitch_min; /*< [rad] Hardware minimum pitch/tilt angle (positive: tilt up). NaN if unknown.*/
+ float pitch_max; /*< [rad] Hardware maximum pitch/tilt angle (positive: tilt up). NaN if unknown.*/
+ float yaw_min; /*< [rad] Hardware minimum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base). NaN if unknown.*/
+ float yaw_max; /*< [rad] Hardware maximum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base). NaN if unknown.*/
  uint8_t gimbal_id; /*<  Gimbal ID (component ID or 1-6 for non-MAVLink gimbal) that this gimbal manager is responsible for.*/
 } mavlink_storm32_gimbal_manager_information_t;
 
@@ -66,14 +66,14 @@ typedef struct __mavlink_storm32_gimbal_manager_information_t {
  * @param msg The MAVLink message to compress the data into
  *
  * @param gimbal_id  Gimbal ID (component ID or 1-6 for non-MAVLink gimbal) that this gimbal manager is responsible for.
- * @param device_cap_flags  Gimbal device capability flags.
+ * @param device_cap_flags  Gimbal device capability flags. Same flags as reported by GIMBAL_DEVICE_INFORMATION. The flag is only 16 bit wide, but stored in 32 bit, for backwards compatibility (high word is zero).
  * @param manager_cap_flags  Gimbal manager capability flags.
- * @param roll_min [rad] Hardware minimum roll angle (positive: roll to the right, NaN if unknown).
- * @param roll_max [rad] Hardware maximum roll angle (positive: roll to the right, NaN if unknown).
- * @param pitch_min [rad] Hardware minimum pitch/tilt angle (positive: tilt up, NaN if unknown).
- * @param pitch_max [rad] Hardware maximum pitch/tilt angle (positive: tilt up, NaN if unknown).
- * @param yaw_min [rad] Hardware minimum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base, NaN if unknown).
- * @param yaw_max [rad] Hardware maximum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base, NaN if unknown).
+ * @param roll_min [rad] Hardware minimum roll angle (positive: roll to the right). NaN if unknown.
+ * @param roll_max [rad] Hardware maximum roll angle (positive: roll to the right). NaN if unknown.
+ * @param pitch_min [rad] Hardware minimum pitch/tilt angle (positive: tilt up). NaN if unknown.
+ * @param pitch_max [rad] Hardware maximum pitch/tilt angle (positive: tilt up). NaN if unknown.
+ * @param yaw_min [rad] Hardware minimum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base). NaN if unknown.
+ * @param yaw_max [rad] Hardware maximum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base). NaN if unknown.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_information_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
@@ -119,14 +119,14 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_information_pack(uint8
  * @param msg The MAVLink message to compress the data into
  *
  * @param gimbal_id  Gimbal ID (component ID or 1-6 for non-MAVLink gimbal) that this gimbal manager is responsible for.
- * @param device_cap_flags  Gimbal device capability flags.
+ * @param device_cap_flags  Gimbal device capability flags. Same flags as reported by GIMBAL_DEVICE_INFORMATION. The flag is only 16 bit wide, but stored in 32 bit, for backwards compatibility (high word is zero).
  * @param manager_cap_flags  Gimbal manager capability flags.
- * @param roll_min [rad] Hardware minimum roll angle (positive: roll to the right, NaN if unknown).
- * @param roll_max [rad] Hardware maximum roll angle (positive: roll to the right, NaN if unknown).
- * @param pitch_min [rad] Hardware minimum pitch/tilt angle (positive: tilt up, NaN if unknown).
- * @param pitch_max [rad] Hardware maximum pitch/tilt angle (positive: tilt up, NaN if unknown).
- * @param yaw_min [rad] Hardware minimum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base, NaN if unknown).
- * @param yaw_max [rad] Hardware maximum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base, NaN if unknown).
+ * @param roll_min [rad] Hardware minimum roll angle (positive: roll to the right). NaN if unknown.
+ * @param roll_max [rad] Hardware maximum roll angle (positive: roll to the right). NaN if unknown.
+ * @param pitch_min [rad] Hardware minimum pitch/tilt angle (positive: tilt up). NaN if unknown.
+ * @param pitch_max [rad] Hardware maximum pitch/tilt angle (positive: tilt up). NaN if unknown.
+ * @param yaw_min [rad] Hardware minimum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base). NaN if unknown.
+ * @param yaw_max [rad] Hardware maximum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base). NaN if unknown.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_information_pack_status(uint8_t system_id, uint8_t component_id, mavlink_status_t *_status, mavlink_message_t* msg,
@@ -175,14 +175,14 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_information_pack_statu
  * @param chan The MAVLink channel this message will be sent over
  * @param msg The MAVLink message to compress the data into
  * @param gimbal_id  Gimbal ID (component ID or 1-6 for non-MAVLink gimbal) that this gimbal manager is responsible for.
- * @param device_cap_flags  Gimbal device capability flags.
+ * @param device_cap_flags  Gimbal device capability flags. Same flags as reported by GIMBAL_DEVICE_INFORMATION. The flag is only 16 bit wide, but stored in 32 bit, for backwards compatibility (high word is zero).
  * @param manager_cap_flags  Gimbal manager capability flags.
- * @param roll_min [rad] Hardware minimum roll angle (positive: roll to the right, NaN if unknown).
- * @param roll_max [rad] Hardware maximum roll angle (positive: roll to the right, NaN if unknown).
- * @param pitch_min [rad] Hardware minimum pitch/tilt angle (positive: tilt up, NaN if unknown).
- * @param pitch_max [rad] Hardware maximum pitch/tilt angle (positive: tilt up, NaN if unknown).
- * @param yaw_min [rad] Hardware minimum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base, NaN if unknown).
- * @param yaw_max [rad] Hardware maximum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base, NaN if unknown).
+ * @param roll_min [rad] Hardware minimum roll angle (positive: roll to the right). NaN if unknown.
+ * @param roll_max [rad] Hardware maximum roll angle (positive: roll to the right). NaN if unknown.
+ * @param pitch_min [rad] Hardware minimum pitch/tilt angle (positive: tilt up). NaN if unknown.
+ * @param pitch_max [rad] Hardware maximum pitch/tilt angle (positive: tilt up). NaN if unknown.
+ * @param yaw_min [rad] Hardware minimum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base). NaN if unknown.
+ * @param yaw_max [rad] Hardware maximum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base). NaN if unknown.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_information_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
@@ -267,14 +267,14 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_information_encode_sta
  * @param chan MAVLink channel to send the message
  *
  * @param gimbal_id  Gimbal ID (component ID or 1-6 for non-MAVLink gimbal) that this gimbal manager is responsible for.
- * @param device_cap_flags  Gimbal device capability flags.
+ * @param device_cap_flags  Gimbal device capability flags. Same flags as reported by GIMBAL_DEVICE_INFORMATION. The flag is only 16 bit wide, but stored in 32 bit, for backwards compatibility (high word is zero).
  * @param manager_cap_flags  Gimbal manager capability flags.
- * @param roll_min [rad] Hardware minimum roll angle (positive: roll to the right, NaN if unknown).
- * @param roll_max [rad] Hardware maximum roll angle (positive: roll to the right, NaN if unknown).
- * @param pitch_min [rad] Hardware minimum pitch/tilt angle (positive: tilt up, NaN if unknown).
- * @param pitch_max [rad] Hardware maximum pitch/tilt angle (positive: tilt up, NaN if unknown).
- * @param yaw_min [rad] Hardware minimum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base, NaN if unknown).
- * @param yaw_max [rad] Hardware maximum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base, NaN if unknown).
+ * @param roll_min [rad] Hardware minimum roll angle (positive: roll to the right). NaN if unknown.
+ * @param roll_max [rad] Hardware maximum roll angle (positive: roll to the right). NaN if unknown.
+ * @param pitch_min [rad] Hardware minimum pitch/tilt angle (positive: tilt up). NaN if unknown.
+ * @param pitch_max [rad] Hardware maximum pitch/tilt angle (positive: tilt up). NaN if unknown.
+ * @param yaw_min [rad] Hardware minimum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base). NaN if unknown.
+ * @param yaw_max [rad] Hardware maximum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base). NaN if unknown.
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
@@ -325,7 +325,7 @@ static inline void mavlink_msg_storm32_gimbal_manager_information_send_struct(ma
 
 #if MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_INFORMATION_LEN <= MAVLINK_MAX_PAYLOAD_LEN
 /*
-  This variant of _send() can be used to save stack space by re-using
+  This variant of _send() can be used to save stack space by reusing
   memory from the receive buffer.  The caller provides a
   mavlink_message_t which is the size of a full mavlink message. This
   is usually the receive buffer for the channel, and allows a reply to an
@@ -381,7 +381,7 @@ static inline uint8_t mavlink_msg_storm32_gimbal_manager_information_get_gimbal_
 /**
  * @brief Get field device_cap_flags from storm32_gimbal_manager_information message
  *
- * @return  Gimbal device capability flags.
+ * @return  Gimbal device capability flags. Same flags as reported by GIMBAL_DEVICE_INFORMATION. The flag is only 16 bit wide, but stored in 32 bit, for backwards compatibility (high word is zero).
  */
 static inline uint32_t mavlink_msg_storm32_gimbal_manager_information_get_device_cap_flags(const mavlink_message_t* msg)
 {
@@ -401,7 +401,7 @@ static inline uint32_t mavlink_msg_storm32_gimbal_manager_information_get_manage
 /**
  * @brief Get field roll_min from storm32_gimbal_manager_information message
  *
- * @return [rad] Hardware minimum roll angle (positive: roll to the right, NaN if unknown).
+ * @return [rad] Hardware minimum roll angle (positive: roll to the right). NaN if unknown.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_information_get_roll_min(const mavlink_message_t* msg)
 {
@@ -411,7 +411,7 @@ static inline float mavlink_msg_storm32_gimbal_manager_information_get_roll_min(
 /**
  * @brief Get field roll_max from storm32_gimbal_manager_information message
  *
- * @return [rad] Hardware maximum roll angle (positive: roll to the right, NaN if unknown).
+ * @return [rad] Hardware maximum roll angle (positive: roll to the right). NaN if unknown.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_information_get_roll_max(const mavlink_message_t* msg)
 {
@@ -421,7 +421,7 @@ static inline float mavlink_msg_storm32_gimbal_manager_information_get_roll_max(
 /**
  * @brief Get field pitch_min from storm32_gimbal_manager_information message
  *
- * @return [rad] Hardware minimum pitch/tilt angle (positive: tilt up, NaN if unknown).
+ * @return [rad] Hardware minimum pitch/tilt angle (positive: tilt up). NaN if unknown.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_information_get_pitch_min(const mavlink_message_t* msg)
 {
@@ -431,7 +431,7 @@ static inline float mavlink_msg_storm32_gimbal_manager_information_get_pitch_min
 /**
  * @brief Get field pitch_max from storm32_gimbal_manager_information message
  *
- * @return [rad] Hardware maximum pitch/tilt angle (positive: tilt up, NaN if unknown).
+ * @return [rad] Hardware maximum pitch/tilt angle (positive: tilt up). NaN if unknown.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_information_get_pitch_max(const mavlink_message_t* msg)
 {
@@ -441,7 +441,7 @@ static inline float mavlink_msg_storm32_gimbal_manager_information_get_pitch_max
 /**
  * @brief Get field yaw_min from storm32_gimbal_manager_information message
  *
- * @return [rad] Hardware minimum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base, NaN if unknown).
+ * @return [rad] Hardware minimum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base). NaN if unknown.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_information_get_yaw_min(const mavlink_message_t* msg)
 {
@@ -451,7 +451,7 @@ static inline float mavlink_msg_storm32_gimbal_manager_information_get_yaw_min(c
 /**
  * @brief Get field yaw_max from storm32_gimbal_manager_information message
  *
- * @return [rad] Hardware maximum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base, NaN if unknown).
+ * @return [rad] Hardware maximum yaw/pan angle (positive: pan to the right, relative to the vehicle/gimbal base). NaN if unknown.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_information_get_yaw_max(const mavlink_message_t* msg)
 {
