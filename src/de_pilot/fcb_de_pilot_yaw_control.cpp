@@ -130,12 +130,13 @@ void CDEPilotYawControl::setYawTarget(double angle, double rate, bool is_clockwi
   m_active = true;
   m_phase = PHASE_ACTIVE;
   m_generic_phase = static_cast<int>(m_phase);
-
+#ifdef DEBUG
   std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotYawControl: Yaw target set"
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
   std::cout << "  - Target angle: " << m_target_yaw_angle << " deg" << std::endl;
   std::cout << "  - Direction: " << (is_clockwise ? "Clockwise" : "Counter-clockwise") << std::endl;
   std::cout << "  - Mode: " << (is_relative ? "Relative" : "Absolute") << std::endl;
+#endif  
 }
 
 void CDEPilotYawControl::clearYawTarget() {
@@ -228,7 +229,9 @@ void CDEPilotYawControl::applyYawToRCChannels(uint16_t rc_channels[], int flying
       // Within deadband - send neutral PWM and reset PID
       pwm = 1500;
       m_yaw_pid_controller.reset();
+#ifdef DEBUG      
       std::cout << "  - YAW Control (RC): WITHIN DEADBAND - Neutral" << std::endl;
+#endif
     } else {
       // Outside deadband - apply PID control
       desired_yaw_rate = calculateDesiredYawRate(angle_error);
@@ -246,6 +249,7 @@ void CDEPilotYawControl::applyYawToRCChannels(uint16_t rc_channels[], int flying
         pwm = 1200;
     }
 
+#ifdef DEBUG
     std::cout << "  - YAW Control (RC):" << std::endl;
     std::cout << "    - Current heading: " << current_heading << " rad" << std::endl;
     std::cout << "    - Target heading: " << target_heading << " rad" << std::endl;
@@ -255,11 +259,13 @@ void CDEPilotYawControl::applyYawToRCChannels(uint16_t rc_channels[], int flying
     std::cout << "    - Rate error: " << rate_error << " rad/s" << std::endl;
     std::cout << "    - Advanced PID output: " << pid_output << " PWM" << std::endl;
     std::cout << "    - PWM: " << pwm << std::endl;
+#endif
 
     rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_yaw] = pwm;
   } else {
+#ifdef DEBUG
     std::cout << "  - YAW Control (MAVLink): angle=" << m_target_yaw_angle << std::endl;
-
+#endif
     double target_angle_rad = m_target_yaw_angle * M_PI / 180.0;
     double turn_rate_rad = m_default_yaw_rate * M_PI / 180.0;
 
@@ -273,7 +279,7 @@ float CDEPilotYawControl::calculateDesiredYawRate(double angle_error_rad) const 
   const double p_gain = m_yaw_p;
   const double max_accel = m_yaw_max_accel;
   const double max_rate = m_default_yaw_rate;
-
+      
   double desired_rate_deg = CAdvancedPIDController::sqrt_controller(
       error, p_gain, max_accel, max_rate);
 

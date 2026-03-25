@@ -304,7 +304,7 @@ void CDEPilotChangeAltitude::updateTakeoff() {
             }
 
             const double altitude_error = m_target_altitude - current_altitude;
-            
+ #ifdef DEBUG           
             std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Altitude change update (" 
                       << (m_phase == PHASE_ASCENDING ? "ASCENDING" : "DESCENDING") << ")" 
                       << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -312,7 +312,7 @@ void CDEPilotChangeAltitude::updateTakeoff() {
             std::cout << "  - Target altitude: " << m_target_altitude << "m" << std::endl;
             std::cout << "  - Altitude error: " << altitude_error << "m" << std::endl;
             std::cout << "  - Deadband: " << m_deadband << "m" << std::endl;
-            
+#endif
             if (std::abs(altitude_error) < m_deadband) {
                 std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Target altitude reached" 
                           << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -323,14 +323,17 @@ void CDEPilotChangeAltitude::updateTakeoff() {
             // Send control command based on mode
             if (vehicle_info.flying_mode == VEHICLE_MODE_GUIDED) {
                 // In GUIDED mode, use direct MAVLink changeAltitude command
+#ifdef DEBUG                
                 std::cout << "  - GUIDED mode: Sending changeAltitude(" << m_target_altitude << ") command" << std::endl;
+#endif                
                 mavlinksdk::CMavlinkCommand::getInstance().changeAltitude(m_target_altitude);
             } else {
                 // ALT-HOLD or STABILIZE - use RC override
                 int16_t throttle_adj = calculateThrottleAdjustment(current_altitude);
+#ifdef DEBUG                
                 std::cout << "  - Manual mode: Calculated throttle adjustment: " << throttle_adj << std::endl;
                 std::cout << "  - Manual mode: Sending throttle PWM: " << (1500 + throttle_adj) << std::endl;
-                
+#endif                
                 uint16_t rc_channels[RC_CHANNELS_MAX];
                 std::fill_n(rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
                 const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map = fcbMain.getRCChannelsMapInfo();
@@ -353,24 +356,25 @@ void CDEPilotChangeAltitude::updateTakeoff() {
             if ((now - m_phase_start_time) > 2000000 && 
                 m_zero_climb_rate_start_time > 0 && 
                 (now - m_zero_climb_rate_start_time) > (m_timeout_ms * 1000)) {
+#ifdef DEBUG                    
                 std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DEPILOT: Takeoff timeout - not climbing for " 
                           << ((now - m_zero_climb_rate_start_time) / 1000000.0) << " seconds (climb rate: " 
                           << m_current_climb_rate << " m/s)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                
+#endif                
                 // abortTakeoff() will send 1500 to maintain current altitude
                 abortTakeoff();
                 return;
             }
 
             const double altitude_error = m_target_altitude - current_altitude;
-            
+#ifdef DEBUG            
             std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Climbing phase update" 
                       << _NORMAL_CONSOLE_TEXT_ << std::endl;
             std::cout << "  - Current altitude: " << current_altitude << "m" << std::endl;
             std::cout << "  - Target altitude: " << m_target_altitude << "m" << std::endl;
             std::cout << "  - Altitude error: " << altitude_error << "m" << std::endl;
             std::cout << "  - Deadband: " << m_deadband << "m" << std::endl;
-            
+#endif            
             if (std::abs(altitude_error) < m_deadband) {
                 std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "DEPILOT: Target altitude reached" 
                           << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -408,14 +412,18 @@ void CDEPilotChangeAltitude::updateTakeoff() {
             // Send control command based on mode
             if (vehicle_info.flying_mode == VEHICLE_MODE_GUIDED) {
                 // In GUIDED mode, use direct MAVLink takeOff command
+#ifdef DEBUG                
                 std::cout << "  - GUIDED mode: Sending takeOff(" << m_target_altitude << ") command" << std::endl;
+#endif                
                 mavlinksdk::CMavlinkCommand::getInstance().takeOff(m_target_altitude);
             } else {
                 // ALT-HOLD or STABILIZE - use RC override
                 int16_t throttle_adj = calculateThrottleAdjustment(current_altitude);
+#ifdef DEBUG                
                 std::cout << "  - Manual mode: Calculated throttle adjustment: " << throttle_adj << std::endl;
                 std::cout << "  - Manual mode: Sending throttle PWM: " << (1500 + throttle_adj) << std::endl;
-                
+#endif
+
                 uint16_t rc_channels[RC_CHANNELS_MAX];
                 std::fill_n(rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
                 const RCMAP_CHANNELS_MAP_INFO_STRUCT rc_map = fcbMain.getRCChannelsMapInfo();
@@ -488,15 +496,15 @@ bool CDEPilotChangeAltitude::isTakeoffActive() const {
 int16_t CDEPilotChangeAltitude::calculateThrottleAdjustment(double current_altitude) {
     const float desired_rate = calculateClimbRate(current_altitude);
     const double rate_error = desired_rate - m_current_climb_rate;
-
+#ifdef DEBUG
     std::cout << "  - Desired climb rate: " << desired_rate << " m/s" << std::endl;
-
+#endif
     // Use advanced PID controller with feedforward
     // The controller handles PID calculation, anti-windup, and feedforward internally
     const double pid_output = m_throttle_pid_controller.calculate(rate_error, desired_rate);
-    
+#ifdef DEBUG    
     std::cout << "  - Advanced PID output: " << pid_output << " PWM" << std::endl;
-    
+#endif    
     // Convert to throttle adjustment (PWM range)
     int16_t throttle_adj = static_cast<int16_t>(pid_output);
     
@@ -534,10 +542,10 @@ void CDEPilotChangeAltitude::stopAltitudeControl() {
     if (!m_active) {
         return;
     }
-
+#ifdef DEBUG
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Stopping altitude control" 
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    
+#endif    
     m_active = false;
     
     de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();

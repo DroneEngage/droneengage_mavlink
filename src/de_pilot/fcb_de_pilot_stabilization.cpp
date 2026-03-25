@@ -111,30 +111,33 @@ void CDEPilotStabilization::updateStabilization() {
     return;
   }
 
+  
+  switch (m_phase) {
+  case PHASE_STABILIZING: {
+#ifdef DEBUG    
   const double current_altitude = mavlinksdk::CVehicle::getInstance()
                                       .getMsgGlobalPositionInt()
                                       .relative_alt /
                                   1000.0;
-
-  switch (m_phase) {
-  case PHASE_STABILIZING: {
+  
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Stabilizing altitude"
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
     std::cout << "  - Current flight mode: " << vehicle_info.flying_mode
               << std::endl;
     std::cout << "  - Current altitude: " << current_altitude << "m"
               << std::endl;
-
+#endif
     // Update YAW control service
     CDEPilotYawControl::getInstance().updateYawControl();
 
     // In ALT-HOLD mode, send 1500 to stop climbing/descending
     if (vehicle_info.flying_mode != VEHICLE_MODE_GUIDED &&
         vehicle_info.flying_mode != VEHICLE_MODE_BRAKE) {
+#ifdef DEBUG          
       std::cout << "  - ALT-HOLD mode: Sending stop command (1500) to maintain "
                    "altitude"
                 << std::endl;
-
+#endif
       uint16_t rc_channels[RC_CHANNELS_MAX];
       std::fill_n(rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
       rc_channels[m_fcbMain.getRCChannelsMapInfo().rcmap_throttle] = 1500;
@@ -148,9 +151,10 @@ void CDEPilotStabilization::updateStabilization() {
       mavlinksdk::CMavlinkCommand::getInstance().sendRCChannels2(
           rc_channels, RC_CHANNELS_MAX, UINT16_MAX);
     } else {
+#ifdef DEBUG      
       std::cout << "  - GUIDED mode: Flight controller handles stabilization"
                 << std::endl;
-
+#endif
       // Apply YAW control from service (handles MAVLink commands in GUIDED mode)
       CDEPilotYawControl::getInstance().applyYawToRCChannels(nullptr, vehicle_info.flying_mode);
     }
