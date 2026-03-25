@@ -5,7 +5,7 @@
 
 
 typedef struct __mavlink_storm32_gimbal_manager_status_t {
- uint16_t device_flags; /*<  Gimbal device flags currently applied.*/
+ uint16_t device_flags; /*<  Gimbal device flags currently applied. Same flags as reported by GIMBAL_DEVICE_ATTITUDE_STATUS.*/
  uint16_t manager_flags; /*<  Gimbal manager flags currently applied.*/
  uint8_t gimbal_id; /*<  Gimbal ID (component ID or 1-6 for non-MAVLink gimbal) that this gimbal manager is responsible for.*/
  uint8_t supervisor; /*<  Client who is currently supervisor (0 = none).*/
@@ -55,7 +55,7 @@ typedef struct __mavlink_storm32_gimbal_manager_status_t {
  *
  * @param gimbal_id  Gimbal ID (component ID or 1-6 for non-MAVLink gimbal) that this gimbal manager is responsible for.
  * @param supervisor  Client who is currently supervisor (0 = none).
- * @param device_flags  Gimbal device flags currently applied.
+ * @param device_flags  Gimbal device flags currently applied. Same flags as reported by GIMBAL_DEVICE_ATTITUDE_STATUS.
  * @param manager_flags  Gimbal manager flags currently applied.
  * @param profile  Profile currently applied (0 = default).
  * @return length of the message in bytes (excluding serial stream start sign)
@@ -96,7 +96,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_status_pack(uint8_t sy
  *
  * @param gimbal_id  Gimbal ID (component ID or 1-6 for non-MAVLink gimbal) that this gimbal manager is responsible for.
  * @param supervisor  Client who is currently supervisor (0 = none).
- * @param device_flags  Gimbal device flags currently applied.
+ * @param device_flags  Gimbal device flags currently applied. Same flags as reported by GIMBAL_DEVICE_ATTITUDE_STATUS.
  * @param manager_flags  Gimbal manager flags currently applied.
  * @param profile  Profile currently applied (0 = default).
  * @return length of the message in bytes (excluding serial stream start sign)
@@ -140,7 +140,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_status_pack_status(uin
  * @param msg The MAVLink message to compress the data into
  * @param gimbal_id  Gimbal ID (component ID or 1-6 for non-MAVLink gimbal) that this gimbal manager is responsible for.
  * @param supervisor  Client who is currently supervisor (0 = none).
- * @param device_flags  Gimbal device flags currently applied.
+ * @param device_flags  Gimbal device flags currently applied. Same flags as reported by GIMBAL_DEVICE_ATTITUDE_STATUS.
  * @param manager_flags  Gimbal manager flags currently applied.
  * @param profile  Profile currently applied (0 = default).
  * @return length of the message in bytes (excluding serial stream start sign)
@@ -220,7 +220,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_status_encode_status(u
  *
  * @param gimbal_id  Gimbal ID (component ID or 1-6 for non-MAVLink gimbal) that this gimbal manager is responsible for.
  * @param supervisor  Client who is currently supervisor (0 = none).
- * @param device_flags  Gimbal device flags currently applied.
+ * @param device_flags  Gimbal device flags currently applied. Same flags as reported by GIMBAL_DEVICE_ATTITUDE_STATUS.
  * @param manager_flags  Gimbal manager flags currently applied.
  * @param profile  Profile currently applied (0 = default).
  */
@@ -265,7 +265,7 @@ static inline void mavlink_msg_storm32_gimbal_manager_status_send_struct(mavlink
 
 #if MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_STATUS_LEN <= MAVLINK_MAX_PAYLOAD_LEN
 /*
-  This variant of _send() can be used to save stack space by re-using
+  This variant of _send() can be used to save stack space by reusing
   memory from the receive buffer.  The caller provides a
   mavlink_message_t which is the size of a full mavlink message. This
   is usually the receive buffer for the channel, and allows a reply to an
@@ -323,7 +323,7 @@ static inline uint8_t mavlink_msg_storm32_gimbal_manager_status_get_supervisor(c
 /**
  * @brief Get field device_flags from storm32_gimbal_manager_status message
  *
- * @return  Gimbal device flags currently applied.
+ * @return  Gimbal device flags currently applied. Same flags as reported by GIMBAL_DEVICE_ATTITUDE_STATUS.
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_status_get_device_flags(const mavlink_message_t* msg)
 {

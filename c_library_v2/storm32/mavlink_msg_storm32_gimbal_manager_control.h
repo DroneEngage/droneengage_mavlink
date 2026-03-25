@@ -5,15 +5,15 @@
 
 
 typedef struct __mavlink_storm32_gimbal_manager_control_t {
- float q[4]; /*<  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the GIMBAL_MANAGER_FLAGS_ABSOLUTE_YAW flag, set first element to NaN to be ignored).*/
- float angular_velocity_x; /*< [rad/s] X component of angular velocity (positive: roll to the right, NaN to be ignored).*/
- float angular_velocity_y; /*< [rad/s] Y component of angular velocity (positive: tilt up, NaN to be ignored).*/
- float angular_velocity_z; /*< [rad/s] Z component of angular velocity (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).*/
- uint16_t device_flags; /*<  Gimbal device flags (UINT16_MAX to be ignored).*/
- uint16_t manager_flags; /*<  Gimbal manager flags (0 to be ignored).*/
+ float q[4]; /*<  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation). Set first element to NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.*/
+ float angular_velocity_x; /*< [rad/s] X component of angular velocity (positive: roll to the right). NaN to be ignored.*/
+ float angular_velocity_y; /*< [rad/s] Y component of angular velocity (positive: tilt up). NaN to be ignored.*/
+ float angular_velocity_z; /*< [rad/s] Z component of angular velocity (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.*/
+ uint16_t device_flags; /*<  Gimbal device flags to be applied (UINT16_MAX to be ignored). Same flags as used in GIMBAL_DEVICE_SET_ATTITUDE.*/
+ uint16_t manager_flags; /*<  Gimbal manager flags to be applied (0 to be ignored).*/
  uint8_t target_system; /*<  System ID*/
  uint8_t target_component; /*<  Component ID*/
- uint8_t gimbal_id; /*<  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).*/
+ uint8_t gimbal_id; /*<  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.*/
  uint8_t client; /*<  Client which is contacting the gimbal manager (must be set).*/
 } mavlink_storm32_gimbal_manager_control_t;
 
@@ -70,14 +70,14 @@ typedef struct __mavlink_storm32_gimbal_manager_control_t {
  *
  * @param target_system  System ID
  * @param target_component  Component ID
- * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  * @param client  Client which is contacting the gimbal manager (must be set).
- * @param device_flags  Gimbal device flags (UINT16_MAX to be ignored).
- * @param manager_flags  Gimbal manager flags (0 to be ignored).
- * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the GIMBAL_MANAGER_FLAGS_ABSOLUTE_YAW flag, set first element to NaN to be ignored).
- * @param angular_velocity_x [rad/s] X component of angular velocity (positive: roll to the right, NaN to be ignored).
- * @param angular_velocity_y [rad/s] Y component of angular velocity (positive: tilt up, NaN to be ignored).
- * @param angular_velocity_z [rad/s] Z component of angular velocity (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @param device_flags  Gimbal device flags to be applied (UINT16_MAX to be ignored). Same flags as used in GIMBAL_DEVICE_SET_ATTITUDE.
+ * @param manager_flags  Gimbal manager flags to be applied (0 to be ignored).
+ * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation). Set first element to NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
+ * @param angular_velocity_x [rad/s] X component of angular velocity (positive: roll to the right). NaN to be ignored.
+ * @param angular_velocity_y [rad/s] Y component of angular velocity (positive: tilt up). NaN to be ignored.
+ * @param angular_velocity_z [rad/s] Z component of angular velocity (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
@@ -107,7 +107,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pack(uint8_t s
     packet.target_component = target_component;
     packet.gimbal_id = gimbal_id;
     packet.client = client;
-    mav_array_memcpy(packet.q, q, sizeof(float)*4);
+    mav_array_assign_float(packet.q, q, 4);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CONTROL_LEN);
 #endif
 
@@ -124,14 +124,14 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pack(uint8_t s
  *
  * @param target_system  System ID
  * @param target_component  Component ID
- * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  * @param client  Client which is contacting the gimbal manager (must be set).
- * @param device_flags  Gimbal device flags (UINT16_MAX to be ignored).
- * @param manager_flags  Gimbal manager flags (0 to be ignored).
- * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the GIMBAL_MANAGER_FLAGS_ABSOLUTE_YAW flag, set first element to NaN to be ignored).
- * @param angular_velocity_x [rad/s] X component of angular velocity (positive: roll to the right, NaN to be ignored).
- * @param angular_velocity_y [rad/s] Y component of angular velocity (positive: tilt up, NaN to be ignored).
- * @param angular_velocity_z [rad/s] Z component of angular velocity (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @param device_flags  Gimbal device flags to be applied (UINT16_MAX to be ignored). Same flags as used in GIMBAL_DEVICE_SET_ATTITUDE.
+ * @param manager_flags  Gimbal manager flags to be applied (0 to be ignored).
+ * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation). Set first element to NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
+ * @param angular_velocity_x [rad/s] X component of angular velocity (positive: roll to the right). NaN to be ignored.
+ * @param angular_velocity_y [rad/s] Y component of angular velocity (positive: tilt up). NaN to be ignored.
+ * @param angular_velocity_z [rad/s] Z component of angular velocity (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pack_status(uint8_t system_id, uint8_t component_id, mavlink_status_t *_status, mavlink_message_t* msg,
@@ -181,14 +181,14 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pack_status(ui
  * @param msg The MAVLink message to compress the data into
  * @param target_system  System ID
  * @param target_component  Component ID
- * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  * @param client  Client which is contacting the gimbal manager (must be set).
- * @param device_flags  Gimbal device flags (UINT16_MAX to be ignored).
- * @param manager_flags  Gimbal manager flags (0 to be ignored).
- * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the GIMBAL_MANAGER_FLAGS_ABSOLUTE_YAW flag, set first element to NaN to be ignored).
- * @param angular_velocity_x [rad/s] X component of angular velocity (positive: roll to the right, NaN to be ignored).
- * @param angular_velocity_y [rad/s] Y component of angular velocity (positive: tilt up, NaN to be ignored).
- * @param angular_velocity_z [rad/s] Z component of angular velocity (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @param device_flags  Gimbal device flags to be applied (UINT16_MAX to be ignored). Same flags as used in GIMBAL_DEVICE_SET_ATTITUDE.
+ * @param manager_flags  Gimbal manager flags to be applied (0 to be ignored).
+ * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation). Set first element to NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
+ * @param angular_velocity_x [rad/s] X component of angular velocity (positive: roll to the right). NaN to be ignored.
+ * @param angular_velocity_y [rad/s] Y component of angular velocity (positive: tilt up). NaN to be ignored.
+ * @param angular_velocity_z [rad/s] Z component of angular velocity (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
@@ -219,7 +219,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_pack_chan(uint
     packet.target_component = target_component;
     packet.gimbal_id = gimbal_id;
     packet.client = client;
-    mav_array_memcpy(packet.q, q, sizeof(float)*4);
+    mav_array_assign_float(packet.q, q, 4);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CONTROL_LEN);
 #endif
 
@@ -274,14 +274,14 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_encode_status(
  *
  * @param target_system  System ID
  * @param target_component  Component ID
- * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  * @param client  Client which is contacting the gimbal manager (must be set).
- * @param device_flags  Gimbal device flags (UINT16_MAX to be ignored).
- * @param manager_flags  Gimbal manager flags (0 to be ignored).
- * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the GIMBAL_MANAGER_FLAGS_ABSOLUTE_YAW flag, set first element to NaN to be ignored).
- * @param angular_velocity_x [rad/s] X component of angular velocity (positive: roll to the right, NaN to be ignored).
- * @param angular_velocity_y [rad/s] Y component of angular velocity (positive: tilt up, NaN to be ignored).
- * @param angular_velocity_z [rad/s] Z component of angular velocity (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @param device_flags  Gimbal device flags to be applied (UINT16_MAX to be ignored). Same flags as used in GIMBAL_DEVICE_SET_ATTITUDE.
+ * @param manager_flags  Gimbal manager flags to be applied (0 to be ignored).
+ * @param q  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation). Set first element to NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
+ * @param angular_velocity_x [rad/s] X component of angular velocity (positive: roll to the right). NaN to be ignored.
+ * @param angular_velocity_y [rad/s] Y component of angular velocity (positive: tilt up). NaN to be ignored.
+ * @param angular_velocity_z [rad/s] Z component of angular velocity (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
@@ -311,7 +311,7 @@ static inline void mavlink_msg_storm32_gimbal_manager_control_send(mavlink_chann
     packet.target_component = target_component;
     packet.gimbal_id = gimbal_id;
     packet.client = client;
-    mav_array_memcpy(packet.q, q, sizeof(float)*4);
+    mav_array_assign_float(packet.q, q, 4);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CONTROL, (const char *)&packet, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CONTROL_MIN_LEN, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CONTROL_LEN, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CONTROL_CRC);
 #endif
 }
@@ -332,7 +332,7 @@ static inline void mavlink_msg_storm32_gimbal_manager_control_send_struct(mavlin
 
 #if MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CONTROL_LEN <= MAVLINK_MAX_PAYLOAD_LEN
 /*
-  This variant of _send() can be used to save stack space by re-using
+  This variant of _send() can be used to save stack space by reusing
   memory from the receive buffer.  The caller provides a
   mavlink_message_t which is the size of a full mavlink message. This
   is usually the receive buffer for the channel, and allows a reply to an
@@ -364,7 +364,7 @@ static inline void mavlink_msg_storm32_gimbal_manager_control_send_buf(mavlink_m
     packet->target_component = target_component;
     packet->gimbal_id = gimbal_id;
     packet->client = client;
-    mav_array_memcpy(packet->q, q, sizeof(float)*4);
+    mav_array_assign_float(packet->q, q, 4);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CONTROL, (const char *)packet, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CONTROL_MIN_LEN, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CONTROL_LEN, MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CONTROL_CRC);
 #endif
 }
@@ -398,7 +398,7 @@ static inline uint8_t mavlink_msg_storm32_gimbal_manager_control_get_target_comp
 /**
  * @brief Get field gimbal_id from storm32_gimbal_manager_control message
  *
- * @return  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @return  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  */
 static inline uint8_t mavlink_msg_storm32_gimbal_manager_control_get_gimbal_id(const mavlink_message_t* msg)
 {
@@ -418,7 +418,7 @@ static inline uint8_t mavlink_msg_storm32_gimbal_manager_control_get_client(cons
 /**
  * @brief Get field device_flags from storm32_gimbal_manager_control message
  *
- * @return  Gimbal device flags (UINT16_MAX to be ignored).
+ * @return  Gimbal device flags to be applied (UINT16_MAX to be ignored). Same flags as used in GIMBAL_DEVICE_SET_ATTITUDE.
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_get_device_flags(const mavlink_message_t* msg)
 {
@@ -428,7 +428,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_get_device_fla
 /**
  * @brief Get field manager_flags from storm32_gimbal_manager_control message
  *
- * @return  Gimbal manager flags (0 to be ignored).
+ * @return  Gimbal manager flags to be applied (0 to be ignored).
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_get_manager_flags(const mavlink_message_t* msg)
 {
@@ -438,7 +438,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_get_manager_fl
 /**
  * @brief Get field q from storm32_gimbal_manager_control message
  *
- * @return  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation, the frame is determined by the GIMBAL_MANAGER_FLAGS_ABSOLUTE_YAW flag, set first element to NaN to be ignored).
+ * @return  Quaternion components, w, x, y, z (1 0 0 0 is the null-rotation). Set first element to NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
  */
 static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_get_q(const mavlink_message_t* msg, float *q)
 {
@@ -448,7 +448,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_control_get_q(const ma
 /**
  * @brief Get field angular_velocity_x from storm32_gimbal_manager_control message
  *
- * @return [rad/s] X component of angular velocity (positive: roll to the right, NaN to be ignored).
+ * @return [rad/s] X component of angular velocity (positive: roll to the right). NaN to be ignored.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_control_get_angular_velocity_x(const mavlink_message_t* msg)
 {
@@ -458,7 +458,7 @@ static inline float mavlink_msg_storm32_gimbal_manager_control_get_angular_veloc
 /**
  * @brief Get field angular_velocity_y from storm32_gimbal_manager_control message
  *
- * @return [rad/s] Y component of angular velocity (positive: tilt up, NaN to be ignored).
+ * @return [rad/s] Y component of angular velocity (positive: tilt up). NaN to be ignored.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_control_get_angular_velocity_y(const mavlink_message_t* msg)
 {
@@ -468,7 +468,7 @@ static inline float mavlink_msg_storm32_gimbal_manager_control_get_angular_veloc
 /**
  * @brief Get field angular_velocity_z from storm32_gimbal_manager_control message
  *
- * @return [rad/s] Z component of angular velocity (positive: pan to the right, the frame is determined by the STORM32_GIMBAL_DEVICE_FLAGS_YAW_ABSOLUTE flag, NaN to be ignored).
+ * @return [rad/s] Z component of angular velocity (positive: pan to the right). NaN to be ignored. The frame is determined by the GIMBAL_DEVICE_FLAGS_YAW_IN_xxx_FRAME flags.
  */
 static inline float mavlink_msg_storm32_gimbal_manager_control_get_angular_velocity_z(const mavlink_message_t* msg)
 {

@@ -10,18 +10,18 @@ typedef struct __mavlink_gps2_raw_t {
  int32_t lon; /*< [degE7] Longitude (WGS84)*/
  int32_t alt; /*< [mm] Altitude (MSL). Positive for up.*/
  uint32_t dgps_age; /*< [ms] Age of DGPS info*/
- uint16_t eph; /*<  GPS HDOP horizontal dilution of position (unitless). If unknown, set to: UINT16_MAX*/
- uint16_t epv; /*<  GPS VDOP vertical dilution of position (unitless). If unknown, set to: UINT16_MAX*/
+ uint16_t eph; /*<  GPS HDOP horizontal dilution of position (unitless * 100). If unknown, set to: UINT16_MAX*/
+ uint16_t epv; /*<  GPS VDOP vertical dilution of position (unitless * 100). If unknown, set to: UINT16_MAX*/
  uint16_t vel; /*< [cm/s] GPS ground speed. If unknown, set to: UINT16_MAX*/
  uint16_t cog; /*< [cdeg] Course over ground (NOT heading, but direction of movement): 0.0..359.99 degrees. If unknown, set to: UINT16_MAX*/
  uint8_t fix_type; /*<  GPS fix type.*/
- uint8_t satellites_visible; /*<  Number of satellites visible. If unknown, set to 255*/
+ uint8_t satellites_visible; /*<  Number of satellites visible. If unknown, set to UINT8_MAX*/
  uint8_t dgps_numch; /*<  Number of DGPS satellites*/
- uint16_t yaw; /*< [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use 65535 if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.*/
+ uint16_t yaw; /*< [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use UINT16_MAX if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.*/
  int32_t alt_ellipsoid; /*< [mm] Altitude (above WGS84, EGM96 ellipsoid). Positive for up.*/
  uint32_t h_acc; /*< [mm] Position uncertainty.*/
  uint32_t v_acc; /*< [mm] Altitude uncertainty.*/
- uint32_t vel_acc; /*< [mm] Speed uncertainty.*/
+ uint32_t vel_acc; /*< [mm/s] Speed uncertainty.*/
  uint32_t hdg_acc; /*< [degE5] Heading / track uncertainty*/
 }) mavlink_gps2_raw_t;
 
@@ -97,18 +97,18 @@ typedef struct __mavlink_gps2_raw_t {
  * @param lat [degE7] Latitude (WGS84)
  * @param lon [degE7] Longitude (WGS84)
  * @param alt [mm] Altitude (MSL). Positive for up.
- * @param eph  GPS HDOP horizontal dilution of position (unitless). If unknown, set to: UINT16_MAX
- * @param epv  GPS VDOP vertical dilution of position (unitless). If unknown, set to: UINT16_MAX
+ * @param eph  GPS HDOP horizontal dilution of position (unitless * 100). If unknown, set to: UINT16_MAX
+ * @param epv  GPS VDOP vertical dilution of position (unitless * 100). If unknown, set to: UINT16_MAX
  * @param vel [cm/s] GPS ground speed. If unknown, set to: UINT16_MAX
  * @param cog [cdeg] Course over ground (NOT heading, but direction of movement): 0.0..359.99 degrees. If unknown, set to: UINT16_MAX
- * @param satellites_visible  Number of satellites visible. If unknown, set to 255
+ * @param satellites_visible  Number of satellites visible. If unknown, set to UINT8_MAX
  * @param dgps_numch  Number of DGPS satellites
  * @param dgps_age [ms] Age of DGPS info
- * @param yaw [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use 65535 if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.
+ * @param yaw [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use UINT16_MAX if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.
  * @param alt_ellipsoid [mm] Altitude (above WGS84, EGM96 ellipsoid). Positive for up.
  * @param h_acc [mm] Position uncertainty.
  * @param v_acc [mm] Altitude uncertainty.
- * @param vel_acc [mm] Speed uncertainty.
+ * @param vel_acc [mm/s] Speed uncertainty.
  * @param hdg_acc [degE5] Heading / track uncertainty
  * @return length of the message in bytes (excluding serial stream start sign)
  */
@@ -177,18 +177,18 @@ static inline uint16_t mavlink_msg_gps2_raw_pack(uint8_t system_id, uint8_t comp
  * @param lat [degE7] Latitude (WGS84)
  * @param lon [degE7] Longitude (WGS84)
  * @param alt [mm] Altitude (MSL). Positive for up.
- * @param eph  GPS HDOP horizontal dilution of position (unitless). If unknown, set to: UINT16_MAX
- * @param epv  GPS VDOP vertical dilution of position (unitless). If unknown, set to: UINT16_MAX
+ * @param eph  GPS HDOP horizontal dilution of position (unitless * 100). If unknown, set to: UINT16_MAX
+ * @param epv  GPS VDOP vertical dilution of position (unitless * 100). If unknown, set to: UINT16_MAX
  * @param vel [cm/s] GPS ground speed. If unknown, set to: UINT16_MAX
  * @param cog [cdeg] Course over ground (NOT heading, but direction of movement): 0.0..359.99 degrees. If unknown, set to: UINT16_MAX
- * @param satellites_visible  Number of satellites visible. If unknown, set to 255
+ * @param satellites_visible  Number of satellites visible. If unknown, set to UINT8_MAX
  * @param dgps_numch  Number of DGPS satellites
  * @param dgps_age [ms] Age of DGPS info
- * @param yaw [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use 65535 if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.
+ * @param yaw [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use UINT16_MAX if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.
  * @param alt_ellipsoid [mm] Altitude (above WGS84, EGM96 ellipsoid). Positive for up.
  * @param h_acc [mm] Position uncertainty.
  * @param v_acc [mm] Altitude uncertainty.
- * @param vel_acc [mm] Speed uncertainty.
+ * @param vel_acc [mm/s] Speed uncertainty.
  * @param hdg_acc [degE5] Heading / track uncertainty
  * @return length of the message in bytes (excluding serial stream start sign)
  */
@@ -260,18 +260,18 @@ static inline uint16_t mavlink_msg_gps2_raw_pack_status(uint8_t system_id, uint8
  * @param lat [degE7] Latitude (WGS84)
  * @param lon [degE7] Longitude (WGS84)
  * @param alt [mm] Altitude (MSL). Positive for up.
- * @param eph  GPS HDOP horizontal dilution of position (unitless). If unknown, set to: UINT16_MAX
- * @param epv  GPS VDOP vertical dilution of position (unitless). If unknown, set to: UINT16_MAX
+ * @param eph  GPS HDOP horizontal dilution of position (unitless * 100). If unknown, set to: UINT16_MAX
+ * @param epv  GPS VDOP vertical dilution of position (unitless * 100). If unknown, set to: UINT16_MAX
  * @param vel [cm/s] GPS ground speed. If unknown, set to: UINT16_MAX
  * @param cog [cdeg] Course over ground (NOT heading, but direction of movement): 0.0..359.99 degrees. If unknown, set to: UINT16_MAX
- * @param satellites_visible  Number of satellites visible. If unknown, set to 255
+ * @param satellites_visible  Number of satellites visible. If unknown, set to UINT8_MAX
  * @param dgps_numch  Number of DGPS satellites
  * @param dgps_age [ms] Age of DGPS info
- * @param yaw [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use 65535 if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.
+ * @param yaw [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use UINT16_MAX if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.
  * @param alt_ellipsoid [mm] Altitude (above WGS84, EGM96 ellipsoid). Positive for up.
  * @param h_acc [mm] Position uncertainty.
  * @param v_acc [mm] Altitude uncertainty.
- * @param vel_acc [mm] Speed uncertainty.
+ * @param vel_acc [mm/s] Speed uncertainty.
  * @param hdg_acc [degE5] Heading / track uncertainty
  * @return length of the message in bytes (excluding serial stream start sign)
  */
@@ -379,18 +379,18 @@ static inline uint16_t mavlink_msg_gps2_raw_encode_status(uint8_t system_id, uin
  * @param lat [degE7] Latitude (WGS84)
  * @param lon [degE7] Longitude (WGS84)
  * @param alt [mm] Altitude (MSL). Positive for up.
- * @param eph  GPS HDOP horizontal dilution of position (unitless). If unknown, set to: UINT16_MAX
- * @param epv  GPS VDOP vertical dilution of position (unitless). If unknown, set to: UINT16_MAX
+ * @param eph  GPS HDOP horizontal dilution of position (unitless * 100). If unknown, set to: UINT16_MAX
+ * @param epv  GPS VDOP vertical dilution of position (unitless * 100). If unknown, set to: UINT16_MAX
  * @param vel [cm/s] GPS ground speed. If unknown, set to: UINT16_MAX
  * @param cog [cdeg] Course over ground (NOT heading, but direction of movement): 0.0..359.99 degrees. If unknown, set to: UINT16_MAX
- * @param satellites_visible  Number of satellites visible. If unknown, set to 255
+ * @param satellites_visible  Number of satellites visible. If unknown, set to UINT8_MAX
  * @param dgps_numch  Number of DGPS satellites
  * @param dgps_age [ms] Age of DGPS info
- * @param yaw [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use 65535 if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.
+ * @param yaw [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use UINT16_MAX if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.
  * @param alt_ellipsoid [mm] Altitude (above WGS84, EGM96 ellipsoid). Positive for up.
  * @param h_acc [mm] Position uncertainty.
  * @param v_acc [mm] Altitude uncertainty.
- * @param vel_acc [mm] Speed uncertainty.
+ * @param vel_acc [mm/s] Speed uncertainty.
  * @param hdg_acc [degE5] Heading / track uncertainty
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
@@ -460,7 +460,7 @@ static inline void mavlink_msg_gps2_raw_send_struct(mavlink_channel_t chan, cons
 
 #if MAVLINK_MSG_ID_GPS2_RAW_LEN <= MAVLINK_MAX_PAYLOAD_LEN
 /*
-  This variant of _send() can be used to save stack space by re-using
+  This variant of _send() can be used to save stack space by reusing
   memory from the receive buffer.  The caller provides a
   mavlink_message_t which is the size of a full mavlink message. This
   is usually the receive buffer for the channel, and allows a reply to an
@@ -574,7 +574,7 @@ static inline int32_t mavlink_msg_gps2_raw_get_alt(const mavlink_message_t* msg)
 /**
  * @brief Get field eph from gps2_raw message
  *
- * @return  GPS HDOP horizontal dilution of position (unitless). If unknown, set to: UINT16_MAX
+ * @return  GPS HDOP horizontal dilution of position (unitless * 100). If unknown, set to: UINT16_MAX
  */
 static inline uint16_t mavlink_msg_gps2_raw_get_eph(const mavlink_message_t* msg)
 {
@@ -584,7 +584,7 @@ static inline uint16_t mavlink_msg_gps2_raw_get_eph(const mavlink_message_t* msg
 /**
  * @brief Get field epv from gps2_raw message
  *
- * @return  GPS VDOP vertical dilution of position (unitless). If unknown, set to: UINT16_MAX
+ * @return  GPS VDOP vertical dilution of position (unitless * 100). If unknown, set to: UINT16_MAX
  */
 static inline uint16_t mavlink_msg_gps2_raw_get_epv(const mavlink_message_t* msg)
 {
@@ -614,7 +614,7 @@ static inline uint16_t mavlink_msg_gps2_raw_get_cog(const mavlink_message_t* msg
 /**
  * @brief Get field satellites_visible from gps2_raw message
  *
- * @return  Number of satellites visible. If unknown, set to 255
+ * @return  Number of satellites visible. If unknown, set to UINT8_MAX
  */
 static inline uint8_t mavlink_msg_gps2_raw_get_satellites_visible(const mavlink_message_t* msg)
 {
@@ -644,7 +644,7 @@ static inline uint32_t mavlink_msg_gps2_raw_get_dgps_age(const mavlink_message_t
 /**
  * @brief Get field yaw from gps2_raw message
  *
- * @return [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use 65535 if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.
+ * @return [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use UINT16_MAX if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.
  */
 static inline uint16_t mavlink_msg_gps2_raw_get_yaw(const mavlink_message_t* msg)
 {
@@ -684,7 +684,7 @@ static inline uint32_t mavlink_msg_gps2_raw_get_v_acc(const mavlink_message_t* m
 /**
  * @brief Get field vel_acc from gps2_raw message
  *
- * @return [mm] Speed uncertainty.
+ * @return [mm/s] Speed uncertainty.
  */
 static inline uint32_t mavlink_msg_gps2_raw_get_vel_acc(const mavlink_message_t* msg)
 {

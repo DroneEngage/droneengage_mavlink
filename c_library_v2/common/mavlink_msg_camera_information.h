@@ -131,9 +131,9 @@ static inline uint16_t mavlink_msg_camera_information_pack(uint8_t system_id, ui
     packet.cam_definition_version = cam_definition_version;
     packet.lens_id = lens_id;
     packet.gimbal_device_id = gimbal_device_id;
-    mav_array_memcpy(packet.vendor_name, vendor_name, sizeof(uint8_t)*32);
-    mav_array_memcpy(packet.model_name, model_name, sizeof(uint8_t)*32);
-    mav_array_memcpy(packet.cam_definition_uri, cam_definition_uri, sizeof(char)*140);
+    mav_array_assign_uint8_t(packet.vendor_name, vendor_name, 32);
+    mav_array_assign_uint8_t(packet.model_name, model_name, 32);
+    mav_array_assign_char(packet.cam_definition_uri, cam_definition_uri, 140);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_CAMERA_INFORMATION_LEN);
 #endif
 
@@ -267,9 +267,9 @@ static inline uint16_t mavlink_msg_camera_information_pack_chan(uint8_t system_i
     packet.cam_definition_version = cam_definition_version;
     packet.lens_id = lens_id;
     packet.gimbal_device_id = gimbal_device_id;
-    mav_array_memcpy(packet.vendor_name, vendor_name, sizeof(uint8_t)*32);
-    mav_array_memcpy(packet.model_name, model_name, sizeof(uint8_t)*32);
-    mav_array_memcpy(packet.cam_definition_uri, cam_definition_uri, sizeof(char)*140);
+    mav_array_assign_uint8_t(packet.vendor_name, vendor_name, 32);
+    mav_array_assign_uint8_t(packet.model_name, model_name, 32);
+    mav_array_assign_char(packet.cam_definition_uri, cam_definition_uri, 140);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_CAMERA_INFORMATION_LEN);
 #endif
 
@@ -371,9 +371,9 @@ static inline void mavlink_msg_camera_information_send(mavlink_channel_t chan, u
     packet.cam_definition_version = cam_definition_version;
     packet.lens_id = lens_id;
     packet.gimbal_device_id = gimbal_device_id;
-    mav_array_memcpy(packet.vendor_name, vendor_name, sizeof(uint8_t)*32);
-    mav_array_memcpy(packet.model_name, model_name, sizeof(uint8_t)*32);
-    mav_array_memcpy(packet.cam_definition_uri, cam_definition_uri, sizeof(char)*140);
+    mav_array_assign_uint8_t(packet.vendor_name, vendor_name, 32);
+    mav_array_assign_uint8_t(packet.model_name, model_name, 32);
+    mav_array_assign_char(packet.cam_definition_uri, cam_definition_uri, 140);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_CAMERA_INFORMATION, (const char *)&packet, MAVLINK_MSG_ID_CAMERA_INFORMATION_MIN_LEN, MAVLINK_MSG_ID_CAMERA_INFORMATION_LEN, MAVLINK_MSG_ID_CAMERA_INFORMATION_CRC);
 #endif
 }
@@ -394,7 +394,7 @@ static inline void mavlink_msg_camera_information_send_struct(mavlink_channel_t 
 
 #if MAVLINK_MSG_ID_CAMERA_INFORMATION_LEN <= MAVLINK_MAX_PAYLOAD_LEN
 /*
-  This variant of _send() can be used to save stack space by re-using
+  This variant of _send() can be used to save stack space by reusing
   memory from the receive buffer.  The caller provides a
   mavlink_message_t which is the size of a full mavlink message. This
   is usually the receive buffer for the channel, and allows a reply to an
@@ -432,9 +432,9 @@ static inline void mavlink_msg_camera_information_send_buf(mavlink_message_t *ms
     packet->cam_definition_version = cam_definition_version;
     packet->lens_id = lens_id;
     packet->gimbal_device_id = gimbal_device_id;
-    mav_array_memcpy(packet->vendor_name, vendor_name, sizeof(uint8_t)*32);
-    mav_array_memcpy(packet->model_name, model_name, sizeof(uint8_t)*32);
-    mav_array_memcpy(packet->cam_definition_uri, cam_definition_uri, sizeof(char)*140);
+    mav_array_assign_uint8_t(packet->vendor_name, vendor_name, 32);
+    mav_array_assign_uint8_t(packet->model_name, model_name, 32);
+    mav_array_assign_char(packet->cam_definition_uri, cam_definition_uri, 140);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_CAMERA_INFORMATION, (const char *)packet, MAVLINK_MSG_ID_CAMERA_INFORMATION_MIN_LEN, MAVLINK_MSG_ID_CAMERA_INFORMATION_LEN, MAVLINK_MSG_ID_CAMERA_INFORMATION_CRC);
 #endif
 }

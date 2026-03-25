@@ -8,7 +8,7 @@ typedef struct __mavlink_storm32_gimbal_manager_correct_roll_t {
  float roll; /*< [rad] Roll angle (positive to roll to the right).*/
  uint8_t target_system; /*<  System ID*/
  uint8_t target_component; /*<  Component ID*/
- uint8_t gimbal_id; /*<  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).*/
+ uint8_t gimbal_id; /*<  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.*/
  uint8_t client; /*<  Client which is contacting the gimbal manager (must be set).*/
 } mavlink_storm32_gimbal_manager_correct_roll_t;
 
@@ -55,7 +55,7 @@ typedef struct __mavlink_storm32_gimbal_manager_correct_roll_t {
  *
  * @param target_system  System ID
  * @param target_component  Component ID
- * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  * @param client  Client which is contacting the gimbal manager (must be set).
  * @param roll [rad] Roll angle (positive to roll to the right).
  * @return length of the message in bytes (excluding serial stream start sign)
@@ -96,7 +96,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_correct_roll_pack(uint
  *
  * @param target_system  System ID
  * @param target_component  Component ID
- * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  * @param client  Client which is contacting the gimbal manager (must be set).
  * @param roll [rad] Roll angle (positive to roll to the right).
  * @return length of the message in bytes (excluding serial stream start sign)
@@ -140,7 +140,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_correct_roll_pack_stat
  * @param msg The MAVLink message to compress the data into
  * @param target_system  System ID
  * @param target_component  Component ID
- * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  * @param client  Client which is contacting the gimbal manager (must be set).
  * @param roll [rad] Roll angle (positive to roll to the right).
  * @return length of the message in bytes (excluding serial stream start sign)
@@ -220,7 +220,7 @@ static inline uint16_t mavlink_msg_storm32_gimbal_manager_correct_roll_encode_st
  *
  * @param target_system  System ID
  * @param target_component  Component ID
- * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @param gimbal_id  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  * @param client  Client which is contacting the gimbal manager (must be set).
  * @param roll [rad] Roll angle (positive to roll to the right).
  */
@@ -265,7 +265,7 @@ static inline void mavlink_msg_storm32_gimbal_manager_correct_roll_send_struct(m
 
 #if MAVLINK_MSG_ID_STORM32_GIMBAL_MANAGER_CORRECT_ROLL_LEN <= MAVLINK_MAX_PAYLOAD_LEN
 /*
-  This variant of _send() can be used to save stack space by re-using
+  This variant of _send() can be used to save stack space by reusing
   memory from the receive buffer.  The caller provides a
   mavlink_message_t which is the size of a full mavlink message. This
   is usually the receive buffer for the channel, and allows a reply to an
@@ -323,7 +323,7 @@ static inline uint8_t mavlink_msg_storm32_gimbal_manager_correct_roll_get_target
 /**
  * @brief Get field gimbal_id from storm32_gimbal_manager_correct_roll message
  *
- * @return  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals, send command multiple times for more than one but not all gimbals).
+ * @return  Gimbal ID of the gimbal manager to address (component ID or 1-6 for non-MAVLink gimbal, 0 for all gimbals). Send command multiple times for more than one but not all gimbals.
  */
 static inline uint8_t mavlink_msg_storm32_gimbal_manager_correct_roll_get_gimbal_id(const mavlink_message_t* msg)
 {
