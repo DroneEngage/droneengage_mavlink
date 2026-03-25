@@ -4,6 +4,7 @@
 
 #include <map>
 #include <vector>
+#include <unordered_set>
 #include <cstdint>
 #include <string>
 
@@ -45,7 +46,7 @@ namespace mavlinksdk
             //       before deleted status
         private:
 
-            CMavlinkParameterManager() {};
+            CMavlinkParameterManager() : m_callback_parameter(nullptr), m_start_time(0) {};
 
 
         public:
@@ -60,7 +61,7 @@ namespace mavlinksdk
         public:
         
             void set_callback_parameter (mavlinksdk::CCallBack_Parameter* callback_parameter);
-            void reloadParemeters ();
+            void reloadParameters ();
 
         public:
 
@@ -97,6 +98,7 @@ namespace mavlinksdk
 
             std::map<std::string, mavlink_param_value_t> m_parameters_list;
             std::vector<uint16_t> m_parameters_id;
+            std::unordered_set<uint16_t> m_parameters_id_set;
             
             /**
              * @brief Status of the state machine
@@ -108,6 +110,7 @@ namespace mavlinksdk
             uint16_t m_parameters_last_index_read = 0;
             uint64_t m_parameters_last_receive_time = 0;
 
+            uint64_t m_start_time = 0;
             bool m_load_parameters_1st_iteration = true;
     };
         
