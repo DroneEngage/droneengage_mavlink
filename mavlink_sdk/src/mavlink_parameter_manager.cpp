@@ -48,7 +48,10 @@ void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_par
 	bool changed = false;
 	
 	std::string param_name = std::string(param_message.param_id, 16);
-	param_name.erase(param_name.find('\0')); // Remove null termination
+	size_t null_pos = param_name.find('\0');
+	if (null_pos != std::string::npos) {
+		param_name.erase(null_pos); // Remove null termination
+	}
 
 	auto it = m_parameters_list.find(param_name);
 
