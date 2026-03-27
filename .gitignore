@@ -52,3 +52,4 @@ local/
 
 wiki/mywiki/
 .version
+*.tlog
