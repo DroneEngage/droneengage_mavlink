@@ -2,6 +2,8 @@
 #define FCB_DE_PILOT_IDLE_H_
 
 #include "fcb_de_pilot_operation_base.hpp"
+#include <string>
+#include <cstdint>
 
 namespace de {
 namespace fcb {
@@ -33,6 +35,7 @@ public:
   void setActive(bool active) override {}
   bool getActive() const override { return false; }
   bool isCompleted() override { return false; }
+  std::string getName() const override { return "idle"; }
 };
 
 } // namespace depilot

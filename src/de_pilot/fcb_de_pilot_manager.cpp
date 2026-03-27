@@ -5,6 +5,7 @@
 #include "../fcb_facade.hpp"
 #include "../fcb_main.hpp"
 #include "../fcb_modes.hpp"
+#include "fcb_de_pilot_yaw_control.hpp"
 #include <iostream>
 #include <mavlink_sdk.h>
 #include <vehicle.h>
@@ -262,6 +263,7 @@ void CDEPilotManager::do_SetYaw(double angle, double rate, bool is_clockwise,
 
   // Set yaw target on YAW control service (works with any operation)
   CDEPilotYawControl::getInstance().setYawTarget(angle, rate, is_clockwise, is_relative);
+  emitSubOperationEvent(CDEPilotYawControl::getInstance());
 
   CFCBFacade::getInstance().API_IC_sendID(
       std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
@@ -343,11 +345,31 @@ bool CDEPilotManager::isOperationActive(
   return false;
 }
 
+double CDEPilotManager::getTargetAltitude() const { return m_target_altitude; }
+
 void CDEPilotManager::deactivateAllOperations() {
   CDEPilotStabilization::getInstance().setActive(false);
   CDEPilotChangeAltitude::getInstance().setActive(false);
   CDEPilotTracking::getInstance().setActive(false);
 }
+
+void CDEPilotManager::emitSubOperationEvent(const CDEPilotTaskBase& task) {
+  Json_de event_message = Json_de::object();
+  event_message["sub"] = task.getName();
+  event_message["state"] = static_cast<int>(task.getTaskState());
+  event_message["p"] = task.getPhase();
+  event_message["a"] = task.getActive();
+  event_message["o"] = m_de_pilot_operation;
+  // Parse context JSON string into object
+  try {
+    Json_de ctx = Json_de::parse(task.getEventContext());
+    event_message["ctx"] = ctx;
+  } catch (...) {
+    event_message["ctx"] = Json_de::object();
+  }
+  m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_DEPILOT_SUBOPERATION_UPDATED, event_message, false);
+}
+
 
 CDEPilotOperationBase *CDEPilotManager::getOperationInstance(
     DRONEENGAGE_PILOT_OPERATION operation) const {
@@ -365,8 +387,6 @@ CDEPilotOperationBase *CDEPilotManager::getOperationInstance(
     return nullptr;
   }
 }
-
-double CDEPilotManager::getTargetAltitude() const { return m_target_altitude; }
 
 } // namespace depilot
 } // namespace fcb

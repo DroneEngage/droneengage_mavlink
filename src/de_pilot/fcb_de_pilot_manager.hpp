@@ -10,6 +10,7 @@
 #include "fcb_de_pilot_yaw_control.hpp"
 #include "../fcb_facade.hpp"
 #include <cstdint>
+#include "../defines.hpp"
 
 namespace de {
 namespace fcb {
@@ -75,6 +76,8 @@ private:
   CDEPilotOperationBase *
   getOperationInstance(DRONEENGAGE_PILOT_OPERATION operation) const;
 
+  // Sub-operation event dispatcher
+  void emitSubOperationEvent(const CDEPilotTaskBase& task);
 
   de::fcb::CFCBFacade& m_fcb_facade = de::fcb::CFCBFacade::getInstance();
             

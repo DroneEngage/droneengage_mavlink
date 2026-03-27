@@ -2,6 +2,7 @@
 #define FCB_DE_PILOT_CHANGE_ALTITUDE_H_
 
 #include <cstdint>
+#include <string>
 #include "fcb_de_pilot_operation_base.hpp"
 #include "advanced_pid_controller.hpp"
 
@@ -44,6 +45,7 @@ public:
     bool getActive() const override;
     void startAltitudeChange(double target_altitude);
     bool isCompleted() override;
+    std::string getName() const override { return "change_altitude"; }
 
 private:
     // Class-specific interface
