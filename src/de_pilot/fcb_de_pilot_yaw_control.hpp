@@ -1,15 +1,16 @@
 #ifndef FCB_DE_PILOT_YAW_CONTROL_H_
 #define FCB_DE_PILOT_YAW_CONTROL_H_
 
-#include "fcb_de_pilot_operation_base.hpp"
+#include "fcb_de_pilot_task_base.hpp"
 #include "advanced_pid_controller.hpp"
 #include <cstdint>
+#include "../defines.hpp"
 
 namespace de {
 namespace fcb {
 namespace depilot {
 
-class CDEPilotYawControl : public CDEPilotOperationBase {
+class CDEPilotYawControl : public CDEPilotTaskBase {
 public:
   static CDEPilotYawControl &getInstance() {
     static CDEPilotYawControl instance;
@@ -22,7 +23,6 @@ public:
 private:
   CDEPilotYawControl() 
     : m_yaw_pid_controller(8.0, 0.2, 0.5, 0.01, 500.0, 600.0, 120.0, true, 0.2) {
-    m_my_operation = DEPILOT_OP_STABILIZATION; // Yaw control is part of stabilization
     // Initialize with balanced yaw PID parameters
     // Parameters: kp, ki, kd, dt, integral_max, max_min_value, feedforward_gain, advanced_antiwindup, derivative_filter_alpha
     // kp: 8.0 (balanced for good response without excessive oscillation)
@@ -44,7 +44,13 @@ public:
   int getPhase() const override;
   void setActive(bool active) override;
   bool getActive() const override;
-  bool isCompleted() override;
+  bool isCompleted();
+
+  // Task interface
+  std::string getName() const override { return std::string("yaw_control"); }
+  DEPILOT_TASK_STATE getTaskState() const override { return m_task_state; }
+  void setTaskState(DEPILOT_TASK_STATE state) override { m_task_state = state; }
+  std::string getEventContext() const override;
 
   // YAW control interface
   void setYawTarget(double angle, double rate, bool is_clockwise, bool is_relative);

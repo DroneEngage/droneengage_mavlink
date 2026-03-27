@@ -3,12 +3,14 @@
 #include "../de_common/helpers/colors.hpp"
 #include "../de_common/helpers/helpers.hpp"
 #include "../fcb_main.hpp"
+#include <sstream>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <mavlink_command.h>
 #include <mavlink_sdk.h>
 #include <vehicle.h>
+#include "../defines.hpp"
 
 using namespace de::fcb::depilot;
 
@@ -132,6 +134,7 @@ void CDEPilotYawControl::setYawTarget(double angle, double rate, bool is_clockwi
   m_active = true;
   m_phase = PHASE_ACTIVE;
   m_generic_phase = static_cast<int>(m_phase);
+  setTaskState(DEPILOT_TASK_STATE::ACTIVE);
 #ifdef DEBUG
   std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotYawControl: Yaw target set"
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -147,6 +150,7 @@ void CDEPilotYawControl::clearYawTarget() {
   m_active = false;
   m_phase = PHASE_IDLE;
   m_generic_phase = static_cast<int>(m_phase);
+  setTaskState(DEPILOT_TASK_STATE::CANCELLED);
 
   std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotYawControl: Yaw control cleared"
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -274,6 +278,17 @@ void CDEPilotYawControl::applyYawToRCChannels(uint16_t rc_channels[], int flying
     mavlinksdk::CMavlinkCommand::getInstance().setYawCondition(
         target_angle_rad, turn_rate_rad, m_is_clockwise, m_is_relative);
   }
+}
+
+std::string CDEPilotYawControl::getEventContext() const {
+  std::ostringstream oss;
+  oss << "{"
+      << "\"angle\":" << m_target_yaw_angle << ","
+      << "\"rate\":" << m_default_yaw_rate << ","
+      << "\"is_clockwise\":" << (m_is_clockwise ? "true" : "false") << ","
+      << "\"is_relative\":" << (m_is_relative ? "true" : "false")
+      << "}";
+  return oss.str();
 }
 
 float CDEPilotYawControl::calculateDesiredYawRate(double angle_error_rad) const {

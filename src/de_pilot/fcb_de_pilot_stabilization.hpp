@@ -2,6 +2,7 @@
 #define FCB_DE_PILOT_STABILIZATION_H_
 
 #include "fcb_de_pilot_operation_base.hpp"
+#include <string>
 #include <cstdint>
 
 namespace de {
@@ -37,6 +38,7 @@ public:
   void setActive(bool active) override;
   bool getActive() const override;
   bool isCompleted() override;
+  std::string getName() const override { return "Copter Stabilization"; }
 
   // Class-specific interface
   void startStabilization();
