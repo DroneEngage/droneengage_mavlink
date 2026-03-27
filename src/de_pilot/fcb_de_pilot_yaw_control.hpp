@@ -22,6 +22,7 @@ public:
 private:
   CDEPilotYawControl() 
     : m_yaw_pid_controller(8.0, 0.2, 0.5, 0.01, 500.0, 600.0, 120.0, true, 0.2) {
+    m_my_operation = DEPILOT_OP_STABILIZATION; // Yaw control is part of stabilization
     // Initialize with balanced yaw PID parameters
     // Parameters: kp, ki, kd, dt, integral_max, max_min_value, feedforward_gain, advanced_antiwindup, derivative_filter_alpha
     // kp: 8.0 (balanced for good response without excessive oscillation)
@@ -65,6 +66,8 @@ private:
   // Yaw control member variables
   bool m_yaw_control_enabled = false;
   double m_target_yaw_angle = 0.0;
+  bool m_is_clockwise = true;      // Direction: true = clockwise, false = counter-clockwise
+  bool m_is_relative = false;      // Mode: true = relative, false = absolute
 
   // Advanced PID controller for yaw control
   CAdvancedPIDController m_yaw_pid_controller;

@@ -14,6 +14,15 @@ public:
     return instance;
   }
 
+  CDEPilotIdle(CDEPilotIdle const &) = delete;
+  void operator=(CDEPilotIdle const &) = delete;
+
+private:
+  CDEPilotIdle() {
+    m_my_operation = DEPILOT_OP_IDLE;
+  }
+
+public:
   void init() override {}
   void update() override {}
   void uninit() override {}

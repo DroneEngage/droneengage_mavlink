@@ -19,7 +19,9 @@ public:
   void operator=(CDEPilotStabilization const &) = delete;
 
 private:
-  CDEPilotStabilization() {}
+  CDEPilotStabilization() {
+    m_my_operation = DEPILOT_OP_STABILIZATION;
+  }
 
 public:
   ~CDEPilotStabilization() {}

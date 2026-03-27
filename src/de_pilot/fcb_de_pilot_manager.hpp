@@ -3,11 +3,12 @@
 
 #include "../defines.hpp"
 #include "fcb_de_pilot_change_altitude.hpp"
+#include "fcb_de_pilot_idle.hpp"
 #include "fcb_de_pilot_operation_base.hpp"
 #include "fcb_de_pilot_stabilization.hpp"
 #include "fcb_de_pilot_tracking.hpp"
-#include "fcb_de_pilot_idle.hpp"
 #include "fcb_de_pilot_yaw_control.hpp"
+#include "../fcb_facade.hpp"
 #include <cstdint>
 
 namespace de {
@@ -74,6 +75,9 @@ private:
   CDEPilotOperationBase *
   getOperationInstance(DRONEENGAGE_PILOT_OPERATION operation) const;
 
+
+  de::fcb::CFCBFacade& m_fcb_facade = de::fcb::CFCBFacade::getInstance();
+            
   // Current operation state
   CDEPilotOperationBase *m_operation_instance = nullptr;
   double m_target_altitude = 0.0;
