@@ -19,7 +19,9 @@ public:
   void operator=(CDEPilotTracking const &) = delete;
 
 private:
-  CDEPilotTracking() {}
+  CDEPilotTracking() {
+    m_my_operation = DEPILOT_OP_TRACKING;
+  }
 
 public:
   ~CDEPilotTracking() {}

@@ -111,7 +111,7 @@ namespace fcb
             void sendGeoFenceHit(const std::string&target_party_id, const std::string fence_name, const double distance, const bool in_zone, const bool should_keep_outside) const;
 
             void sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid, const bool internal_only) const;
-            void sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid, const Json_de& mavlink_event_message, const bool internal_only) const;
+            void sendSyncFireEvent(const std::string&target_party_id, const std::string event_sid, const Json_de& json_event_message, const bool internal_only) const;
             
             // SWARM API
             void requestToFollowLeader(const std::string&target_party_id) const;

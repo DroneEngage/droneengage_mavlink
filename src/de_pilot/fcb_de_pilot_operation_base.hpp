@@ -29,6 +29,8 @@ public:
     virtual bool getActive() const = 0;
 
     virtual bool isCompleted() = 0;
+
+    virtual DRONEENGAGE_PILOT_OPERATION getOperation() {return m_my_operation;};
 protected:
     // Common member variables that all operations can use
     bool m_active = false;
@@ -37,7 +39,8 @@ protected:
     uint64_t m_last_update_time = 0;
 
     de::fcb::CFCBMain &m_fcbMain = de::fcb::CFCBMain::getInstance();
-
+    
+    DRONEENGAGE_PILOT_OPERATION m_my_operation;
 };
 
 } // namespace depilot

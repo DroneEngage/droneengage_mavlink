@@ -126,6 +126,8 @@ bool CDEPilotYawControl::isCompleted() {
 
 void CDEPilotYawControl::setYawTarget(double angle, double rate, bool is_clockwise, bool is_relative) {
   m_target_yaw_angle = angle;
+  m_is_clockwise = is_clockwise;
+  m_is_relative = is_relative;
   m_yaw_control_enabled = true;
   m_active = true;
   m_phase = PHASE_ACTIVE;
@@ -270,7 +272,7 @@ void CDEPilotYawControl::applyYawToRCChannels(uint16_t rc_channels[], int flying
     double turn_rate_rad = m_default_yaw_rate * M_PI / 180.0;
 
     mavlinksdk::CMavlinkCommand::getInstance().setYawCondition(
-        target_angle_rad, turn_rate_rad, true, false);
+        target_angle_rad, turn_rate_rad, m_is_clockwise, m_is_relative);
   }
 }
 

@@ -1,6 +1,7 @@
 #include "fcb_de_pilot_manager.hpp"
 
 #include "../de_common/helpers/colors.hpp"
+#include "../de_common/de_databus/sync_fire_events.hpp"
 #include "../fcb_facade.hpp"
 #include "../fcb_main.hpp"
 #include "../fcb_modes.hpp"
@@ -311,6 +312,13 @@ void CDEPilotManager::setOperation(DRONEENGAGE_PILOT_OPERATION operation) {
     m_operation_instance = operation_instance;
     m_operation_instance->init();
     m_operation_instance->setActive(true);
+
+    Json_de event_message = Json_de::object();
+    event_message["p"] = m_operation_instance->getPhase();
+    event_message["a"] = m_operation_instance->getActive();
+    event_message["o"] = m_operation_instance->getOperation();
+    m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_DEPILOT_MODE_ACTIVATED, event_message, false);
+
   }
 
   // Set default operation based on current state
