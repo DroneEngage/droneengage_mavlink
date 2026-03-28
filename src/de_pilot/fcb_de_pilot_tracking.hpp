@@ -38,6 +38,7 @@ public:
   void setActive(bool active) override;
   bool getActive() const override;
   bool isCompleted() override;
+  bool isYawSupported() const override { return true; }
   std::string getName() const override { return "object tracking"; }
 
   // Class-specific interface

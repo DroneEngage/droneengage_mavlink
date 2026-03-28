@@ -3,6 +3,7 @@
 #include "../de_common/helpers/colors.hpp"
 #include "../de_common/helpers/helpers.hpp"
 #include "../fcb_main.hpp"
+#include "../de_common/de_databus/de_facade_base.hpp"
 #include <sstream>
 #include <algorithm>
 #include <cmath>
@@ -98,9 +99,30 @@ void CDEPilotYawControl::reloadParametersIfConfigChanged() {
 }
 
 void CDEPilotYawControl::setPhase(int phase) {
+  const YawControlPhase old_phase = m_phase;
   m_generic_phase = phase;
   m_phase = static_cast<YawControlPhase>(phase);
   m_phase_start_time = get_time_usec() / 1000;
+  
+  std::cout << _INFO_CONSOLE_BOLD_TEXT 
+            << "DEPilotYawControl: Phase changed from " << old_phase 
+            << " to " << m_phase 
+            << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            
+  // Send context notification for phase change
+  std::string target;
+  target = "_GD_";
+  std::string phase_names[] = {"IDLE", "ACTIVE", "COMPLETED"};
+  std::string old_phase_name = (old_phase >= 0 && old_phase < 3) ? phase_names[old_phase] : "UNKNOWN";
+  std::string new_phase_name = (m_phase >= 0 && m_phase < 3) ? phase_names[m_phase] : "UNKNOWN";
+  std::string notification_msg = "DE-Pilot: Yaw control phase changed from " + old_phase_name + " to " + new_phase_name;
+  
+  de::comm::CFacade_Base::getInstance().sendErrorMessage(
+      target,
+      ERROR_USER_DEFINED,
+      ERROR_TYPE_ERROR_MODULE,
+      NOTIFICATION_TYPE_INFO,
+      notification_msg);
 }
 
 int CDEPilotYawControl::getPhase() const {
@@ -108,12 +130,44 @@ int CDEPilotYawControl::getPhase() const {
 }
 
 void CDEPilotYawControl::setActive(bool active) {
+  const bool old_active = m_active;
   m_active = active;
   if (active) {
     m_phase = PHASE_ACTIVE;
     m_phase_start_time = get_time_usec() / 1000;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DEPilotYawControl: Yaw control activated (was " 
+              << (old_active ? "active" : "inactive") << ")"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+              
+    // Send context notification for activation
+    std::string target;
+    target = "_GD_";
+    std::string notification_msg = "DE-Pilot: Yaw control activated";
+    
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        target,
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        notification_msg);
   } else {
     m_phase = PHASE_IDLE;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DEPilotYawControl: Yaw control deactivated"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+              
+    // Send context notification for deactivation
+    std::string target;
+    target = "_GD_";
+    std::string notification_msg = "DE-Pilot: Yaw control deactivated";
+    
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        target,
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        notification_msg);
   }
   m_generic_phase = static_cast<int>(m_phase);
 }
@@ -127,6 +181,21 @@ bool CDEPilotYawControl::isCompleted() {
 }
 
 void CDEPilotYawControl::setYawTarget(double angle, double rate, bool is_clockwise, bool is_relative) {
+  // Validate angle range
+  if (angle < -360.0 || angle > 360.0) {
+    std::string target;
+    target = "_GD_";
+    std::string error_msg;
+    error_msg = "DE-Pilot: Invalid yaw angle " + std::to_string(angle) + " - must be between -360 and 360 degrees";
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        target,
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        error_msg);
+    return;
+  }
+  
   m_target_yaw_angle = angle;
   m_is_clockwise = is_clockwise;
   m_is_relative = is_relative;
@@ -190,6 +259,34 @@ void CDEPilotYawControl::updateYawControl() {
     m_last_heading_for_rate = current_heading;
     m_yaw_rate_check_time = now;
     m_current_yaw_rate = 0.0;
+  }
+
+  // Log yaw control progress every 3 seconds
+  static uint64_t last_yaw_progress_log = 0;
+  if (now - last_yaw_progress_log > 3000000) { // 3 seconds
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DEPilotYawControl: Active - target: " << m_target_yaw_angle 
+              << "°, current: " << (current_heading * 180.0 / M_PI) 
+              << "°, rate: " << (m_current_yaw_rate * 180.0 / M_PI) << "°/s"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    last_yaw_progress_log = now;
+    
+    // Send context notification for yaw progress
+    std::string target;
+    target = "_GD_";
+    double current_heading_deg = current_heading * 180.0 / M_PI;
+    double current_yaw_rate_deg = m_current_yaw_rate * 180.0 / M_PI;
+    std::string notification_msg = "DE-Pilot: Yaw control active - target: " + 
+                                 std::to_string(m_target_yaw_angle) + "°, current: " +
+                                 std::to_string(current_heading_deg) + "°, rate: " +
+                                 std::to_string(current_yaw_rate_deg) + "°/s";
+    
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        target,
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        notification_msg);
   }
 
   m_last_update_time = get_time_usec() / 1000;

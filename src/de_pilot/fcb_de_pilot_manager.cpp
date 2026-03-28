@@ -2,10 +2,12 @@
 
 #include "../de_common/helpers/colors.hpp"
 #include "../de_common/de_databus/sync_fire_events.hpp"
+#include "../de_common/helpers/helpers.hpp"
 #include "../fcb_facade.hpp"
 #include "../fcb_main.hpp"
 #include "../fcb_modes.hpp"
 #include "fcb_de_pilot_yaw_control.hpp"
+#include "../de_common/de_databus/de_facade_base.hpp"
 #include <iostream>
 #include <mavlink_sdk.h>
 #include <vehicle.h>
@@ -58,6 +60,12 @@ bool CDEPilotManager::isCompatibleMode() {
   if (!depilot_compatible) {
     std::cout << "DE-Pilot: Current flight mode [" << flying_mode
               << "] is not compatible with DE pilot." << std::endl;
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        "DE-Pilot: Flight mode " + std::to_string(flying_mode) + " detected - pilot operations disabled");
     return false;
   }
 
@@ -108,6 +116,12 @@ void CDEPilotManager::setActive(bool active) {
   if (!isCompatibleMode()) {
     init();
     m_de_pilot_enabled = false;
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        "DE-Pilot: System disabled - incompatible flight mode detected");
     CFCBFacade::getInstance().API_IC_sendID(
         std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
     return;
@@ -135,20 +149,14 @@ void CDEPilotManager::updateOperations() {
 
   DRONEENGAGE_PILOT_OPERATION current_op = m_de_pilot_operation;
 
-  const char *operation_name = "UNKNOWN";
-  switch (current_op) {
-  case DEPILOT_OP_DISABLED:
-    operation_name = "DISABLED";
-    break;
-  case DEPILOT_OP_CHANGE_ALTITUDE:
-    operation_name = "CHANGE-ALTITUDE";
-    break;
-  case DEPILOT_OP_STABILIZATION:
-    operation_name = "STABILIZATION";
-    break;
-  case DEPILOT_OP_TRACKING:
-    operation_name = "TRACKING";
-    break;
+  // Log queue status at start of update
+  static uint64_t last_queue_log_time = 0;
+  const uint64_t now = get_time_usec() / 1000;
+  if (now - last_queue_log_time > 5000) { // Log every 5 seconds
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotManager: Queue status - "
+              << m_operation_queue.size() << " operations queued"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    last_queue_log_time = now;
   }
 
   // Update the active operation
@@ -157,92 +165,337 @@ void CDEPilotManager::updateOperations() {
     // Step Execution
     operation->update();
 
-    // Check if operation completed and auto-switch to stabilization
-    switch (static_cast<int>(current_op)) {
-    case DEPILOT_OP_CHANGE_ALTITUDE: {
-
-      if (operation->isCompleted()) { // PHASE_COMPLETE (4) or PHASE_ABORTED (5)
-        // std::cout << _INFO_CONSOLE_BOLD_TEXT
-        //           << "DEPilotManager: Takeoff completed/aborted, switching to "
-        //              "stabilization"
-        //           << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        do_Stabilize();
-      }
-    } break;
-
-    case DEPILOT_OP_TRACKING: {
+    // No queued operation: keep legacy fallback behavior.
+    // Completed TRACKING/CHANGE_ALTITUDE returns to STABILIZATION.
+    if (m_operation_queue.empty()) {
       if (operation->isCompleted()) {
-        // std::cout << _INFO_CONSOLE_BOLD_TEXT
-        //           << "DEPilotManager: Tracking completed, switching to "
-        //              "stabilization"
-        //           << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        do_Stabilize();
+        std::cout << _INFO_CONSOLE_BOLD_TEXT
+                  << "DEPilotManager: Operation " << operation->getName()
+                  << " completed with no queue - checking fallback"
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        if (current_op == DEPILOT_OP_CHANGE_ALTITUDE ||
+            current_op == DEPILOT_OP_TRACKING) {
+          setOperation(DEPILOT_OP_STABILIZATION);
+        }
       }
-    } break;
+      return;
+    }
 
-    case DEPILOT_OP_STABILIZATION: {
+    // Check if we can advance to next queued operation
+    if (!m_operation_queue.empty() && canAdvanceFromCurrentOperation()) {
+      QueuedOperation next_op = m_operation_queue.front();
+      CDEPilotOperationBase *next_operation =
+          getOperationInstance(next_op.operation);
 
-    } break;
+      if (next_operation == nullptr) {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_
+                  << "DEPilotManager: Invalid queued operation " 
+                  << static_cast<int>(next_op.operation) << " - removing"
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        m_operation_queue.pop();
+        return;
+      }
+
+      // If yaw target is pending, allow transition only to yaw-supporting operations.
+      if (isYawTargetPending() && !next_operation->isYawSupported()) {
+        std::cout << _INFO_CONSOLE_BOLD_TEXT
+                  << "DEPilotManager: Yaw target pending, delaying advance to " 
+                  << next_operation->getName()
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return;
+      }
+
+      m_operation_queue.pop();
+      
+      std::cout << _INFO_CONSOLE_BOLD_TEXT
+                << "DEPilotManager: advancing from " << operation->getName()
+                << " to queued operation " << next_operation->getName()
+                << " (" << static_cast<int>(next_op.operation) << ")"
+                << _NORMAL_CONSOLE_TEXT_ << std::endl;
+      
+      // Set target altitude if this operation has altitude parameter
+      if (next_op.has_altitude_param) {
+        if (next_op.operation == DEPILOT_OP_STABILIZATION) {
+          // For STABILIZATION, target_altitude stores duration_ms
+          if (m_operation_instance != nullptr && m_operation_instance->getActive()) {
+            CDEPilotStabilization *stabilize_op = static_cast<CDEPilotStabilization *>(m_operation_instance);
+            stabilize_op->startStabilization(static_cast<uint64_t>(next_op.target_altitude));
+            std::cout << "  - Starting stabilization with duration: " 
+                      << next_op.target_altitude << " ms" << std::endl;
+          }
+        } else {
+          setTargetAltitude(next_op.target_altitude);
+          std::cout << "  - Setting target altitude: " 
+                    << next_op.target_altitude << " m" << std::endl;
+        }
+      }
+      
+      // Switch to next operation
+      setOperation(next_op.operation);
+      
+      // If the new operation is CHANGE_ALTITUDE and has altitude param, start it
+      if (next_op.operation == DEPILOT_OP_CHANGE_ALTITUDE && next_op.has_altitude_param) {
+        if (m_operation_instance != nullptr && m_operation_instance->getActive()) {
+          CDEPilotChangeAltitude *altitude_op =
+              static_cast<CDEPilotChangeAltitude *>(m_operation_instance);
+          altitude_op->startAltitudeChange(next_op.target_altitude);
+          std::cout << "  - Started altitude change to " 
+                    << next_op.target_altitude << " m" << std::endl;
+        }
+      }
+    } else if (!m_operation_queue.empty()) {
+      // Log why we're not advancing
+      static uint64_t last_block_log_time = 0;
+      if (now - last_block_log_time > 10000) { // Log every 10 seconds
+        std::cout << _INFO_CONSOLE_BOLD_TEXT
+                  << "DEPilotManager: Queue has " << m_operation_queue.size() 
+                  << " operations but cannot advance - current operation " 
+                  << operation->getName() << " " 
+                  << (operation->isCompleted() ? "completed" : "active")
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        last_block_log_time = now;
+      }
     }
   }
 }
 
-void CDEPilotManager::do_ChangeAltitude(double target_altitude) {
-
+void CDEPilotManager::do_ChangeAltitude(double target_altitude, bool enqueue) {
   if (!isCompatibleMode()) {
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        "DE-Pilot: Altitude change request rejected - incompatible flight mode");
     init();
     return;
   }
 
-  setTargetAltitude(target_altitude);
-  setOperation(DEPILOT_OP_CHANGE_ALTITUDE);
-  if (m_operation_instance == nullptr) {
-    // Failes
-    std::cout << "DE-Pilot Failed to call Change Altitude" << std::endl;
+  if (enqueue) {
+    QueuedOperation op;
+    op.operation = DEPILOT_OP_CHANGE_ALTITUDE;
+    op.target_altitude = target_altitude;
+    op.has_altitude_param = true;
+    m_operation_queue.push(op);
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DE-Pilot: Enqueued Change Altitude to " << target_altitude 
+              << "m (queue size: " << m_operation_queue.size() << ")"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
     return;
   }
 
-  // If operation is already active, update the target altitude in the running
-  // operation
+  // Immediate path: clear queue and execute
+  const size_t queue_size_before = m_operation_queue.size();
+  clearOperationQueue();
+  if (queue_size_before > 0) {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DE-Pilot: Cleared " << queue_size_before 
+              << " queued operations for immediate Change Altitude"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+  }
+  
+  setTargetAltitude(target_altitude);
+  setOperation(DEPILOT_OP_CHANGE_ALTITUDE);
+  if (m_operation_instance == nullptr) {
+    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DE-Pilot Failed to call Change Altitude - no instance"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_ERROR,
+        "DE-Pilot: Change altitude failed - operation system error");
+    return;
+  }
+
   if (m_operation_instance != nullptr && m_operation_instance->getActive()) {
     CDEPilotChangeAltitude *altitude_op =
         static_cast<CDEPilotChangeAltitude *>(m_operation_instance);
     altitude_op->startAltitudeChange(target_altitude);
-    std::cout << "DE-Pilot: Updated target altitude to " << target_altitude
-              << " during active operation" << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DE-Pilot: Started immediate Change Altitude to "
+              << target_altitude << "m" << _NORMAL_CONSOLE_TEXT_ << std::endl;
   }
 }
 
-void CDEPilotManager::do_Stabilize() {
+void CDEPilotManager::do_Stabilize(bool enqueue) {
   if (!isCompatibleMode()) {
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_ERROR,
+        "DE-Pilot: Cannot stabilize - incompatible flight mode");
     init();
     return;
   }
 
+  if (enqueue) {
+    QueuedOperation op;
+    op.operation = DEPILOT_OP_STABILIZATION;
+    op.target_altitude = 0.0;
+    op.has_altitude_param = false;
+    m_operation_queue.push(op);
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DE-Pilot: Enqueued Stabilize (queue size: " 
+              << m_operation_queue.size() << ")"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    return;
+  }
+
+  // Immediate path: clear queue and execute
+  const size_t queue_size_before = m_operation_queue.size();
+  clearOperationQueue();
+  if (queue_size_before > 0) {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DE-Pilot: Cleared " << queue_size_before 
+              << " queued operations for immediate Stabilize"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+  }
+  
   setOperation(DEPILOT_OP_STABILIZATION);
   if (m_operation_instance == nullptr) {
-    // Failes
-    std::cout << "DE-Pilot Failed to call STABILIZE" << std::endl;
+    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DE-Pilot Failed to call STABILIZE - no instance"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_ERROR,
+        "DE-Pilot: Stabilization failed - operation system error");
     return;
   }
+
+  std::cout << _INFO_CONSOLE_BOLD_TEXT << "DE-Pilot: Started immediate Stabilize"
+            << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
 
-void CDEPilotManager::do_Tracking() {
+void CDEPilotManager::do_Stabilize(uint64_t duration_ms, bool enqueue) {
   if (!isCompatibleMode()) {
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_ERROR,
+        "DE-Pilot: Cannot stabilize - incompatible flight mode");
     init();
     return;
   }
 
+  if (enqueue) {
+    QueuedOperation op;
+    op.operation = DEPILOT_OP_STABILIZATION;
+    op.target_altitude = static_cast<double>(duration_ms); // Reuse field for duration
+    op.has_altitude_param = true;
+    m_operation_queue.push(op);
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DE-Pilot: Enqueued Stabilize for " << duration_ms 
+              << "ms (queue size: " << m_operation_queue.size() << ")"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+              
+    // Send context notification for enqueued stabilization
+    std::string target;
+    target = "_GD_";
+    std::string notification_msg = "DE-Pilot: Stabilization enqueued for " + 
+                                 std::to_string(duration_ms) + "ms (queue size: " + 
+                                 std::to_string(m_operation_queue.size()) + ")";
+    
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        target,
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        notification_msg);
+    return;
+  }
+
+  // Immediate path: clear queue and execute
+  const size_t queue_size_before = m_operation_queue.size();
+  clearOperationQueue();
+  if (queue_size_before > 0) {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DE-Pilot: Cleared " << queue_size_before 
+              << " queued operations for immediate Stabilize"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+  }
+  
+  setOperation(DEPILOT_OP_STABILIZATION);
+  if (m_operation_instance == nullptr) {
+    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DE-Pilot Failed to call STABILIZE - no instance"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_ERROR,
+        "DE-Pilot: Stabilization failed - operation system error");
+    return;
+  }
+
+  // Start stabilization with duration
+  if (m_operation_instance != nullptr && m_operation_instance->getActive()) {
+    CDEPilotStabilization *stabilize_op = static_cast<CDEPilotStabilization *>(m_operation_instance);
+    stabilize_op->startStabilization(duration_ms);
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DE-Pilot: Started immediate Stabilize for " 
+              << duration_ms << " ms" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+  }
+}
+
+void CDEPilotManager::do_Tracking(bool enqueue) {
+  if (!isCompatibleMode()) {
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        "DE-Pilot: Tracking request rejected - incompatible flight mode");
+    init();
+    return;
+  }
+
+  if (enqueue) {
+    QueuedOperation op;
+    op.operation = DEPILOT_OP_TRACKING;
+    op.target_altitude = 0.0;
+    op.has_altitude_param = false;
+    m_operation_queue.push(op);
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DE-Pilot: Enqueued Tracking (queue size: " 
+              << m_operation_queue.size() << ")"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    return;
+  }
+
+  // Immediate path: clear queue and execute
+  const size_t queue_size_before = m_operation_queue.size();
+  clearOperationQueue();
+  if (queue_size_before > 0) {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DE-Pilot: Cleared " << queue_size_before 
+              << " queued operations for immediate Tracking"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+  }
+  
   setOperation(DEPILOT_OP_TRACKING);
   if (m_operation_instance == nullptr) {
-    // Failed
-    std::cout << "DE-Pilot Failed to call TRACKING" << std::endl;
+    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DE-Pilot Failed to call TRACKING - no instance"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_ERROR,
+        "DE-Pilot: Tracking failed - operation system error");
     return;
   }
 
   std::cout << _INFO_CONSOLE_BOLD_TEXT 
-            << "DE-Pilot: Tracking mode activated" 
+            << "DE-Pilot: Started immediate Tracking mode" 
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
+}
+
+void CDEPilotManager::do_Wait(uint64_t duration_ms, bool enqueue) {
+  // Shadow function that calls do_Stabilize with duration
+  do_Stabilize(duration_ms, enqueue);
 }
 
 void CDEPilotManager::do_SetYaw(double angle, double rate, bool is_clockwise,
@@ -251,6 +504,12 @@ void CDEPilotManager::do_SetYaw(double angle, double rate, bool is_clockwise,
     std::cout << _INFO_CONSOLE_BOLD_TEXT
               << "DE-Pilot: Not active, cannot set yaw" << _NORMAL_CONSOLE_TEXT_
               << std::endl;
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        "DE-Pilot: Yaw control request rejected - pilot system not active");
     return;
   }
 
@@ -258,6 +517,12 @@ void CDEPilotManager::do_SetYaw(double angle, double rate, bool is_clockwise,
     std::cout << _INFO_CONSOLE_BOLD_TEXT
               << "DE-Pilot: Incompatible mode, cannot set yaw"
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        "DE-Pilot: Yaw control request rejected - incompatible flight mode");
     return;
   }
 
@@ -269,14 +534,31 @@ void CDEPilotManager::do_SetYaw(double angle, double rate, bool is_clockwise,
       std::string(ANDRUAV_PROTOCOL_SENDER_ALL));
 }
 
-void CDEPilotManager::do_Land() {
-
+void CDEPilotManager::do_Land(bool enqueue) {
   if (!isCompatibleMode()) {
     std::cout << "DE-PILOT: Failed to switch to LAND mode." << std::endl;
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        std::string(ANDRUAV_PROTOCOL_SENDER_ALL),
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        "DE-Pilot: Landing request rejected - incompatible flight mode");
     init();
     return;
   }
 
+  if (enqueue) {
+    QueuedOperation op;
+    op.operation = DEPILOT_OP_IDLE;
+    op.target_altitude = 0.0;
+    op.has_altitude_param = false;
+    m_operation_queue.push(op);
+    std::cout << "DE-Pilot: Enqueued Land (mapped to IDLE)" << std::endl;
+    return;
+  }
+
+  // Immediate path: clear queue and execute
+  clearOperationQueue();
   de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
   uint32_t ardupilot_mode, ardupilot_custom_mode, ardupilot_custom_sub_mode;
   CFCBModes::getArduPilotMode(
@@ -368,6 +650,56 @@ void CDEPilotManager::emitSubOperationEvent(const CDEPilotTaskBase& task) {
     event_message["ctx"] = Json_de::object();
   }
   m_fcb_facade.sendSyncFireEvent(std::string(), DRONE_DEPILOT_SUBOPERATION_UPDATED, event_message, false);
+}
+
+void CDEPilotManager::clearOperationQueue() {
+  const size_t cleared_count = m_operation_queue.size();
+  while (!m_operation_queue.empty()) {
+    m_operation_queue.pop();
+  }
+  if (cleared_count > 0) {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DEPilotManager: Cleared " << cleared_count << " queued operations"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+  }
+}
+
+size_t CDEPilotManager::getOperationQueueSize() const {
+  return m_operation_queue.size();
+}
+
+bool CDEPilotManager::canAdvanceFromCurrentOperation() const {
+  if (m_operation_instance == nullptr) {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DEPilotManager: Can advance - no current operation"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    return true; // No current operation, can advance
+  }
+  
+  // Check if current operation is completed
+  const bool is_completed = m_operation_instance->isCompleted();
+  if (!is_completed) {
+    static uint64_t last_advance_log_time = 0;
+    const uint64_t now = get_time_usec() / 1000;
+    if (now - last_advance_log_time > 15000) { // Log every 15 seconds
+      std::cout << _INFO_CONSOLE_BOLD_TEXT 
+                << "DEPilotManager: Cannot advance - " 
+                << m_operation_instance->getName() << " is still active"
+                << _NORMAL_CONSOLE_TEXT_ << std::endl;
+      last_advance_log_time = now;
+    }
+    return false;
+  }
+  
+  std::cout << _INFO_CONSOLE_BOLD_TEXT 
+            << "DEPilotManager: Can advance - " 
+            << m_operation_instance->getName() << " is completed"
+            << _NORMAL_CONSOLE_TEXT_ << std::endl;
+  return true;
+}
+
+bool CDEPilotManager::isYawTargetPending() const {
+  return CDEPilotYawControl::getInstance().isYawControlActive();
 }
 
 

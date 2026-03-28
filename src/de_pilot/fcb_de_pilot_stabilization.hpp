@@ -38,10 +38,12 @@ public:
   void setActive(bool active) override;
   bool getActive() const override;
   bool isCompleted() override;
+  bool isYawSupported() const override { return true; }
   std::string getName() const override { return "Copter Stabilization"; }
 
   // Class-specific interface
   void startStabilization();
+  void startStabilization(uint64_t duration_ms);
   void updateStabilization();
   void stopStabilization();
   bool isStabilizationActive() const;
@@ -52,6 +54,7 @@ private:
   // Stabilization-specific member variables (base class provides m_active,
   // m_generic_phase, m_phase_start_time, m_last_update_time)
   StabilizationPhase m_phase = PHASE_IDLE;
+  uint64_t m_stabilize_duration_ms = 0; // 0 = infinite stabilization
 };
 
 } // namespace depilot

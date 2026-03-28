@@ -10,7 +10,9 @@
 #include "fcb_de_pilot_yaw_control.hpp"
 #include "../fcb_facade.hpp"
 #include <cstdint>
-#include "../defines.hpp"
+#include <string>
+#include <vector>
+#include <queue>
 
 namespace de {
 namespace fcb {
@@ -36,10 +38,12 @@ public:
 
 public:
   // Main Functions
-  void do_ChangeAltitude(double target_altitude);
-  void do_Stabilize();
-  void do_Tracking();
-  void do_Land();
+  void do_ChangeAltitude(double target_altitude, bool enqueue = false);
+  void do_Stabilize(bool enqueue = false);
+  void do_Stabilize(uint64_t duration_ms, bool enqueue = false);
+  void do_Tracking(bool enqueue = false);
+  void do_Land(bool enqueue = false);
+  void do_Wait(uint64_t duration_ms, bool enqueue = false);
   void do_SetYaw(double angle, double rate, bool is_clockwise,
                  bool is_relative);
 public:
@@ -55,9 +59,12 @@ public:
   }
 
   // Operation management
-  void setOperation(DRONEENGAGE_PILOT_OPERATION operation);
   DRONEENGAGE_PILOT_OPERATION getCurrentOperation() const;
   bool isOperationActive(DRONEENGAGE_PILOT_OPERATION operation) const;
+
+  // Queue management
+  void clearOperationQueue();
+  size_t getOperationQueueSize() const;
 
   // Target altitude management
   double getTargetAltitude() const;
@@ -65,12 +72,14 @@ public:
 public:
   void OnFlightModeChanged();
 
+  
 private:
   CDEPilotManager() {}
   ~CDEPilotManager() = default;
 
 private:
   // Internal helper methods
+  void setOperation(DRONEENGAGE_PILOT_OPERATION operation);
   void deactivateAllOperations();
   bool isCompatibleMode();
   CDEPilotOperationBase *
@@ -79,11 +88,25 @@ private:
   // Sub-operation event dispatcher
   void emitSubOperationEvent(const CDEPilotTaskBase& task);
 
+  // Transition policy
+  bool canAdvanceFromCurrentOperation() const;
+  bool isYawTargetPending() const;
+
+  // Queue request type
+  struct QueuedOperation {
+    DRONEENGAGE_PILOT_OPERATION operation;
+    double target_altitude; // Only used for CHANGE_ALTITUDE
+    bool has_altitude_param;
+  };
+
   de::fcb::CFCBFacade& m_fcb_facade = de::fcb::CFCBFacade::getInstance();
             
   // Current operation state
   CDEPilotOperationBase *m_operation_instance = nullptr;
   double m_target_altitude = 0.0;
+
+  // Operation queue
+  std::queue<QueuedOperation> m_operation_queue;
 
   bool m_allow_RCControl = true;
   bool m_de_pilot_enabled = false;
