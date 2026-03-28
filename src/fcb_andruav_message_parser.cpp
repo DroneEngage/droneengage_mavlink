@@ -481,7 +481,7 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
     const bool enqueue = (validateField(cmd, "q", Json_de::value_t::boolean))? cmd["q"].get<bool>():false;
     const int time_duration_ms = (validateField(cmd, "d", Json_de::value_t::number_unsigned))? cmd["d"].get<int>():0;
     const int de_mode = (validateField(cmd, "m", Json_de::value_t::number_unsigned))? cmd["m"].get<int>():static_cast<int>(DEPILOT_OP_DISABLED);
-    const double de_yaw_deg = (validateField(cmd, "y", Json_de::value_t::number_float))? cmd["y"].get<double>():0.0f;
+    const double de_yaw_deg = (validateField(cmd, "y", Json_de::value_t::number_float)|| validateField(cmd, "y", Json_de::value_t::number_unsigned))? cmd["y"].get<double>():0.0f;
     const double target_altitude_m = (validateField(cmd, "l", Json_de::value_t::number_float) || validateField(cmd, "l", Json_de::value_t::number_unsigned))? cmd["l"].get<double>():0.0f;
 
     UNUSED(de_yaw_deg);
@@ -524,7 +524,7 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
       if (de_yaw_deg!=0)
       {
           de::fcb::depilot::CDEPilotManager::getInstance().do_SetYaw(
-            de_yaw_deg, 0.0, false, true);
+            de_yaw_deg, 30.0, false, false);
       }
     }
   
