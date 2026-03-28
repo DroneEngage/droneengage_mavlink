@@ -45,6 +45,7 @@ public:
     bool getActive() const override;
     void startAltitudeChange(double target_altitude);
     bool isCompleted() override;
+    bool isYawSupported() const override { return true; }
     std::string getName() const override { return "change_altitude"; }
 
 private:

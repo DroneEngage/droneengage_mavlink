@@ -16,6 +16,7 @@ public:
     // Operation-specific interface
     virtual bool isCompleted() = 0;
     virtual DRONEENGAGE_PILOT_OPERATION getOperation() { return m_my_operation; }
+    virtual bool isYawSupported() const { return false; }
 
     // Each operation class provides its own name (can be vehicle-specific)
     virtual std::string getName() const = 0;

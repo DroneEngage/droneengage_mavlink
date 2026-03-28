@@ -12,6 +12,7 @@
 #include "../de_common/de_databus/configFile.hpp"
 #include "../de_common/helpers/json_nlohmann.hpp"
 #include "fcb_de_pilot_manager.hpp"
+#include "../de_common/de_databus/de_facade_base.hpp"
 
 using Json_de = nlohmann::json;
 
@@ -61,9 +62,30 @@ bool CDEPilotChangeAltitude::isCompleted() {
 }
 
 void CDEPilotChangeAltitude::setPhase(int phase) {
-    m_generic_phase = phase;
-    m_phase = static_cast<AltitudeControlPhase>(phase);
-    m_phase_start_time = get_time_usec() / 1000;
+  const AltitudeControlPhase old_phase = m_phase;
+  m_generic_phase = phase;
+  m_phase = static_cast<AltitudeControlPhase>(phase);
+  m_phase_start_time = get_time_usec() / 1000;
+  
+  std::cout << _INFO_CONSOLE_BOLD_TEXT 
+            << "DEPILOT: Altitude phase changed from " << old_phase 
+            << " to " << m_phase 
+            << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            
+  // Send context notification for phase change
+  std::string target;
+  target = "_GD_";
+  std::string phase_names[] = {"IDLE", "ARM_CHECK", "ARMED", "ASCENDING", "DESCENDING", "COMPLETE", "ABORTED"};
+  std::string old_phase_name = (old_phase >= 0 && old_phase < 7) ? phase_names[old_phase] : "UNKNOWN";
+  std::string new_phase_name = (m_phase >= 0 && m_phase < 7) ? phase_names[m_phase] : "UNKNOWN";
+  std::string notification_msg = "DE-Pilot: Altitude control phase changed from " + old_phase_name + " to " + new_phase_name;
+  
+  de::comm::CFacade_Base::getInstance().sendErrorMessage(
+      target,
+      ERROR_USER_DEFINED,
+      ERROR_TYPE_ERROR_MODULE,
+      NOTIFICATION_TYPE_INFO,
+      notification_msg);
 }
 
 int CDEPilotChangeAltitude::getPhase() const {
@@ -71,10 +93,44 @@ int CDEPilotChangeAltitude::getPhase() const {
 }
 
 void CDEPilotChangeAltitude::setActive(bool active) {
-    m_active = active;
-    if (active) {
-        m_phase_start_time = get_time_usec() / 1000;
-    }
+  const bool old_active = m_active;
+  m_active = active;
+  if (active) {
+    m_phase_start_time = get_time_usec() / 1000;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DEPILOT: Altitude control activated (was " 
+              << (old_active ? "active" : "inactive") << ")"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+              
+    // Send context notification for activation
+    std::string target;
+    target = "_GD_";
+    std::string notification_msg = "DE-Pilot: Altitude control activated";
+    
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        target,
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        notification_msg);
+  } else {
+    std::cout << _INFO_CONSOLE_BOLD_TEXT 
+              << "DEPILOT: Altitude control deactivated"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
+              
+    // Send context notification for deactivation
+    std::string target;
+    target = "_GD_";
+    std::string notification_msg = "DE-Pilot: Altitude control deactivated";
+    
+    de::comm::CFacade_Base::getInstance().sendErrorMessage(
+        target,
+        ERROR_USER_DEFINED,
+        ERROR_TYPE_ERROR_MODULE,
+        NOTIFICATION_TYPE_INFO,
+        notification_msg);
+  }
+  m_generic_phase = static_cast<int>(m_phase);
 }
 
 bool CDEPilotChangeAltitude::getActive() const {
@@ -212,6 +268,34 @@ void CDEPilotChangeAltitude::updateTakeoff() {
     const uint64_t now = get_time_usec();
     const double current_altitude = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt().relative_alt / 1000.0;
 
+    // Log phase progress every 3 seconds for active phases
+    static uint64_t last_phase_progress_log = 0;
+    if (m_phase == PHASE_ASCENDING || m_phase == PHASE_DESCENDING) {
+        if (now - last_phase_progress_log > 3000000) { // 3 seconds
+            const uint64_t phase_elapsed = (now - m_phase_start_time) / 1000;
+            std::cout << _INFO_CONSOLE_BOLD_TEXT 
+                      << "DEPILOT: Altitude " 
+                      << (m_phase == PHASE_ASCENDING ? "ASCENDING" : "DESCENDING")
+                      << " phase - " << phase_elapsed << "ms elapsed"
+                      << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            last_phase_progress_log = now;
+            
+            // Send context notification for phase progress
+            std::string target;
+            target = "_GD_";
+            std::string phase_name = (m_phase == PHASE_ASCENDING) ? "ASCENDING" : "DESCENDING";
+            std::string notification_msg = "DE-Pilot: Altitude " + phase_name + " phase in progress - " + 
+                                         std::to_string(phase_elapsed / 1000) + " seconds elapsed";
+            
+            de::comm::CFacade_Base::getInstance().sendErrorMessage(
+                target,
+                ERROR_USER_DEFINED,
+                ERROR_TYPE_ERROR_MODULE,
+                NOTIFICATION_TYPE_INFO,
+                notification_msg);
+        }
+    }
+
     // Calculate current climb rate
     if (m_climb_rate_check_time > 0) {
         const double dt = (now - m_climb_rate_check_time) / 1000000.0; // seconds
@@ -299,6 +383,25 @@ void CDEPilotChangeAltitude::updateTakeoff() {
                 std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DEPILOT: Altitude control timeout - not descending for " 
                           << ((now - m_zero_climb_rate_start_time) / 1000000.0) << " seconds (climb rate: " 
                           << m_current_climb_rate << " m/s)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                std::cout << _INFO_CONSOLE_TEXT 
+                          << "  - Phase elapsed: " << ((now - m_phase_start_time) / 1000000.0) << " seconds"
+                          << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                std::cout << _INFO_CONSOLE_TEXT 
+                          << "  - Zero climb rate detected for: " << ((now - m_zero_climb_rate_start_time) / 1000000.0) << " seconds"
+                          << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                
+                std::string target;
+                target = "_GD_";
+                std::string error_msg;
+                error_msg = "DE-Pilot: Altitude control timeout - failed to descend for " + 
+                           std::to_string((int)((now - m_zero_climb_rate_start_time) / 1000000.0)) + " seconds";
+                de::comm::CFacade_Base::getInstance().sendErrorMessage(
+                    target,
+                    ERROR_USER_DEFINED,
+                    ERROR_TYPE_ERROR_MODULE,
+                    NOTIFICATION_TYPE_WARNING,
+                    error_msg);
+                
                 stopAltitudeControl();
                 return;
             }
@@ -360,7 +463,29 @@ void CDEPilotChangeAltitude::updateTakeoff() {
                 std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DEPILOT: Takeoff timeout - not climbing for " 
                           << ((now - m_zero_climb_rate_start_time) / 1000000.0) << " seconds (climb rate: " 
                           << m_current_climb_rate << " m/s)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-#endif                
+              
+                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "DEPILOT: Takeoff timeout - not climbing for " 
+                          << ((now - m_zero_climb_rate_start_time) / 1000000.0) << " seconds (climb rate: " 
+                          << m_current_climb_rate << " m/s)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                std::cout << _INFO_CONSOLE_TEXT 
+                          << "  - Phase elapsed: " << ((now - m_phase_start_time) / 1000000.0) << " seconds"
+                          << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                std::cout << _INFO_CONSOLE_TEXT 
+                          << "  - Zero climb rate detected for: " << ((now - m_zero_climb_rate_start_time) / 1000000.0) << " seconds"
+                          << _NORMAL_CONSOLE_TEXT_ << std::endl;
+ #endif                 
+                std::string target;
+                target = "_GD_";
+                std::string error_msg;
+                error_msg = "DE-Pilot: Takeoff timeout - failed to climb for " + 
+                           std::to_string((int)((now - m_zero_climb_rate_start_time) / 1000000.0)) + " seconds";
+                de::comm::CFacade_Base::getInstance().sendErrorMessage(
+                    target,
+                    ERROR_USER_DEFINED,
+                    ERROR_TYPE_ERROR_MODULE,
+                    NOTIFICATION_TYPE_WARNING,
+                    error_msg);
+                
                 // abortTakeoff() will send 1500 to maintain current altitude
                 abortTakeoff();
                 return;
