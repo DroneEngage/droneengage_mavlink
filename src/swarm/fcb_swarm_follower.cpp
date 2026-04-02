@@ -93,7 +93,7 @@ void CSwarmFollower::updateFollowerInArrowFormation()
 
     // Test if leader speed is very low, then break
     double speed_sq = m_leader_gpos_new.vx * m_leader_gpos_new.vx + m_leader_gpos_new.vy * m_leader_gpos_new.vy;
-    if (speed_sq < 1000)
+    if (speed_sq < 100)
     {
         return;
     }

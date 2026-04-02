@@ -336,6 +336,183 @@ TEST(PerformanceTest) {
     return true;
 }
 
+// Test integral accumulation with positive errors
+TEST(IntegralAccumulationPositive) {
+    CAdvancedPIDController pid(0.0, ki, 0.0, dt, integral_max, output_limit);  // Only I gain
+    
+    double initial_integral = pid.getIntegralSum();
+    ASSERT_EQ(initial_integral, 0.0);  // Should start at zero
+    
+    // Apply positive error repeatedly
+    double error = 1.0;
+    double expected_integral = 0.0;
+    
+    for (int i = 0; i < 10; ++i) {
+        pid.calculate(error);
+        expected_integral += ki * error * dt;
+        
+        double actual_integral = pid.getIntegralSum();
+        ASSERT_NEAR(actual_integral, expected_integral, 0.001);  // Should accumulate
+        std::cout << "Iteration " << i + 1 << ": Integral = " << actual_integral << std::endl;
+    }
+    
+    return true;
+}
+
+// Test integral accumulation with negative errors
+TEST(IntegralAccumulationNegative) {
+    CAdvancedPIDController pid(0.0, ki, 0.0, dt, integral_max, output_limit);  // Only I gain
+    
+    double initial_integral = pid.getIntegralSum();
+    ASSERT_EQ(initial_integral, 0.0);  // Should start at zero
+    
+    // Apply negative error repeatedly
+    double error = -1.0;
+    double expected_integral = 0.0;
+    
+    for (int i = 0; i < 10; ++i) {
+        pid.calculate(error);
+        expected_integral += ki * error * dt;  // Should become more negative
+        
+        double actual_integral = pid.getIntegralSum();
+        ASSERT_NEAR(actual_integral, expected_integral, 0.001);  // Should accumulate negatively
+        std::cout << "Iteration " << i + 1 << ": Integral = " << actual_integral << std::endl;
+    }
+    
+    return true;
+}
+
+// Test integral windup limits
+TEST(IntegralWindupLimits) {
+    CAdvancedPIDController pid(0.0, ki, 0.0, dt, 1.0, output_limit);  // Small integral limit
+    
+    // Apply large positive error to hit limit
+    double error = 10.0;
+    bool hit_limit = false;
+    
+    for (int i = 0; i < 100; ++i) {
+        pid.calculate(error);
+        double integral = pid.getIntegralSum();
+        
+        if (integral >= 1.0) {
+            ASSERT_EQ(integral, 1.0);  // Should be exactly at limit
+            hit_limit = true;
+            std::cout << "Hit positive limit at iteration " << i + 1 << std::endl;
+            break;
+        }
+    }
+    
+    ASSERT_TRUE(hit_limit);  // Should have hit the limit
+    
+    // Reset and test negative limit
+    pid.reset();
+    error = -10.0;
+    hit_limit = false;
+    
+    for (int i = 0; i < 100; ++i) {
+        pid.calculate(error);
+        double integral = pid.getIntegralSum();
+        
+        if (integral <= -1.0) {
+            ASSERT_EQ(integral, -1.0);  // Should be exactly at limit
+            hit_limit = true;
+            std::cout << "Hit negative limit at iteration " << i + 1 << std::endl;
+            break;
+        }
+    }
+    
+    ASSERT_TRUE(hit_limit);  // Should have hit the negative limit
+    return true;
+}
+
+// Test integral reset functionality
+TEST(IntegralReset) {
+    CAdvancedPIDController pid(0.0, ki, 0.0, dt, integral_max, output_limit);  // Only I gain
+    
+    // Build up integral
+    for (int i = 0; i < 10; ++i) {
+        pid.calculate(1.0);
+    }
+    
+    double integral_before_reset = pid.getIntegralSum();
+    ASSERT_GT(integral_before_reset, 0.0);  // Should have accumulated
+    
+    // Reset and verify
+    pid.reset();
+    double integral_after_reset = pid.getIntegralSum();
+    ASSERT_EQ(integral_after_reset, 0.0);  // Should be zero after reset
+    
+    std::cout << "Integral before reset: " << integral_before_reset << std::endl;
+    std::cout << "Integral after reset: " << integral_after_reset << std::endl;
+    
+    return true;
+}
+
+// Test integral behavior with mixed errors
+TEST(IntegralMixedErrors) {
+    CAdvancedPIDController pid(0.0, ki, 0.0, dt, integral_max, output_limit);  // Only I gain
+    
+    double expected_integral = 0.0;
+    
+    // Apply alternating positive and negative errors
+    std::vector<double> errors = {1.0, -0.5, 1.0, -0.8, 0.5};
+    
+    for (size_t i = 0; i < errors.size(); ++i) {
+        pid.calculate(errors[i]);
+        expected_integral += ki * errors[i] * dt;
+        
+        double actual_integral = pid.getIntegralSum();
+        ASSERT_NEAR(actual_integral, expected_integral, 0.001);
+        
+        std::cout << "Error " << errors[i] << ": Integral = " << actual_integral << std::endl;
+    }
+    
+    return true;
+}
+
+// Test integral with zero Ki gain
+TEST(IntegralZeroKi) {
+    CAdvancedPIDController pid(0.0, 0.0, 0.0, dt, integral_max, output_limit);  // Zero Ki
+    
+    // Apply error - integral should not change
+    for (int i = 0; i < 10; ++i) {
+        pid.calculate(1.0);
+        double integral = pid.getIntegralSum();
+        ASSERT_EQ(integral, 0.0);  // Should remain zero
+    }
+    
+    std::cout << "Integral with Ki=0 remains at: " << pid.getIntegralSum() << std::endl;
+    return true;
+}
+
+// Test advanced anti-windup integral behavior
+TEST(IntegralAdvancedAntiWindup) {
+    // Controller with advanced anti-windup
+    CAdvancedPIDController pid_advanced(1.0, ki, 0.0, dt, integral_max, 1.0,  // Small output limit
+                                        0.0, true, 0.2);
+    
+    // Controller with basic anti-windup
+    CAdvancedPIDController pid_basic(1.0, ki, 0.0, dt, integral_max, 1.0,
+                                     0.0, false, 0.2);
+    
+    // Apply large error to trigger saturation
+    for (int i = 0; i < 50; ++i) {
+        pid_advanced.calculate(10.0);
+        pid_basic.calculate(10.0);
+    }
+    
+    double integral_advanced = pid_advanced.getIntegralSum();
+    double integral_basic = pid_basic.getIntegralSum();
+    
+    std::cout << "Advanced anti-windup integral: " << integral_advanced << std::endl;
+    std::cout << "Basic anti-windup integral: " << integral_basic << std::endl;
+    
+    // Advanced anti-windup should accumulate less integral when saturated
+    ASSERT_LE(std::abs(integral_advanced), std::abs(integral_basic));
+    
+    return true;
+}
+
 // Integration test with realistic parameters
 TEST(RealisticParametersTest) {
     // Realistic drone altitude controller parameters
@@ -390,6 +567,13 @@ int main() {
         {"ConvergenceBehavior", ConvergenceBehavior},
         {"ZeroGainsBehavior", ZeroGainsBehavior},
         {"PerformanceTest", PerformanceTest},
+        {"IntegralAccumulationPositive", IntegralAccumulationPositive},
+        {"IntegralAccumulationNegative", IntegralAccumulationNegative},
+        {"IntegralWindupLimits", IntegralWindupLimits},
+        {"IntegralReset", IntegralReset},
+        {"IntegralMixedErrors", IntegralMixedErrors},
+        {"IntegralZeroKi", IntegralZeroKi},
+        {"IntegralAdvancedAntiWindup", IntegralAdvancedAntiWindup},
         {"RealisticParametersTest", RealisticParametersTest}
     };
     
