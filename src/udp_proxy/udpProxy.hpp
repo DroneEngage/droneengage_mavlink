@@ -4,6 +4,7 @@
 
 #include <thread>         // std::thread
 #include <mutex>          // std::mutex, std::unique_lock
+#include <chrono>
 
 #ifndef MAXLINE
 #define MAXLINE 65507 
@@ -71,6 +72,15 @@ class CUDPProxy
         char buffer[MAXLINE]; 
 
         CCallBack_UdpProxy * m_callback_udp_proxy = nullptr;
+        
+        static constexpr int UDP_RCV_TIMEOUT_MS = 1500;
+        static constexpr int UDP_SND_TIMEOUT_MS = 1500;
+        static constexpr int UDP_KEEPALIVE_MS   = 15000;
+        static constexpr int UDP_BUF_SIZE       = 4 * 1024 * 1024;
+        std::chrono::steady_clock::time_point m_last_keepalive = std::chrono::steady_clock::now();
+        bool m_dns_resolved = false;
+        bool setupSocketOptions();
+        void sendKeepAlive();
         
 };
 }

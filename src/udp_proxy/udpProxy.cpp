@@ -62,8 +62,10 @@ bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, con
 {
 
     // pthread initialization
-	m_thread = pthread_self(); // get pthread ID
-	pthread_setschedprio(m_thread, SCHED_FIFO); // setting priority
+    m_thread = pthread_self(); // get pthread ID
+    sched_param sp{};
+    sp.sched_priority = 1;
+    pthread_setschedparam(m_thread, SCHED_FIFO, &sp); // ignore failure
 
 
     // Creating socket file descriptor 
@@ -72,6 +74,11 @@ bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, con
         std::cout << _ERROR_CONSOLE_TEXT_ << "UDPProxy: Socket creation failed: " << _INFO_CONSOLE_TEXT << target_address  << _NORMAL_CONSOLE_TEXT_ << std::endl;
         de::comm::CFacade_Base::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), err, ERROR_3DR, NOTIFICATION_TYPE_ERROR,
             std::string("UDPProxy: Socket creation failed ") + target_address + " err:" + std::to_string(err) + " " + strerror(err));
+        return false;
+    }
+
+    if (!setupSocketOptions()) {
+        closeSockets();
         return false;
     }
 
@@ -85,31 +92,37 @@ bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, con
     m_ModuleAddress->sin_port = htons(listenningPort); 
     m_ModuleAddress->sin_addr.s_addr = inet_addr(host);//INADDR_ANY; 
 
-    // UDP Proxy could have a hostname
-    struct hostent * hostinfo = gethostbyname(target_address);
-    if(!hostinfo) {
-        const int err = errno;
-        std::cout << _ERROR_CONSOLE_TEXT_ << "UDPProxy: Cannot get info for udpProxy" << _INFO_CONSOLE_TEXT << target_address  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        de::comm::CFacade_Base::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), err, ERROR_3DR, NOTIFICATION_TYPE_ERROR,
-            std::string("UDPProxy: Cannot get info for udpProxy ") + target_address + " err:" + std::to_string(err) + " " + strerror(err));
-        closeSockets();
-        return false;
+    // UDP Proxy could have a hostname or IP
+    in_addr ipv4{};
+    if (inet_pton(AF_INET, target_address, &ipv4) == 1) {
+        m_udpProxyServer->sin_addr = ipv4;
+        m_dns_resolved = true;
+        std::cout << _LOG_CONSOLE_BOLD_TEXT << "UDPProxy: Using IP address " <<  _INFO_CONSOLE_TEXT << target_address << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    } else {
+        // Try DNS resolution
+        addrinfo hints{}, *res = nullptr;
+        hints.ai_family = AF_INET;
+        hints.ai_socktype = SOCK_DGRAM;
+        const int gai = getaddrinfo(target_address, nullptr, &hints, &res);
+        if (gai != 0 || res == nullptr) {
+            const int err = errno;
+            std::cout << _ERROR_CONSOLE_TEXT_ << "UDPProxy: Cannot resolve " << _INFO_CONSOLE_TEXT
+                      << target_address << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            de::comm::CFacade_Base::getInstance().sendErrorMessage(
+                std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), err, ERROR_3DR, NOTIFICATION_TYPE_ERROR,
+                std::string("UDPProxy: Cannot resolve ") + target_address + " gai:" + std::to_string(gai));
+            closeSockets();
+            return false;
+        }
+        auto* a = reinterpret_cast<sockaddr_in*>(res->ai_addr);
+        m_udpProxyServer->sin_addr = a->sin_addr;
+        freeaddrinfo(res);
+        m_dns_resolved = true;
+        std::cout << _LOG_CONSOLE_BOLD_TEXT << "UDPProxy: Resolved " <<  _INFO_CONSOLE_TEXT << target_address 
+                  << " to " << inet_ntoa(m_udpProxyServer->sin_addr) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     }
-    char * target_ip = inet_ntoa(*(struct in_addr *)*hostinfo->h_addr_list);
-    if (!target_ip)
-    {
-        const int err = errno;
-        std::cout << _ERROR_CONSOLE_TEXT_ << "UDPProxy: Cannot connect udp proxy " << _INFO_CONSOLE_TEXT << target_address  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        de::comm::CFacade_Base::getInstance().sendErrorMessage(std::string(ANDRUAV_PROTOCOL_SENDER_ALL_GCS), err, ERROR_3DR, NOTIFICATION_TYPE_ERROR,
-            std::string("UDPProxy: Cannot connect udp proxy ") + target_address + " err:" + std::to_string(err) + " " + strerror(err));
-        closeSockets();
-        return false;
-    }
-    std::cout << _LOG_CONSOLE_BOLD_TEXT << "UDPProxy: Trasnlate " <<  _INFO_CONSOLE_TEXT << target_address << " into " <<  target_ip << _NORMAL_CONSOLE_TEXT_ << std::endl;  
-    // Communication Server (IP - PORT) 
-    m_udpProxyServer->sin_family = AF_INET; 
+    m_udpProxyServer->sin_family = AF_INET;
     m_udpProxyServer->sin_port = htons(targetPort); 
-    m_udpProxyServer->sin_addr.s_addr = inet_addr(target_ip); 
 
     // Bind the socket with the server address 
     if (bind(m_SocketFD, (const struct sockaddr *)m_ModuleAddress, sizeof(struct sockaddr_in)) < 0) 
@@ -124,11 +137,35 @@ bool de::comm::CUDPProxy::init (const char * target_address, int targetPort, con
 
     std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Drone Created UDP Socket at " << _INFO_CONSOLE_TEXT << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-    std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Expected UdpProxy at " <<  _INFO_CONSOLE_TEXT << target_ip << ":" <<  targetPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+    std::cout << _LOG_CONSOLE_BOLD_TEXT<< "UDPProxy: Connected to UDP Proxy at " <<  _INFO_CONSOLE_TEXT << inet_ntoa(m_udpProxyServer->sin_addr) << ":" <<  targetPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
     
     m_stopped_called = false;
     
     return true;
+}
+
+bool de::comm::CUDPProxy::setupSocketOptions()
+{
+    int one = 1;
+    setsockopt(m_SocketFD, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
+
+    timeval rcv_to{UDP_RCV_TIMEOUT_MS / 1000, (UDP_RCV_TIMEOUT_MS % 1000) * 1000};
+    timeval snd_to{UDP_SND_TIMEOUT_MS / 1000, (UDP_SND_TIMEOUT_MS % 1000) * 1000};
+    setsockopt(m_SocketFD, SOL_SOCKET, SO_RCVTIMEO, &rcv_to, sizeof(rcv_to));
+    setsockopt(m_SocketFD, SOL_SOCKET, SO_SNDTIMEO, &snd_to, sizeof(snd_to));
+
+    int rcv = UDP_BUF_SIZE;
+    int snd = UDP_BUF_SIZE;
+    setsockopt(m_SocketFD, SOL_SOCKET, SO_RCVBUF, &rcv, sizeof(rcv));
+    setsockopt(m_SocketFD, SOL_SOCKET, SO_SNDBUF, &snd, sizeof(snd));
+
+    return true;
+}
+
+void de::comm::CUDPProxy::sendKeepAlive()
+{
+    static const char k = 0;
+    sendto(m_SocketFD, &k, 1, MSG_CONFIRM, (const struct sockaddr *)m_udpProxyServer, sizeof(sockaddr_in));
 }
 
 void de::comm::CUDPProxy::start()
@@ -181,8 +218,7 @@ void de::comm::CUDPProxy::stop()
     {
         if (m_starrted) 
         {
-            m_threadCreateUDPSocket.join();
-            //m_threadSenderID.join();
+            if (m_threadCreateUDPSocket.joinable()) m_threadCreateUDPSocket.join();
             m_starrted = false;
         }
 
@@ -216,17 +252,34 @@ void de::comm::CUDPProxy::InternalReceiverEntry()
     
     while (!m_stopped_called)
     {
-        // TODO: you should send header ot message length and handle if total message size is larger than MAXLINE.
         n = recvfrom(m_SocketFD, (char *)buffer, MAXLINE,  
-                MSG_WAITALL, ( struct sockaddr *) &cliaddr, &sender_address_size);
+                0, ( struct sockaddr *) &cliaddr, &sender_address_size);
         
         if (n > 0) 
         {
-            buffer[n]=0;
+            const int safeN = (n < MAXLINE ? n : MAXLINE - 1);
+            buffer[safeN] = 0; // safe clamp to avoid overflow
             if (m_callback_udp_proxy != nullptr)
             {
                 m_callback_udp_proxy->OnMessageReceived(this, (const char *) buffer,n);
             } 
+            m_last_keepalive = std::chrono::steady_clock::now();
+        } else {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                auto now = std::chrono::steady_clock::now();
+                if (std::chrono::duration_cast<std::chrono::milliseconds>(now - m_last_keepalive).count() >= UDP_KEEPALIVE_MS) {
+                    sendKeepAlive();
+                    m_last_keepalive = now;
+                }
+                continue;
+            } else if (errno == EINTR) {
+                continue;
+            } else if (m_stopped_called) {
+                break;
+            } else {
+                // other errors: ignore transient, loop
+                continue;
+            }
         }
     }
 
