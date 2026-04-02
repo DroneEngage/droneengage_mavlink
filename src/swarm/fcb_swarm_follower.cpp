@@ -191,15 +191,19 @@ void CSwarmFollower::handle_leader_traffic(const std::string & leader_sender, co
 
     // this is a binary message
     // search for char '0' and then binary message is the next byte after it.
-    const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
-    int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1) );
+    const char * binary_message = (const char *)(memchr(full_message, 0x0, full_message_length));
+    int binary_length = 0;
+    if (binary_message != nullptr && (binary_message - full_message) < full_message_length - 1) {
+        // binary payload starts after the 0x0 byte
+        binary_length = full_message_length - (binary_message - full_message + 1);
+    }
 
     bool valid = false;
     mavlink_status_t status;
 	mavlink_message_t mavlink_message;
-    for (int i=0; i<binary_length; ++ i)
+    for (int i = 0; i < binary_length; ++i)
     {
-	    uint8_t msgReceived = mavlink_parse_char(MAVLINK_CHANNEL_INTERMODULE, binary_message[i+ 1], &mavlink_message, &status);
+	    uint8_t msgReceived = mavlink_parse_char(MAVLINK_CHANNEL_INTERMODULE, binary_message[i + 1], &mavlink_message, &status);
         if (msgReceived!=0)
         {
             valid = true;
