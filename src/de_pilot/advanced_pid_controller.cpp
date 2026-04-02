@@ -172,6 +172,10 @@ void CAdvancedPIDController::setOutputLimit(double limit) {
     m_max_min_value = limit;
 }
 
+double CAdvancedPIDController::getIntegralSum() const {
+    return m_integral_sum;
+}
+
 } // namespace depilot
 } // namespace fcb
 } // namespace de

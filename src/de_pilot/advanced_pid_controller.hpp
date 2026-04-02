@@ -67,6 +67,9 @@ public:
     void setIntegralLimit(double limit);
     void setDeltaTime(double dt);
     void setOutputLimit(double limit);
+    
+    // Getter methods for testing
+    double getIntegralSum() const;
 
 private:
     // PID gains
