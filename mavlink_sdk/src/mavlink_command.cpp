@@ -800,6 +800,12 @@ if ((channel_length > MAX_RC_CHANNELS) ||
 
   // https://mavlink.io/en/messages/common.html#RC_CHANNELS_OVERRIDE
 
+  /* channels form 1 to 8
+  RC channel 1-8 value.  A value of UINT16_MAX        means to ignore this field. 
+                         A value of 0 means to release this channel back to the RC radio.
+  RC channel 8-18 value. A value of (0 or UINT16_MAX) means to ignore this field. 
+                         A value of (UINT16_MAX-1) means to release this channel back to the RC radio.
+  */
   mavlink_rc_channels_override_t mavlink_rc_channels = {0};
   mavlink_rc_channels.target_system = m_vehicle.getSysId();
   mavlink_rc_channels.target_component = m_vehicle.getCompId();
