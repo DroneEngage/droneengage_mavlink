@@ -27,6 +27,7 @@ private:
 public:
   ~CDEPilotTracking() {}
 
+  public:
   // Base class interface implementation
   void init() override;
   void update() override;
@@ -41,6 +42,7 @@ public:
   bool isYawSupported() const override { return true; }
   std::string getName() const override { return "object tracking"; }
 
+  public:
   // Class-specific interface
   void startTracking();
   void stopTracking();

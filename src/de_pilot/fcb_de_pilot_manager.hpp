@@ -37,7 +37,7 @@ public:
   void setActive(const bool active);
 
 public:
-  // Main Functions
+  // Main Functions - These are the functions we call to trigger operations
   void do_ChangeAltitude(double target_altitude, bool enqueue = false);
   void do_Stabilize(bool enqueue = false);
   void do_Stabilize(uint64_t duration_ms, bool enqueue = false);

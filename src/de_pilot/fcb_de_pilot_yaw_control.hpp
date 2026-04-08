@@ -34,6 +34,7 @@ private:
 public:
   ~CDEPilotYawControl() {}
 
+  public:
   // Base class interface implementation
   void init() override;
   void update() override;
