@@ -53,6 +53,8 @@ public:
 private:
   enum TrackingPhase { 
     PHASE_IDLE, 
+    PHASE_ARM_CHECK,
+    PHASE_ARMED,
     PHASE_INITIALIZING, 
     PHASE_TRACKING, 
     PHASE_COMPLETE 

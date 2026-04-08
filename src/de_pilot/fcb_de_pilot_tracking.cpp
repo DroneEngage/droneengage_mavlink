@@ -6,7 +6,11 @@
 #include "../fcb_main.hpp"
 #include "../tracking/fcb_tracking_manager.hpp"
 #include "fcb_de_pilot_manager.hpp"
+#include "../de_common/de_databus/de_facade_base.hpp"
 #include <iostream>
+#include <mavlink_command.h>
+#include <mavlink_sdk.h>
+#include <vehicle.h>
 
 using namespace de::fcb::depilot;
 
@@ -41,6 +45,9 @@ void CDEPilotTracking::update() {
 
   m_last_update_time = get_time_usec() / 1000;
 
+  de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
+  const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
+  const uint64_t now = get_time_usec();
 
   // Check for tracking timeout (no tracking updates for specified time)
   if (m_last_tracking_update_time > 0) {
@@ -54,10 +61,41 @@ void CDEPilotTracking::update() {
     }
   }
 
-  // Update phase based on tracking status
+  // Update phase based on tracking status and arm status
   int tracking_status = de::fcb::tracking::CTrackingManager::getInstance().getTrackingStatus();
   
   switch (m_phase) {
+    case PHASE_ARM_CHECK: {
+      if (!vehicle_info.is_armed) {
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Auto-arming for tracking..." 
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // Auto-arm the drone when in DE_PILOT mode and receiving tracking command
+        const bool force_arm = !mavlinksdk::CVehicle::getInstance().isReadyToArm();
+        mavlinksdk::CMavlinkCommand::getInstance().doArmDisarm(true, force_arm);
+        return; // Wait for next update cycle to check arm status
+      }
+      std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Armed, ready for tracking..." 
+                << _NORMAL_CONSOLE_TEXT_ << std::endl;
+      
+      // After arming, move to ARMED state to initialize tracking in next cycle
+      m_phase = PHASE_ARMED;
+      m_phase_start_time = now;
+      m_generic_phase = static_cast<int>(m_phase);
+      return;
+    }
+    break;
+
+    case PHASE_ARMED: {
+      std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Initializing tracking system..." 
+                << _NORMAL_CONSOLE_TEXT_ << std::endl;
+      
+      // Move to initializing phase
+      m_phase = PHASE_INITIALIZING;
+      m_phase_start_time = now;
+      m_generic_phase = static_cast<int>(m_phase);
+    }
+    break;
+
     case PHASE_INITIALIZING:
       if (tracking_status == TrackingTarget_STATUS_TRACKING_ENABLED ||
           tracking_status == TrackingTarget_STATUS_TRACKING_DETECTED) {
@@ -166,14 +204,28 @@ bool CDEPilotTracking::isCompleted() {
 // Class-specific interface
 void CDEPilotTracking::startTracking() {
   if (m_phase == PHASE_IDLE) {
-    m_phase = PHASE_INITIALIZING;
-    m_generic_phase = static_cast<int>(m_phase);
     m_phase_start_time = get_time_usec() / 1000;
     m_last_tracking_update_time = 0;
     
-    std::cout << _INFO_CONSOLE_BOLD_TEXT 
-              << "DEPilotTracking: Starting tracking" 
+    de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
+    const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
+    
+    std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotTracking: Starting tracking" 
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << "  - Current flight mode: " << vehicle_info.flying_mode << std::endl;
+    std::cout << "  - Armed: " << (vehicle_info.is_armed ? "YES" : "NO") << std::endl;
+    std::cout << "  - Flying: " << (vehicle_info.is_flying ? "YES" : "NO") << std::endl;
+
+    // Always start with arm check if not armed
+    if (!vehicle_info.is_armed) {
+      m_phase = PHASE_ARM_CHECK;
+      std::cout << "  - Starting with arm check phase" << std::endl;
+    } else {
+      m_phase = PHASE_ARMED;
+      std::cout << "  - Already armed, proceeding to initialization" << std::endl;
+    }
+    
+    m_generic_phase = static_cast<int>(m_phase);
   }
 }
 
@@ -192,7 +244,7 @@ void CDEPilotTracking::stopTracking() {
 }
 
 bool CDEPilotTracking::isTrackingActive() const {
-  return m_active && (m_phase == PHASE_INITIALIZING || m_phase == PHASE_TRACKING);
+  return m_active && (m_phase == PHASE_ARM_CHECK || m_phase == PHASE_ARMED || m_phase == PHASE_INITIALIZING || m_phase == PHASE_TRACKING);
 }
 
 void CDEPilotTracking::updateTrackingTimestamp() {
