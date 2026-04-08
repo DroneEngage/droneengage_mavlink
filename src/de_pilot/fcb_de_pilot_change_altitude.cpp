@@ -352,7 +352,8 @@ void CDEPilotChangeAltitude::updateTakeoff() {
                 std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Auto-arming for climb..." 
                           << _NORMAL_CONSOLE_TEXT_ << std::endl;
                 // Auto-arm the drone when in DE_PILOT mode and receiving CLIMB command
-                mavlinksdk::CMavlinkCommand::getInstance().doArmDisarm(true, false);
+                const bool force_arm = !mavlinksdk::CVehicle::getInstance().isReadyToArm();
+                mavlinksdk::CMavlinkCommand::getInstance().doArmDisarm(true, force_arm);
                 return; // Wait for next update cycle to check arm status
             }
             std::cout << _SUCCESS_CONSOLE_TEXT_ << "DEPILOT: Armed, ready for altitude change..." 
