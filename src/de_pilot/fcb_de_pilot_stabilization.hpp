@@ -27,6 +27,7 @@ private:
 public:
   ~CDEPilotStabilization() {}
 
+public:
   // Base class interface implementation
   void init() override;
   void update() override;
@@ -41,6 +42,7 @@ public:
   bool isYawSupported() const override { return true; }
   std::string getName() const override { return "Copter Stabilization"; }
 
+public:
   // Class-specific interface
   void startStabilization();
   void startStabilization(uint64_t duration_ms);

@@ -33,6 +33,7 @@ private:
 public:
     ~CDEPilotChangeAltitude() {}
 
+public:
     // Base class interface implementation
     void init() override;
     void update() override;
