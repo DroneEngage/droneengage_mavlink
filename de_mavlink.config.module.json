@@ -7,6 +7,11 @@
         "port": 7660,
         "type": "tcp"
     },
+    // "fcb_connection_uri": {
+    //     "ip": "0.0.0.0",
+    //     "port": 14550,
+    //     "type": "udp"
+    // },
     "follow_me": {
         "plan": {
             "PID_D_X": 0.1,
@@ -53,10 +58,10 @@
                 "pid_i": 1.5,
                 "pid_d": 0.05,
                 "ff_scale": 400.0,
-                "max_accel": 2.05,
-                "max_rate": 0.2,
+                "max_accel": 0.8,
+                "max_rate": 0.15,
                 "deadband": 0.001,
-                "integral_limit": 100.0,
+                "integral_limit": 200.0,
                 "output_limit": 500.0
                 },
                 "yz_axis": {
@@ -64,10 +69,10 @@
                 "pid_i": 1.5,
                 "pid_d": 0.05,
                 "ff_scale": 400.0,
-                "max_accel": 2.05,
-                "max_rate": 0.2,
+                "max_accel": 0.8,
+                "max_rate": 0.15,  // main key here 
                 "deadband": 0.001,
-                "integral_limit": 100.0,
+                "integral_limit": 200.0,
                 "output_limit": 500.0
                 },
                 "throttle": {
