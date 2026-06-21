@@ -106,6 +106,11 @@ void _version(void) {
             << _SUCCESS_CONSOLE_BOLD_TEXT_ "Drone-Engage FCB Module version "
             << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_
             << std::endl;
+
+  #ifdef DEBUG
+  std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_BOLD_TEXT
+              << __DATE__ << " --- " << __TIME__ << std::endl;
+  #endif
 }
 
 /**
