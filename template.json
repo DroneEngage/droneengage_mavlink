@@ -205,6 +205,26 @@
         }   
     },
     {
+        "name": "Logging Configuration",
+        "template": {
+            "Logging Configuration": {
+                "fieldName": "logging",
+                "type": "object",
+                "fields": {
+                    "tlog_enabled": {
+                        "order": 1,
+                        "type": "checkbox",
+                        "defaultvalue": false,
+                        "desc": "Enable telemetry log recording",
+                        "optional": false
+                    }
+                },
+                "optional": false,
+                "desc": "Logging and telemetry recording settings"
+            }
+        }
+    },
+    {
         "name": "MAVLink IDs",
         "template": {
             "MAVLink IDs": {
