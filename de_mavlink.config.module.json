@@ -485,5 +485,6 @@
     "s2s_udp_packet_size": "8192",
     "s2s_udp_target_ip": "127.0.0.1",
     "s2s_udp_target_port": "60000",
-    "udp_proxy_enabled": true
+    "udp_proxy_enabled": true,
+    "use_unix_socket": true
 }
