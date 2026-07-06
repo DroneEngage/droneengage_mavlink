@@ -182,6 +182,7 @@ target_link_libraries(de_mavlink  Threads::Threads OpenSSL::SSL OpenSSL::Crypto)
 # Conditionally define DDEBUG based on the DDEBUG option
 target_compile_definitions(de_mavlink PRIVATE
     $<$<BOOL:${DDEBUG}>:DDEBUG>
+    $<$<CONFIG:DEBUG>:DEBUG_UNIX>
 )
 
 SET(OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
