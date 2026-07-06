@@ -342,6 +342,12 @@ void initDEModule(int argc, char *argv[]) {
               << std::endl;
   }
 
+  bool use_unix_socket = false;
+  if (validateField(jsonConfig, "use_unix_socket",
+                    Json_de::value_t::boolean)) {
+    use_unix_socket = jsonConfig["use_unix_socket"].get<bool>();
+  }
+
   cTracking_manager.init();
 
   // UDP Server
@@ -351,7 +357,8 @@ void initDEModule(int argc, char *argv[]) {
       jsonConfig["s2s_udp_listening_ip"].get<std::string>().c_str(),
       std::stoi(
           jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()),
-      udp_chunk_size);
+      udp_chunk_size,
+      use_unix_socket);
 }
 
 /**

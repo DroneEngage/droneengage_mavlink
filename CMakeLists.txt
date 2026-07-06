@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.10)
 
 if(NOT WIN32)
   string(ASCII 27 Esc)
@@ -31,8 +31,8 @@ endif()
 set(VERSION_FILE "${CMAKE_SOURCE_DIR}/.version")
 
 # Manually set major, minor, and bugfix versions (you can change these)
-set(MAJOR_VERSION 5)
-set(MINOR_VERSION 7)
+set(MAJOR_VERSION 7)
+set(MINOR_VERSION 0)
 set(BUGFIX_VERSION 0)
 
 if(EXISTS ${VERSION_FILE})
@@ -182,6 +182,7 @@ target_link_libraries(de_mavlink  Threads::Threads OpenSSL::SSL OpenSSL::Crypto)
 # Conditionally define DDEBUG based on the DDEBUG option
 target_compile_definitions(de_mavlink PRIVATE
     $<$<BOOL:${DDEBUG}>:DDEBUG>
+    $<$<CONFIG:DEBUG>:DEBUG_UNIX>
 )
 
 SET(OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
