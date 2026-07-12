@@ -1,0 +1,417 @@
+# DroneEngage MAVLink Module
+
+## Project Overview
+DroneEngage MAVLink (DE MAVLink) is the most important DroneEngage plugin, serving as the bridge between Ardupilot/PX4 flight controllers and the DroneEngage ecosystem. It runs on companion computers (e.g., Raspberry Pi) and communicates with flight controllers via MAVLink protocol while interfacing with the DroneEngage Communication broker via UDP. This module is part of the Ardupilot Cloud Eco System and provides Linux-based drone control capabilities.
+
+## Tech Stack
+- **Language**: C++17
+- **Build System**: CMake 3.1+
+- **Core Libraries**:
+  - pthreads (threading)
+  - libstdc++6
+- **MAVLink**: Custom MAVLink v2 library (c_library_v2)
+- **Architecture**: Plugin pattern with UDP communication to DE Comm broker
+- **Package Management**: Debian (.deb), TGZ, STGZ packages via CPack
+- **Logging**: plog (3rdparty library)
+
+## Architecture Summary
+
+### Plugin Architecture
+DE MAVLink operates as a plugin to the DroneEngage Communication broker:
+
+1. **MAVLink SDK** (`mavlink_sdk/`)
+   - `CVehicle` - Main vehicle communication class (singleton)
+   - MAVLink message parsing and generation
+   - Connection management (Serial, UDP, TCP)
+   - Telemetry optimization
+
+2. **FCB Facade** (`src/fcb_facade.cpp/hpp`)
+   - High-level API for flight control board communication
+   - Singleton pattern inheriting from `CFacade_Base`
+   - Telemetry forwarding to DE Comm broker
+   - Command reception and execution
+
+3. **FCB Main** (`src/fcb_main.cpp/hpp`)
+   - Main application logic
+   - RC channel handling and override
+   - Mode management (ArduPilot and PX4 modes)
+   - Vehicle state tracking
+
+4. **Message Parser** (`src/fcb_andruav_message_parser.cpp/hpp`)
+   - Parses messages from DE Comm broker
+   - Executes commands (arm, disarm, mode change, etc.)
+   - Handles remote configuration updates
+
+### Key Features
+- **Vehicle Types**: Quad, Plane, Rover, Heli, Boat, Submarine, VTOL, etc.
+- **Flight Modes**: RTL, GUIDED, AUTO, LOITER, LAND, TAKEOFF, and PX4-specific modes
+- **RC Override**: Joystick control, channel freezing, smart RC mapping
+- **Follow-Me**: PID-based tracking for quadcopters and planes with Kalman filtering
+- **Swarm**: Leader-follower formation flying
+- **Geofence**: Polygon and circular geofence with breach detection
+- **UDP Proxy**: Telemetry forwarding to external UDP endpoints
+- **Mission Planning**: Waypoint management and mission execution
+- **Tracking**: Object tracking integration
+
+## Key Files and Directories
+
+### Root Configuration
+- `CMakeLists.txt` - Main build configuration with auto-versioning (x.y.z.build format)
+- `de_mavlink.config.module.json` - Module configuration (RC, PID, network, timeouts)
+- `template.json` - Configuration template
+- `build.sh` / `build_release.sh` / `build_ddebug.sh` - Build scripts
+
+### Source Structure (`src/`)
+- `main.cpp` - Entry point
+- `defines.hpp` - Vehicle types, modes, RC actions, data structures
+- `global.hpp` - Global definitions
+- `version.h` - Auto-generated version header
+
+### Core Components
+- `fcb_facade.cpp/hpp` - Facade for FCB communication, telemetry forwarding
+- `fcb_main.cpp/hpp` - Main FCB logic, RC handling, mode management
+- `fcb_modes.cpp/hpp` - Flight mode handling and conversion
+- `fcb_andruav_message_parser.cpp/hpp` - Message parsing from DE Comm broker
+- `fcb_traffic_optimizer.cpp/hpp` - Telemetry traffic optimization
+
+### MAVLink SDK (`mavlink_sdk/src/`)
+- `helpers/` - Helper utilities
+- `generic_port.h` - Port abstraction (Serial, UDP, TCP)
+- `global.hpp` - SDK globals
+- Vehicle communication implementation
+
+### MAVLink Library (`c_library_v2/`)
+- MAVLink v2 protocol definitions
+- Dialects: common, ardupilotmega, ASLUAV, AVSSUAS, etc.
+- Message headers and parsing utilities
+
+### Feature Modules
+- `de_common/` - Common DE components (databus, helpers)
+  - `de_databus/` - Configuration file system (`CConfigFile` singleton)
+  - `helpers/` - Utility functions
+- `de_general_mission_planner/` - Mission planning base classes
+- `mission/` - Mission item management
+- `geofence/` - Geofence implementation
+  - `fcb_geo_fence_base.cpp/hpp` - Base geofence class
+  - `fcb_geo_fence_manager.cpp/hpp` - Geofence manager
+- `swarm/` - Swarm formation flying
+- `tracking/` - Object tracking and follow-me logic
+  - Quadcopter and plane tracking implementations
+- `udp_proxy/` - UDP telemetry proxy
+- `helpers/` - GPS and other utilities
+
+### Documentation (`wiki/`)
+- `CConfigFile_README.md` - Configuration system documentation (READ THIS FIRST)
+- `CFCBMaon::connectToFCB.md` - FCB connection details
+- `Explain m_rate_limit Effect.md` - Telemetry rate limiting
+- `JoyStick_Channels_GUIDED.md` - Joystick control in GUIDED mode
+- `RC_SUB_ACTION.md` - RC override actions
+
+### Build Output
+- Binary: `bin/de_ardupilot`
+- Debian package: `build/packages/de-mavlink-plugin-x.y.z-Linux.deb`
+- Installation path: `/home/$USER/drone_engage/de_mavlink/`
+
+## Build Instructions
+
+### Prerequisites
+```bash
+sudo apt install git cmake build-essential
+sudo apt install libstdc++6
+```
+
+### Build Process
+```bash
+# Quick build
+./build.sh
+
+# Or manual build
+mkdir build && cd build
+cmake ..                    # Debug build (default)
+cmake -DCMAKE_BUILD_TYPE=RELEASE ..  # Release build
+make -j$(nproc)
+cpack                        # Generate packages
+```
+
+### Build Types
+- `DEBUG` - Debug symbols, optimized for development
+- `RELEASE` - Optimized for production, auto-increments build version
+- `DDEBUG=ON` - Detailed debug output (add to cmake command)
+
+### Package Generation
+```bash
+cd build
+cpack                        # All formats (.deb, .tar.gz, .sh)
+cpack -G DEB                # Debian only
+cpack -G TGZ                # Tar.gz only
+cpack -G STGZ               # Self-extracting script
+```
+
+### Installation
+```bash
+sudo dpkg -i build/packages/de-mavlink-plugin-*.deb
+```
+
+## Version Management
+- Format: `MAJOR.MINOR.BUGFIX.BUILD` (e.g., 5.6.8.5)
+- Major/Minor/Bugfix: Manually set in CMakeLists.txt
+- Build: Auto-incremented on RELEASE builds
+- Version stored in `.version` file (gitignored)
+
+## Coding Standards
+
+### C++ Standards
+- C++17 compliance required
+- Strict compiler warnings enabled (`-Werror=unused-variable`, `-Werror=unused-result`)
+- Debug builds: `-g3 -Og`
+- Release builds: `-O2 -Werror=parentheses`
+
+### Architecture Patterns
+- **Singleton Pattern**: Used for `CFCBFacade`, `CVehicle`, `CConfigFile`
+- **Facade Pattern**: `CFCBFacade` provides high-level FCB API
+- **Plugin Pattern**: Integrates with DE Comm broker via UDP
+- **Callback Pattern**: Message handling via callbacks from DE Comm
+
+### Configuration System
+- **Singleton**: `CConfigFile` manages JSON configuration
+- **File Monitoring**: Automatic reload on file changes
+- **Dynamic Updates**: Runtime configuration via messages
+- **Backup System**: Timestamped backups before saves
+- **Nested Keys**: Support for "follow_me.quad.PID_P_X" notation
+
+### Vehicle Types
+```cpp
+typedef enum ANDRUAV_UNIT_TYPE {
+    VEHICLE_TYPE_UNKNOWN = 0,
+    VEHICLE_TYPE_TRI = 1,
+    VEHICLE_TYPE_QUAD = 2,
+    VEHICLE_TYPE_PLANE = 3,
+    VEHICLE_TYPE_ROVER = 4,
+    VEHICLE_TYPE_HELI = 5,
+    VEHICLE_TYPE_BOAT = 6,
+    VEHICLE_TYPE_SUBMARINE = 12,
+    VEHICLE_TYPE_VTOL = 16,
+    VEHICLE_TYPE_GCS = 999
+}
+```
+
+### Flight Modes
+- **ArduPilot Modes**: RTL, GUIDED, AUTO, LOITER, LAND, TAKEOFF, STABILIZE, etc.
+- **PX4 Modes**: MANUAL, ALT_HOLD, AUTO_TAKEOFF, AUTO_MISSION, AUTO_RTL, etc.
+- Mode conversion between ArduPilot and PX4
+
+### RC Override Actions
+```cpp
+typedef enum RC_SUB_ACTION {
+    RC_SUB_ACTION_RELEASED = 0,              // No override
+    RC_SUB_ACTION_CENTER_CHANNELS = 1,       // Center all channels
+    RC_SUB_ACTION_FREEZE_CHANNELS = 2,       // Freeze current values
+    RC_SUB_ACTION_JOYSTICK_CHANNELS = 4,    // Joystick control
+    RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED = 8  // Velocity control in GUIDED
+}
+```
+
+## Configuration
+
+### Module Configuration (`de_mavlink.config.module.json`)
+
+#### Network Settings
+```json
+{
+    "fcb_connection_uri": {
+        "ip": "0.0.0.0",
+        "port": 7660,
+        "type": "tcp"
+    },
+    "s2s_udp_listening_ip": "127.0.0.1",
+    "s2s_udp_listening_port": "61003",
+    "s2s_udp_target_ip": "127.0.0.1",
+    "s2s_udp_target_port": "60000"
+}
+```
+
+#### RC Channels
+```json
+{
+    "rc_block_channel": -1,
+    "rc_channels": {
+        "rc_channel_enabled": [1, 1, 1, ...],      // 18 channels
+        "rc_channel_reverse": [1, 1, 1, ...],
+        "rc_channel_limits_max": [2000, 2000, ...],
+        "rc_channel_limits_min": [1000, 1000, ...],
+        "rc_smart_channels": {
+            "active": true,
+            "rc_channel_enabled": [1, 1, 1, 1],
+            "rc_channel_limits_max": [2000, 2000, 2000, 2000],
+            "rc_channel_limits_min": [1000, 1000, 1000, 1000]
+        }
+    }
+}
+```
+
+#### Follow-Me PID (Quadcopter)
+```json
+{
+    "follow_me": {
+        "quad": {
+            "PID_P_X": 0.2,
+            "PID_P_Y": 3.6,
+            "PID_I_X": 0.0,
+            "PID_I_Y": 0.0,
+            "PID_D_X": 0.01,
+            "PID_D_Y": 0.05,
+            "kalman_enabled": true,
+            "kalman_measurement_noise_r": 0.1,
+            "kalman_process_noise_q": 0.05,
+            "rate_limit": 0.05,
+            "deadband_x": 0.001,
+            "deadband_y": 0.025
+        }
+    }
+}
+```
+
+#### MAVLink Optimization
+```json
+{
+    "default_optimization_level": 2,
+    "udp_proxy_enabled": true,
+    "mavlink_ids": {
+        "de_mavlink_gcs_id": 255,
+        "only_allow_ardupilot_compid": 0,
+        "only_allow_ardupilot_sysid": 0
+    }
+}
+```
+
+#### Message Timeouts
+Complex nested structure defining timeout intervals for different MAVLink message IDs (HEARTBEAT, SYS_STATUS, etc.)
+
+#### System Settings
+```json
+{
+    "module_id": "FCB_CTRL",
+    "logger_enabled": true,
+    "logger_debug": false,
+    "read_only_mode": false,
+    "event_fire_channel": 16,
+    "event_wait_channel": 15
+}
+```
+
+## Common Patterns
+
+### Configuration Access
+```cpp
+de::CConfigFile &cConfigFile = CConfigFile::getInstance();
+const Json_de &jsonConfig = cConfigFile.GetConfigJSON();
+
+if (jsonConfig.contains("parameter_name")) {
+    auto value = jsonConfig["parameter_name"].get<type>();
+}
+```
+
+### File Update Monitoring
+```cpp
+const bool updated = cConfigFile.fileUpdated();
+if (updated) {
+    cConfigFile.reloadFile();
+    // Re-read configuration values
+}
+```
+
+### Facade Usage
+```cpp
+de::fcb::CFCBFacade& facade = de::fcb::CFCBFacade::getInstance();
+facade.sendGPSInfo(target_party_id);
+facade.sendHeartBeat(target_party_id);
+facade.sendWayPoints(target_party_id);
+```
+
+### Vehicle Access
+```cpp
+mavlinksdk::CVehicle& vehicle = mavlinksdk::CVehicle::getInstance();
+vehicle.connectToFCB("tcp:0.0.0.0:7660");
+```
+
+## Integration Points
+- **Communication Module**: `droneengage_communication` repository (UDP broker)
+- **Server Module**: `droneengage_server` repository
+- **Web Client**: `andruav_webclient` repository
+- **Authenticator**: `droneegnage_authenticator` repository
+
+## Important Notes
+- In-source builds not allowed (must use build directory)
+- Debian packages install to `/home/$USER/drone_engage/de_mavlink/`
+- MAVLink library is included as git submodule (c_library_v2)
+- Connection types: Serial, UDP, TCP
+- RC override timeout: 3 seconds (configurable via RC_OVERRIDE_TIME param)
+- Blocking channel active at PWM > 1800
+- Thread-safe singleton initialization (C++11 guarantee)
+- Configuration file monitoring with automatic reload
+- Smart RC mapping for automatic channel assignment
+
+## When Working on This Codebase
+1. **Read `wiki/CConfigFile_README.md` first** - Configuration system documentation
+2. Understand the plugin architecture (DE MAVLink → DE Comm via UDP)
+3. Be aware of vehicle type and mode enums in `defines.hpp`
+4. Use singleton pattern for Facade, Vehicle, and ConfigFile access
+5. Follow existing configuration access patterns with existence checks
+6. Test with both DEBUG and RELEASE builds
+7. Verify RC channel configuration when adding new control features
+8. Check message timeout configuration for new MAVLink messages
+9. Understand PID tuning for follow-me features
+10. Monitor file updates for dynamic configuration changes
+
+## Key Data Structures
+
+### Vehicle Info
+```cpp
+typedef struct ANDRUAV_VEHICLE_INFO {
+    std::string party_id;
+    std::string group_id;
+    bool use_fcb;
+    bool is_armed;
+    bool is_ready_to_arm;
+    bool is_flying;
+    bool is_tracking_mode;
+    bool is_gcs_blocked;
+    int16_t flying_mode;
+    int16_t gps_mode;
+    u_int64_t flying_total_duration;
+    u_int64_t flying_last_start_time;
+    int16_t vehicle_type;
+    uint8_t autopilot;
+    int16_t current_waypoint;
+    bool rc_command_active;
+    RC_SUB_ACTION rc_sub_action;
+    int16_t rc_channels[18];
+    int16_t rc_channels_min[18];
+    int16_t rc_channels_max[18];
+    bool rc_channels_enabled[18];
+    bool rc_channels_reverse[18];
+    short rc_block_channel;
+}
+```
+
+### RC Map Info
+```cpp
+typedef struct {
+    uint16_t rcmap_pitch;
+    uint16_t rcmap_roll;
+    uint16_t rcmap_throttle;
+    uint16_t rcmap_yaw;
+    uint32_t rc_override_time;
+    bool is_valid;
+    bool use_smart_rc;
+} RCMAP_CHANNELS_MAP_INFO_STRUCT;
+```
+
+## Debugging
+- Colored console output for different log levels
+- Enable `DDEBUG` for detailed debug output
+- Check connection URI and UDP ports
+- Verify MAVLink system/component ID configuration
+- Monitor RC channel configuration and overrides
+- Check message timeout configuration for missing telemetry
+- Use file update monitoring for configuration changes
