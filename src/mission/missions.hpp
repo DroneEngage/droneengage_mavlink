@@ -125,25 +125,25 @@ class CDelay_Step : public CMissionItem
 
     public:
         /**
-         * @brief Delay (-1 to enable time-of-day fields)
-         * 
-         */
-        int m_delay = -1;
-        /**
-         * @brief hour (24h format, UTC, -1 to ignore)
-         * 
-         */
-        int m_delay_hours   = -1;
-        /**
-         * @brief minute (24h format, UTC, -1 to ignore)
-         * 
-         */
-        int m_delay_minutes = -1;
-        /**
-         * @brief second (24h format, UTC, -1 to ignore)
+         * @brief Delay duration in seconds (-1 to enable time-of-day fields)
          * 
          */
         int m_delay_seconds = -1;
+        /**
+         * @brief hour (24h format, UTC, -1 to ignore) - used when m_delay_seconds == -1
+         * 
+         */
+        int m_delay_time_hours   = -1;
+        /**
+         * @brief minute (24h format, UTC, -1 to ignore) - used when m_delay_seconds == -1
+         * 
+         */
+        int m_delay_time_minutes = -1;
+        /**
+         * @brief second (24h format, UTC, -1 to ignore) - used when m_delay_seconds == -1
+         * 
+         */
+        int m_delay_time_seconds = -1;
 
 
 };

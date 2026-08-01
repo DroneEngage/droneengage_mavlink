@@ -31,7 +31,7 @@ void CMissionManager::uploadMissionIntoSystem(const std::string& plan_text)
 
     std::unique_ptr<std::map <int, std::unique_ptr<mission::CMissionItem>>> new_mission_items = cMissionTranslator.translateMissionText(plan_text);
     
-    if (new_mission_items == std::nullptr_t())
+    if (!new_mission_items)    
     {
         CFCBFacade::getInstance().sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
         return ;
@@ -199,7 +199,7 @@ void CMissionManager::extractPlanMavlinkMission (const Json_de& plan)
                         mavlink_mission_item_int_t mavlink_mission_item;
                         mavlink_mission_item.seq = item_id;
                         mavlink_mission_item.frame = waypoint["ft"].get<int>();
-                        mavlink_mission_item.autocontinue = 0;  // BUG: ???
+                        mavlink_mission_item.autocontinue = 1;
                         mavlink_mission_item.current = (item_id == 1)?1:0;
                         mavlink_mission_item.command = waypoint["c"].get<int>();       // 183
                         mavlink_mission_item.param1 = mavlink_params[0].get<double>(); // [15,16]

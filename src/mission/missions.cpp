@@ -79,10 +79,10 @@ void CDelay_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_
 {
     CMissionItem::decodeMavlink (mission_item_int);
     
-    m_delay = mission_item_int.param1; // Delay (-1 to enable time-of-day fields) in sec
-    m_delay_hours = mission_item_int.param2;
-    m_delay_minutes = mission_item_int.param3;
-    m_delay_seconds = mission_item_int.param4;
+    m_delay_seconds = mission_item_int.param1; // Delay in seconds (-1 to enable time-of-day fields)
+    m_delay_time_hours = mission_item_int.param2;
+    m_delay_time_minutes = mission_item_int.param3;
+    m_delay_time_seconds = mission_item_int.param4;
 
    
 }
@@ -90,21 +90,21 @@ void CDelay_Step::decodeMavlink (const mavlink_mission_item_int_t& mission_item_
 Json_de CDelay_Step::getAndruavMission()
 {
     /*
-        t : TYPE_CMissionAction_RTL
+        t : TYPE_CMissionAction_Delay
         s : sequence
-        d : if (-1) then Hh:mm:ss is time of day.
-        [h] : condition delay in m_delay_hours
-        [m] : condition delay in m_delay_minutes
-          c : condition delay in m_delay_seconds
+        d : if true then Hh:mm:ss is time of day (m_delay_seconds == -1)
+        [h] : hours (time-of-day mode)
+        [m] : minutes (time-of-day mode)
+          c : delay in seconds (seconds mode) or seconds (time-of-day mode)
     */
     Json_de message =
     {
         {"t", TYPE_CMissionAction_Delay},
         {"s", this->m_sequence},
-        {"d", (this->m_delay==-1)}, // time of day (hh:mm::ss)
-        {"h", (this->m_delay==-1)?0:this->m_delay_hours},
-        {"m", (this->m_delay==-1)?0:this->m_delay_minutes},
-        {"c", (this->m_delay==-1)?this->m_delay:this->m_delay_seconds}
+        {"d", (this->m_delay_seconds==-1)}, // true = time of day (hh:mm::ss)
+        {"h", (this->m_delay_seconds==-1)?0:this->m_delay_time_hours},
+        {"m", (this->m_delay_seconds==-1)?0:this->m_delay_time_minutes},
+        {"c", (this->m_delay_seconds==-1)?this->m_delay_time_seconds:this->m_delay_seconds}
     };
 
     return message;
@@ -124,10 +124,10 @@ mavlink_mission_item_int_t CDelay_Step::getArdupilotMission() const
     mavlink_mission.autocontinue = m_auto_continue?1:0;
     mavlink_mission.frame = m_frame;
 
-    mavlink_mission.param1 = m_delay; 
-    mavlink_mission.param2 = m_delay_hours; 
-    mavlink_mission.param3 = m_delay_minutes; 
-    mavlink_mission.param4 = m_delay_seconds; 
+    mavlink_mission.param1 = m_delay_seconds; 
+    mavlink_mission.param2 = m_delay_time_hours; 
+    mavlink_mission.param3 = m_delay_time_minutes; 
+    mavlink_mission.param4 = m_delay_time_seconds; 
     
     return mavlink_mission;
 }
