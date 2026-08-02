@@ -295,6 +295,18 @@ void CGeoFenceManager::updateGeoFenceHitStatus()
                                         current_position_in_zone, 
                                         current_position_in_zone<=0,
                                         geo_fence->shouldKeepOutside());
+            const bool current_inside = (current_position_in_zone <= 0);
+            const std::string action = current_inside ? "enter" : "leave";
+            const std::string zone_type = geo_fence->shouldKeepOutside() ? "forbidden" : "free";
+            const Json_de sync_message =
+            {
+                {"a", action},
+                {"t", zone_type},
+                {"z", current_inside},
+                {"n", geo_fence->getName()},
+                {"di", current_position_in_zone}
+            };
+            m_fcb_facade.sendSyncFireEvent(std::string(""), DRONE_FENCE_ACTION , sync_message, false);
         }
 
     }
