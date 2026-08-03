@@ -2,6 +2,7 @@
 #include "../de_common/helpers/helpers.hpp"
 
 #include "../de_common/de_databus/messages.hpp"
+#include "../de_common/de_databus/sync_fire_events.hpp"
 
 #include "../fcb_modes.hpp"
 #include "../geofence/fcb_geo_fence_manager.hpp"
