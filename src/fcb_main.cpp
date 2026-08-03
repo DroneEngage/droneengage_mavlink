@@ -12,7 +12,7 @@
 
 #include "./de_common/helpers/colors.hpp"
 #include "./de_common/helpers/helpers.hpp"
-
+#include "./de_common/de_databus/sync_fire_events.hpp"
 #include "./de_common/de_databus/configFile.hpp"
 #include "./de_common/de_databus/localConfigFile.hpp"
 #include "./de_common/de_databus/sync_fire_events.hpp"
