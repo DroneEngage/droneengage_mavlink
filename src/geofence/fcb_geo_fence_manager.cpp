@@ -298,7 +298,7 @@ void CGeoFenceManager::updateGeoFenceHitStatus()
                                         geo_fence->shouldKeepOutside());
             const bool current_inside = (current_position_in_zone <= 0);
             const std::string action = current_inside ? "enter" : "leave";
-            const std::string zone_type = geo_fence->shouldKeepOutside() ? "forbidden" : "free";
+            const std::string zone_type = geo_fence->shouldKeepOutside() ? "restricted" : "free";
             const Json_de sync_message =
             {
                 {"a", action},
