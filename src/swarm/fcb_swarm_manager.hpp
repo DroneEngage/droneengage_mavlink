@@ -29,6 +29,7 @@ namespace swarm
         FORMATION_THREAD        = 1,
         FORMATION_ARROW         = 2, 
         FORMATION_VECTOR        = 3, 
+        FORMATION_ARROW_DYNAMIC = 4,
 
     } ANDRUAV_SWARM_FORMATION;
 

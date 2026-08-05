@@ -80,6 +80,7 @@ void CSwarmLeader::updateFollowers()
             updateFollowersThreadFormation();
             break;
         case FORMATION_ARROW:
+        case FORMATION_ARROW_DYNAMIC:
             updateFollowerInArrowFormation();
             break;
         case FORMATION_VECTOR:
