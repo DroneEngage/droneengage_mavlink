@@ -10,7 +10,14 @@ using namespace de::fcb::swarm;
 
 
 de::fcb::swarm::CSwarmManager& fcb_swarm_manager = de::fcb::swarm::CSwarmManager::getInstance();
-    
+
+
+#define SPEED_STATIONARY_THRESHOLD_SQ 2500.0  // 50 cm/s squared — below this leader is considered stationary
+#define MAX_BEARING_SLEW_RATE_DEG 30.0        // max bearing change per update (degrees)
+#define TARGET_SMOOTHING_ALPHA 0.3            // low-pass filter factor for target position
+#define HDG_DEADZONE_DEG 5.0                  // ignore compass heading changes below this (degrees)
+#define CROSS_TRACK_DEADZONE_M 3.0            // deadzone in meters for dynamic side switching
+
 
 /**
  * @brief Logic of thread formation for follower in implemented here.
@@ -36,8 +43,10 @@ void CSwarmFollower::updateFollowerInThreadFormation()
     #endif
                    
     // test if leader speed is very low then break.
+    // Raised threshold to 50 cm/s to avoid GPS noise causing false movement detection
+    // when a copter is hovering and yawing in place.
     double speed_sq = m_leader_gpos_new.vx * m_leader_gpos_new.vx + m_leader_gpos_new.vy * m_leader_gpos_new.vy;
-    if (speed_sq < 100) 
+    if (speed_sq < SPEED_STATIONARY_THRESHOLD_SQ) 
     {
         return ;
     }
@@ -66,11 +75,24 @@ void CSwarmFollower::updateFollowerInThreadFormation()
 
     POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, bearing_with_leader, base_distance);  // getpoint using bearing and distance.
 
+    // Low-pass filter on target position to prevent step jumps.
+    if (m_has_smoothed_target)
+    {
+        m_smoothed_target_lat = TARGET_SMOOTHING_ALPHA * p.latitude + (1.0 - TARGET_SMOOTHING_ALPHA) * m_smoothed_target_lat;
+        m_smoothed_target_lon = TARGET_SMOOTHING_ALPHA * p.longitude + (1.0 - TARGET_SMOOTHING_ALPHA) * m_smoothed_target_lon;
+    }
+    else
+    {
+        m_smoothed_target_lat = p.latitude;
+        m_smoothed_target_lon = p.longitude;
+        m_has_smoothed_target = true;
+    }
+
     // instruct follower to go to a target point.
-    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude , p.longitude , (m_leader_gpos_new.relative_alt + (follower_index +1) * m_min_vertical_distance * 1000) / 1000.0f);
+    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(m_smoothed_target_lat , m_smoothed_target_lon , (m_leader_gpos_new.relative_alt + (follower_index +1) * m_min_vertical_distance * 1000) / 1000.0f);
 
     // broadcast target location or this follower.
-    CFCBFacade::getInstance().sendFCBTargetLocation("", p.latitude , p.longitude, (double) m_leader_gpos_new.relative_alt, DESTINATION_SWARM_MY_LOCATION);
+    CFCBFacade::getInstance().sendFCBTargetLocation("", m_smoothed_target_lat , m_smoothed_target_lon, (double) m_leader_gpos_new.relative_alt, DESTINATION_SWARM_MY_LOCATION);
     
     // store latest readings.
     m_leader_last_access = now;
@@ -91,18 +113,120 @@ void CSwarmFollower::updateFollowerInArrowFormation()
     const u_int64_t now = get_time_usec();
 
 
-    // Test if leader speed is very low, then break
+    // Determine formation bearing:
+    // - When leader is moving, use velocity bearing with slew-rate limiting.
+    // - When leader is stationary (hovering copter), use compass heading (hdg) as fallback.
     double speed_sq = m_leader_gpos_new.vx * m_leader_gpos_new.vx + m_leader_gpos_new.vy * m_leader_gpos_new.vy;
-    if (speed_sq < 100)
+    double formation_bearing;
+
+    if (speed_sq >= SPEED_STATIONARY_THRESHOLD_SQ)
     {
-        return;
+        // Leader is moving: use velocity bearing
+        formation_bearing = getBearingOfVector(m_leader_gpos_new.vx, m_leader_gpos_new.vy);
+
+        // Bearing latching: limit bearing change rate to prevent violent swings
+        if (m_has_last_bearing)
+        {
+            double bearing_diff = formation_bearing - m_last_leader_bearing;
+            // Normalize to [-PI, PI]
+            while (bearing_diff > M_PI) bearing_diff -= 2.0 * M_PI;
+            while (bearing_diff < -M_PI) bearing_diff += 2.0 * M_PI;
+
+            const double max_slew = MAX_BEARING_SLEW_RATE_DEG * M_PI / 180.0;
+            if (fabs(bearing_diff) > max_slew)
+            {
+                formation_bearing = m_last_leader_bearing + (bearing_diff > 0 ? max_slew : -max_slew);
+            }
+        }
+        m_last_leader_bearing = formation_bearing;
+        m_has_last_bearing = true;
+    }
+    else
+    {
+        // Leader is stationary: use compass heading (hdg) as fallback.
+        // hdg is in centi-degrees (0.01 deg). 65535 means unknown.
+        if (m_leader_gpos_new.hdg != 65535 && m_leader_gpos_new.hdg < 36000)
+        {
+            double hdg_rad = m_leader_gpos_new.hdg / 100.0 * M_PI / 180.0;
+
+            // Deadzone: only update bearing if heading changed more than HDG_DEADZONE_DEG
+            if (m_has_last_bearing)
+            {
+                double hdg_diff = hdg_rad - m_last_leader_bearing;
+                while (hdg_diff > M_PI) hdg_diff -= 2.0 * M_PI;
+                while (hdg_diff < -M_PI) hdg_diff += 2.0 * M_PI;
+
+                if (fabs(hdg_diff) > HDG_DEADZONE_DEG * M_PI / 180.0)
+                {
+                    m_last_leader_bearing = hdg_rad;
+                }
+            }
+            else
+            {
+                m_last_leader_bearing = hdg_rad;
+                m_has_last_bearing = true;
+            }
+            formation_bearing = m_last_leader_bearing;
+        }
+        else
+        {
+            // No hdg available: use last known bearing, or skip if none
+            if (!m_has_last_bearing)
+            {
+                return;
+            }
+            formation_bearing = m_last_leader_bearing;
+        }
     }
 
     const double my_lat = my_gpos.lat / 10000000.0f;
     const double my_lon = my_gpos.lon / 10000000.0f;
 
     const int follower_index = fcb_swarm_manager.getFollowerIndex();
-    const bool is_left_side = (follower_index % 2 == 0); // Determine if the follower is on the left side
+
+    // Dynamic side assignment: determine which side of leader's heading the follower is on.
+    // This prevents violent position swaps when leader yaws in place — followers keep
+    // their physical side and only the role (left/right wing) changes, not their position.
+    // NOTE: V formation opens BACKWARD (targets at formation_bearing + PI ± PI/4),
+    // so we use the backward heading for cross-product to get correct side detection.
+    const double backward_north = cos(formation_bearing + M_PI);
+    const double backward_east  = sin(formation_bearing + M_PI);
+    const double dx_m = (my_lat - leader_lat) * 111000.0;
+    const double dy_m = (my_lon - leader_lon) * 111000.0 * cos(leader_lat * M_PI / 180.0);
+    const double cross_m = backward_north * dy_m - backward_east * dx_m;
+
+    bool is_left_side;
+    if (fabs(cross_m) > CROSS_TRACK_DEADZONE_M)
+    {
+        // Follower is clearly on one side — update assignment
+        is_left_side = (cross_m < 0);
+        m_last_side = is_left_side ? -1 : 1;
+    }
+    else if (m_last_side != 0)
+    {
+        // Follower is near centerline — keep previous assignment (hysteresis)
+        is_left_side = (m_last_side < 0);
+    }
+    else
+    {
+        // First time: use actual physical side even within deadzone.
+        // Only fall back to index parity if cross-product is exactly zero.
+        if (cross_m > 0.0)
+        {
+            is_left_side = false;
+            m_last_side = 1;
+        }
+        else if (cross_m < 0.0)
+        {
+            is_left_side = true;
+            m_last_side = -1;
+        }
+        else
+        {
+            is_left_side = (follower_index % 2 == 0);
+            m_last_side = is_left_side ? -1 : 1;
+        }
+    }
 
     // Adjust the base distance for symmetry
     const double base_distance = ((follower_index / 2) + 1) * m_min_horizontal_distance; // Base distance from leader
@@ -111,9 +235,6 @@ void CSwarmFollower::updateFollowerInArrowFormation()
     const double distance_to_leader = calcGPSDistance(leader_lat, leader_lon, my_lat, my_lon);
 
     UNUSED(distance_to_leader);
-    
-    // Calculate the bearing of the leader's velocity vector
-    const double leader_velocity_vector_bearing = getBearingOfVector(m_leader_gpos_new.vx, m_leader_gpos_new.vy);
 
     // Calculate the bearing between me and the leader
     const double bearing_with_leader = calculateBearing(leader_lat, leader_lon, my_lat, my_lon);
@@ -122,14 +243,27 @@ void CSwarmFollower::updateFollowerInArrowFormation()
     // Calculate the 45-degree offset for V formation
     const double angle_offset = M_PI + (is_left_side ? -M_PI / 4 : M_PI / 4); // 45 degrees in radians
 
-    // Calculate target point for V formation
-    POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, leader_velocity_vector_bearing + angle_offset, base_distance);
+    // Calculate target point for V formation using the stabilized formation bearing
+    POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, formation_bearing + angle_offset, base_distance);
+
+    // Low-pass filter on target position to prevent step jumps
+    if (m_has_smoothed_target)
+    {
+        m_smoothed_target_lat = TARGET_SMOOTHING_ALPHA * p.latitude + (1.0 - TARGET_SMOOTHING_ALPHA) * m_smoothed_target_lat;
+        m_smoothed_target_lon = TARGET_SMOOTHING_ALPHA * p.longitude + (1.0 - TARGET_SMOOTHING_ALPHA) * m_smoothed_target_lon;
+    }
+    else
+    {
+        m_smoothed_target_lat = p.latitude;
+        m_smoothed_target_lon = p.longitude;
+        m_has_smoothed_target = true;
+    }
 
     // Instruct follower to go to the target point
-    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(p.latitude, p.longitude, (m_leader_gpos_new.relative_alt + (follower_index + 1) * m_min_vertical_distance * 1000) / 1000.0f);
+    mavlinksdk::CMavlinkCommand::getInstance().gotoGuidedPoint(m_smoothed_target_lat, m_smoothed_target_lon, (m_leader_gpos_new.relative_alt + (follower_index + 1) * m_min_vertical_distance * 1000) / 1000.0f);
 
     // Broadcast target location for this follower
-    CFCBFacade::getInstance().sendFCBTargetLocation("", p.latitude, p.longitude, (double)m_leader_gpos_new.relative_alt, DESTINATION_SWARM_MY_LOCATION);
+    CFCBFacade::getInstance().sendFCBTargetLocation("", m_smoothed_target_lat, m_smoothed_target_lon, (double)m_leader_gpos_new.relative_alt, DESTINATION_SWARM_MY_LOCATION);
 
     // Store latest readings
     m_leader_last_access = now;
@@ -137,9 +271,9 @@ void CSwarmFollower::updateFollowerInArrowFormation()
 
     #ifdef DEBUG
         std::cout << _INFO_CONSOLE_TEXT << "time_diff: " << ":" << (m_leader_last_access - now) << ":" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        std::cout << "Leader Velocity Bearing: " << leader_velocity_vector_bearing << std::endl;
+        std::cout << "Formation Bearing: " << formation_bearing << " (speed_sq: " << speed_sq << ")" << std::endl;
         std::cout << "Angle Offset: " << angle_offset <<  "     bearing_with_leader: " << bearing_with_leader << std::endl;
-        std::cout << "Target Point: " << p.latitude << ", " << p.longitude << std::endl;
+        std::cout << "Target Point: " << m_smoothed_target_lat << ", " << m_smoothed_target_lon << std::endl;
     #endif
 }
 
@@ -157,6 +291,7 @@ void CSwarmFollower::updateFollower()
             updateFollowerInThreadFormation();
             break;
         case FORMATION_ARROW:
+        case FORMATION_ARROW_DYNAMIC:
             updateFollowerInArrowFormation();
             break;
         case FORMATION_VECTOR:
@@ -219,10 +354,16 @@ void CSwarmFollower::handle_leader_traffic(const std::string & leader_sender, co
                     
                     #ifdef DEBUG        
                         std::cout << _INFO_CONSOLE_TEXT << "RX SWARM MAVLINK: " << std::to_string(mavlink_message.msgid) << ":" << m_leader_gpos_new.lat << ":" << m_leader_gpos_new.lon << ":" << m_leader_gpos_new.relative_alt << ":" << m_leader_gpos_new.vx << ":" << m_leader_gpos_new.vy << ":" << m_leader_gpos_new.vz << ":" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
-                        //std::cout << _INFO_CONSOLE_TEXT << "RX SWARM MAVLINK: " << leader_velocity_vector_bearing << "   :   " << _SUCCESS_CONSOLE_TEXT_ << bearing_with_leader << ":" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
-                        //std::cout << _INFO_CONSOLE_TEXT << "gotoGuidedPoint: " <<  ":" << p.latitude << ":" << p.longitude << ":" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
                     #endif
+                }
+                break;
 
+                case MAVLINK_MSG_ID_ATTITUDE:
+                {
+                    mavlink_attitude_t attitude;
+                    mavlink_msg_attitude_decode(&mavlink_message, &attitude);
+                    m_leader_yaw = attitude.yaw;
+                    m_leader_yawspeed = attitude.yawspeed;
                 }
                 break;
                         

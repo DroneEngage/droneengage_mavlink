@@ -82,6 +82,22 @@ namespace swarm
             mavlink_global_position_int_t m_leader_gpos_old;
             u_int64_t m_leader_last_access;
 
+            // Bearing latching for arrow formation — prevents violent swings
+            double m_last_leader_bearing = 0.0;
+            bool m_has_last_bearing = false;
+
+            // Target position smoothing — low-pass filter on goto target
+            double m_smoothed_target_lat = 0.0;
+            double m_smoothed_target_lon = 0.0;
+            bool m_has_smoothed_target = false;
+
+            // Leader attitude (parsed from ATTITUDE message)
+            float m_leader_yaw = 0.0f;
+            float m_leader_yawspeed = 0.0f;
+
+            // Dynamic side assignment for arrow formation (hysteresis)
+            int m_last_side = 0;  // -1 = left, +1 = right, 0 = unassigned
+
         private:
             
             int m_min_vertical_distance = KNODE_LENGTH;
