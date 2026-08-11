@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "../de_common/helpers/helpers.hpp"
 #include "../de_common/helpers/colors.hpp"
 #include "../fcb_facade.hpp"
@@ -270,12 +272,21 @@ int CSwarmManager::followerExist(const std::string& party_id) const {
  */
 int CSwarmManager::insertFollowerInSwarmFormation(const std::string& party_id) {
 
-    int follower_idx = 0;
-
-    // Find the smallest missing index by iterating from 1 onwards
-    for(const ANDRUAV_UNIT_FOLLOWER& i : m_follower_units) 
+    // Collect and sort all used indices to correctly find the smallest missing one.
+    // The previous sequential scan over an unsorted vector could return a duplicate
+    // index after mid-vector deletions caused element reordering.
+    std::vector<int> used_indices;
+    used_indices.reserve(m_follower_units.size());
+    for(const ANDRUAV_UNIT_FOLLOWER& i : m_follower_units)
     {
-        if (i.follower_index <= follower_idx)
+        used_indices.push_back(i.follower_index);
+    }
+    std::sort(used_indices.begin(), used_indices.end());
+
+    int follower_idx = 0;
+    for (int idx : used_indices)
+    {
+        if (idx == follower_idx)
         {
             ++follower_idx;
         }

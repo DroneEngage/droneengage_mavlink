@@ -17,6 +17,7 @@ de::fcb::swarm::CSwarmManager& fcb_swarm_manager = de::fcb::swarm::CSwarmManager
 #define TARGET_SMOOTHING_ALPHA 0.3            // low-pass filter factor for target position
 #define HDG_DEADZONE_DEG 5.0                  // ignore compass heading changes below this (degrees)
 #define CROSS_TRACK_DEADZONE_M 3.0            // deadzone in meters for dynamic side switching
+#define TARGET_JUMP_THRESHOLD_M 5.0           // if raw target jumps more than this, check direction before chasing
 
 
 /**
@@ -100,7 +101,7 @@ void CSwarmFollower::updateFollowerInThreadFormation()
 }
 
 
-void CSwarmFollower::updateFollowerInArrowFormation()
+void CSwarmFollower::updateFollowerInArrowFormation(const bool is_dynamic)
 {
     
     // Get my own location
@@ -115,7 +116,8 @@ void CSwarmFollower::updateFollowerInArrowFormation()
 
     // Determine formation bearing:
     // - When leader is moving, use velocity bearing with slew-rate limiting.
-    // - When leader is stationary (hovering copter), use compass heading (hdg) as fallback.
+    // - FORMATION_ARROW (static): when stationary, use compass heading (hdg).
+    // - FORMATION_ARROW_DYNAMIC: when stationary, freeze last movement bearing.
     double speed_sq = m_leader_gpos_new.vx * m_leader_gpos_new.vx + m_leader_gpos_new.vy * m_leader_gpos_new.vy;
     double formation_bearing;
 
@@ -143,39 +145,53 @@ void CSwarmFollower::updateFollowerInArrowFormation()
     }
     else
     {
-        // Leader is stationary: use compass heading (hdg) as fallback.
-        // hdg is in centi-degrees (0.01 deg). 65535 means unknown.
-        if (m_leader_gpos_new.hdg != 65535 && m_leader_gpos_new.hdg < 36000)
+        if (is_dynamic)
         {
-            double hdg_rad = m_leader_gpos_new.hdg / 100.0 * M_PI / 180.0;
-
-            // Deadzone: only update bearing if heading changed more than HDG_DEADZONE_DEG
-            if (m_has_last_bearing)
-            {
-                double hdg_diff = hdg_rad - m_last_leader_bearing;
-                while (hdg_diff > M_PI) hdg_diff -= 2.0 * M_PI;
-                while (hdg_diff < -M_PI) hdg_diff += 2.0 * M_PI;
-
-                if (fabs(hdg_diff) > HDG_DEADZONE_DEG * M_PI / 180.0)
-                {
-                    m_last_leader_bearing = hdg_rad;
-                }
-            }
-            else
-            {
-                m_last_leader_bearing = hdg_rad;
-                m_has_last_bearing = true;
-            }
-            formation_bearing = m_last_leader_bearing;
-        }
-        else
-        {
-            // No hdg available: use last known bearing, or skip if none
+            // Dynamic V: formation depends ONLY on actual movement direction.
+            // Freeze last movement bearing; skip if leader has never moved.
             if (!m_has_last_bearing)
             {
                 return;
             }
             formation_bearing = m_last_leader_bearing;
+        }
+        else
+        {
+            // Static V: use compass heading (hdg) so the V points where
+            // the leader faces, even when hovering or yawing in place.
+            // hdg is in centi-degrees (0.01 deg). 65535 means unknown.
+            if (m_leader_gpos_new.hdg != 65535 && m_leader_gpos_new.hdg < 36000)
+            {
+                double hdg_rad = m_leader_gpos_new.hdg / 100.0 * M_PI / 180.0;
+
+                // Deadzone: only update bearing if heading changed more than HDG_DEADZONE_DEG
+                if (m_has_last_bearing)
+                {
+                    double hdg_diff = hdg_rad - m_last_leader_bearing;
+                    while (hdg_diff > M_PI) hdg_diff -= 2.0 * M_PI;
+                    while (hdg_diff < -M_PI) hdg_diff += 2.0 * M_PI;
+
+                    if (fabs(hdg_diff) > HDG_DEADZONE_DEG * M_PI / 180.0)
+                    {
+                        m_last_leader_bearing = hdg_rad;
+                    }
+                }
+                else
+                {
+                    m_last_leader_bearing = hdg_rad;
+                    m_has_last_bearing = true;
+                }
+                formation_bearing = m_last_leader_bearing;
+            }
+            else
+            {
+                // No hdg available: use last known bearing, or skip if none
+                if (!m_has_last_bearing)
+                {
+                    return;
+                }
+                formation_bearing = m_last_leader_bearing;
+            }
         }
     }
 
@@ -184,49 +200,22 @@ void CSwarmFollower::updateFollowerInArrowFormation()
 
     const int follower_index = fcb_swarm_manager.getFollowerIndex();
 
-    // Dynamic side assignment: determine which side of leader's heading the follower is on.
-    // This prevents violent position swaps when leader yaws in place — followers keep
-    // their physical side and only the role (left/right wing) changes, not their position.
-    // NOTE: V formation opens BACKWARD (targets at formation_bearing + PI ± PI/4),
-    // so we use the backward heading for cross-product to get correct side detection.
+    // Cross-track position relative to the V's backward heading (formation opens BACKWARD).
+    // Kept for diagnostics/possible future use, but side is now fixed by follower_index
+    // to guarantee a valid V shape. Decentralized physical-side assignment can put
+    // two followers on the same wing when they happen to be on the same side of the leader.
     const double backward_north = cos(formation_bearing + M_PI);
     const double backward_east  = sin(formation_bearing + M_PI);
     const double dx_m = (my_lat - leader_lat) * 111000.0;
     const double dy_m = (my_lon - leader_lon) * 111000.0 * cos(leader_lat * M_PI / 180.0);
     const double cross_m = backward_north * dy_m - backward_east * dx_m;
+    UNUSED(cross_m);
 
-    bool is_left_side;
-    if (fabs(cross_m) > CROSS_TRACK_DEADZONE_M)
-    {
-        // Follower is clearly on one side — update assignment
-        is_left_side = (cross_m < 0);
-        m_last_side = is_left_side ? -1 : 1;
-    }
-    else if (m_last_side != 0)
-    {
-        // Follower is near centerline — keep previous assignment (hysteresis)
-        is_left_side = (m_last_side < 0);
-    }
-    else
-    {
-        // First time: use actual physical side even within deadzone.
-        // Only fall back to index parity if cross-product is exactly zero.
-        if (cross_m > 0.0)
-        {
-            is_left_side = false;
-            m_last_side = 1;
-        }
-        else if (cross_m < 0.0)
-        {
-            is_left_side = true;
-            m_last_side = -1;
-        }
-        else
-        {
-            is_left_side = (follower_index % 2 == 0);
-            m_last_side = is_left_side ? -1 : 1;
-        }
-    }
+    // Side assignment: the V formation requires one follower on each wing at the
+    // same tier. Each follower runs independently, so the only way to guarantee
+    // separation without leader coordination is to use follower_index parity.
+    // Even index (0, 2, ...) -> left wing; odd index (1, 3, ...) -> right wing.
+    const bool is_left_side = (follower_index % 2 == 0);
 
     // Adjust the base distance for symmetry
     const double base_distance = ((follower_index / 2) + 1) * m_min_horizontal_distance; // Base distance from leader
@@ -245,6 +234,40 @@ void CSwarmFollower::updateFollowerInArrowFormation()
 
     // Calculate target point for V formation using the stabilized formation bearing
     POINT_2D p = get_point_at_bearing(leader_lat, leader_lon, formation_bearing + angle_offset, base_distance);
+
+    // Target jump detection: if the raw target suddenly jumped, check if it's coming
+    // toward the follower. If so, wait — but only for a couple of cycles to avoid
+    // getting permanently stuck.
+    if (m_has_prev_raw_target)
+    {
+        const double jump_dx = (p.latitude - m_prev_raw_target_lat) * 111000.0;
+        const double jump_dy = (p.longitude - m_prev_raw_target_lon) * 111000.0 * cos(leader_lat * M_PI / 180.0);
+        const double jump_dist = sqrt(jump_dx * jump_dx + jump_dy * jump_dy);
+
+        if (jump_dist > TARGET_JUMP_THRESHOLD_M && m_consecutive_skips < 2)
+        {
+            // Target jumped significantly. Check direction:
+            // old_target -> follower vector
+            const float to_follower_dx = (my_lat - m_prev_raw_target_lat) * 111000.0;
+            const float to_follower_dy = (my_lon - m_prev_raw_target_lon) * 111000.0 * cos(leader_lat * M_PI / 180.0);
+            // Dot product: if negative, target jumped toward the follower → wait
+            const float dot = jump_dx * to_follower_dx + jump_dy * to_follower_dy;
+            if (dot < 0.0)
+            {
+                // Target is coming toward follower — hold position for now
+                m_prev_raw_target_lat = p.latitude;
+                m_prev_raw_target_lon = p.longitude;
+                m_consecutive_skips++;
+                m_leader_last_access = now;
+                m_leader_gpos_old = m_leader_gpos_new;
+                return;
+            }
+        }
+    }
+    m_prev_raw_target_lat = p.latitude;
+    m_prev_raw_target_lon = p.longitude;
+    m_has_prev_raw_target = true;
+    m_consecutive_skips = 0;
 
     // Low-pass filter on target position to prevent step jumps
     if (m_has_smoothed_target)
@@ -291,8 +314,10 @@ void CSwarmFollower::updateFollower()
             updateFollowerInThreadFormation();
             break;
         case FORMATION_ARROW:
+            updateFollowerInArrowFormation(false);
+            break;
         case FORMATION_ARROW_DYNAMIC:
-            updateFollowerInArrowFormation();
+            updateFollowerInArrowFormation(true);
             break;
         case FORMATION_VECTOR:
             break;

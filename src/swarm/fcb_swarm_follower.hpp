@@ -74,7 +74,7 @@ namespace swarm
 
             void updateFollower();
             void updateFollowerInThreadFormation();
-            void updateFollowerInArrowFormation();
+            void updateFollowerInArrowFormation(const bool is_dynamic);
 
         private:
             
@@ -97,6 +97,12 @@ namespace swarm
 
             // Dynamic side assignment for arrow formation (hysteresis)
             int m_last_side = 0;  // -1 = left, +1 = right, 0 = unassigned
+
+            // Target jump detection — skip chasing target when it jumps toward follower
+            double m_prev_raw_target_lat = 0.0;
+            double m_prev_raw_target_lon = 0.0;
+            bool m_has_prev_raw_target = false;
+            int m_consecutive_skips = 0;
 
         private:
             
