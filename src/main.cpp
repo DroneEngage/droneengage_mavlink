@@ -388,6 +388,10 @@ void init(int argc, char *argv[]) {
   cConfigFile.initConfigFile(configName.c_str());
   cLocalConfigFile.InitConfigFile(localConfigName.c_str());
 
+  // Apply device-specific overrides from the gitignored *.local file on top
+  // of the published config, in memory only. The published file stays clean.
+  cConfigFile.applyLocalOverrides(cLocalConfigFile.GetConfigJSON());
+
   const Json_de &jsonConfig = cConfigFile.GetConfigJSON();
   
   // Retrieve or Create unique ModuleKey
