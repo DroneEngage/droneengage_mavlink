@@ -21,9 +21,11 @@ public:
   void operator=(CTrackerQuadLogic const &) = delete;
 
 private:
-  CTrackerQuadLogic() 
+  CTrackerQuadLogic()
     : m_standing_pid_x(0.5, 0.0, 0.0, 0.01, 100.0, 500.0, 200.0, false, 0.2),
-      m_standing_pid_yz(0.5, 0.0, 0.0, 0.01, 100.0, 500.0, 200.0, false, 0.2) {}
+      m_standing_pid_yz(0.5, 0.0, 0.0, 0.01, 100.0, 500.0, 200.0, false, 0.2),
+      m_forward_pid_x(0.5, 0.0, 0.0, 0.01, 100.0, 500.0, 200.0, false, 0.2),
+      m_forward_pid_yz(0.5, 0.0, 0.0, 0.01, 100.0, 500.0, 200.0, false, 0.2) {}
 
 public:
   ~CTrackerQuadLogic() {}
@@ -36,10 +38,9 @@ public:
   
 public:
   void readConfigParameters() override;
-  void reloadParametersIfConfigChanged() override;
 
-  void trackingStanding(const double x, const double yz, const int tracking_x, const int tracking_yz);
-  void trackingDroneForward(const double x, const double yz, const double tracking_x, const double tracking_yz);
+  void trackingStanding(const double x, const double yz);
+  void trackingDroneForward(const double x, const double yz);
 
   inline void resetTrackerCopterStatus() {
     m_tracker_copter_status = 0;
@@ -52,6 +53,16 @@ public:
     m_last_rate_time = 0;
     m_current_rate_x = 0.0;
     m_current_rate_yz = 0.0;
+
+    // Reset advanced PID controllers for forward tracking mode
+    m_forward_pid_x.reset();
+    m_forward_pid_yz.reset();
+    // Reset rate tracking
+    m_forward_last_x_for_rate = 0.0;
+    m_forward_last_yz_for_rate = 0.0;
+    m_forward_last_rate_time = 0;
+    m_forward_current_rate_x = 0.0;
+    m_forward_current_rate_yz = 0.0;
   }
 
   inline void setTrackerCopterStatus(uint8_t status)
@@ -111,6 +122,38 @@ private:
   uint64_t m_last_rate_time = 0;
   double m_current_rate_x = 0.0;
   double m_current_rate_yz = 0.0;
+
+  // Advanced PID controllers for forward tracking mode (camera looking FRONT)
+  de::fcb::depilot::CAdvancedPIDController m_forward_pid_x;
+  de::fcb::depilot::CAdvancedPIDController m_forward_pid_yz;
+
+  // Configuration parameters for forward tracking mode
+  double m_forward_pid_p_x = 0.2;
+  double m_forward_pid_i_x = 0.0;
+  double m_forward_pid_d_x = 0.01;
+  double m_forward_ff_scale_x = 200.0;
+  double m_forward_max_accel_x = 3.0;
+  double m_forward_max_rate_x = 1.5;
+  double m_forward_deadband_x = 0.001;
+  double m_forward_integral_limit_x = 100.0;
+  double m_forward_output_limit_x = 500.0;
+
+  double m_forward_pid_p_yz = 3.6;
+  double m_forward_pid_i_yz = 0.0;
+  double m_forward_pid_d_yz = 0.05;
+  double m_forward_ff_scale_yz = 200.0;
+  double m_forward_max_accel_yz = 2.5;
+  double m_forward_max_rate_yz = 1.2;
+  double m_forward_deadband_yz = 0.025;
+  double m_forward_integral_limit_yz = 100.0;
+  double m_forward_output_limit_yz = 500.0;
+
+  // Rate tracking for forward mode
+  double m_forward_last_x_for_rate = 0.0;
+  double m_forward_last_yz_for_rate = 0.0;
+  uint64_t m_forward_last_rate_time = 0;
+  double m_forward_current_rate_x = 0.0;
+  double m_forward_current_rate_yz = 0.0;
 };
 } // namespace tracking
 } // namespace fcb
