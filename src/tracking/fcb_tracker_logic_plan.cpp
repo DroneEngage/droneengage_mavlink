@@ -15,210 +15,184 @@ using namespace de::fcb::tracking;
 
 static de::fcb::CFCBMain &m_fcbMain2 = de::fcb::CFCBMain::getInstance();
 
-void CTrackerPlanLogic::readConfigParameters() {
-  de::CConfigFile &cConfigFile = de::CConfigFile::getInstance();
-  const Json_de &jsonConfig = cConfigFile.GetConfigJSON();
-  bool expo_x_from_follow_me = false;
-  bool expo_y_from_follow_me = false;
+void CTrackerPlanLogic::onStatusChanged(const int status, const uint8_t tracking_camera_direction, const bool ai_priority) {
+  CTrackerLogic::onStatusChanged(status, tracking_camera_direction, ai_priority);
 
-  if (jsonConfig.contains("follow_me")) {
-    const Json_de &follow_me_root = jsonConfig["follow_me"];
+  switch (status) {
+  case TrackingTarget_STATUS_TRACKING_LOST:
+  case TrackingTarget_STATUS_TRACKING_ENABLED:
+  case TrackingTarget_STATUS_TRACKING_STOPPED:
+    m_forward_pid_x.reset();
+    m_forward_pid_yz.reset();
+    m_forward_last_x_for_rate = 0.0;
+    m_forward_last_yz_for_rate = 0.0;
+    m_forward_last_rate_time = 0;
+    m_forward_current_rate_x = 0.0;
+    m_forward_current_rate_yz = 0.0;
+    break;
 
-    if (follow_me_root.contains("plane")) {
-      const Json_de &follow_me = follow_me_root["plane"];
-      if (follow_me.contains("PID_P_X")) {
-        m_x_PID_P = follow_me["PID_P_X"].get<double>();
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "PID_P_X:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_x_PID_P) << _NORMAL_CONSOLE_TEXT_
-                  << std::endl;
-      }
-
-      if (follow_me.contains("PID_P_Y")) {
-        m_yz_PID_P = follow_me["PID_P_Y"].get<double>();
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "PID_P_Y:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_yz_PID_P) << _NORMAL_CONSOLE_TEXT_
-                  << std::endl;
-      }
-
-      if (follow_me.contains("PID_I_X")) {
-        m_x_PID_I = follow_me["PID_I_X"].get<double>();
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "PID_I_X:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_x_PID_I) << _NORMAL_CONSOLE_TEXT_
-                  << std::endl;
-#endif
-      }
-
-      if (follow_me.contains("PID_I_Y")) {
-        m_yz_PID_I = follow_me["PID_I_Y"].get<double>();
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "PID_I_Y:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_yz_PID_I) << _NORMAL_CONSOLE_TEXT_
-                  << std::endl;
-#endif
-      }
-
-      if (follow_me.contains("PID_D_X")) {
-        m_x_PID_D = follow_me["PID_D_X"].get<double>();
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "PID_D_X:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_x_PID_D) << _NORMAL_CONSOLE_TEXT_
-                  << std::endl;
-#endif
-      }
-
-      if (follow_me.contains("PID_D_Y")) {
-        m_yz_PID_D = follow_me["PID_D_Y"].get<double>();
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "PID_D_Y:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_yz_PID_D) << _NORMAL_CONSOLE_TEXT_
-                  << std::endl;
-#endif
-      }
-
-      // Expo can be provided under follow_me; give it priority over top-level
-      // keys
-      if (follow_me.contains("expo_x")) {
-        m_expo_x = follow_me["expo_x"].get<double>();
-        expo_x_from_follow_me = true;
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "expo_x:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_expo_x) << _NORMAL_CONSOLE_TEXT_
-                  << std::endl;
-#endif
-      }
-      if (follow_me.contains("expo_y")) {
-        m_expo_yz = follow_me["expo_y"].get<double>();
-        expo_y_from_follow_me = true;
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "expo_y:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_expo_yz) << _NORMAL_CONSOLE_TEXT_
-                  << std::endl;
-#endif
-      }
-
-      if (follow_me.contains("center_hold_enabled")) {
-        m_center_hold_enabled = follow_me["center_hold_enabled"].get<bool>();
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "center_hold_enabled:" << _INFO_CONSOLE_BOLD_TEXT
-                  << (m_center_hold_enabled ? "true" : "false")
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-#endif
-      }
-      if (follow_me.contains("center_hold_y_band")) {
-        m_center_hold_y_band = follow_me["center_hold_y_band"].get<double>();
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "center_hold_y_band:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_center_hold_y_band)
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-#endif
-      }
-      if (follow_me.contains("center_hold_decay")) {
-        m_center_hold_decay = follow_me["center_hold_decay"].get<double>();
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "center_hold_decay:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_center_hold_decay)
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-#endif
-      }
-
-      if (follow_me.contains("rate_limit")) {
-        m_rate_limit = follow_me["rate_limit"].get<double>();
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "rate_limit:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_rate_limit) << _NORMAL_CONSOLE_TEXT_
-                  << std::endl;
-#endif
-      }
-
-      // Optional per-axis overrides
-      if (follow_me.contains("deadband_x")) {
-        m_deadband_x = follow_me["deadband_x"].get<double>();
-      }
-      if (follow_me.contains("deadband_y")) {
-        m_deadband_yz = follow_me["deadband_y"].get<double>();
-      }
-#ifdef DEBUG
-      std::cout << _SUCCESS_CONSOLE_TEXT_
-                << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                << "deadband_x:" << _INFO_CONSOLE_BOLD_TEXT
-                << std::to_string(m_deadband_x) << _NORMAL_CONSOLE_TEXT_
-                << std::endl;
-      std::cout << _SUCCESS_CONSOLE_TEXT_
-                << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                << "deadband_y:" << _INFO_CONSOLE_BOLD_TEXT
-                << std::to_string(m_deadband_yz) << _NORMAL_CONSOLE_TEXT_
-                << std::endl;
-#endif
-      // Kalman filter parameters
-      if (follow_me.contains("kalman_enabled")) {
-        m_kalman_enabled = follow_me["kalman_enabled"].get<bool>();
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "kalman_enabled:" << _INFO_CONSOLE_BOLD_TEXT
-                  << (m_kalman_enabled ? "true" : "false")
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-#endif
-      }
-      if (follow_me.contains("kalman_process_noise_q")) {
-        m_kalman_process_noise_q =
-            follow_me["kalman_process_noise_q"].get<double>();
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "kalman_process_noise_q:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_kalman_process_noise_q)
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-#endif
-      }
-      if (follow_me.contains("kalman_measurement_noise_r")) {
-        m_kalman_measurement_noise_r =
-            follow_me["kalman_measurement_noise_r"].get<double>();
-#ifdef DEBUG
-        std::cout << _SUCCESS_CONSOLE_TEXT_
-                  << "Apply:  " << _LOG_CONSOLE_BOLD_TEXT
-                  << "kalman_measurement_noise_r:" << _INFO_CONSOLE_BOLD_TEXT
-                  << std::to_string(m_kalman_measurement_noise_r)
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-#endif
-      }
-    }
+  default:
+    break;
   }
 }
 
-void CTrackerPlanLogic::onTrack(const double x, const double yz) {
-  CTrackerLogic::onTrack(x, yz);
+void CTrackerPlanLogic::readConfigParameters() {
+  de::CConfigFile &cConfigFile = de::CConfigFile::getInstance();
+  const Json_de &jsonConfig = cConfigFile.GetConfigJSON();
 
-  int tracking_x = static_cast<int>(m_x * 1000 + 500);
-  int tracking_yz = static_cast<int>(m_yz * 1000 + 500);
+  if (jsonConfig.contains("de_pilot")) {
+    const Json_de &de_pilot_root = jsonConfig["de_pilot"];
+
+    if (de_pilot_root.contains("tracking")) {
+      const Json_de &tracking_root = de_pilot_root["tracking"];
+
+      if (tracking_root.contains("plane")) {
+        const Json_de &plane_config = tracking_root["plane"];
+
+        if (plane_config.contains("forward")) {
+          const Json_de &forward_config = plane_config["forward"];
+
+          if (forward_config.contains("x_axis")) {
+            const Json_de &x_config = forward_config["x_axis"];
+
+            if (x_config.contains("pid_p")) {
+              m_forward_pid_p_x = x_config["pid_p"].get<double>();
+            }
+            if (x_config.contains("pid_i")) {
+              m_forward_pid_i_x = x_config["pid_i"].get<double>();
+            }
+            if (x_config.contains("pid_d")) {
+              m_forward_pid_d_x = x_config["pid_d"].get<double>();
+            }
+            if (x_config.contains("ff_scale")) {
+              m_forward_ff_scale_x = x_config["ff_scale"].get<double>();
+            }
+            if (x_config.contains("max_accel")) {
+              m_forward_max_accel_x = x_config["max_accel"].get<double>();
+            }
+            if (x_config.contains("max_rate")) {
+              m_forward_max_rate_x = x_config["max_rate"].get<double>();
+            }
+            if (x_config.contains("deadband")) {
+              m_forward_deadband_x = x_config["deadband"].get<double>();
+            }
+            if (x_config.contains("integral_limit")) {
+              m_forward_integral_limit_x = x_config["integral_limit"].get<double>();
+            }
+            if (x_config.contains("output_limit")) {
+              m_forward_output_limit_x = x_config["output_limit"].get<double>();
+            }
+          }
+
+          if (forward_config.contains("yz_axis")) {
+            const Json_de &yz_config = forward_config["yz_axis"];
+
+            if (yz_config.contains("pid_p")) {
+              m_forward_pid_p_yz = yz_config["pid_p"].get<double>();
+            }
+            if (yz_config.contains("pid_i")) {
+              m_forward_pid_i_yz = yz_config["pid_i"].get<double>();
+            }
+            if (yz_config.contains("pid_d")) {
+              m_forward_pid_d_yz = yz_config["pid_d"].get<double>();
+            }
+            if (yz_config.contains("ff_scale")) {
+              m_forward_ff_scale_yz = yz_config["ff_scale"].get<double>();
+            }
+            if (yz_config.contains("max_accel")) {
+              m_forward_max_accel_yz = yz_config["max_accel"].get<double>();
+            }
+            if (yz_config.contains("max_rate")) {
+              m_forward_max_rate_yz = yz_config["max_rate"].get<double>();
+            }
+            if (yz_config.contains("deadband")) {
+              m_forward_deadband_yz = yz_config["deadband"].get<double>();
+            }
+            if (yz_config.contains("integral_limit")) {
+              m_forward_integral_limit_yz = yz_config["integral_limit"].get<double>();
+            }
+            if (yz_config.contains("output_limit")) {
+              m_forward_output_limit_yz = yz_config["output_limit"].get<double>();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Configure advanced PID controllers with loaded parameters
+  m_forward_pid_x.setPID(m_forward_pid_p_x, m_forward_pid_i_x, m_forward_pid_d_x);
+  m_forward_pid_x.setFeedforwardGain(m_forward_ff_scale_x);
+  m_forward_pid_x.setIntegralLimit(m_forward_integral_limit_x);
+  m_forward_pid_x.setOutputLimit(m_forward_output_limit_x);
+
+  m_forward_pid_yz.setPID(m_forward_pid_p_yz, m_forward_pid_i_yz, m_forward_pid_d_yz);
+  m_forward_pid_yz.setFeedforwardGain(m_forward_ff_scale_yz);
+  m_forward_pid_yz.setIntegralLimit(m_forward_integral_limit_yz);
+  m_forward_pid_yz.setOutputLimit(m_forward_output_limit_yz);
+}
+
+void CTrackerPlanLogic::onTrack(const double x, const double yz) {
+  if (!isTrackingActive()) {
+    return;
+  }
 
   m_tracking_type = TRACKING_TARGET; // HARD CODED FOR NOW
-  if (m_tracking_camera_direction  == TRACKING_CAMERA_DIRECTION_FRONT) {
+  if (m_tracking_camera_direction == TRACKING_CAMERA_DIRECTION_FRONT) {
+
+    // Update rate tracking for feedback
+    const uint64_t now = get_time_usec();
+    if (m_forward_last_rate_time > 0) {
+      const double dt = (now - m_forward_last_rate_time) / 1000000.0; // seconds
+      if (dt <= 0.05) { // If dt is too small, skip update and keep last RC values
+        return;
+      }
+
+      m_forward_pid_x.setDeltaTime(dt);
+      m_forward_pid_yz.setDeltaTime(dt);
+
+      m_forward_current_rate_x = (x - m_forward_last_x_for_rate) / dt;
+      m_forward_current_rate_yz = (yz - m_forward_last_yz_for_rate) / dt;
+      m_forward_last_x_for_rate = x;
+      m_forward_last_yz_for_rate = yz;
+      m_forward_last_rate_time = now;
+    } else {
+      // Initialize rate tracking
+      m_forward_last_x_for_rate = x;
+      m_forward_last_yz_for_rate = yz;
+      m_forward_last_rate_time = now;
+      m_forward_current_rate_x = 0.0;
+      m_forward_current_rate_yz = 0.0;
+
+      // Set initial delta time for PID controllers (use reasonable default)
+      const double initial_dt = 0.01; // 10ms default
+      m_forward_pid_x.setDeltaTime(initial_dt);
+      m_forward_pid_yz.setDeltaTime(initial_dt);
+    }
+
+    // Apply deadband
+    const double filtered_error_x = (std::abs(x) < m_forward_deadband_x) ? 0.0 : x;
+    const double filtered_error_yz = (std::abs(yz) < m_forward_deadband_yz) ? 0.0 : yz;
+
+    // Use sqrt_controller to compute desired rates
+    const double desired_rate_x = de::fcb::depilot::CAdvancedPIDController::sqrt_controller(
+        filtered_error_x, m_forward_pid_p_x, m_forward_max_accel_x, m_forward_max_rate_x);
+    const double desired_rate_yz = de::fcb::depilot::CAdvancedPIDController::sqrt_controller(
+        filtered_error_yz, m_forward_pid_p_yz, m_forward_max_accel_yz, m_forward_max_rate_yz);
+
+    // Calculate rate errors (desired vs actual)
+    const double rate_error_x = desired_rate_x - m_forward_current_rate_x;
+    const double rate_error_yz = desired_rate_yz - m_forward_current_rate_yz;
+
+    // Use advanced PID controllers to compute control outputs, with desired
+    // rate passed as feedforward for better responsiveness.
+    const double control_x = m_forward_pid_x.calculate(rate_error_x, desired_rate_x);
+    const double control_yz = m_forward_pid_yz.calculate(rate_error_yz, desired_rate_yz);
+
+    // Convert control outputs (+-output_limit) into RC_CHANNEL_TRACKING space
+    // [0,1000] with 500 as neutral, same convention used everywhere else.
+    const int tracking_x = static_cast<int>(std::clamp(500.0 + control_x, 0.0, 1000.0));
+    const int tracking_yz = static_cast<int>(std::clamp(500.0 + control_yz, 0.0, 1000.0));
 
     switch (m_tracking_type) {
     case TRACKING_TYPE::TRACKING_FOLLOW_ME:
@@ -241,14 +215,10 @@ void CTrackerPlanLogic::onTrack(const double x, const double yz) {
     //  rc_channels[RC_CHANNEL_TRACKING_YAW] = 500;
     //  rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 500;
   }
-#ifdef DEBUG
-  std::cout << "tracking_x:" << std::to_string(tracking_x)
-            << " tracking_yz:" << std::to_string(tracking_yz) << std::endl;
-#endif
 }
 
-void CTrackerPlanLogic::trackingFollowMe(const double tracking_x,
-                                         const double tracking_yz) {
+void CTrackerPlanLogic::trackingFollowMe(const double x,
+                                         const double yz) {
 
 #ifdef DEBUG
   std::cout << "trackingFollowMe" << std::endl;
@@ -265,9 +235,9 @@ void CTrackerPlanLogic::trackingFollowMe(const double tracking_x,
   int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT];
   std::fill_n(rc_channels, RC_CHANNEL_TRACKING_COUNT, SKIP_RC_CHANNEL);
   rc_channels[RC_CHANNEL_TRACKING_ROLL] = 500;
-  rc_channels[RC_CHANNEL_TRACKING_PITCH] = 1000 - tracking_yz;
+  rc_channels[RC_CHANNEL_TRACKING_PITCH] = 1000 - yz;
   rc_channels[RC_CHANNEL_TRACKING_YAW] =
-      1000 - tracking_x; // to be aligned with default settings of Ardu
+      1000 - x; // to be aligned with default settings of Ardu
   rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 500;
 
 #ifdef DEBUG
@@ -291,8 +261,8 @@ void CTrackerPlanLogic::trackingFollowMe(const double tracking_x,
   m_fcbMain2.updateTrackingControlChannels(rc_channels);
 }
 
-void CTrackerPlanLogic::trackingTarget(const double tracking_x,
-                                       const double tracking_yz) {
+void CTrackerPlanLogic::trackingTarget(const double x,
+                                       const double yz) {
 #ifdef DEBUG
   std::cout << "trackingTarget" << std::endl;
 #endif
@@ -309,7 +279,7 @@ void CTrackerPlanLogic::trackingTarget(const double tracking_x,
   int16_t rc_channels[RC_CHANNEL_TRACKING_COUNT];
   std::fill_n(rc_channels, RC_CHANNEL_TRACKING_COUNT, SKIP_RC_CHANNEL);
 
-  double pitch = 1000 - tracking_yz;
+  double pitch = 1000 - yz;
   if (pitch < 500) {
     // dont adapt pitch if target still higher than zero level.
     rc_channels[RC_CHANNEL_TRACKING_PITCH] = SKIP_RC_CHANNEL;
@@ -318,7 +288,7 @@ void CTrackerPlanLogic::trackingTarget(const double tracking_x,
   }
 
   rc_channels[RC_CHANNEL_TRACKING_YAW] =
-      1000 - tracking_x; // to be aligned with default settings of Ardu
+      1000 - x; // to be aligned with default settings of Ardu
   rc_channels[RC_CHANNEL_TRACKING_ROLL] = 500;
   rc_channels[RC_CHANNEL_TRACKING_THROTTLE] = 500;
 

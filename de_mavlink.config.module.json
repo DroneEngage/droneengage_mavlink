@@ -12,78 +12,6 @@
     //     "port": 14550,
     //     "type": "udp"
     // },
-    "follow_me": {
-        "plan": {
-            "PID_D_X": 0.1,
-            "PID_D_Y": 0.5,
-            "PID_I_X": 0.0,
-            "PID_I_Y": 0.1,
-            "PID_P_X": 0.8,
-            "PID_P_Y": 0.6,
-            "center_hold_decay": 0.1,
-            "center_hold_enabled": false,
-            "center_hold_y_band": 0.05,
-            "deadband_x": 0.001,
-            "deadband_y": 0.001,
-            "expo_x": 0.0,
-            "expo_y": 0.0,
-            "kalman_enabled": true,
-            "kalman_measurement_noise_r": 0.1,
-            "kalman_process_noise_q": 0.05,
-            "rate_limit": 0.1
-        },
-        "quad": {
-            "PID_D_X": 0.01,
-            "PID_D_Y": 0.05,
-            "PID_I_X": 0.0,
-            "PID_I_Y": 0.0,
-            "PID_P_X": 0.2,
-            "PID_P_Y": 3.6,
-            "center_hold_decay": 0.1,
-            "center_hold_enabled": false,
-            "center_hold_y_band": 0.05,
-            "deadband_x": 0.001,
-            "deadband_y": 0.025,
-            "expo_x": 0.0,
-            "expo_y": 0.0,
-            "kalman_enabled": true,
-            "kalman_measurement_noise_r": 0.1,
-            "kalman_process_noise_q": 0.05,
-            "loose_altitude": false,
-            "rate_limit": 0.05,
-
-        "tracking_standing": {
-                "x_axis": {
-                "pid_p": 10.0,
-                "pid_i": 1.5,
-                "pid_d": 0.05,
-                "ff_scale": 400.0,
-                "max_accel": 0.8,
-                "max_rate": 0.15,
-                "deadband": 0.001,
-                "integral_limit": 200.0,
-                "output_limit": 500.0
-                },
-                "yz_axis": {
-                "pid_p": 10.0,  
-                "pid_i": 1.5,
-                "pid_d": 0.05,
-                "ff_scale": 400.0,
-                "max_accel": 0.8,
-                "max_rate": 0.15,  // main key here 
-                "deadband": 0.001,
-                "integral_limit": 200.0,
-                "output_limit": 500.0
-                },
-                "throttle": {
-                    "throttle_max": 2000,
-                    "throttle_min": 1500,
-                    "throttle_boundary_threshold": 0.35,
-                    "throttle_boundary_reduction": 0.6
-                }
-            }
-      }
-    },
     "logger_debug": false,
     "logger_enabled": true,
     "tlog_enabled": false,
@@ -372,7 +300,97 @@
         },
         "tracking": {
             "auto_enable_on_detection":false,
-            "tracking_timeout_us": 5000000
+            "tracking_timeout_us": 5000000,
+            "quad": {
+                "loose_altitude": false,
+                // NOTE: forward.* values are seeded from the old (pre-refactor) quad tracking
+                // PID gains but were never validated under the new sqrt-controller
+                // + feedforward math -- needs bench/SITL re-tuning.
+                "forward": {
+                    "x_axis": {
+                        "pid_p": 0.2,
+                        "pid_i": 0.0,
+                        "pid_d": 0.01,
+                        "ff_scale": 200.0,
+                        "max_accel": 3.0,
+                        "max_rate": 1.5,
+                        "deadband": 0.001,
+                        "integral_limit": 100.0,
+                        "output_limit": 500.0
+                    },
+                    "yz_axis": {
+                        "pid_p": 3.6,
+                        "pid_i": 0.0,
+                        "pid_d": 0.05,
+                        "ff_scale": 200.0,
+                        "max_accel": 2.5,
+                        "max_rate": 1.2,
+                        "deadband": 0.025,
+                        "integral_limit": 100.0,
+                        "output_limit": 500.0
+                    }
+                },
+                "standing": {
+                    "x_axis": {
+                        "pid_p": 10.0,
+                        "pid_i": 1.5,
+                        "pid_d": 0.05,
+                        "ff_scale": 400.0,
+                        "max_accel": 0.8,
+                        "max_rate": 0.15,
+                        "deadband": 0.001,
+                        "integral_limit": 200.0,
+                        "output_limit": 500.0
+                    },
+                    "yz_axis": {
+                        "pid_p": 10.0,
+                        "pid_i": 1.5,
+                        "pid_d": 0.05,
+                        "ff_scale": 400.0,
+                        "max_accel": 0.8,
+                        "max_rate": 0.15,
+                        "deadband": 0.001,
+                        "integral_limit": 200.0,
+                        "output_limit": 500.0
+                    },
+                    "throttle": {
+                        "throttle_max": 1000,
+                        "throttle_min": 500,
+                        "throttle_boundary_threshold": 0.35,
+                        "throttle_boundary_reduction": 0.6
+                    }
+                }
+            },
+            // NOTE: plane.forward.* values are seeded from the old (pre-refactor) plane tracking
+            // PID gains, but plane tracking never actually loaded them before this
+            // refactor (the code read the wrong config key while every shipped file
+            // used "plan") -- these need bench/SITL re-tuning, not a carry-over.
+            "plane": {
+                "forward": {
+                    "x_axis": {
+                        "pid_p": 0.8,
+                        "pid_i": 0.0,
+                        "pid_d": 0.1,
+                        "ff_scale": 200.0,
+                        "max_accel": 3.0,
+                        "max_rate": 1.5,
+                        "deadband": 0.001,
+                        "integral_limit": 100.0,
+                        "output_limit": 500.0
+                    },
+                    "yz_axis": {
+                        "pid_p": 0.6,
+                        "pid_i": 0.1,
+                        "pid_d": 0.5,
+                        "ff_scale": 200.0,
+                        "max_accel": 2.5,
+                        "max_rate": 1.2,
+                        "deadband": 0.001,
+                        "integral_limit": 100.0,
+                        "output_limit": 500.0
+                    }
+                }
+            }
         }
     },
     "rc_block_channel": -1,
