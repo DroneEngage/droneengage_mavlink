@@ -6,6 +6,7 @@
 
 #include "./de_common/de_databus/configFile.hpp"
 #include "./de_common/de_databus/de_module.hpp"
+#include "./de_common/de_databus/de_facade_base.hpp"
 #include "./de_common/de_databus/localConfigFile.hpp"
 #include "./de_common/de_databus/messages.hpp"
 #include "./de_common/de_databus/udpClient.hpp"
@@ -417,6 +418,10 @@ void init(int argc, char *argv[]) {
 
   // should be last
   initDEModule(argc, argv);
+
+  // de_mavlink is a MAVLink bridge with moderate memory use; tighten the
+  // generic 500MB/20MB-h defaults so a real leak trips WARNING/CRITICAL.
+  de::comm::CFacade_Base::getInstance().configureMemoryStatus(300, 15);
 }
 
 void uninit() {
