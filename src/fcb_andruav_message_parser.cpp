@@ -945,6 +945,59 @@ void CFCBAndruavMessageParser::parseCommand(Json_de &andruav_message,
       
       m_tracking_manager.onStatusChanged(status, tracking_camera_direction, ai_priority);
   } break;
+
+  case TYPE_AndruavMessage_PRECLAND_TARGET: {
+    // Every field is validated before use - a malformed message must never
+    // reach the FC as a LANDING_TARGET.
+    if ((!validateField(cmd, "x", Json_de::value_t::number_float)) &&
+        (!validateField(cmd, "x", Json_de::value_t::number_integer)) &&
+        (!validateField(cmd, "x", Json_de::value_t::number_unsigned)))
+      break;
+    if ((!validateField(cmd, "y", Json_de::value_t::number_float)) &&
+        (!validateField(cmd, "y", Json_de::value_t::number_integer)) &&
+        (!validateField(cmd, "y", Json_de::value_t::number_unsigned)))
+      break;
+    if ((!validateField(cmd, "z", Json_de::value_t::number_float)) &&
+        (!validateField(cmd, "z", Json_de::value_t::number_integer)) &&
+        (!validateField(cmd, "z", Json_de::value_t::number_unsigned)))
+      break;
+    if ((!validateField(cmd, "ax", Json_de::value_t::number_float)) &&
+        (!validateField(cmd, "ax", Json_de::value_t::number_integer)) &&
+        (!validateField(cmd, "ax", Json_de::value_t::number_unsigned)))
+      break;
+    if ((!validateField(cmd, "ay", Json_de::value_t::number_float)) &&
+        (!validateField(cmd, "ay", Json_de::value_t::number_integer)) &&
+        (!validateField(cmd, "ay", Json_de::value_t::number_unsigned)))
+      break;
+    if ((!validateField(cmd, "n", Json_de::value_t::number_integer)) &&
+        (!validateField(cmd, "n", Json_de::value_t::number_unsigned)))
+      break;
+    if ((!validateField(cmd, "e", Json_de::value_t::number_float)) &&
+        (!validateField(cmd, "e", Json_de::value_t::number_integer)) &&
+        (!validateField(cmd, "e", Json_de::value_t::number_unsigned)))
+      break;
+    if ((!validateField(cmd, "t", Json_de::value_t::number_integer)) &&
+        (!validateField(cmd, "t", Json_de::value_t::number_unsigned)))
+      break;
+    if (!validateField(cmd, "v", Json_de::value_t::boolean))
+      break;
+
+    const int target_num =
+        cmd.contains("tn") && cmd["tn"].is_number() ? cmd["tn"].get<int>() : 0;
+
+    m_precland_manager.onPreclandTarget(
+        cmd["x"].get<double>(), cmd["y"].get<double>(), cmd["z"].get<double>(),
+        cmd["ax"].get<double>(), cmd["ay"].get<double>(), cmd["n"].get<int>(),
+        cmd["e"].get<double>(), cmd["t"].get<int64_t>(), cmd["v"].get<bool>(),
+        target_num);
+  } break;
+
+  case TYPE_AndruavMessage_PRECLAND_STATUS: {
+    if (!cmd["a"].is_number_integer())
+      break;
+
+    m_precland_manager.onPreclandStatus(cmd["a"].get<int>());
+  } break;
   }
 }
 

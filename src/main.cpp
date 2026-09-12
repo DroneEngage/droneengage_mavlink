@@ -23,6 +23,7 @@
 #include "fcb_main.hpp"
 #include "fcb_traffic_optimizer.hpp"
 #include "tracking/fcb_tracking_manager.hpp"
+#include "precland/fcb_precland_manager.hpp"
 #include "version.h"
 
 using namespace de;
@@ -54,6 +55,8 @@ using namespace de;
         TYPE_AndruavMessage_P2P_ACTION, TYPE_AndruavMessage_P2P_STATUS,        \
         TYPE_AndruavMessage_Upload_DE_Mission,                                 \
         TYPE_AndruavMessage_DEPilot_Control,                                   \
+        TYPE_AndruavMessage_PRECLAND_TARGET,                                   \
+        TYPE_AndruavMessage_PRECLAND_STATUS,                                   \
         TYPE_AndruavMessage_CONFIG_ACTION, TYPE_AndruavMessage_DUMMY           \
   }
 
@@ -78,6 +81,8 @@ de::fcb::CFCBAndruavMessageParser &cAndruavResalaParser =
     de::fcb::CFCBAndruavMessageParser::getInstance();
 de::fcb::tracking::CTrackingManager &cTracking_manager =
     de::fcb::tracking::CTrackingManager::getInstance();
+de::fcb::precland::CPreclandManager &cPrecland_manager =
+    de::fcb::precland::CPreclandManager::getInstance();
 de::CConfigFile &cConfigFile = CConfigFile::getInstance();
 de::CLocalConfigFile &cLocalConfigFile = de::CLocalConfigFile::getInstance();
 
@@ -349,6 +354,7 @@ void initDEModule(int argc, char *argv[]) {
   }
 
   cTracking_manager.init();
+  cPrecland_manager.init();
 
   // UDP Server
   cModule.init(

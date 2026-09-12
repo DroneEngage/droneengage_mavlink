@@ -11,6 +11,7 @@ using Json_de = nlohmann::json;
 #include "./mission/missions.hpp"
 #include "./swarm/fcb_swarm_manager.hpp"
 #include "./tracking/fcb_tracking_manager.hpp"
+#include "./precland/fcb_precland_manager.hpp"
 #include "fcb_facade.hpp"
 #include "fcb_main.hpp"
 #include "fcb_traffic_optimizer.hpp"
@@ -55,6 +56,8 @@ private:
       de::fcb::swarm::CSwarmManager::getInstance();
   de::fcb::tracking::CTrackingManager &m_tracking_manager =
       de::fcb::tracking::CTrackingManager::getInstance();
+  de::fcb::precland::CPreclandManager &m_precland_manager =
+      de::fcb::precland::CPreclandManager::getInstance();
 };
 } // namespace fcb
 } // namespace de

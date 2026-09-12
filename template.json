@@ -102,5 +102,59 @@
                 "desc": "MAVLink system and component ID configuration"
             }
         }
+    },
+    {
+        "name": "Precision Landing",
+        "template": {
+            "Precision Landing": {
+                "fieldName": "precland",
+                "type": "object",
+                "fields": {
+                    "enabled": {
+                        "order": 1,
+                        "type": "checkbox",
+                        "defaultvalue": false,
+                        "desc": "Forward de_precland targets to the FC as LANDING_TARGET. OFF is the safe default."
+                    },
+                    "allowed_modes": {
+                        "order": 2,
+                        "type": "array",
+                        "defaultvalue": [12, 2],
+                        "desc": "VEHICLE_MODE_* codes allowed to emit (12=LAND, 2=RTL)",
+                        "optional": true
+                    },
+                    "max_target_age_ms": {
+                        "order": 3,
+                        "type": "number",
+                        "defaultvalue": 300,
+                        "desc": "Reject captures older than this (ms)",
+                        "optional": true
+                    },
+                    "max_send_hz": {
+                        "order": 4,
+                        "type": "number",
+                        "defaultvalue": 10,
+                        "desc": "Max LANDING_TARGET rate to the FC",
+                        "optional": true
+                    },
+                    "min_tags": {
+                        "order": 5,
+                        "type": "number",
+                        "defaultvalue": 1,
+                        "desc": "Minimum AprilTags fused into a solve",
+                        "optional": true
+                    },
+                    "frame": {
+                        "order": 6,
+                        "type": "number",
+                        "defaultvalue": 12,
+                        "desc": "MAV_FRAME_BODY_FRD=12 or BODY_NED=8 - pick per the ArduPilot version flown",
+                        "optional": true
+                    }
+                },
+                "optional": true,
+                "desc": "Precision-landing safety gate: emits MAVLink LANDING_TARGET only when armed, in an allowed mode, with a fresh target, and no active tracker."
+            }
+        }
     }
 ]

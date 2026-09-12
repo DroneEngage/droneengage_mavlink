@@ -29,6 +29,7 @@
 #include "./geofence/fcb_geo_fence_manager.hpp"
 #include "./mission/mission_manager.hpp"
 #include "./tracking/fcb_tracking_manager.hpp"
+#include "./precland/fcb_precland_manager.hpp"
 #include "./de_pilot/fcb_de_pilot_manager.hpp"
 
 using Json_de = nlohmann::json;
@@ -654,6 +655,10 @@ void CFCBMain::loopScheduler() {
         de::fcb::tracking::CTrackingManager &cTracking_manager =
             de::fcb::tracking::CTrackingManager::getInstance();
         cTracking_manager.reloadParametersIfConfigChanged();
+
+        de::fcb::precland::CPreclandManager &cPrecland_manager =
+            de::fcb::precland::CPreclandManager::getInstance();
+        cPrecland_manager.reloadParametersIfConfigChanged();
 
         de::fcb::depilot::CDEPilotManager &cDepilot_manager =
             de::fcb::depilot::CDEPilotManager::getInstance();

@@ -498,6 +498,17 @@
         }
     },
     "read_only_mode": false,
+    // Precision-landing safety gate: de_mavlink converts de_precland's semantic
+    // PRECLAND_TARGET (6537) into MAVLink LANDING_TARGET only when armed, in an
+    // allowed mode, target is fresh, and the tracker is not controlling.
+    "precland": {
+        "enabled": false,
+        "allowed_modes": [12, 2],       // VEHICLE_MODE_LAND, VEHICLE_MODE_RTL
+        "max_target_age_ms": 300,
+        "max_send_hz": 10,
+        "min_tags": 1,
+        "frame": 12                     // MAV_FRAME_BODY_FRD=12, BODY_NED=8
+    },
     "s2s_udp_listening_ip": "127.0.0.1",
     "s2s_udp_listening_port": "61003",
     "s2s_udp_packet_size": "8192",
