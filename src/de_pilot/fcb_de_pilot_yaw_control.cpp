@@ -20,7 +20,7 @@ void CDEPilotYawControl::init() {
 
   m_active = false;
   m_phase = PHASE_IDLE;
-  m_phase_start_time = get_time_usec() / 1000;
+  m_phase_start_time = get_time_usec_monotonic() / 1000;
   m_last_update_time = m_phase_start_time;
   m_generic_phase = static_cast<int>(m_phase);
 
@@ -102,7 +102,7 @@ void CDEPilotYawControl::setPhase(int phase) {
   const YawControlPhase old_phase = m_phase;
   m_generic_phase = phase;
   m_phase = static_cast<YawControlPhase>(phase);
-  m_phase_start_time = get_time_usec() / 1000;
+  m_phase_start_time = get_time_usec_monotonic() / 1000;
   
   std::cout << _INFO_CONSOLE_BOLD_TEXT 
             << "DEPilotYawControl: Phase changed from " << old_phase 
@@ -134,7 +134,7 @@ void CDEPilotYawControl::setActive(bool active) {
   m_active = active;
   if (active) {
     m_phase = PHASE_ACTIVE;
-    m_phase_start_time = get_time_usec() / 1000;
+    m_phase_start_time = get_time_usec_monotonic() / 1000;
     std::cout << _INFO_CONSOLE_BOLD_TEXT 
               << "DEPilotYawControl: Yaw control activated (was " 
               << (old_active ? "active" : "inactive") << ")"
@@ -242,7 +242,7 @@ void CDEPilotYawControl::updateYawControl() {
   while (current_heading >= 2 * M_PI)
     current_heading -= 2 * M_PI;
 
-  const uint64_t now = get_time_usec();
+  const uint64_t now = get_time_usec_monotonic();
   if (m_yaw_rate_check_time > 0) {
     const double dt = (now - m_yaw_rate_check_time) / 1000000.0;
     if (dt > 0.2) {
@@ -289,7 +289,7 @@ void CDEPilotYawControl::updateYawControl() {
         notification_msg);
   }
 
-  m_last_update_time = get_time_usec() / 1000;
+  m_last_update_time = get_time_usec_monotonic() / 1000;
 }
 
 void CDEPilotYawControl::applyYawToRCChannels(uint16_t rc_channels[], int flying_mode) {

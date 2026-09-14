@@ -22,7 +22,7 @@ void CDEPilotStabilization::init() {
   // Initialize stabilization system
   m_active = false;
   m_phase = PHASE_IDLE;
-  m_phase_start_time = get_time_usec() / 1000;
+  m_phase_start_time = get_time_usec_monotonic() / 1000;
   m_last_update_time = m_phase_start_time;
   m_generic_phase = static_cast<int>(m_phase);
 
@@ -47,7 +47,7 @@ bool CDEPilotStabilization::isCompleted() {
     return (m_phase == PHASE_COMPLETE);
   }
   
-  uint64_t current_time = get_time_usec() / 1000;
+  uint64_t current_time = get_time_usec_monotonic() / 1000;
   const uint64_t elapsed_time = current_time - m_phase_start_time;
   
   // Log progress every 5 seconds for timed stabilization
@@ -77,7 +77,7 @@ void CDEPilotStabilization::setPhase(int phase) {
   const StabilizationPhase old_phase = m_phase;
   m_generic_phase = phase;
   m_phase = static_cast<StabilizationPhase>(phase);
-  m_phase_start_time = get_time_usec() / 1000;
+  m_phase_start_time = get_time_usec_monotonic() / 1000;
   
   std::cout << _INFO_CONSOLE_BOLD_TEXT 
             << "DEPILOT: Phase changed from " << old_phase 
@@ -116,7 +116,7 @@ void CDEPilotStabilization::setActive(bool active) {
   const bool old_active = m_active;
   m_active = active;
   if (active) {
-    m_phase_start_time = get_time_usec() / 1000;
+    m_phase_start_time = get_time_usec_monotonic() / 1000;
     std::cout << _INFO_CONSOLE_BOLD_TEXT 
               << "DEPILOT: Stabilization activated (was " 
               << (old_active ? "active" : "inactive") << ")"
@@ -174,7 +174,7 @@ void CDEPilotStabilization::startStabilization(uint64_t duration_ms) {
               << _NORMAL_CONSOLE_TEXT_ << std::endl;
     // Reset timer and duration even if already active
     m_stabilize_duration_ms = duration_ms;
-    m_phase_start_time = get_time_usec() / 1000;
+    m_phase_start_time = get_time_usec_monotonic() / 1000;
     m_last_update_time = m_phase_start_time;
     if (duration_ms == 0) {
       std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Continuing stabilization (infinite)"
@@ -254,7 +254,7 @@ void CDEPilotStabilization::startStabilization(uint64_t duration_ms) {
   m_active = true;
   m_phase = PHASE_STABILIZING;
   m_generic_phase = static_cast<int>(m_phase);
-  m_phase_start_time = get_time_usec() / 1000;
+  m_phase_start_time = get_time_usec_monotonic() / 1000;
   m_last_update_time = m_phase_start_time;
 }
 
@@ -264,7 +264,7 @@ void CDEPilotStabilization::updateStabilization() {
   }
 
   const ANDRUAV_VEHICLE_INFO &vehicle_info = m_fcbMain.getAndruavVehicleInfo();
-  const uint64_t now = get_time_usec();
+  const uint64_t now = get_time_usec_monotonic();
 
   if (!vehicle_info.is_armed) {
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPILOT: Waiting for arm..."

@@ -104,7 +104,7 @@ void CSwarmLeader::handleSwarmsAsLeader()
     static u_int64_t previous = 0;
     if (!m_fcb_swarm_manager.isLeader()) return ;
     
-    const u_int64_t now = get_time_usec();
+    const u_int64_t now = get_time_usec_monotonic();
     if ((now - previous) > DEF_SWARM_LEADER_LOCATION_UPDATE_RATE)
     {
         updateFollowers();

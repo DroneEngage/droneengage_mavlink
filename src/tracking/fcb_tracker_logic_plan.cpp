@@ -141,7 +141,7 @@ void CTrackerPlanLogic::onTrack(const double x, const double yz) {
   if (m_tracking_camera_direction == TRACKING_CAMERA_DIRECTION_FRONT) {
 
     // Update rate tracking for feedback
-    const uint64_t now = get_time_usec();
+    const uint64_t now = get_time_usec_monotonic();
     if (m_forward_last_rate_time > 0) {
       const double dt = (now - m_forward_last_rate_time) / 1000000.0; // seconds
       if (dt <= 0.05) { // If dt is too small, skip update and keep last RC values

@@ -97,7 +97,7 @@ bool mavlinksdk::CVehicle::handle_heart_beat (const mavlink_heartbeat_t& heartbe
 	// copy 
 	m_heartbeat = heartbeat;
 	
-	const uint64_t now = get_time_usec();
+	const uint64_t now = get_time_usec_monotonic();
 	
 	m_consecutive_heartbeat_count++;
 		
@@ -232,7 +232,7 @@ void mavlinksdk::CVehicle::handle_extended_system_state (const mavlink_extended_
  */
 const bool mavlinksdk::CVehicle::isFCBConnected() const
 {
-	return !((get_time_usec() - time_stamps.getMessageTime(MAVLINK_MSG_ID_HEARTBEAT)) > HEART_BEAT_TIMEOUT);
+	return !((get_time_usec_monotonic() - time_stamps.getMessageTime(MAVLINK_MSG_ID_HEARTBEAT)) > HEART_BEAT_TIMEOUT);
 }
 
 
@@ -471,7 +471,7 @@ void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
 			memcpy(&fake_heartbeat, &m_heartbeat, sizeof (mavlink_heartbeat_t));
 			fake_heartbeat.base_mode = m_high_latency.base_mode;
 			fake_heartbeat.custom_mode = m_high_latency.custom_mode;
-			uint64_t now = get_time_usec();
+			uint64_t now = get_time_usec_monotonic();
 			time_stamps.setTimestamp(MAVLINK_MSG_ID_HIGH_LATENCY, now);
 			if (handle_heart_beat(fake_heartbeat))
 			{
@@ -487,7 +487,7 @@ void mavlinksdk::CVehicle::handle_high_latency (const int message_id)
 			fake_heartbeat.type = m_high_latency2.type;
 			fake_heartbeat.autopilot = m_high_latency2.autopilot;
 			fake_heartbeat.custom_mode = m_high_latency2.custom_mode;
-			uint64_t now = get_time_usec();
+			uint64_t now = get_time_usec_monotonic();
 			time_stamps.setTimestamp(MAVLINK_MSG_ID_HIGH_LATENCY2, now);
 			if (handle_heart_beat(fake_heartbeat))
 			{
@@ -518,7 +518,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 	mavlink_message_temp = mavlink_message;
 	bool message_processed = true;
 	
-	const uint64_t current_time = get_time_usec();
+	const uint64_t current_time = get_time_usec_monotonic();
 	const bool vehicle_ids_known = (m_sysid != 0) && (m_compid != 0);
 	const bool is_from_vehicle = vehicle_ids_known &&
 		(mavlink_message.sysid == m_sysid) &&
@@ -544,7 +544,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 
 			if (handle_heart_beat (heartbeat))
 			{
-				time_stamps.setTimestamp(msgid, get_time_usec());
+				time_stamps.setTimestamp(msgid, get_time_usec_monotonic());
 				mavlinksdk::CMavlinkParameterManager::getInstance().handle_heart_beat (heartbeat);
 			}
 			else
@@ -911,7 +911,7 @@ bool mavlinksdk::CVehicle::parseMessage (const mavlink_message_t& mavlink_messag
 
 	// update last so that messages can test delay such as on heartbeat resume
 	if ((msgid != MAVLINK_MSG_ID_HEARTBEAT) || message_processed) {
-		time_stamps.setTimestamp(msgid, get_time_usec());
+		time_stamps.setTimestamp(msgid, get_time_usec_monotonic());
 	}
 
 	return message_processed;

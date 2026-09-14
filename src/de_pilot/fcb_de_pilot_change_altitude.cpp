@@ -24,7 +24,7 @@ void CDEPilotChangeAltitude::init() {
     readConfigParameters();
     
     m_phase = PHASE_IDLE;
-    m_phase_start_time = get_time_usec() / 1000;
+    m_phase_start_time = get_time_usec_monotonic() / 1000;
     m_last_update_time = m_phase_start_time;
     m_generic_phase = static_cast<int>(m_phase);
     
@@ -65,7 +65,7 @@ void CDEPilotChangeAltitude::setPhase(int phase) {
   const AltitudeControlPhase old_phase = m_phase;
   m_generic_phase = phase;
   m_phase = static_cast<AltitudeControlPhase>(phase);
-  m_phase_start_time = get_time_usec() / 1000;
+  m_phase_start_time = get_time_usec_monotonic() / 1000;
   
   std::cout << _INFO_CONSOLE_BOLD_TEXT 
             << "DEPILOT: Altitude phase changed from " << old_phase 
@@ -96,7 +96,7 @@ void CDEPilotChangeAltitude::setActive(bool active) {
   const bool old_active = m_active;
   m_active = active;
   if (active) {
-    m_phase_start_time = get_time_usec() / 1000;
+    m_phase_start_time = get_time_usec_monotonic() / 1000;
     std::cout << _INFO_CONSOLE_BOLD_TEXT 
               << "DEPILOT: Altitude control activated (was " 
               << (old_active ? "active" : "inactive") << ")"
@@ -206,7 +206,7 @@ void CDEPilotChangeAltitude::determineAscendDescendPhase()
                 std::cout << "  - Direction: DESCENDING" << std::endl;
             }
     
-    const uint64_t now = get_time_usec();
+    const uint64_t now = get_time_usec_monotonic();
     m_phase_start_time = now;
     
 }
@@ -222,7 +222,7 @@ void CDEPilotChangeAltitude::startAltitudeChange(double target_altitude) {
     std::cout << "  - Altitude difference: " << (target_altitude - m_start_altitude) << "m" << std::endl;
 
     m_target_altitude = target_altitude;
-    m_start_time = get_time_usec();
+    m_start_time = get_time_usec_monotonic();
     m_last_update_time = m_start_time;
     
     // Reset advanced PID controller for new altitude change
@@ -265,7 +265,7 @@ void CDEPilotChangeAltitude::updateTakeoff() {
 
     de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
     const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
-    const uint64_t now = get_time_usec();
+    const uint64_t now = get_time_usec_monotonic();
     const double current_altitude = mavlinksdk::CVehicle::getInstance().getMsgGlobalPositionInt().relative_alt / 1000.0;
 
     // Log phase progress every 3 seconds for active phases

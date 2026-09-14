@@ -51,7 +51,7 @@ void CFCBMain::OnMessageReceived(const de::comm::CUDPProxy *udp_proxy,
   if (!isUdpProxyMavlinkAvailable() || getAndruavVehicleInfo().is_gcs_blocked)
     return;
 
-  const u_int64_t now = get_time_usec();
+  const u_int64_t now = get_time_usec_monotonic();
   m_last_access_telemetry = now;
 
   mavlink_status_t status;
@@ -488,7 +488,7 @@ void CFCBMain::remoteControlSignal() {
     return;
   }
   
-  const u_int64_t now = get_time_usec();
+  const u_int64_t now = get_time_usec_monotonic();
 
   switch (m_andruav_vehicle_info.rc_sub_action) {
   case RC_SUB_ACTION::RC_SUB_ACTION_RELEASED: {
@@ -721,7 +721,7 @@ void CFCBMain::OnMessageReceived(const mavlink_message_t &mavlink_message, const
     // of being processed by vehicle or not.
     if (m_mavlink_optimizer.shouldForwardThisMessage(mavlink_message)) {
       // UdpProxy
-      const u_int64_t now = get_time_usec();
+      const u_int64_t now = get_time_usec_monotonic();
       const u_int64_t last_access_duration = (now - m_last_access_telemetry);
 
       // stop sending mavlink if no one is sending back. except heartbeat
@@ -759,7 +759,7 @@ void CFCBMain::OnConnected(const bool &connected) {
 void CFCBMain::OnHeartBeat() {
   if (m_andruav_vehicle_info.is_flying) {
     m_andruav_vehicle_info.flying_last_start_time =
-        (get_time_usec() - m_last_start_flying);
+        (get_time_usec_monotonic() - m_last_start_flying);
   }
 
   return;
@@ -849,7 +849,7 @@ void CFCBMain::OnFlying(const bool &is_flying) {
 
   if (m_andruav_vehicle_info.is_flying != is_flying) {
     if (is_flying == true) {
-      m_last_start_flying = get_time_usec();
+      m_last_start_flying = get_time_usec_monotonic();
       // start capture a flying
       m_andruav_vehicle_info.flying_last_start_time = 0;
     } else {
@@ -1491,7 +1491,7 @@ void CFCBMain::enableRemoteControl() {
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:RC:" << std::string() << _NORMAL_CONSOLE_TEXT_ << std::endl;  
   #endif
 
-  m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
+  m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec_monotonic();
   m_andruav_vehicle_info.rc_command_active =
       false; // remote control data will enable it
   m_andruav_vehicle_info.rc_sub_action =
@@ -1520,7 +1520,7 @@ void CFCBMain::enableRemoteControlGuided() {
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:RC:" << std::string() << _NORMAL_CONSOLE_TEXT_ << std::endl;  
   #endif
 
-  m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
+  m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec_monotonic();
   m_andruav_vehicle_info.rc_command_active =
       false; // remote control data will enable it
 
@@ -1591,7 +1591,7 @@ void CFCBMain::updateTrackingControlChannels(
   de_rc_chammels_input[m_rcmap_channels_info.rcmap_yaw] =
       rc_channels_tracker[RC_CHANNEL_TRACKING_YAW];
 
-  // m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
+  // m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec_monotonic();
   // m_andruav_vehicle_info.rc_command_active = true;
 
   uint16_t rc_chammels_pwm[RC_CHANNELS_MAX] = {0,0,0,0,0,0,0,0,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX};
@@ -1667,7 +1667,7 @@ void CFCBMain::updateRemoteControlChannels(
   case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS: {
     // In this mode send values via sendRCChannels
 
-    m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
+    m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec_monotonic();
     m_andruav_vehicle_info.rc_command_active = true;
 
     uint16_t rc_chammels_pwm[RC_CHANNELS_MAX] = {0,0,0,0,0,0,0,0,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX};
@@ -1698,7 +1698,7 @@ void CFCBMain::updateRemoteControlChannels(
   case RC_SUB_ACTION::RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED: {
     // In this mode send values via ctrlGuidedVelocityInLocalFrame
 
-    m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec();
+    m_andruav_vehicle_info.rc_command_last_update_time = get_time_usec_monotonic();
     m_andruav_vehicle_info.rc_command_active = true;
 
     uint16_t rc_chammels_pwm[RC_CHANNELS_MAX] = {0,0,0,0,0,0,0,0,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX,UINT16_MAX};

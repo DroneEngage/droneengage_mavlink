@@ -30,7 +30,7 @@ void mavlinksdk::CMavlinkParameterManager::set_callback_parameter (mavlinksdk::C
 void mavlinksdk::CMavlinkParameterManager::reloadParameters ()
 {
 	m_parameter_read_mode = mavlinksdk::ENUM_LOADING_PARAMS_STATUS::LOADING_PARAMS_LOAD_ALL_INIT;
-	m_start_time = get_time_usec(); // Track when loading started
+	m_start_time = get_time_usec_monotonic(); // Track when loading started
 
     mavlinksdk::CMavlinkCommand::getInstance().requestParametersList();
 }
@@ -76,7 +76,7 @@ void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_par
 		#endif 
 		#endif 
 		
-		m_parameters_last_receive_time =  get_time_usec();
+		m_parameters_last_receive_time =  get_time_usec_monotonic();
 		m_parameter_read_count = param_message.param_count;
 		m_parameters_last_index_read = param_message.param_index;
 		m_parameters_list.insert(std::make_pair(param_name, param_message));
@@ -132,7 +132,7 @@ void mavlinksdk::CMavlinkParameterManager::handle_param_value (const mavlink_par
  */
 void mavlinksdk::CMavlinkParameterManager::handle_heart_beat (const mavlink_heartbeat_t& heartbeat)
 {
-    const uint64_t now = get_time_usec();
+    const uint64_t now = get_time_usec_monotonic();
 
     #ifdef DEBUG
 	#ifdef DEBUG_DETAILED

@@ -37,7 +37,7 @@ void CSwarmFollower::updateFollowerInThreadFormation()
     const double leader_lon = m_leader_gpos_new.lon / 10000000.0f;
 
     // get current time
-    const u_int64_t now = get_time_usec();
+    const u_int64_t now = get_time_usec_monotonic();
 
     #ifdef DEBUG
         std::cout << _INFO_CONSOLE_TEXT << "time_diff: " <<  ":" << (m_leader_last_access - now) << ":" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -111,7 +111,7 @@ void CSwarmFollower::updateFollowerInArrowFormation(const bool is_dynamic)
     const double leader_lon = m_leader_gpos_new.lon / 10000000.0f;
 
     // Get current time
-    const u_int64_t now = get_time_usec();
+    const u_int64_t now = get_time_usec_monotonic();
 
 
     // Determine formation bearing:

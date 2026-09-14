@@ -284,7 +284,7 @@ void CTrackerQuadLogic::trackingDroneForward(const double x, const double yz) {
       m_fcbMain2.getRCChannelsMapInfo();
 
   // Update rate tracking for feedback
-  const uint64_t now = get_time_usec();
+  const uint64_t now = get_time_usec_monotonic();
   if (m_forward_last_rate_time > 0) {
     const double dt = (now - m_forward_last_rate_time) / 1000000.0; // seconds
     if (dt <= 0.05) { // If dt is too small, skip update and keep last RC values
@@ -429,7 +429,7 @@ void CTrackerQuadLogic::trackingStanding(const double x, const double yz) {
 #endif
 
   // Update rate tracking for feedback
-  const uint64_t now = get_time_usec();
+  const uint64_t now = get_time_usec_monotonic();
   if (m_last_rate_time > 0) {
     const double dt = (now - m_last_rate_time) / 1000000.0; // seconds
     if (dt <= 0.05) {  // If dt is too small, skip update and keep last RC values

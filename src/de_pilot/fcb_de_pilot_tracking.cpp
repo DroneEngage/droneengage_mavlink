@@ -22,7 +22,7 @@ void CDEPilotTracking::init() {
   // Initialize tracking system
   m_active = false;
   m_phase = PHASE_IDLE;
-  m_phase_start_time = get_time_usec() / 1000;
+  m_phase_start_time = get_time_usec_monotonic() / 1000;
   m_last_update_time = m_phase_start_time;
   m_generic_phase = static_cast<int>(m_phase);
   m_last_tracking_update_time = 0;
@@ -43,15 +43,15 @@ void CDEPilotTracking::update() {
   // Update YAW control service
   CDEPilotYawControl::getInstance().updateYawControl();
 
-  m_last_update_time = get_time_usec() / 1000;
+  m_last_update_time = get_time_usec_monotonic() / 1000;
 
   de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
   const ANDRUAV_VEHICLE_INFO &vehicle_info = fcbMain.getAndruavVehicleInfo();
-  const uint64_t now = get_time_usec();
+  const uint64_t now = get_time_usec_monotonic();
 
   // Check for tracking timeout (no tracking updates for specified time)
   if (m_last_tracking_update_time > 0) {
-    uint64_t current_time = get_time_usec() / 1000;
+    uint64_t current_time = get_time_usec_monotonic() / 1000;
     if (current_time - m_last_tracking_update_time > m_tracking_timeout_us) {
       std::cout << _INFO_CONSOLE_BOLD_TEXT 
                 << "DEPilotTracking: Timeout, stopping tracking" 
@@ -204,7 +204,7 @@ bool CDEPilotTracking::isCompleted() {
 // Class-specific interface
 void CDEPilotTracking::startTracking() {
   if (m_phase == PHASE_IDLE) {
-    m_phase_start_time = get_time_usec() / 1000;
+    m_phase_start_time = get_time_usec_monotonic() / 1000;
     m_last_tracking_update_time = 0;
     
     de::fcb::CFCBMain &fcbMain = de::fcb::CFCBMain::getInstance();
@@ -248,7 +248,7 @@ bool CDEPilotTracking::isTrackingActive() const {
 }
 
 void CDEPilotTracking::updateTrackingTimestamp() {
-  m_last_tracking_update_time = get_time_usec() / 1000;
+  m_last_tracking_update_time = get_time_usec_monotonic() / 1000;
 }
 
 void CDEPilotTracking::processTrackingData(double x_ratio, double yz_ratio) {

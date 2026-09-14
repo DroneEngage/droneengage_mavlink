@@ -151,7 +151,7 @@ void CDEPilotManager::updateOperations() {
 
   // Log queue status at start of update
   static uint64_t last_queue_log_time = 0;
-  const uint64_t now = get_time_usec() / 1000;
+  const uint64_t now = get_time_usec_monotonic() / 1000;
   if (now - last_queue_log_time > 5000) { // Log every 5 seconds
     std::cout << _INFO_CONSOLE_BOLD_TEXT << "DEPilotManager: Queue status - "
               << m_operation_queue.size() << " operations queued"
@@ -680,7 +680,7 @@ bool CDEPilotManager::canAdvanceFromCurrentOperation() const {
   const bool is_completed = m_operation_instance->isCompleted();
   if (!is_completed) {
     static uint64_t last_advance_log_time = 0;
-    const uint64_t now = get_time_usec() / 1000;
+    const uint64_t now = get_time_usec_monotonic() / 1000;
     if (now - last_advance_log_time > 15000) { // Log every 15 seconds
       std::cout << _INFO_CONSOLE_BOLD_TEXT 
                 << "DEPilotManager: Cannot advance - " 
