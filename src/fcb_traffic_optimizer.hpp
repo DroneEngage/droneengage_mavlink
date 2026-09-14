@@ -30,7 +30,7 @@ namespace fcb
 
     typedef struct T_MessageOptimizeCard
     {
-        int timeout[OPTIMIZE_LEVELS];
+        std::uint64_t timeout[OPTIMIZE_LEVELS];
         std::uint64_t time_of_last_sent_message;
     } T_MessageOptimizeCard;
 

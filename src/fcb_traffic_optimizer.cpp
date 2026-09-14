@@ -19,10 +19,10 @@ void CMavlinkTrafficOptimizer::init(const Json_de &mavlink_messages_config)
 
             if (!values.empty())
             {
-                const int last_timeout_usec = values.back() * 1000;
+                const std::uint64_t last_timeout_usec = static_cast<std::uint64_t>(std::max(values.back(), 0)) * 1000ULL;
                 for (int i = 0; i < OPTIMIZE_LEVELS; ++i)
                 {
-                    const int timeout_usec = (i < static_cast<int>(values.size())) ? (values[i] * 1000) : last_timeout_usec;
+                    const std::uint64_t timeout_usec = (i < static_cast<int>(values.size())) ? (static_cast<std::uint64_t>(std::max(values[i], 0)) * 1000ULL) : last_timeout_usec;
                     card.timeout[i] = timeout_usec;
                 }
             }
