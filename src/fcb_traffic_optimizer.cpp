@@ -1,4 +1,5 @@
 #include "./de_common/helpers/helpers.hpp"
+#include "./de_common/helpers/colors.hpp"
 #include "fcb_traffic_optimizer.hpp"
 
 
@@ -10,21 +11,30 @@ void CMavlinkTrafficOptimizer::init(const Json_de &mavlink_messages_config)
     std::lock_guard<std::mutex> lock(m_lock);
     for(auto it=mavlink_messages_config.begin();it!=mavlink_messages_config.end();++it){
         //std::cout << it.key() << std::endl;
-        int message_id = std::stoi (it.key());
-        const std::vector<int> values = it.value();
-        T_MessageOptimizeCard card{};
-
-        if (!values.empty())
+        try
         {
-            const int last_timeout_usec = values.back() * 1000;
-            for (int i = 0; i < OPTIMIZE_LEVELS; ++i)
+            int message_id = std::stoi (it.key());
+            const std::vector<int> values = it.value();
+            T_MessageOptimizeCard card{};
+
+            if (!values.empty())
             {
-                const int timeout_usec = (i < static_cast<int>(values.size())) ? (values[i] * 1000) : last_timeout_usec;
-                card.timeout[i] = timeout_usec;
+                const int last_timeout_usec = values.back() * 1000;
+                for (int i = 0; i < OPTIMIZE_LEVELS; ++i)
+                {
+                    const int timeout_usec = (i < static_cast<int>(values.size())) ? (values[i] * 1000) : last_timeout_usec;
+                    card.timeout[i] = timeout_usec;
+                }
             }
+            m_message.insert(std::make_pair(message_id,card));
         }
-        m_message.insert(std::make_pair(message_id,card));
+        catch (const std::exception& e)
+        {
+            std::cout << _ERROR_CONSOLE_TEXT_ << "message_timeouts[" << it.key() << "] invalid, skipping: " << e.what() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        }
     }
+
+    std::cout << _INFO_CONSOLE_TEXT << "Loaded " << m_message.size() << " traffic-optimization rules" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
 
 bool CMavlinkTrafficOptimizer::shouldForwardThisMessage (const mavlink_message_t& mavlink_message)
