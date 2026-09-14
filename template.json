@@ -148,7 +148,7 @@
                         "order": 6,
                         "type": "number",
                         "defaultvalue": 12,
-                        "desc": "MAV_FRAME_BODY_FRD=12 or BODY_NED=8 - pick per the ArduPilot version flown",
+                        "desc": "MAV_FRAME_BODY_FRD=12. ArduPilot rejects other frames for this vector (Plnd: Frame not supported); de_mavlink ignores any other value.",
                         "optional": true
                     }
                 },

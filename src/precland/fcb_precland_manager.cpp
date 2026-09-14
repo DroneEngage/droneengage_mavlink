@@ -9,6 +9,7 @@
 #include "../tracking/fcb_tracking_manager.hpp"
 
 #include <chrono>
+#include <cmath>
 #include <iostream>
 
 #include <mavlink_command.h>
@@ -80,11 +81,18 @@ void CPreclandManager::readConfigParameters() {
     m_min_tags = cfg["min_tags"].get<int>();
   }
 
-  if (cfg.contains("frame") && cfg["frame"].is_number_integer()) {
-    const int f = cfg["frame"].get<int>();
-    if (f == MAV_FRAME_BODY_NED || f == MAV_FRAME_BODY_FRD)
-      m_frame = (uint8_t)f;
+  // ArduPilot (AC_PrecLand_MAVLink) rejects every frame except BODY_FRD(12)
+  // and LOCAL_FRD(20) with "Plnd: Frame not supported". de_precland's vector
+  // is body-relative (attitude included), so BODY_FRD is the only correct
+  // choice; LOCAL_FRD would make the FC skip attitude de-rotation.
+  if (cfg.contains("frame") && cfg["frame"].is_number_integer() &&
+      cfg["frame"].get<int>() != MAV_FRAME_BODY_FRD) {
+    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "PRECLAND:" << _INFO_CONSOLE_TEXT
+              << " config frame=" << cfg["frame"].get<int>()
+              << " ignored - only MAV_FRAME_BODY_FRD (12) is valid."
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
   }
+  m_frame = MAV_FRAME_BODY_FRD;
 }
 
 void CPreclandManager::onPreclandStatus(const int state) {
@@ -177,11 +185,29 @@ void CPreclandManager::onPreclandTarget(
       (uint8_t)mavlinksdk::CVehicle::getInstance().getSysId();
   const uint8_t src_compid = (uint8_t)MAV_COMP_ID_ONBOARD_COMPUTER;
 
+  // ArduPilot AC_PrecLand_MAVLink::handle_msg() (position_valid == 1) divides
+  // (x,y,z) by `distance` to form the line-of-sight unit vector and silently
+  // DROPS the packet when distance <= 0. There is no rangefinder in the
+  // de_precland design, so distance must be the slant range |(x,y,z)|.
+  const double distance = std::sqrt(x * x + y * y + z * z);
+  if (!(distance > 0.0))
+    return; // degenerate pose - the FC would discard it anyway
+
+  // Angles in ArduPilot's convention, derived from the same vector so the
+  // packet is self-consistent: the FC rebuilds (-tan(angle_y), tan(angle_x), 1)
+  // when position_valid == 0. The ax/ay carried on PRECLAND_TARGET are
+  // forward/right-based and do not match that convention, so they are not
+  // forwarded.
+  (void)ax;
+  (void)ay;
+  const float angle_x = (float)std::atan2(y, z);
+  const float angle_y = (float)std::atan2(-x, z);
+
   mavlink_msg_landing_target_pack(
       src_sysid, src_compid,
       &mavlink_message, (uint64_t)capture_time_us, (uint8_t)target_num,
-      m_frame, (float)ax, (float)ay,
-      0.0f, // distance - unknown, FC derives it from z
+      m_frame, angle_x, angle_y,
+      (float)distance, // slant range, REQUIRED by ArduPilot when position_valid=1
       0.0f, 0.0f, // size_x, size_y
       (float)x, (float)y, (float)z, q, LANDING_TARGET_TYPE_VISION_FIDUCIAL,
       1);   // position_valid

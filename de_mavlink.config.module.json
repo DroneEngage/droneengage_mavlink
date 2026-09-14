@@ -507,7 +507,7 @@
         "max_target_age_ms": 300,
         "max_send_hz": 10,
         "min_tags": 1,
-        "frame": 12                     // MAV_FRAME_BODY_FRD=12, BODY_NED=8
+        "frame": 12                     // MAV_FRAME_BODY_FRD - the only frame ArduPilot accepts for this vector; other values are ignored
     },
     "s2s_udp_listening_ip": "127.0.0.1",
     "s2s_udp_listening_port": "61003",
