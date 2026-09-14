@@ -2,21 +2,8 @@
 #include "./de_common/helpers/colors.hpp"
 #include "fcb_traffic_optimizer.hpp"
 
-#include <time.h>
-
 
 using namespace de::fcb;
-
-
-// Monotonic clock for rate limiting: get_time_usec() uses gettimeofday and can step
-// backward on NTP/RTC corrections, which would underflow the uint64 diff and
-// un-throttle every message at once.
-static std::uint64_t get_time_usec_monotonic()
-{
-	static struct timespec _time_stamp;
-	clock_gettime(CLOCK_MONOTONIC, &_time_stamp);
-	return static_cast<std::uint64_t>(_time_stamp.tv_sec)*1000000ULL + static_cast<std::uint64_t>(_time_stamp.tv_nsec)/1000ULL;
-}
 
 
 void CMavlinkTrafficOptimizer::init(const Json_de &mavlink_messages_config)
