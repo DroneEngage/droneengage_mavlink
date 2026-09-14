@@ -7,6 +7,7 @@ using namespace de::fcb;
 
 void CMavlinkTrafficOptimizer::init(const Json_de &mavlink_messages_config)
 {
+    std::lock_guard<std::mutex> lock(m_lock);
     for(auto it=mavlink_messages_config.begin();it!=mavlink_messages_config.end();++it){
         //std::cout << it.key() << std::endl;
         int message_id = std::stoi (it.key());
@@ -28,6 +29,7 @@ void CMavlinkTrafficOptimizer::init(const Json_de &mavlink_messages_config)
 
 bool CMavlinkTrafficOptimizer::shouldForwardThisMessage (const mavlink_message_t& mavlink_message)
 {
+    std::lock_guard<std::mutex> lock(m_lock);
     const std::uint64_t now = get_time_usec();
     auto it = m_message.find(mavlink_message.msgid);
     if (it != m_message.end())

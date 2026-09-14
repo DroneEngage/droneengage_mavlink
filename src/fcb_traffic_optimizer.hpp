@@ -8,6 +8,7 @@ using Json_de = nlohmann::json;
 #include <all/mavlink.h>
 #include <mavlink_sdk.h>
 #include <unordered_map>
+#include <mutex>
 
 
 
@@ -77,11 +78,13 @@ namespace fcb
                 if (level <= OPTIMIZE_LEVEL_0) level = OPTIMIZE_LEVEL_0;
                 if (level >= OPTIMIZE_LEVEL_3) level = OPTIMIZE_LEVEL_3;
 
+                std::lock_guard<std::mutex> lock(m_lock);
                 m_optimization_level = level;
             }
 
             int getOptimizationLevel ()
             {
+                std::lock_guard<std::mutex> lock(m_lock);
                 return m_optimization_level;
             }
 
@@ -101,6 +104,7 @@ namespace fcb
              */
             void reset_timestamps()
             {
+                std::lock_guard<std::mutex> lock(m_lock);
                 for(auto& pair : m_message)
                 {
                     pair.second.time_of_last_sent_message = 0;
@@ -115,6 +119,9 @@ namespace fcb
             // Fast msgid -> card lookup in the hot path (shouldForwardThisMessage): average O(1) find().
             std::unordered_map<int, T_MessageOptimizeCard> m_message;
             int m_optimization_level = OPTIMIZATION_LEVEL_DEFAULT;
+            // Guards m_message and m_optimization_level: shouldForwardThisMessage runs on the MAVLink
+            // read thread while setOptimizationLevel/reset_timestamps run on the Andruav command thread.
+            std::mutex m_lock;
            
     };
 
