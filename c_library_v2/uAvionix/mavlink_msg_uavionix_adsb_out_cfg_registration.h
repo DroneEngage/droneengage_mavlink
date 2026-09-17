@@ -1,6 +1,8 @@
 #pragma once
 // MESSAGE UAVIONIX_ADSB_OUT_CFG_REGISTRATION PACKING
 
+#include <stdint.h>
+
 #define MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_REGISTRATION 10004
 
 
@@ -55,7 +57,7 @@ static inline uint16_t mavlink_msg_uavionix_adsb_out_cfg_registration_pack(uint8
 #else
     mavlink_uavionix_adsb_out_cfg_registration_t packet;
 
-    mav_array_assign_char(packet.registration, registration, 9);
+    mav_array_memcpy(packet.registration, registration, sizeof(char)*9);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_REGISTRATION_LEN);
 #endif
 
@@ -117,7 +119,7 @@ static inline uint16_t mavlink_msg_uavionix_adsb_out_cfg_registration_pack_chan(
 #else
     mavlink_uavionix_adsb_out_cfg_registration_t packet;
 
-    mav_array_assign_char(packet.registration, registration, 9);
+    mav_array_memcpy(packet.registration, registration, sizeof(char)*9);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_REGISTRATION_LEN);
 #endif
 
@@ -184,7 +186,7 @@ static inline void mavlink_msg_uavionix_adsb_out_cfg_registration_send(mavlink_c
 #else
     mavlink_uavionix_adsb_out_cfg_registration_t packet;
 
-    mav_array_assign_char(packet.registration, registration, 9);
+    mav_array_memcpy(packet.registration, registration, sizeof(char)*9);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_REGISTRATION, (const char *)&packet, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_REGISTRATION_MIN_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_REGISTRATION_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_REGISTRATION_CRC);
 #endif
 }
@@ -221,7 +223,7 @@ static inline void mavlink_msg_uavionix_adsb_out_cfg_registration_send_buf(mavli
 #else
     mavlink_uavionix_adsb_out_cfg_registration_t *packet = (mavlink_uavionix_adsb_out_cfg_registration_t *)msgbuf;
 
-    mav_array_assign_char(packet->registration, registration, 9);
+    mav_array_memcpy(packet->registration, registration, sizeof(char)*9);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_REGISTRATION, (const char *)packet, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_REGISTRATION_MIN_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_REGISTRATION_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_CFG_REGISTRATION_CRC);
 #endif
 }

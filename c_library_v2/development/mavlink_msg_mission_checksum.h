@@ -1,6 +1,8 @@
 #pragma once
 // MESSAGE MISSION_CHECKSUM PACKING
 
+#include <stdint.h>
+
 #define MAVLINK_MSG_ID_MISSION_CHECKSUM 53
 
 

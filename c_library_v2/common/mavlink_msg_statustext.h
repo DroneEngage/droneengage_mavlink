@@ -1,6 +1,8 @@
 #pragma once
 // MESSAGE STATUSTEXT PACKING
 
+#include <stdint.h>
+
 #define MAVLINK_MSG_ID_STATUSTEXT 253
 
 MAVPACKED(
@@ -71,7 +73,7 @@ static inline uint16_t mavlink_msg_statustext_pack(uint8_t system_id, uint8_t co
     packet.severity = severity;
     packet.id = id;
     packet.chunk_seq = chunk_seq;
-    mav_array_assign_char(packet.text, text, 50);
+    mav_array_memcpy(packet.text, text, sizeof(char)*50);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_STATUSTEXT_LEN);
 #endif
 
@@ -147,7 +149,7 @@ static inline uint16_t mavlink_msg_statustext_pack_chan(uint8_t system_id, uint8
     packet.severity = severity;
     packet.id = id;
     packet.chunk_seq = chunk_seq;
-    mav_array_assign_char(packet.text, text, 50);
+    mav_array_memcpy(packet.text, text, sizeof(char)*50);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_STATUSTEXT_LEN);
 #endif
 
@@ -221,7 +223,7 @@ static inline void mavlink_msg_statustext_send(mavlink_channel_t chan, uint8_t s
     packet.severity = severity;
     packet.id = id;
     packet.chunk_seq = chunk_seq;
-    mav_array_assign_char(packet.text, text, 50);
+    mav_array_memcpy(packet.text, text, sizeof(char)*50);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_STATUSTEXT, (const char *)&packet, MAVLINK_MSG_ID_STATUSTEXT_MIN_LEN, MAVLINK_MSG_ID_STATUSTEXT_LEN, MAVLINK_MSG_ID_STATUSTEXT_CRC);
 #endif
 }
@@ -262,7 +264,7 @@ static inline void mavlink_msg_statustext_send_buf(mavlink_message_t *msgbuf, ma
     packet->severity = severity;
     packet->id = id;
     packet->chunk_seq = chunk_seq;
-    mav_array_assign_char(packet->text, text, 50);
+    mav_array_memcpy(packet->text, text, sizeof(char)*50);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_STATUSTEXT, (const char *)packet, MAVLINK_MSG_ID_STATUSTEXT_MIN_LEN, MAVLINK_MSG_ID_STATUSTEXT_LEN, MAVLINK_MSG_ID_STATUSTEXT_CRC);
 #endif
 }

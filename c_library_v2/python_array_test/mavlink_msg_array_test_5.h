@@ -1,6 +1,8 @@
 #pragma once
 // MESSAGE ARRAY_TEST_5 PACKING
 
+#include <stdint.h>
+
 #define MAVLINK_MSG_ID_ARRAY_TEST_5 17155
 
 
@@ -61,8 +63,8 @@ static inline uint16_t mavlink_msg_array_test_5_pack(uint8_t system_id, uint8_t 
 #else
     mavlink_array_test_5_t packet;
 
-    mav_array_assign_char(packet.c1, c1, 5);
-    mav_array_assign_char(packet.c2, c2, 5);
+    mav_array_memcpy(packet.c1, c1, sizeof(char)*5);
+    mav_array_memcpy(packet.c2, c2, sizeof(char)*5);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_ARRAY_TEST_5_LEN);
 #endif
 
@@ -129,8 +131,8 @@ static inline uint16_t mavlink_msg_array_test_5_pack_chan(uint8_t system_id, uin
 #else
     mavlink_array_test_5_t packet;
 
-    mav_array_assign_char(packet.c1, c1, 5);
-    mav_array_assign_char(packet.c2, c2, 5);
+    mav_array_memcpy(packet.c1, c1, sizeof(char)*5);
+    mav_array_memcpy(packet.c2, c2, sizeof(char)*5);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_ARRAY_TEST_5_LEN);
 #endif
 
@@ -199,8 +201,8 @@ static inline void mavlink_msg_array_test_5_send(mavlink_channel_t chan, const c
 #else
     mavlink_array_test_5_t packet;
 
-    mav_array_assign_char(packet.c1, c1, 5);
-    mav_array_assign_char(packet.c2, c2, 5);
+    mav_array_memcpy(packet.c1, c1, sizeof(char)*5);
+    mav_array_memcpy(packet.c2, c2, sizeof(char)*5);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_ARRAY_TEST_5, (const char *)&packet, MAVLINK_MSG_ID_ARRAY_TEST_5_MIN_LEN, MAVLINK_MSG_ID_ARRAY_TEST_5_LEN, MAVLINK_MSG_ID_ARRAY_TEST_5_CRC);
 #endif
 }
@@ -238,8 +240,8 @@ static inline void mavlink_msg_array_test_5_send_buf(mavlink_message_t *msgbuf, 
 #else
     mavlink_array_test_5_t *packet = (mavlink_array_test_5_t *)msgbuf;
 
-    mav_array_assign_char(packet->c1, c1, 5);
-    mav_array_assign_char(packet->c2, c2, 5);
+    mav_array_memcpy(packet->c1, c1, sizeof(char)*5);
+    mav_array_memcpy(packet->c2, c2, sizeof(char)*5);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_ARRAY_TEST_5, (const char *)packet, MAVLINK_MSG_ID_ARRAY_TEST_5_MIN_LEN, MAVLINK_MSG_ID_ARRAY_TEST_5_LEN, MAVLINK_MSG_ID_ARRAY_TEST_5_CRC);
 #endif
 }

@@ -1,6 +1,8 @@
 #pragma once
 // MESSAGE PARAM_ERROR PACKING
 
+#include <stdint.h>
+
 #define MAVLINK_MSG_ID_PARAM_ERROR 345
 
 
@@ -60,6 +62,7 @@ typedef struct __mavlink_param_error_t {
  * @param error  Error being returned to client.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
+MAVLINK_WIP
 static inline uint16_t mavlink_msg_param_error_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
                                uint8_t target_system, uint8_t target_component, const char *param_id, int16_t param_index, uint8_t error)
 {
@@ -77,7 +80,7 @@ static inline uint16_t mavlink_msg_param_error_pack(uint8_t system_id, uint8_t c
     packet.target_system = target_system;
     packet.target_component = target_component;
     packet.error = error;
-    mav_array_assign_char(packet.param_id, param_id, 16);
+    mav_array_memcpy(packet.param_id, param_id, sizeof(char)*16);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_PARAM_ERROR_LEN);
 #endif
 
@@ -141,6 +144,7 @@ static inline uint16_t mavlink_msg_param_error_pack_status(uint8_t system_id, ui
  * @param error  Error being returned to client.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
+MAVLINK_WIP
 static inline uint16_t mavlink_msg_param_error_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
                                mavlink_message_t* msg,
                                    uint8_t target_system,uint8_t target_component,const char *param_id,int16_t param_index,uint8_t error)
@@ -159,7 +163,7 @@ static inline uint16_t mavlink_msg_param_error_pack_chan(uint8_t system_id, uint
     packet.target_system = target_system;
     packet.target_component = target_component;
     packet.error = error;
-    mav_array_assign_char(packet.param_id, param_id, 16);
+    mav_array_memcpy(packet.param_id, param_id, sizeof(char)*16);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_PARAM_ERROR_LEN);
 #endif
 
@@ -175,6 +179,7 @@ static inline uint16_t mavlink_msg_param_error_pack_chan(uint8_t system_id, uint
  * @param msg The MAVLink message to compress the data into
  * @param param_error C-struct to read the message contents from
  */
+MAVLINK_WIP
 static inline uint16_t mavlink_msg_param_error_encode(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg, const mavlink_param_error_t* param_error)
 {
     return mavlink_msg_param_error_pack(system_id, component_id, msg, param_error->target_system, param_error->target_component, param_error->param_id, param_error->param_index, param_error->error);
@@ -189,6 +194,7 @@ static inline uint16_t mavlink_msg_param_error_encode(uint8_t system_id, uint8_t
  * @param msg The MAVLink message to compress the data into
  * @param param_error C-struct to read the message contents from
  */
+MAVLINK_WIP
 static inline uint16_t mavlink_msg_param_error_encode_chan(uint8_t system_id, uint8_t component_id, uint8_t chan, mavlink_message_t* msg, const mavlink_param_error_t* param_error)
 {
     return mavlink_msg_param_error_pack_chan(system_id, component_id, chan, msg, param_error->target_system, param_error->target_component, param_error->param_id, param_error->param_index, param_error->error);
@@ -220,6 +226,7 @@ static inline uint16_t mavlink_msg_param_error_encode_status(uint8_t system_id, 
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
+MAVLINK_WIP
 static inline void mavlink_msg_param_error_send(mavlink_channel_t chan, uint8_t target_system, uint8_t target_component, const char *param_id, int16_t param_index, uint8_t error)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
@@ -236,7 +243,7 @@ static inline void mavlink_msg_param_error_send(mavlink_channel_t chan, uint8_t 
     packet.target_system = target_system;
     packet.target_component = target_component;
     packet.error = error;
-    mav_array_assign_char(packet.param_id, param_id, 16);
+    mav_array_memcpy(packet.param_id, param_id, sizeof(char)*16);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_PARAM_ERROR, (const char *)&packet, MAVLINK_MSG_ID_PARAM_ERROR_MIN_LEN, MAVLINK_MSG_ID_PARAM_ERROR_LEN, MAVLINK_MSG_ID_PARAM_ERROR_CRC);
 #endif
 }
@@ -246,6 +253,7 @@ static inline void mavlink_msg_param_error_send(mavlink_channel_t chan, uint8_t 
  * @param chan MAVLink channel to send the message
  * @param struct The MAVLink struct to serialize
  */
+MAVLINK_WIP
 static inline void mavlink_msg_param_error_send_struct(mavlink_channel_t chan, const mavlink_param_error_t* param_error)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
@@ -263,6 +271,7 @@ static inline void mavlink_msg_param_error_send_struct(mavlink_channel_t chan, c
   is usually the receive buffer for the channel, and allows a reply to an
   incoming message with minimum stack space usage.
  */
+MAVLINK_WIP
 static inline void mavlink_msg_param_error_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  uint8_t target_system, uint8_t target_component, const char *param_id, int16_t param_index, uint8_t error)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
@@ -279,7 +288,7 @@ static inline void mavlink_msg_param_error_send_buf(mavlink_message_t *msgbuf, m
     packet->target_system = target_system;
     packet->target_component = target_component;
     packet->error = error;
-    mav_array_assign_char(packet->param_id, param_id, 16);
+    mav_array_memcpy(packet->param_id, param_id, sizeof(char)*16);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_PARAM_ERROR, (const char *)packet, MAVLINK_MSG_ID_PARAM_ERROR_MIN_LEN, MAVLINK_MSG_ID_PARAM_ERROR_LEN, MAVLINK_MSG_ID_PARAM_ERROR_CRC);
 #endif
 }
@@ -295,6 +304,7 @@ static inline void mavlink_msg_param_error_send_buf(mavlink_message_t *msgbuf, m
  *
  * @return  System ID
  */
+MAVLINK_WIP
 static inline uint8_t mavlink_msg_param_error_get_target_system(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_uint8_t(msg,  2);
@@ -305,6 +315,7 @@ static inline uint8_t mavlink_msg_param_error_get_target_system(const mavlink_me
  *
  * @return  Component ID
  */
+MAVLINK_WIP
 static inline uint8_t mavlink_msg_param_error_get_target_component(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_uint8_t(msg,  3);
@@ -315,6 +326,7 @@ static inline uint8_t mavlink_msg_param_error_get_target_component(const mavlink
  *
  * @return  Parameter id. Terminated by NULL if the length is less than 16 human-readable chars and WITHOUT null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes storage if the ID is stored as string
  */
+MAVLINK_WIP
 static inline uint16_t mavlink_msg_param_error_get_param_id(const mavlink_message_t* msg, char *param_id)
 {
     return _MAV_RETURN_char_array(msg, param_id, 16,  4);
@@ -325,6 +337,7 @@ static inline uint16_t mavlink_msg_param_error_get_param_id(const mavlink_messag
  *
  * @return  Parameter index. Will be -1 if the param ID field should be used as an identifier (else the param id will be ignored)
  */
+MAVLINK_WIP
 static inline int16_t mavlink_msg_param_error_get_param_index(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_int16_t(msg,  0);
@@ -335,6 +348,7 @@ static inline int16_t mavlink_msg_param_error_get_param_index(const mavlink_mess
  *
  * @return  Error being returned to client.
  */
+MAVLINK_WIP
 static inline uint8_t mavlink_msg_param_error_get_error(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_uint8_t(msg,  20);
@@ -346,6 +360,7 @@ static inline uint8_t mavlink_msg_param_error_get_error(const mavlink_message_t*
  * @param msg The message to decode
  * @param param_error C-struct to decode the message contents into
  */
+MAVLINK_WIP
 static inline void mavlink_msg_param_error_decode(const mavlink_message_t* msg, mavlink_param_error_t* param_error)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS

@@ -1,6 +1,8 @@
 #pragma once
 // MESSAGE CAMERA_THERMAL_RANGE PACKING
 
+#include <stdint.h>
+
 #define MAVLINK_MSG_ID_CAMERA_THERMAL_RANGE 277
 
 
@@ -76,6 +78,7 @@ typedef struct __mavlink_camera_thermal_range_t {
  * @param min_point_y  Temperature min point y value (normalized 0..1, 0 is top, 1 is bottom), NAN if unknown.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
+MAVLINK_WIP
 static inline uint16_t mavlink_msg_camera_thermal_range_pack(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg,
                                uint32_t time_boot_ms, uint8_t stream_id, uint8_t camera_device_id, float max, float max_point_x, float max_point_y, float min, float min_point_x, float min_point_y)
 {
@@ -185,6 +188,7 @@ static inline uint16_t mavlink_msg_camera_thermal_range_pack_status(uint8_t syst
  * @param min_point_y  Temperature min point y value (normalized 0..1, 0 is top, 1 is bottom), NAN if unknown.
  * @return length of the message in bytes (excluding serial stream start sign)
  */
+MAVLINK_WIP
 static inline uint16_t mavlink_msg_camera_thermal_range_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
                                mavlink_message_t* msg,
                                    uint32_t time_boot_ms,uint8_t stream_id,uint8_t camera_device_id,float max,float max_point_x,float max_point_y,float min,float min_point_x,float min_point_y)
@@ -229,6 +233,7 @@ static inline uint16_t mavlink_msg_camera_thermal_range_pack_chan(uint8_t system
  * @param msg The MAVLink message to compress the data into
  * @param camera_thermal_range C-struct to read the message contents from
  */
+MAVLINK_WIP
 static inline uint16_t mavlink_msg_camera_thermal_range_encode(uint8_t system_id, uint8_t component_id, mavlink_message_t* msg, const mavlink_camera_thermal_range_t* camera_thermal_range)
 {
     return mavlink_msg_camera_thermal_range_pack(system_id, component_id, msg, camera_thermal_range->time_boot_ms, camera_thermal_range->stream_id, camera_thermal_range->camera_device_id, camera_thermal_range->max, camera_thermal_range->max_point_x, camera_thermal_range->max_point_y, camera_thermal_range->min, camera_thermal_range->min_point_x, camera_thermal_range->min_point_y);
@@ -243,6 +248,7 @@ static inline uint16_t mavlink_msg_camera_thermal_range_encode(uint8_t system_id
  * @param msg The MAVLink message to compress the data into
  * @param camera_thermal_range C-struct to read the message contents from
  */
+MAVLINK_WIP
 static inline uint16_t mavlink_msg_camera_thermal_range_encode_chan(uint8_t system_id, uint8_t component_id, uint8_t chan, mavlink_message_t* msg, const mavlink_camera_thermal_range_t* camera_thermal_range)
 {
     return mavlink_msg_camera_thermal_range_pack_chan(system_id, component_id, chan, msg, camera_thermal_range->time_boot_ms, camera_thermal_range->stream_id, camera_thermal_range->camera_device_id, camera_thermal_range->max, camera_thermal_range->max_point_x, camera_thermal_range->max_point_y, camera_thermal_range->min, camera_thermal_range->min_point_x, camera_thermal_range->min_point_y);
@@ -278,6 +284,7 @@ static inline uint16_t mavlink_msg_camera_thermal_range_encode_status(uint8_t sy
  */
 #ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
 
+MAVLINK_WIP
 static inline void mavlink_msg_camera_thermal_range_send(mavlink_channel_t chan, uint32_t time_boot_ms, uint8_t stream_id, uint8_t camera_device_id, float max, float max_point_x, float max_point_y, float min, float min_point_x, float min_point_y)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
@@ -314,6 +321,7 @@ static inline void mavlink_msg_camera_thermal_range_send(mavlink_channel_t chan,
  * @param chan MAVLink channel to send the message
  * @param struct The MAVLink struct to serialize
  */
+MAVLINK_WIP
 static inline void mavlink_msg_camera_thermal_range_send_struct(mavlink_channel_t chan, const mavlink_camera_thermal_range_t* camera_thermal_range)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
@@ -331,6 +339,7 @@ static inline void mavlink_msg_camera_thermal_range_send_struct(mavlink_channel_
   is usually the receive buffer for the channel, and allows a reply to an
   incoming message with minimum stack space usage.
  */
+MAVLINK_WIP
 static inline void mavlink_msg_camera_thermal_range_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  uint32_t time_boot_ms, uint8_t stream_id, uint8_t camera_device_id, float max, float max_point_x, float max_point_y, float min, float min_point_x, float min_point_y)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
@@ -373,6 +382,7 @@ static inline void mavlink_msg_camera_thermal_range_send_buf(mavlink_message_t *
  *
  * @return [ms] Timestamp (time since system boot).
  */
+MAVLINK_WIP
 static inline uint32_t mavlink_msg_camera_thermal_range_get_time_boot_ms(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_uint32_t(msg,  0);
@@ -383,6 +393,7 @@ static inline uint32_t mavlink_msg_camera_thermal_range_get_time_boot_ms(const m
  *
  * @return  Video Stream ID (1 for first, 2 for second, etc.)
  */
+MAVLINK_WIP
 static inline uint8_t mavlink_msg_camera_thermal_range_get_stream_id(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_uint8_t(msg,  28);
@@ -393,6 +404,7 @@ static inline uint8_t mavlink_msg_camera_thermal_range_get_stream_id(const mavli
  *
  * @return  Camera id of a non-MAVLink camera attached to an autopilot (1-6).  0 if the component is a MAVLink camera (with its own component id).
  */
+MAVLINK_WIP
 static inline uint8_t mavlink_msg_camera_thermal_range_get_camera_device_id(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_uint8_t(msg,  29);
@@ -403,6 +415,7 @@ static inline uint8_t mavlink_msg_camera_thermal_range_get_camera_device_id(cons
  *
  * @return [degC] Temperature max.
  */
+MAVLINK_WIP
 static inline float mavlink_msg_camera_thermal_range_get_max(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_float(msg,  4);
@@ -413,6 +426,7 @@ static inline float mavlink_msg_camera_thermal_range_get_max(const mavlink_messa
  *
  * @return  Temperature max point x value (normalized 0..1, 0 is left, 1 is right), NAN if unknown.
  */
+MAVLINK_WIP
 static inline float mavlink_msg_camera_thermal_range_get_max_point_x(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_float(msg,  8);
@@ -423,6 +437,7 @@ static inline float mavlink_msg_camera_thermal_range_get_max_point_x(const mavli
  *
  * @return  Temperature max point y value (normalized 0..1, 0 is top, 1 is bottom), NAN if unknown.
  */
+MAVLINK_WIP
 static inline float mavlink_msg_camera_thermal_range_get_max_point_y(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_float(msg,  12);
@@ -433,6 +448,7 @@ static inline float mavlink_msg_camera_thermal_range_get_max_point_y(const mavli
  *
  * @return [degC] Temperature min.
  */
+MAVLINK_WIP
 static inline float mavlink_msg_camera_thermal_range_get_min(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_float(msg,  16);
@@ -443,6 +459,7 @@ static inline float mavlink_msg_camera_thermal_range_get_min(const mavlink_messa
  *
  * @return  Temperature min point x value (normalized 0..1, 0 is left, 1 is right), NAN if unknown.
  */
+MAVLINK_WIP
 static inline float mavlink_msg_camera_thermal_range_get_min_point_x(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_float(msg,  20);
@@ -453,6 +470,7 @@ static inline float mavlink_msg_camera_thermal_range_get_min_point_x(const mavli
  *
  * @return  Temperature min point y value (normalized 0..1, 0 is top, 1 is bottom), NAN if unknown.
  */
+MAVLINK_WIP
 static inline float mavlink_msg_camera_thermal_range_get_min_point_y(const mavlink_message_t* msg)
 {
     return _MAV_RETURN_float(msg,  24);
@@ -464,6 +482,7 @@ static inline float mavlink_msg_camera_thermal_range_get_min_point_y(const mavli
  * @param msg The message to decode
  * @param camera_thermal_range C-struct to decode the message contents into
  */
+MAVLINK_WIP
 static inline void mavlink_msg_camera_thermal_range_decode(const mavlink_message_t* msg, mavlink_camera_thermal_range_t* camera_thermal_range)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS

@@ -1,6 +1,8 @@
 #pragma once
 // MESSAGE RADIO PACKING
 
+#include <stdint.h>
+
 #define MAVLINK_MSG_ID_RADIO 166
 
 
@@ -9,7 +11,7 @@ typedef struct __mavlink_radio_t {
  uint16_t fixed; /*<  Count of error corrected packets.*/
  uint8_t rssi; /*<  Local signal strength.*/
  uint8_t remrssi; /*<  Remote signal strength.*/
- uint8_t txbuf; /*< [%] How full the tx buffer is.*/
+ uint8_t txbuf; /*< [%] Remaining free transmitter buffer space.*/
  uint8_t noise; /*<  Background noise level.*/
  uint8_t remnoise; /*<  Remote background noise level.*/
 } mavlink_radio_t;
@@ -61,7 +63,7 @@ typedef struct __mavlink_radio_t {
  *
  * @param rssi  Local signal strength.
  * @param remrssi  Remote signal strength.
- * @param txbuf [%] How full the tx buffer is.
+ * @param txbuf [%] Remaining free transmitter buffer space.
  * @param noise  Background noise level.
  * @param remnoise  Remote background noise level.
  * @param rxerrors  Receive errors.
@@ -108,7 +110,7 @@ static inline uint16_t mavlink_msg_radio_pack(uint8_t system_id, uint8_t compone
  *
  * @param rssi  Local signal strength.
  * @param remrssi  Remote signal strength.
- * @param txbuf [%] How full the tx buffer is.
+ * @param txbuf [%] Remaining free transmitter buffer space.
  * @param noise  Background noise level.
  * @param remnoise  Remote background noise level.
  * @param rxerrors  Receive errors.
@@ -158,7 +160,7 @@ static inline uint16_t mavlink_msg_radio_pack_status(uint8_t system_id, uint8_t 
  * @param msg The MAVLink message to compress the data into
  * @param rssi  Local signal strength.
  * @param remrssi  Remote signal strength.
- * @param txbuf [%] How full the tx buffer is.
+ * @param txbuf [%] Remaining free transmitter buffer space.
  * @param noise  Background noise level.
  * @param remnoise  Remote background noise level.
  * @param rxerrors  Receive errors.
@@ -244,7 +246,7 @@ static inline uint16_t mavlink_msg_radio_encode_status(uint8_t system_id, uint8_
  *
  * @param rssi  Local signal strength.
  * @param remrssi  Remote signal strength.
- * @param txbuf [%] How full the tx buffer is.
+ * @param txbuf [%] Remaining free transmitter buffer space.
  * @param noise  Background noise level.
  * @param remnoise  Remote background noise level.
  * @param rxerrors  Receive errors.
@@ -357,7 +359,7 @@ static inline uint8_t mavlink_msg_radio_get_remrssi(const mavlink_message_t* msg
 /**
  * @brief Get field txbuf from radio message
  *
- * @return [%] How full the tx buffer is.
+ * @return [%] Remaining free transmitter buffer space.
  */
 static inline uint8_t mavlink_msg_radio_get_txbuf(const mavlink_message_t* msg)
 {

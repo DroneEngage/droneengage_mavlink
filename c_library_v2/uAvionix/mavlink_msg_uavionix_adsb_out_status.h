@@ -1,6 +1,8 @@
 #pragma once
 // MESSAGE UAVIONIX_ADSB_OUT_STATUS PACKING
 
+#include <stdint.h>
+
 #define MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_STATUS 10008
 
 
@@ -83,7 +85,7 @@ static inline uint16_t mavlink_msg_uavionix_adsb_out_status_pack(uint8_t system_
     packet.NIC_NACp = NIC_NACp;
     packet.boardTemp = boardTemp;
     packet.fault = fault;
-    mav_array_assign_char(packet.flight_id, flight_id, 8);
+    mav_array_memcpy(packet.flight_id, flight_id, sizeof(char)*8);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_STATUS_LEN);
 #endif
 
@@ -171,7 +173,7 @@ static inline uint16_t mavlink_msg_uavionix_adsb_out_status_pack_chan(uint8_t sy
     packet.NIC_NACp = NIC_NACp;
     packet.boardTemp = boardTemp;
     packet.fault = fault;
-    mav_array_assign_char(packet.flight_id, flight_id, 8);
+    mav_array_memcpy(packet.flight_id, flight_id, sizeof(char)*8);
         memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_STATUS_LEN);
 #endif
 
@@ -251,7 +253,7 @@ static inline void mavlink_msg_uavionix_adsb_out_status_send(mavlink_channel_t c
     packet.NIC_NACp = NIC_NACp;
     packet.boardTemp = boardTemp;
     packet.fault = fault;
-    mav_array_assign_char(packet.flight_id, flight_id, 8);
+    mav_array_memcpy(packet.flight_id, flight_id, sizeof(char)*8);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_STATUS, (const char *)&packet, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_STATUS_MIN_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_STATUS_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_STATUS_CRC);
 #endif
 }
@@ -296,7 +298,7 @@ static inline void mavlink_msg_uavionix_adsb_out_status_send_buf(mavlink_message
     packet->NIC_NACp = NIC_NACp;
     packet->boardTemp = boardTemp;
     packet->fault = fault;
-    mav_array_assign_char(packet->flight_id, flight_id, 8);
+    mav_array_memcpy(packet->flight_id, flight_id, sizeof(char)*8);
     _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_STATUS, (const char *)packet, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_STATUS_MIN_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_STATUS_LEN, MAVLINK_MSG_ID_UAVIONIX_ADSB_OUT_STATUS_CRC);
 #endif
 }
