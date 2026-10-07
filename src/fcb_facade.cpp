@@ -607,8 +607,8 @@ void CFCBFacade::sendHomeLocation(const std::string&target_party_id)  const
     */
     Json_de message=
     {
-        {"T", home.latitude / 10000000.0f},
-        {"O", home.longitude / 10000000.0f},
+        {"T", home.latitude / 1e7},
+        {"O", home.longitude / 1e7},
         {"A", home.altitude / 1000.0f}
     };
 

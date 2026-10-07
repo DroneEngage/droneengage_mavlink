@@ -259,7 +259,7 @@ void CGeoFenceManager::updateGeoFenceHitStatus()
         de::fcb::geofence::GEO_FENCE_STRUCT * g = geo_fence_struct_list[i];
         de::fcb::geofence::CGeoFenceBase * geo_fence = g->geoFence.get();
         const int local_index = geo_fence_struct_list[i]->local_index;
-        double current_position_in_zone = geo_fence->isInside(gpos.lat / 10000000.0f, gpos.lon / 10000000.0f, gpos.alt);
+        double current_position_in_zone = geo_fence->isInside(gpos.lat / 1e7, gpos.lon / 1e7, gpos.alt);
         double previous_position_in_zone = g->parties[local_index].get()->in_zone;
         
         if ((previous_position_in_zone == -INFINITY) || (signum(current_position_in_zone) != signum(previous_position_in_zone)))

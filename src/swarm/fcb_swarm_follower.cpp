@@ -33,8 +33,8 @@ void CSwarmFollower::updateFollowerInThreadFormation()
     // get my own location
     mavlinksdk::CVehicle &vehicle =  mavlinksdk::CVehicle::getInstance();
     const mavlink_global_position_int_t&  my_gpos = vehicle.getMsgGlobalPositionInt();
-    const double leader_lat = m_leader_gpos_new.lat / 10000000.0f;
-    const double leader_lon = m_leader_gpos_new.lon / 10000000.0f;
+    const double leader_lat = m_leader_gpos_new.lat / 1e7;
+    const double leader_lon = m_leader_gpos_new.lon / 1e7;
 
     // get current time
     const u_int64_t now = get_time_usec_monotonic();
@@ -52,8 +52,8 @@ void CSwarmFollower::updateFollowerInThreadFormation()
         return ;
     }
 
-    const double my_lat = my_gpos.lat / 10000000.0f;
-    const double my_lon = my_gpos.lon / 10000000.0f;
+    const double my_lat = my_gpos.lat / 1e7;
+    const double my_lon = my_gpos.lon / 1e7;
 
     const int follower_index = fcb_swarm_manager.getFollowerIndex();
     const double base_distance = (follower_index + 1) * m_min_horizontal_distance; // Base distance from leader
@@ -107,8 +107,8 @@ void CSwarmFollower::updateFollowerInArrowFormation(const bool is_dynamic)
     // Get my own location
     mavlinksdk::CVehicle &vehicle = mavlinksdk::CVehicle::getInstance();
     const mavlink_global_position_int_t &my_gpos = vehicle.getMsgGlobalPositionInt();
-    const double leader_lat = m_leader_gpos_new.lat / 10000000.0f;
-    const double leader_lon = m_leader_gpos_new.lon / 10000000.0f;
+    const double leader_lat = m_leader_gpos_new.lat / 1e7;
+    const double leader_lon = m_leader_gpos_new.lon / 1e7;
 
     // Get current time
     const u_int64_t now = get_time_usec_monotonic();
@@ -195,8 +195,8 @@ void CSwarmFollower::updateFollowerInArrowFormation(const bool is_dynamic)
         }
     }
 
-    const double my_lat = my_gpos.lat / 10000000.0f;
-    const double my_lon = my_gpos.lon / 10000000.0f;
+    const double my_lat = my_gpos.lat / 1e7;
+    const double my_lon = my_gpos.lon / 1e7;
 
     const int follower_index = fcb_swarm_manager.getFollowerIndex();
 
