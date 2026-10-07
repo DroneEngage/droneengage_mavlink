@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 
 #include "mavlink_command.h"
@@ -1022,7 +1023,7 @@ void CMavlinkCommand::gotoGuidedPoint_default(
 
   //    mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
-  mavlink_mission_item_t msg = {0};
+  mavlink_mission_item_int_t msg = {0};
   msg.target_system = m_vehicle.getSysId();
   msg.target_component = m_vehicle.getCompId();
   msg.current = 2; // TODO use guided mode enum
@@ -1032,14 +1033,14 @@ void CMavlinkCommand::gotoGuidedPoint_default(
   msg.param2 = 0;                              // TODO use correct parameter
   msg.param3 = 0;                              // TODO use correct parameter
   msg.param4 = 0;                              // TODO use correct parameter
-  msg.x = (float)latitude;
-  msg.y = (float)longitude;
+  msg.x = (int32_t)std::lround(latitude * 1e7);
+  msg.y = (int32_t)std::lround(longitude * 1e7);
   msg.z = (float)relative_altitude;
   msg.autocontinue = 1; // TODO use correct parameter
 
   mavlink_message_t mavlink_message;
 
-  mavlink_msg_mission_item_encode(GCS_SYSID, 190, &mavlink_message, &msg);
+  mavlink_msg_mission_item_int_encode(GCS_SYSID, 190, &mavlink_message, &msg);
 
   m_mavlink_sdk.sendMavlinkMessage(mavlink_message);
 
