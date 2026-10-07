@@ -243,8 +243,8 @@ void CMavlinkCommand::changeAltitude(const float &altitude) const {
 
   LOCATION_3D location_3d =
       mavlinksdk::CVehicle::getInstance().getPositionforChangeAltitude();
-  gotoGuidedPoint(location_3d.latitude / 10000000.0f,
-                  location_3d.longitude / 10000000.0f, altitude);
+  gotoGuidedPoint(location_3d.latitude / 1e7,
+                  location_3d.longitude / 1e7, altitude);
   // sendLongCommand (MAV_CMD_NAV_TAKEOFF, true,
   // 	-1,  // unused
   // 	0,  // unused
