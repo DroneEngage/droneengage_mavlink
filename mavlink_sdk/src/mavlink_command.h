@@ -46,10 +46,10 @@ public:
                  const int &custom_sub_mode = 0) const;
   void doArmDisarm(const bool &arm, const bool &force) const;
 
-  void setHome(const float &yaw, const float &latitude, const float &longitude,
-               const float &altitude) const;
-  void setROI(const float &latitude, const float &longitude,
-              const float &altitude) const;
+  void setHome(const double &yaw, const double &latitude,
+               const double &longitude, const double &altitude) const;
+  void setROI(const double &latitude, const double &longitude,
+              const double &altitude) const;
   void resetROI() const;
   void cmdTerminateFlight() const;
   void changeAltitude(const float &altitude) const;

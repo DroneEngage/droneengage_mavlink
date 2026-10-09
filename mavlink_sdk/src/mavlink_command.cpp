@@ -194,31 +194,43 @@ void CMavlinkCommand::doSetMode(const int &mode, const int &custom_mode,
  * @param longitude in xx.xxxx format
  * @param altitude  in meters
  */
-void CMavlinkCommand::setHome(const float &yaw, const float &latitude,
-                              const float &longitude,
-                              const float &altitude) const {
-  sendLongCommand(MAV_CMD_DO_SET_HOME, false,
+void CMavlinkCommand::setHome(const double &yaw, const double &latitude,
+                              const double &longitude,
+                              const double &altitude) const {
+  // COMMAND_INT carries lat/lon as degE7 int32 in x/y; COMMAND_LONG would
+  // truncate them to float32 param5/6 (~1 m error).
+  sendIntCommand(MAV_CMD_DO_SET_HOME, MAV_FRAME_GLOBAL,
                   0, // use specified location . if 1 then use current location.
                   0, // unused
                   0, // unused
-                  yaw, latitude, longitude, altitude);
+                  (float)yaw,
+                  (int32_t)std::lround(latitude * 1e7),
+                  (int32_t)std::lround(longitude * 1e7),
+                  (float)altitude);
 
   return;
 }
 
-void CMavlinkCommand::setROI(const float &latitude, const float &longitude,
-                             const float &altitude) const {
-  sendLongCommand(MAV_CMD_DO_SET_ROI, false,
-                  0, // use specified location
+void CMavlinkCommand::setROI(const double &latitude, const double &longitude,
+                             const double &altitude) const {
+  // COMMAND_INT carries lat/lon as degE7 int32 in x/y; COMMAND_LONG would
+  // truncate them to float32 param5/6 (~1 m error). MAV_CMD_DO_SET_ROI_LOCATION
+  // is the command_int variant of the deprecated MAV_CMD_DO_SET_ROI.
+  sendIntCommand(MAV_CMD_DO_SET_ROI_LOCATION, MAV_FRAME_GLOBAL,
                   0, // unused
                   0, // unused
                   0, // unused
-                  latitude, longitude, altitude);
+                  0, // unused
+                  (int32_t)std::lround(latitude * 1e7),
+                  (int32_t)std::lround(longitude * 1e7),
+                  (float)altitude);
 
   return;
 }
 
-void CMavlinkCommand::resetROI() const { setROI(0, 0, 0); }
+void CMavlinkCommand::resetROI() const {
+  sendLongCommand(MAV_CMD_DO_SET_ROI_NONE, false);
+}
 
 /**
  * @brief Flight termination immediately and irreversably terminates the current
